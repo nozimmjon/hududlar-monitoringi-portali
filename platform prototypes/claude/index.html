@@ -1,0 +1,2801 @@
+<!DOCTYPE html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Андижон вилояти — Мақсадли кўрсаткичлар мониторинги 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:   #2563EB; --blue-light:   #EFF6FF; --blue-mid:   #DBEAFE;
+    --amber:  #1D4ED8; --amber-light:  #EFF6FF; --amber-mid:  #BFDBFE;
+    --green:  #1E40AF; --green-light:  #EFF6FF; --green-mid:  #BFDBFE;
+    --violet: #1E3A8A; --violet-light: #EFF6FF; --violet-mid: #BFDBFE;
+    --cyan:   #2563EB; --cyan-light:   #EFF6FF; --cyan-mid:   #BFDBFE;
+    --rose:   #1D4ED8; --rose-light:   #EFF6FF; --rose-mid:   #BFDBFE;
+    --gray-50:  #F8FAFC; --gray-100: #F1F5F9; --gray-200: #E2E8F0;
+    --gray-400: #94A3B8; --gray-600: #475569; --gray-800: #1E293B;
+    --white: #FFFFFF;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    --radius: 16px; --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ─── */
+  .site-header {
+    background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 60%, #2563EB 100%);
+    position: relative; overflow: hidden;
+    color: #fff;
+    color: #fff; padding: 0 32px;
+  }
+  .header-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0; position: relative;
+  }
+  .header-brand { display: flex; align-items: center; gap: 16px; }
+  .header-flag {
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-title h1 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+  .header-title p  { font-size: 13px; opacity: .75; margin-top: 3px; }
+  .header-meta { text-align: right; }
+  .header-meta .year     { font-size: 40px; font-weight: 800; line-height: 1; }
+  .header-meta .subtitle { font-size: 24px; opacity: .7; margin-top: 4px; }
+
+  /* ── SUMMARY STRIP ─── */
+  .summary-strip { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 32px; }
+  .summary-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+  }
+  .sum-item {
+    padding: 14px 16px; border-right: 1px solid var(--gray-200);
+    cursor: pointer; transition: background .15s;
+    text-decoration: none; color: inherit;
+  }
+  .sum-item:last-child { border-right: none; }
+  .sum-item:hover { background: var(--gray-50); }
+  .sum-item .icon  { font-size: 18px; margin-bottom: 5px; }
+  .sum-item .label { font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+  .sum-item .value { font-size: 20px; font-weight: 800; margin-top: 2px; }
+
+  /* Унифицированный стиль всех карточек */
+  .sum-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 18px;
+  }
+  .sum-feat-icon {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  }
+  .sum-feat-icon .si {
+    width: 61px; height: 61px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.16);
+  }
+  .sum-feat-icon .si svg { width: 32px; height: 32px; }
+  .sum-feat-body { display: flex; flex-direction: column; gap: 1px; }
+  .sum-feat-title {
+    font-size: 16px; font-weight: 700; color: #64748B;
+    text-transform: uppercase; letter-spacing: .3px; line-height: 1.2;
+  }
+  .sum-feat-val {
+    font-size: 29px; font-weight: 800; line-height: 1.1; margin-top: 2px;
+  }
+  .sum-feat-sub {
+    font-size: 16px; font-weight: 600; color: #64748B; margin-top: 1px;
+  }
+  .sum-item .badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 20px; margin-top: 4px;
+  }
+  .badge-up   { background: #D1FAE5; color: #065F46; }
+  .badge-warn { background: #FEF3C7; color: #92400E; }
+  .badge-down { background: #FFE4E6; color: #9F1239; }
+
+  /* ── MAIN ─── */
+  .main { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
+
+  /* ── SECTION BLOCK ─── */
+  .section-block {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px;
+  }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; cursor: pointer; user-select: none; transition: background .15s;
+  }
+  .section-header:hover { background: #FAFAFF; }
+  .section-header-left { display: flex; align-items: center; gap: 14px; }
+  .sec-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sec-icon svg { width: 28px; height: 28px; }
+  .sec-info h2 { font-size: 17px; font-weight: 700; }
+  .sec-info p  { font-size: 12px; color: var(--gray-600); margin-top: 2px; }
+  .sec-stats { display: flex; align-items: center; gap: 24px; }
+  .sec-kpi { text-align: right; }
+  .sec-kpi .kpi-val { font-size: 26px; font-weight: 800; line-height: 1; }
+  .sec-kpi .kpi-lbl { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+
+  .progress-ring-wrap { position: relative; width: 64px; height: 64px; }
+  .progress-ring-wrap svg { transform: rotate(-90deg); }
+  .progress-ring-wrap .pct {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .toggle-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: var(--gray-100); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: transform .25s, background .15s; flex-shrink: 0;
+  }
+  .toggle-btn.open { transform: rotate(180deg); background: var(--gray-200); }
+
+  /* ── SECTION BODY ─── */
+  .section-body { display: none; border-top: 1px solid var(--gray-100); }
+  .section-body.open { display: block; }
+
+  .body-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px; padding: 24px;
+  }
+  @media (max-width: 900px) { .body-grid { grid-template-columns: 1fr; } }
+
+  /* KPI cards */
+  .kpi-cards { display: flex; flex-direction: column; gap: 10px; }
+  .kpi-card {
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    border-left: 4px solid;
+  }
+  .kpi-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .kpi-card-title  { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+  .kpi-card-nums   { display: flex; gap: 18px; margin-top: 8px; align-items: flex-end; }
+  .kpi-card-big    { font-size: 22px; font-weight: 800; line-height: 1; }
+  .kpi-card-sub    { font-size: 11px; color: var(--gray-400); }
+  .kpi-card-plan   { font-size: 11px; color: var(--gray-600); margin-top: 6px; }
+  .kpi-card-plan span { font-weight: 700; }
+
+  .bar-wrap  { margin-top: 8px; }
+  .bar-track { background: var(--gray-100); border-radius: 100px; height: 7px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 100px; transition: width 1s ease; }
+  .bar-labels {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--gray-400); margin-top: 3px;
+  }
+
+  /* Tasks panel */
+  .tasks-panel h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .task-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 8px; border-bottom: 1px solid var(--gray-100);
+    cursor: pointer; transition: background .1s; border-radius: 8px;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: var(--gray-50); }
+  .task-checkbox {
+    width: 22px; height: 22px; border-radius: 6px; border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0; margin-top: 1px; cursor: pointer; transition: all .15s;
+  }
+  .task-checkbox.done { border-color: transparent; color: #fff; }
+  .task-checkbox.todo { border-color: var(--gray-300); color: transparent; }
+  .task-content { flex: 1; }
+  .task-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
+  .task-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .task-pct  { font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+  .districts-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 9px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; margin-top: 14px;
+  }
+  .districts-btn:hover { opacity: .85; transform: translateY(-1px); }
+
+  .chart-container { position: relative; height: 200px; }
+
+  /* ── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(15,23,42,.55); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 20px;
+    width: 100%; max-width: 860px; max-height: 90vh;
+    overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg); animation: modalIn .2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(14px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; border-bottom: 1px solid var(--gray-100);
+  }
+  .modal-header h2 { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: var(--gray-100); cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; transition: background .15s;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+  .modal-body { overflow-y: auto; padding: 24px; }
+
+  .district-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .district-card {
+    border-radius: var(--radius-sm); padding: 14px;
+    border: 1px solid var(--gray-200); transition: box-shadow .15s, border-color .15s;
+  }
+  .district-card:hover { box-shadow: var(--shadow); border-color: var(--gray-300); }
+  .district-name   { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .district-val    { font-size: 20px; font-weight: 800; }
+  .district-growth { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .district-growth.up  { color: var(--green); }
+  .district-growth.ok  { color: var(--amber); }
+  .district-growth.bad { color: var(--rose); }
+
+  /* ── FOOTER ─── */
+  .site-footer {
+    text-align: center; padding: 24px;
+    font-size: 12px; color: var(--gray-400); border-top: 1px solid var(--gray-200);
+  }
+
+  /* ── COLOUR THEMES ─── */
+  .t-blue   { --tc: var(--blue);   --tl: var(--blue-light);   }
+  .t-amber  { --tc: var(--amber);  --tl: var(--amber-light);  }
+  .t-green  { --tc: var(--green);  --tl: var(--green-light);  }
+  .t-violet { --tc: var(--violet); --tl: var(--violet-light); }
+  .t-cyan   { --tc: var(--cyan);   --tl: var(--cyan-light);   }
+  .t-rose   { --tc: var(--rose);   --tl: var(--rose-light);   }
+
+  .sec-icon         { background: var(--tl); color: var(--tc); }
+  .sec-kpi .kpi-val { color: #2563EB; }
+  .kpi-card         { background: var(--tl); border-left-color: var(--tc); }
+  .kpi-card-big     { color: var(--tc); }
+  .bar-fill         { background: var(--tc); }
+  .task-checkbox.done { background: var(--tc); }
+  .districts-btn    { background: var(--tc); color: #fff; }
+
+  /* ── CLICKABLE KPI CARD ─── */
+  .kpi-card.clickable {
+    cursor: pointer;
+    transition: box-shadow .15s, transform .1s, border-left-width .15s;
+    position: relative;
+  }
+  .kpi-card.clickable:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.10);
+    transform: translateY(-1px);
+  }
+  .kpi-card.clickable::after {
+    content: '▶ Вазифаларни кўриш';
+    position: absolute; bottom: 8px; right: 10px;
+    font-size: 10px; font-weight: 600; color: var(--tc);
+    opacity: 0; transition: opacity .15s;
+  }
+  .kpi-card.clickable:hover::after { opacity: .7; }
+  .kpi-card.clickable.selected {
+    border-left-width: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.13);
+    background: var(--white) !important;
+    outline: 2px solid var(--tc);
+    outline-offset: -2px;
+  }
+  .kpi-card.clickable.selected::after { content: ''; }
+
+  /* ── TASKS PANEL HEADER ─── */
+  .tasks-panel-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .tasks-panel-header h3 { font-size: 14px; font-weight: 700; }
+  .tasks-panel-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 9px;
+    border-radius: 20px; background: var(--blue-light); color: var(--blue);
+    white-space: nowrap;
+  }
+
+  /* ── VISUAL TASK SECTION ─── */
+  .vtask-section { margin-bottom: 14px; }
+
+  .vtask-section-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-radius: 10px;
+    background: linear-gradient(90deg, #1E3A8A 0%, #2563EB 100%);
+    margin-bottom: 10px;
+  }
+  .vtask-section-header.amber {
+    background: linear-gradient(90deg, #1E3A8A 0%, #2563EB 100%);
+  }
+  .vtask-section-header.green {
+    background: linear-gradient(90deg, #1E3A8A 0%, #2563EB 100%);
+  }
+  .vtask-section-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,.22);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0;
+  }
+  .vtask-section-title {
+    font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3;
+  }
+
+  /* ── VISUAL TASK CARD ─── */
+  .vtask-card {
+    background: var(--gray-50); border-radius: 10px;
+    border-left: 4px solid #2563EB;
+    padding: 12px 14px; margin-bottom: 8px;
+    cursor: pointer; transition: box-shadow .15s, background .1s;
+    position: relative;
+  }
+  .vtask-card:hover { box-shadow: var(--shadow); background: #fff; }
+  .vtask-card.amber-border { border-left-color: #D97706; }
+  .vtask-card.green-border { border-left-color: #059669; }
+  .vtask-card.rose-border  { border-left-color: #E11D48; }
+
+  .vtask-card-top {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  }
+  .vtask-card-check {
+    width: 20px; height: 20px; border-radius: 5px; border: 2px solid #CBD5E1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0; margin-top: 1px;
+    cursor: pointer; transition: all .15s;
+  }
+  .vtask-card-check.done { border-color: transparent; background: #059669; color: #fff; }
+  .vtask-card-title { font-size: 13px; font-weight: 600; line-height: 1.4; flex: 1; }
+  .vtask-card-pct {
+    font-size: 12px; font-weight: 700; white-space: nowrap;
+    padding: 2px 8px; border-radius: 20px;
+    background: #FEF3C7; color: #92400E; flex-shrink: 0;
+  }
+  .vtask-card-pct.green { background: #D1FAE5; color: #065F46; }
+  .vtask-card-pct.blue  { background: #DBEAFE; color: #1E40AF; }
+  .vtask-card-pct.rose  { background: #FFE4E6; color: #9F1239; }
+
+  /* ── MINI STATS ROW inside card ─── */
+  .vtask-stats {
+    display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .vtask-stat {
+    display: flex; flex-direction: column; align-items: flex-start;
+    background: #fff; border: 1px solid #E2E8F0;
+    border-radius: 7px; padding: 5px 10px; min-width: 90px;
+  }
+  .vtask-stat-val { font-size: 14px; font-weight: 800; color: #2563EB; }
+  .vtask-stat-val.amber { color: #D97706; }
+  .vtask-stat-val.green { color: #059669; }
+  .vtask-stat-lbl { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+
+  /* ── BULLET LIST ─── */
+  .vtask-bullets { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .vtask-bullet {
+    display: flex; align-items: flex-start; gap: 7px;
+    font-size: 12px; color: #475569; line-height: 1.4; padding: 2px 0;
+  }
+  .vtask-bullet-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #2563EB;
+    flex-shrink: 0; margin-top: 5px;
+  }
+  .vtask-bullet-dot.amber { background: #D97706; }
+  .vtask-bullet-dot.green { background: #059669; }
+
+  /* ── EXAMPLE CALLOUT ─── */
+  .vtask-example {
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 10px; padding: 12px 14px; margin: 8px 0;
+  }
+  .vtask-example-head {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 700; color: #92400E; margin-bottom: 6px;
+  }
+  .vtask-example-body { font-size: 12px; color: #78350F; line-height: 1.55; }
+  .vtask-example-body b { color: #92400E; }
+
+  /* ── INFLATION PRICE CONTROL CARDS ─── */
+  .inf-panel-left { display: flex; flex-direction: column; gap: 14px; }
+  .inf-row { display: flex; flex-direction: column; gap: 0; }
+  .inf-group {
+    background: #fff; border-radius: 12px;
+    border: 1px solid #E2E8F0; overflow: hidden;
+  }
+  .inf-group-title {
+    background: linear-gradient(90deg, #1E3A8A, #2563EB);
+    color: #fff; font-size: 13px; font-weight: 700;
+    padding: 8px 14px;
+  }
+  .inf-group.amber .inf-group-title  { background: linear-gradient(90deg, #1E3A8A, #2563EB); }
+  .inf-group.green  .inf-group-title { background: linear-gradient(90deg, #1E40AF, #3B82F6); }
+  .inf-group.blue   .inf-group-title { background: linear-gradient(90deg, #1D4ED8, #60A5FA); }
+  .inf-group-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .inf-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 10px; background: #F8FAFC;
+    border-radius: 8px; border-left: 3px solid #CBD5E1;
+  }
+  .inf-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
+  .inf-body { flex: 1; min-width: 0; }
+  .inf-name { font-size: 12px; font-weight: 600; color: #1E293B; margin-bottom: 4px; }
+  .inf-limit-row { display: flex; align-items: center; gap: 8px; }
+  .inf-limit {
+    font-size: 11px; background: #FEF3C7; color: #92400E;
+    border: 1px solid #FDE68A; border-radius: 5px;
+    padding: 2px 7px; white-space: nowrap; flex-shrink: 0;
+  }
+  .inf-bar-mini {
+    flex: 1; height: 6px; background: #E2E8F0;
+    border-radius: 3px; overflow: hidden;
+  }
+  .inf-bar-mini > div { height: 100%; border-radius: 3px; }
+  .inf-stable {
+    font-size: 11px; background: #D1FAE5; color: #065F46;
+    border: 1px solid #6EE7B7; border-radius: 5px;
+    padding: 2px 8px;
+  }
+  .inf-note {
+    font-size: 11px; color: #64748B; font-style: italic;
+    padding: 4px 10px 8px; border-top: 1px dashed #E2E8F0; margin-top: 2px;
+  }
+  .inf-blue .inf-limit { background: #DBEAFE; color: #1E3A8A; border-color: #93C5FD; }
+
+  /* ── TASK PROGRESS BADGE ─── */
+  .eicon { display:inline-block; width:14px; height:14px; vertical-align:-2px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; margin-right:4px; flex-shrink:0; }
+  .task-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: #fff; border-radius: 10px;
+    padding: 6px 14px; cursor: default;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .task-badge-ring {
+    position: relative; width: 36px; height: 36px; flex-shrink: 0;
+  }
+  .task-badge-ring svg { width: 36px; height: 36px; transform: rotate(-90deg); }
+  .task-badge-ring .tb-pct {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 9px; font-weight: 700; color: #1E3A8A;
+  }
+  .task-badge-text { display: flex; flex-direction: column; gap: 1px; }
+  .task-badge-count { font-size: 15px; font-weight: 800; color: #1E3A8A; line-height: 1; }
+  .task-badge-label { font-size: 10px; color: #64748B; font-weight: 500; }
+
+  /* ── QUARTER SWITCHER ─── */
+  .quarter-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; padding: 8px 24px 10px;
+  }
+  .q-btn {
+    padding: 6px 18px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.75);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    letter-spacing: 0.01em;
+  }
+  .q-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+  .q-btn.active {
+    background: #fff; color: #1E3A8A;
+    border-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .q-label {
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    margin-right: 4px; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <!-- Геометрик паттерн фони -->
+  <svg style="position:absolute;top:0;right:0;width:60%;height:100%;opacity:0.18;pointer-events:none" viewBox="0 0 800 160" preserveAspectRatio="xMaxYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke="#fff" stroke-width="1.5">
+      <!-- Ромб паттерн -->
+      <polygon points="650,10 700,50 650,90 600,50"/>
+      <polygon points="700,10 750,50 700,90 650,50"/>
+      <polygon points="750,10 800,50 750,90 700,50"/>
+      <polygon points="600,10 650,50 600,90 550,50"/>
+      <polygon points="550,10 600,50 550,90 500,50"/>
+      <polygon points="650,70 700,110 650,150 600,110"/>
+      <polygon points="700,70 750,110 700,150 650,110"/>
+      <polygon points="750,70 800,110 750,150 700,110"/>
+      <polygon points="600,70 650,110 600,150 550,110"/>
+      <polygon points="500,10 550,50 500,90 450,50"/>
+      <polygon points="450,30 500,70 450,110 400,70"/>
+      <polygon points="550,70 600,110 550,150 500,110"/>
+      <polygon points="500,70 550,110 500,150 450,110"/>
+    </g>
+    <g fill="rgba(255,255,255,0.06)">
+      <polygon points="650,10 700,50 650,90 600,50"/>
+      <polygon points="700,70 750,110 700,150 650,110"/>
+      <polygon points="550,10 600,50 550,90 500,50"/>
+      <polygon points="600,70 650,110 600,150 550,110"/>
+    </g>
+  </svg>
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-flag">
+        <img src="images/cerr_logo-removebg-preview.png" alt="CERR" style="height:62px;filter:brightness(0) invert(1);opacity:0.9;">
+      </div>
+      <div class="header-title" style="margin-left:24px;">
+        <h1>Андижон вилояти</h1>
+        <p>Мақсадли кўрсаткичлар мониторинги • Белгиланган вазифалар</p>
+      </div>
+    </div>
+    <div style="position:absolute;left:60%;transform:translateX(-50%);font-size:52px;font-weight:900;color:rgba(255,255,255,0.65);letter-spacing:6px;line-height:1;user-select:none;pointer-events:none;">KPI</div>
+    <div class="header-meta">
+      <div class="year">2026</div>
+      <div class="subtitle">II-чорак</div>
+    </div>
+  </div>
+  <div class="quarter-bar">
+    <button class="q-btn" onclick="selectQuarter(this,'q1')">I-чорак</button>
+    <button class="q-btn active" onclick="selectQuarter(this,'q2')">II-чорак</button>
+    <button class="q-btn" onclick="selectQuarter(this,'q3')">III-чорак</button>
+    <button class="q-btn" onclick="selectQuarter(this,'q4')">IV-чорак</button>
+  </div>
+</header>
+
+<!-- ═══ SUMMARY STRIP ═══ -->
+<div class="summary-strip">
+  <div class="summary-inner">
+    <a class="sum-item" href="#sec1" onclick="openSection('sec1')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1E3A8A,#2563EB)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">ЯҲМ</div>
+        <div class="sum-feat-val" style="color:var(--blue)">+7,2%</div>
+        <div class="sum-feat-sub">52,1 трлн сўм</div>
+      </div>
+    </a>
+    <a class="sum-item" href="#sec2" onclick="openSection('sec2')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1E3A8A,#2563EB)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">Инфляция</div>
+        <div class="sum-feat-val" style="color:var(--amber)">2,9%</div>
+      </div>
+    </a>
+    <a class="sum-item" href="#sec3" onclick="openSection('sec3')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1E40AF,#3B82F6)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 8 12 2 2 8"/>
+            <line x1="6" y1="8" x2="6" y2="21"/>
+            <line x1="10" y1="8" x2="10" y2="21"/>
+            <line x1="14" y1="8" x2="14" y2="21"/>
+            <line x1="18" y1="8" x2="18" y2="21"/>
+            <line x1="2" y1="21" x2="22" y2="21"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">Бюджет</div>
+        <div class="sum-feat-val" style="color:var(--green)">+7,9%</div>
+        <div class="sum-feat-sub">1,3 трлн сўм</div>
+      </div>
+    </a>
+    <a class="sum-item" href="#sec4" onclick="openSection('sec4')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1E3A8A,#2563EB)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">Инвестиция</div>
+        <div class="sum-feat-val" style="color:var(--violet)">2,1 б.р.</div>
+        <div class="sum-feat-sub">1,8 млрд долл.</div>
+      </div>
+    </a>
+    <a class="sum-item" href="#sec5" onclick="openSection('sec5')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1D4ED8,#60A5FA)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            <path d="m16 8 2-2"/>
+            <polyline points="14 6 16 6 16 8"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">Экспорт</div>
+        <div class="sum-feat-val" style="color:var(--cyan)">+21%</div>
+        <div class="sum-feat-sub">361,6 млн $</div>
+      </div>
+    </a>
+    <a class="sum-item" href="#sec6" onclick="openSection('sec6')">
+      <div class="sum-feat-icon">
+        <div class="si" style="background:linear-gradient(135deg,#1E3A8A,#2563EB)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sum-feat-body">
+        <div class="sum-feat-title">Ишсизлик</div>
+        <div class="sum-feat-val" style="color:var(--rose)">3,8%</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- ████ I БЎЛиМ: МАКРО ████ -->
+  <div class="section-block t-blue" id="sec1">
+    <div class="section-header" onclick="toggleSection('sec1')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>I. Макроиқтисодий кўрсаткичлар</h2>
+          <p>ЯҲМ, Саноат, Қишлоқ хўжалиги, Қурилиш, Бозор хизматлари</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">+7,2%</div>
+          <div class="kpi-lbl">ЯҲМ</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="40" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#2563EB">75%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec1"></div>
+        <button class="toggle-btn" id="btn-sec1">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec1">
+      <div class="body-grid">
+        <div class="kpi-cards" id="sec1-kpi-cards">
+          <div class="kpi-card clickable" data-kpi="yahm" onclick="selectKpi(this,'yahm')">
+            <div class="kpi-card-title">🏭 ЯҲМ (Ялпи ички маҳсулот)</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">+8,6%</div><div class="kpi-card-sub">I чорак ўсиши</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ +7,8%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:18%"></div></div>
+              <div class="bar-labels"><span>I чорак: 18% бажарилди</span><span>Мақсад: +7,8%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card clickable" data-kpi="sanoat" onclick="selectKpi(this,'sanoat')">
+            <div class="kpi-card-title">⚙️ Саноат маҳсулотлари ишлаб чиқариш</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">+8,4%</div><div class="kpi-card-sub">I чорак ўсиши</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ +8,2%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:21%"></div></div>
+              <div class="bar-labels"><span>I чорак: 21% бажарилди</span><span>Мақсад: +8,2%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card clickable" data-kpi="qishloq" onclick="selectKpi(this,'qishloq')">
+            <div class="kpi-card-title">🌾 Қишлоқ хўжалиги маҳсулотлари</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">+5,7%</div><div class="kpi-card-sub">I чорак ўсиши</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ +4,9%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:9%"></div></div>
+              <div class="bar-labels"><span>I чорак: 9% бажарилди</span><span>Мақсад: +4,9%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card clickable" data-kpi="qurilish" onclick="selectKpi(this,'qurilish')">
+            <div class="kpi-card-title">🏗️ Қурилиш ишлари</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">+13,5%</div><div class="kpi-card-sub">I чорак ўсиши</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ +12,5%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:18%"></div></div>
+              <div class="bar-labels"><span>I чорак: 18% бажарилди</span><span>Мақсад: +12,5%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card clickable" data-kpi="bozor" onclick="selectKpi(this,'bozor')">
+            <div class="kpi-card-title">🛍️ Бозор хизматлари</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">+14,2%</div><div class="kpi-card-sub">I чорак ўсиши</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ +15,5%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:22%"></div></div>
+              <div class="bar-labels"><span>I чорак: 22% бажарилди</span><span>Мақсад: +15,5%</span></div>
+            </div>
+          </div>
+          <button class="districts-btn" onclick="openModal('modal-macro')">🗺️ Туманлар бўйича кўриш</button>
+        </div>
+
+        <div>
+          <div class="tasks-panel" id="sec1-tasks">
+            <!-- JS tomonidan to'ldiriladi -->
+          </div>
+          <div style="margin-top:16px;">
+            <canvas id="macroChart" class="chart-container"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ████ II БЎЛиМ: ИНФЛЯЦИЯ ████ -->
+  <div class="section-block t-amber" id="sec2">
+    <div class="section-header" onclick="toggleSection('sec2')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>II. Инфляция</h2>
+          <p>Озиқ-овқат баланси, стратегик захиралар, нарх назорати</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">2,9%</div>
+          <div class="kpi-lbl">Инфляция</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="49" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#D97706">70%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec2"></div>
+        <button class="toggle-btn" id="btn-sec2">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec2">
+      <div class="body-grid">
+
+        <!-- ЧАП ТОМОН: нарх назорати -->
+        <div class="inf-panel-left">
+          <div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span style="background:#FEF3C7;border-radius:7px;padding:4px 10px;font-size:12px">📋 Нарх ошишига чегара белгиланган</span>
+          </div>
+
+          <!-- Гўшт, тухум, сут -->
+          <div class="inf-group">
+            <div class="inf-group-title">🥩 Гўшт ва протеин маҳсулотлари</div>
+            <div class="inf-row">
+              <div class="inf-item">
+                <div class="inf-icon">🥩</div>
+                <div class="inf-body">
+                  <div class="inf-name">Гўшт ва гўшт маҳсулотлари</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>6–7%</b></span>
+                    <div class="inf-bar-mini"><div style="width:65%;background:#D97706"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🥚</div>
+                <div class="inf-body">
+                  <div class="inf-name">Тухум</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>5–6%</b></span>
+                    <div class="inf-bar-mini"><div style="width:55%;background:#D97706"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🥛</div>
+                <div class="inf-body">
+                  <div class="inf-name">Сут ва сут маҳсулотлари</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>6–7%</b></span>
+                    <div class="inf-bar-mini"><div style="width:60%;background:#D97706"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Сабзавот -->
+          <div class="inf-group green">
+            <div class="inf-group-title">🥕 Сабзавот ва мева</div>
+            <div class="inf-row">
+              <div class="inf-item">
+                <div class="inf-icon">🥔</div>
+                <div class="inf-body">
+                  <div class="inf-name">Картошка</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>4–5%</b></span>
+                    <div class="inf-bar-mini"><div style="width:45%;background:#059669"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🧅</div>
+                <div class="inf-body">
+                  <div class="inf-name">Пиёз (йиллик)</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>5%</b></span>
+                    <div class="inf-bar-mini"><div style="width:50%;background:#059669"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🥕</div>
+                <div class="inf-body">
+                  <div class="inf-name">Сабзи</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit">max <b>5%</b></span>
+                    <div class="inf-bar-mini"><div style="width:50%;background:#059669"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="inf-note">🍅 Помидор, бодринг ва мевалар нархига мавсумий омиллар таъсирини пасайтириш</div>
+          </div>
+
+          <!-- Дон, коммунал -->
+          <div class="inf-group amber">
+            <div class="inf-group-title">🌾 Дон маҳсулотлари</div>
+            <div class="inf-row">
+              <div class="inf-item">
+                <div class="inf-icon">🍚</div>
+                <div class="inf-body">
+                  <div class="inf-name">Гуруч</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit inf-stable">2025 даражаси</span>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🌾</div>
+                <div class="inf-body">
+                  <div class="inf-name">Ун (ўртача нарх)</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit inf-stable">2025 даражаси</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="inf-group blue">
+            <div class="inf-group-title">🔌 Коммунал хизматлар тарифи</div>
+            <div class="inf-row">
+              <div class="inf-item">
+                <div class="inf-icon">💧</div>
+                <div class="inf-body">
+                  <div class="inf-name">Ичимлик суви ва оқова</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit inf-blue">max <b>50%</b></span>
+                    <div class="inf-bar-mini"><div style="width:50%;background:#2563EB"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🗑️</div>
+                <div class="inf-body">
+                  <div class="inf-name">Маиший чиқинди ташиш</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit inf-blue">max <b>10%</b></span>
+                    <div class="inf-bar-mini"><div style="width:10%;background:#2563EB"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="inf-item">
+                <div class="inf-icon">🚌</div>
+                <div class="inf-body">
+                  <div class="inf-name">Жамоат транспорти</div>
+                  <div class="inf-limit-row">
+                    <span class="inf-limit inf-blue">max <b>10%</b></span>
+                    <div class="inf-bar-mini"><div style="width:10%;background:#2563EB"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="inf-note" style="background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF">ℹ️ Тарифлар режа-график асосида Иқтисодиёт ва молия вазирлиги билан келишган ҳолда қайта кўриб чиқилади</div>
+          </div>
+        </div>
+
+        <!-- ЎНГ ТОМОН: вазифалар -->
+        <div style="padding-right:4px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+            <span>✅ Вазифалар ва чора-тадбирлар</span>
+          </div>
+
+          <!-- VAZIFA 2 -->
+          <div class="vtask-section">
+            <div class="vtask-section-header amber">
+              <div class="vtask-section-num">2</div>
+              <div class="vtask-section-title">Аҳолини гўшт маҳсулотлари билан таъминлаш</div>
+            </div>
+            <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Аҳоли истеъмоли учун ойига гўшт маҳсулотлари етказиб бериш</div>
+                <span class="vtask-card-pct">Жараёнда</span>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><span class="vtask-stat-val amber">9 878 т</span><span class="vtask-stat-lbl">Мол гўшти (ойига)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">2 334 т</span><span class="vtask-stat-lbl">Қўй гўшти (ойига)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">2 275 т</span><span class="vtask-stat-lbl">Парранда (ойига)</span></div>
+              </div>
+            </div>
+            <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Совутгичли мева-сабзавот омборлари қуриш</div>
+                <span class="vtask-card-pct">35%</span>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><span class="vtask-stat-val amber">4 та</span><span class="vtask-stat-lbl">Ярим йиллик (1 300 т)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">33 та</span><span class="vtask-stat-lbl">Йил якуни (8 810 т)</span></div>
+              </div>
+            </div>
+            <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Хориждан наслли қорамол олиб келиш</div>
+                <span class="vtask-card-pct">40%</span>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><span class="vtask-stat-val amber">800 бош</span><span class="vtask-stat-lbl">Йирик қорамол (ярим йиллик)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">1 000 бош</span><span class="vtask-stat-lbl">Йирик қорамол (йил якуни)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">950 бош</span><span class="vtask-stat-lbl">Майда шохли (ярим йил)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">970 бош</span><span class="vtask-stat-lbl">Майда шохли (йил якуни)</span></div>
+              </div>
+            </div>
+            <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Озуқа базасини мустаҳкамлаш — озуқабоп экинлар экиш</div>
+                <span class="vtask-card-pct">30%</span>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><span class="vtask-stat-val amber">36,9 минг га</span><span class="vtask-stat-lbl">Жами майдон</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">18,9 минг га</span><span class="vtask-stat-lbl">Асосий ер майдони</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val amber">18 минг га</span><span class="vtask-stat-lbl">Ғалладан бўшаган</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VAZIFA 3 -->
+          <div class="vtask-section">
+            <div class="vtask-section-header">
+              <div class="vtask-section-num">3</div>
+              <div class="vtask-section-title">Асосий озиқ-овқат захира омборхоналари</div>
+            </div>
+            <div class="vtask-card" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check done">✓</div>
+                <div class="vtask-card-title">Вилоятда жами <b>409 та</b> омборхона, умумий сиғими <b>145 556 тонна</b></div>
+                <span class="vtask-card-pct green">100%</span>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Андижон ш: <b>13 та</b> (10 600 тн) &nbsp;|&nbsp; Хонобод ш: <b>9 та</b> (635 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Андижон: <b>48 та</b> (13 300 тн) &nbsp;|&nbsp; Асака: <b>18 та</b> (7 450 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Балиқчи: <b>11 та</b> (2 845 тн) &nbsp;|&nbsp; Булоқбоши: <b>17 та</b> (8 820 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Бўстон: <b>33 та</b> (13 050 тн) &nbsp;|&nbsp; Жалақудуқ: <b>16 та</b> (8 440 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Избоскан: <b>9 та</b> (2 850 тн) &nbsp;|&nbsp; Улуғнор: <b>8 та</b> (2 450 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Қўрғонтепа: <b>35 та</b> (19 390 тн) &nbsp;|&nbsp; Марҳамат: <b>21 та</b> (8 550 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Олтинкўл: <b>48 та</b> (8 050 тн) &nbsp;|&nbsp; Пахтаобод: <b>17 та</b> (3 450 тн)</span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot"></div><span>Хўжаобод: <b>70 та</b> (14 400 тн) &nbsp;|&nbsp; Шаҳрихон: <b>36 та</b> (21 246 тн)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VAZIFA 4 -->
+          <div class="vtask-section">
+            <div class="vtask-section-header green">
+              <div class="vtask-section-num">4</div>
+              <div class="vtask-section-title">Захира жамғармасини шакллантириш</div>
+            </div>
+            <div class="vtask-card green-border" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Аҳолини озиқ-овқат билан таъминлаш захира жамғармасини <b>50 млрд сўм</b>га etkazish</div>
+                <span class="vtask-card-pct">40%</span>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><span class="vtask-stat-val green">50 млрд</span><span class="vtask-stat-lbl">Мақсадли захира (сўм)</span></div>
+                <div class="vtask-stat"><span class="vtask-stat-val green">2026 й.</span><span class="vtask-stat-lbl">Маҳаллий бюджет ортиқча ижросидан</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VAZIFA 5 -->
+          <div class="vtask-section">
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#1E3A8A 0%,#2563EB 100%)">
+              <div class="vtask-section-num">5</div>
+              <div class="vtask-section-title">Қурбон ҳайити арзонлаштирилган ярмаркалари</div>
+            </div>
+            <div class="vtask-card" style="border-left-color:#9333EA" onclick="toggleVtask(this)">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">Вилоятда жами <b>17 та</b> арзонлаштирилган ярмарка ташкил этилади</div>
+                <span class="vtask-card-pct" style="background:#F3E8FF;color:#6B21A8">Режа</span>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#9333EA"></div><span>Мол гўшти: <b>850 тн</b> &nbsp;|&nbsp; Қўй гўшти: <b>510 тн</b> &nbsp;|&nbsp; Парранда: <b>340 тн</b></span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#9333EA"></div><span>Картошка: <b>3 700 тн</b> &nbsp;|&nbsp; Сабзи: <b>5 100 тн</b> &nbsp;|&nbsp; Пиёз: <b>5 950 тн</b></span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#9333EA"></div><span>Гуруч: <b>850 тн</b> &nbsp;|&nbsp; Ўсимлик ёғи: <b>440 тн</b> &nbsp;|&nbsp; Ун: <b>30,6 тн</b></span></div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#9333EA"></div><span>Шакар: <b>22 тн</b> &nbsp;|&nbsp; Товуқ тухуми: <b>27 млн 300 минг</b> дона</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ████ III БЎЛиМ: БЮДЖЕТ ████ -->
+  <div class="section-block t-green" id="sec3">
+    <div class="section-header" onclick="toggleSection('sec3')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 8 12 2 2 8"/><line x1="6" y1="8" x2="6" y2="21"/><line x1="10" y1="8" x2="10" y2="21"/><line x1="14" y1="8" x2="14" y2="21"/><line x1="18" y1="8" x2="18" y2="21"/><line x1="2" y1="21" x2="22" y2="21"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>III. Бюджет тушумлари</h2>
+          <p>Солиқ тушумлари, яширин иқтисодиётни камайтириш, туманлар бўйича ижро</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">+7,9%</div>
+          <div class="kpi-lbl">Бюджет</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="25" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#059669">85%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec3"></div>
+        <button class="toggle-btn" id="btn-sec3">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec3">
+      <div class="body-grid">
+        <div class="kpi-cards">
+          <div class="kpi-card">
+            <div class="kpi-card-title">💳 Йиллик бюджет режа ва ижро</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">5 299 млрд</div><div class="kpi-card-sub">Йиллик режа (сўм)</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">→ 5 889 млрд</div><div class="kpi-card-sub">Кутилаётган ижро</div></div>
+            </div>
+            <div class="kpi-card-plan">Ортиқча бажарилиш: <span>+590 млрд сўм</span> (+<span>11.1%</span>)</div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
+              <div class="bar-labels"><span>Ижро: 111.1%</span><span>5 889 млрд</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">📊 I ярим йиллик бюджет</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">2 407 млрд</div><div class="kpi-card-sub">Ярим йиллик режа</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">2 599 млрд</div><div class="kpi-card-sub">Ярим йиллик кутилаётган</div></div>
+            </div>
+            <div class="kpi-card-plan">Ярим йиллик ўсиш: <span>+7.9%</span> • Фарқ: <span>+192 млрд</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <div class="bar-labels"><span>Ярим йиллик ижро: 107.9%</span><span>2 599 млрд</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🏦 ДСБ солиқ тўловчилар</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">4 940 млрд</div><div class="kpi-card-sub">Кутилаётган ижро</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ 111.7%</div></div>
+            </div>
+            <div class="kpi-card-plan">Йиллик режа: <span>4 423 млрд</span> → Ижро: <span>4 940 млрд</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+              <div class="bar-labels"><span>Режадан юқори</span><span>4 940 млрд</span></div>
+            </div>
+          </div>
+          <button class="districts-btn" onclick="openModal('modal-budget')">🗺️ Туманлар бўйича бюджет ижроси</button>
+        </div>
+
+        <div>
+          <div class="tasks-panel">
+            <div class="tasks-panel-header">
+              <h3>✅ Вазифалар ва ижро ҳолати</h3>
+              <span class="tasks-panel-tag">I Ярим йиллик — Қўшимча тушум манбалари</span>
+            </div>
+
+            <!-- Раздел: общий итог -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">📊</div>
+              <div class="vtask-section-title">Ярим йилликда режадан ортиқча тушум манбалари: <b style="color:#D1FAE5">117 млрд сўм</b></div>
+            </div>
+
+            <!-- 1. Қурилиш -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#2563EB;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🏗️ Қурилиш соҳаси — яширин иқтисодиётни қисқартириш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#2563EB">22 млрд</div><div class="vtask-stat-label">қўшимча тушум</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">Ярим йиллик</div><div class="vtask-stat-label">давр</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot blue"></div>Яширин иқтисодиёт улушини аниқлаш ва қисқартириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot blue"></div>Норасмий қурилиш объектларини расмийлаштириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot blue"></div>Подряд шартномаларини тўлиқ солиқ базасига киритиш</div>
+              </div>
+            </div>
+
+            <!-- 2. Саноат -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#7C3AED;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">⚙️ Саноат соҳаси — солиқ маъмурчилиги ва яширин айланма</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#7C3AED">36 млрд</div><div class="vtask-stat-label">қўшимча тушум</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">Энг йирик</div><div class="vtask-stat-label">манба</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>Солиқ маъмурчилигини яхшилаш — мониторинг кучайтириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>Яширин айланмаларни қисқартириш орқали база кенгайтириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>Корхоналардаги норасмий ишлаб чиқаришни легаллаштириш</div>
+              </div>
+            </div>
+
+            <!-- 3. Савдо -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#D97706;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🛍️ Савдо соҳаси — айланмаларни тўлиқ расмийлаштириш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#D97706">20 млрд</div><div class="vtask-stat-label">қўшимча тушум</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">Соядан чиқариш</div><div class="vtask-stat-label">усул</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div>Савдо айланмаларини тўлиқ расмий ҳисобга олиш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div>Онлайн касса ва ҳисоб-фактура тизимини кенгайтириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div>Солиқ базасини «соядан» чиқариш чоралари</div>
+              </div>
+            </div>
+
+            <!-- 4. Хизматлар -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#059669;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">💼 Хизмат кўрсатиш — яширин айланмаларни қисқартириш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">17 млрд</div><div class="vtask-stat-label">қўшимча тушум</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">Ярим йиллик</div><div class="vtask-stat-label">давр</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Солиқ маъмурчилигини яхшилаш — хизматлар бозори</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Яширин айланмаларни аниқлаш ва расмийлаштириш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Хизмат кўрсатиш субъектларини тўлиқ рўйхатга олиш</div>
+              </div>
+            </div>
+
+            <!-- 5. Транспорт -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#0EA5E9;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🚛 Транспорт хизматлари — тўловларни расмийлаштириш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#0EA5E9">22 млрд</div><div class="vtask-stat-label">қўшимча тушум</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">Легаллаштириш</div><div class="vtask-stat-label">+бошқа йўналишлар</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#0EA5E9"></div>Транспорт хизматлари ҳажмини тўлиқ ҳисобга олиш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#0EA5E9"></div>Тўловларни расмийлаштириш — ноқонуний тушумларни йўқотиш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#0EA5E9"></div>Норасмий ишловчиларни легаллаштириш ва рўйхатга олиш</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#0EA5E9"></div>Бошқа йўналишлар орқали қўшимча тушум таъминлаш</div>
+              </div>
+            </div>
+
+            <!-- Итог callout -->
+            <div class="vtask-example">
+              <div class="vtask-example-head">📌 Жами режадан ортиқча тушум мақсади</div>
+              <div class="vtask-example-body">
+                Биринчи ярим йилликда яширин иқтисодиётни қисқартириш ва солиқ базасини кенгайтириш орқали жами
+                <b>117 млрд сўм</b> қўшимча бюджет тушуми таъминланади:
+                қурилиш <b>22</b> + саноат <b>36</b> + савдо <b>20</b> + хизматлар <b>17</b> + транспорт <b>22</b> = <b>117 млрд сўм</b>.
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <canvas id="budgetChart" class="chart-container"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ████ IV БЎЛиМ: ИНВЕСТИЦИЯЛАР ████ -->
+  <div class="section-block t-violet" id="sec4">
+    <div class="section-header" onclick="toggleSection('sec4')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>IV. Инвестиция ва лойиҳалар</h2>
+          <p>Хорижий инвестициялар, бюджет лойиҳалари, инфратузилма</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">2,1 б.р.</div>
+          <div class="kpi-lbl">Инвестиция</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="16" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#7C3AED">90%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec4"></div>
+        <button class="toggle-btn" id="btn-sec4">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec4">
+      <div class="body-grid">
+        <div class="kpi-cards">
+          <div class="kpi-card">
+            <div class="kpi-card-title">💵 Хорижий инвестициялар (I чорак)</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">880 млн $</div><div class="kpi-card-sub">I чорак амалда</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ 166.9%</div><div class="kpi-card-sub">Режа ижроси</div></div>
+            </div>
+            <div class="kpi-card-plan">Йиллик мақсад: <span>3.5 млрд $</span> • I чорак улуши: <span>25.1%</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:25%"></div></div>
+              <div class="bar-labels"><span>I чорак: 880 млн $</span><span>Йиллик: 3 500 млн $</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🚀 Энг йирик лойиҳа — Tetratex</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">147 млн $</div><div class="kpi-card-sub">Лойиҳа қиймати</div></div>
+              <div><div style="font-size:13px;font-weight:600">1 500 янги иш ўрни</div></div>
+            </div>
+            <div class="kpi-card-plan">Жойлашув: <span>Балиқчи тумани</span> • Соҳа: <span>Тўқимачилик</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:65%"></div></div>
+              <div class="bar-labels"><span>Қуриш босқичи</span><span>65% тайёр</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🛣️ Йўл қурилиши</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">47.4 км</div><div class="kpi-card-sub">Янги йўл режа</div></div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--amber)">Жараёнда</div></div>
+            </div>
+            <div class="kpi-card-plan">Бир нечта туманларда инфратузилма ва йўл яхшилаш дастури</div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:40%"></div></div>
+              <div class="bar-labels"><span>Бажарилди: ~19 км</span><span>Режа: 47.4 км</span></div>
+            </div>
+          </div>
+
+          <!-- 2.1. Хорижий инвестиция дастури -->
+          <div style="background:#fff;border-radius:14px;border:1px solid #DDD6FE;overflow:hidden;margin-top:4px">
+            <div style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);padding:10px 16px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">🌐</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#fff">2.1. Хорижий инвестицияларни жалб қилиш</div>
+                <div style="font-size:11px;color:#DDD6FE">Инвестиция дастури доирасида</div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+
+              <!-- I ярим йиллик -->
+              <div style="background:#F5F3FF;border-radius:10px;border-left:4px solid #7C3AED;padding:11px 14px">
+                <div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:7px">
+                  <span style="background:#EDE9FE;border-radius:5px;padding:2px 8px">📅 I Ярим йиллик</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">
+                  <span style="font-size:22px;font-weight:800;color:#5B21B6">1 783 млн $</span>
+                  <span style="font-size:12px;font-weight:700;background:#EDE9FE;color:#6D28D9;border-radius:6px;padding:2px 8px">ўсиш × 2,1</span>
+                </div>
+                <div style="height:7px;background:#DDD6FE;border-radius:4px;overflow:hidden;margin-bottom:6px">
+                  <div style="width:51%;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:4px"></div>
+                </div>
+                <div style="font-size:11px;color:#6D28D9">Йиллик мақсаднинг <b>51%</b> — биринчи ярим йилликда</div>
+              </div>
+
+              <!-- Йил якуни -->
+              <div style="background:#F5F3FF;border-radius:10px;border-left:4px solid #059669;padding:11px 14px">
+                <div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:7px">
+                  <span style="background:#D1FAE5;border-radius:5px;padding:2px 8px">🎯 Йил якуни мақсади</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">
+                  <span style="font-size:22px;font-weight:800;color:#065F46">3,5 млрд $</span>
+                  <span style="font-size:12px;font-weight:700;background:#D1FAE5;color:#065F46;border-radius:6px;padding:2px 8px">1,8 баробар</span>
+                </div>
+                <div style="height:7px;background:#A7F3D0;border-radius:4px;overflow:hidden;margin-bottom:6px">
+                  <div style="width:100%;height:100%;background:linear-gradient(90deg,#2563EB,#93C5FD);border-radius:4px"></div>
+                </div>
+                <div style="font-size:11px;color:#065F46">Жами хорижий инвестициялар ва кредитлар</div>
+              </div>
+
+              <!-- Қўшимча -->
+              <div style="background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A;padding:10px 14px;display:flex;align-items:center;gap:12px">
+                <span style="font-size:26px">➕</span>
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:2px">Қўшимча хорижий инвестициялар ва кредитлар</div>
+                  <div style="font-size:19px;font-weight:800;color:#B45309">166,9 млн $</div>
+                  <div style="font-size:11px;color:#78350F;margin-top:2px">Дастурга қўшимча равишда жалб қилинади</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="tasks-panel">
+            <div class="tasks-panel-header">
+              <h3>✅ Вазифалар ва ижро ҳолати</h3>
+              <span class="tasks-panel-tag">Инвестиция лойиҳалари — Ишга тушириш</span>
+            </div>
+
+            <!-- Сарлавҳа баннер -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">🏭</div>
+              <div class="vtask-section-title">Лойиҳаларни ишга тушириш дастури</div>
+            </div>
+
+            <!-- Умумий рақамлар — 2 блок -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+
+              <!-- I ярим йиллик -->
+              <div style="background:#F5F3FF;border-radius:10px;border-left:4px solid #7C3AED;padding:11px 13px">
+                <div style="font-size:10px;font-weight:700;color:#6D28D9;margin-bottom:5px">
+                  <span style="background:#EDE9FE;border-radius:4px;padding:2px 7px">📅 I Ярим йиллик</span>
+                </div>
+                <div style="font-size:18px;font-weight:800;color:#5B21B6;line-height:1.1">398 млн $</div>
+                <div style="font-size:20px;font-weight:800;color:#7C3AED;margin:2px 0">155 та</div>
+                <div style="font-size:11px;color:#6D28D9">лойиҳа ишга туширилади</div>
+              </div>
+
+              <!-- Йил якуни -->
+              <div style="background:#F0FDF4;border-radius:10px;border-left:4px solid #059669;padding:11px 13px">
+                <div style="font-size:10px;font-weight:700;color:#065F46;margin-bottom:5px">
+                  <span style="background:#D1FAE5;border-radius:4px;padding:2px 7px">🎯 Йил якуни</span>
+                </div>
+                <div style="font-size:18px;font-weight:800;color:#065F46;line-height:1.1">1 335 млн $</div>
+                <div style="font-size:20px;font-weight:800;color:#059669;margin:2px 0">307 та</div>
+                <div style="font-size:11px;color:#065F46">лойиҳа ишга туширилади</div>
+              </div>
+            </div>
+
+            <!-- Иш ўринлари -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#059669;margin-bottom:8px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">👷 Йил якунида янги иш ўринлари яратиш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">30 900</div><div class="vtask-stat-label">янги иш ўрни</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">307 та</div><div class="vtask-stat-label">лойиҳа натижасида</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Йил якунига қадар 30,9 минг та иш ўрни яратилади</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Барча лойиҳалар бўйича ижро мониторинги олиб борилади</div>
+              </div>
+            </div>
+
+            <!-- Tetratex мисол -->
+            <div class="vtask-example">
+              <div class="vtask-example-head">
+                <span>📌</span> Намунавий лойиҳа — Балиқчи тумани
+              </div>
+              <div class="vtask-example-body">
+                <b>"Tetratex" МЧЖ</b> томонидан тўқимачилик маҳсулотлари ишлаб чиқаришни ташкил қилиш лойиҳаси
+                ишга туширилади. Лойиҳа қиймати — <b>147 млн $</b>.
+                Натижасида <b>1 500 та янги иш ўрни</b> яратилади.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ████ V БЎЛиМ: ЭКСПОРТ ████ -->
+  <div class="section-block t-cyan" id="sec5">
+    <div class="section-header" onclick="toggleSection('sec5')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>V. Экспорт</h2>
+          <p>Саноат ва мева-сабзавот экспорти, янги бозорлар, муаммоли корхоналар</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">+21%</div>
+          <div class="kpi-lbl">Экспорт</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="33" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#0891B2">80%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec5"></div>
+        <button class="toggle-btn" id="btn-sec5">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec5">
+      <div class="body-grid">
+        <div class="kpi-cards">
+          <div class="kpi-card">
+            <div class="kpi-card-title">📦 I чорак экспорт режа ва амал</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">196.6 млн $</div><div class="kpi-card-sub">I чорак амалда</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ 140.6%</div><div class="kpi-card-sub">Режа ижроси</div></div>
+            </div>
+            <div class="kpi-card-plan">I чорак режа: <span>139.8 млн $</span> • Ортиқча: <span>+56.8 млн $</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <div class="bar-labels"><span>I чорак: 140.6% бажарилди</span><span>Режа: 139.8 млн $</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🏭 Саноат маҳсулотлари экспорти</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">178.5 млн $</div><div class="kpi-card-sub">I чорак амалда</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ 146.1%</div></div>
+            </div>
+            <div class="kpi-card-plan">I чорак режа: <span>122.2 млн $</span> • Ўсиш: <span>175.2%</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <div class="bar-labels"><span>Режадан юқори бажарилди</span><span>175% ўсиш</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🥦 Мева-сабзавот экспорти</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">18.2 млн $</div><div class="kpi-card-sub">I чорак амалда</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--green)">▲ 102.9%</div></div>
+            </div>
+            <div class="kpi-card-plan">I чорак режа: <span>17.7 млн $</span> • Ўсиш: <span>160.2%</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <div class="bar-labels"><span>Бажарилди</span><span>160% ўсиш</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">⚠️ Муаммоли корхоналар</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big" style="color:#D97706">46 та</div><div class="kpi-card-sub">Камайган</div></div>
+              <div><div class="kpi-card-big" style="color:var(--rose)">11 та</div><div class="kpi-card-sub">Тўхтаган</div></div>
+            </div>
+            <div class="kpi-card-plan">Йил охирига <span>85 та</span> корхона қувватини тиклаш режа</div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:30%"></div></div>
+              <div class="bar-labels"><span>Тикланган: ~25 та</span><span>Режа: 85 та</span></div>
+            </div>
+          </div>
+          <button class="districts-btn" onclick="openModal('modal-export')">🗺️ Туманлар бўйича экспорт</button>
+
+          <!-- Экспорт мақсадлари панели -->
+          <div style="background:#fff;border-radius:14px;border:1px solid #A5F3FC;overflow:hidden;margin-top:4px">
+            <div style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);padding:10px 16px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">🌍</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#fff">Экспорт ҳажми мақсадлари — 2026</div>
+                <div style="font-size:11px;color:#CFFAFE">Умумий экспорт кўрсаткичлари</div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+
+              <!-- I ярим йиллик -->
+              <div style="background:#ECFEFF;border-radius:10px;border-left:4px solid #0891B2;padding:11px 14px">
+                <div style="font-size:11px;font-weight:700;color:#164E63;margin-bottom:7px">
+                  <span style="background:#CFFAFE;border-radius:5px;padding:2px 8px">📅 I Ярим йиллик</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">
+                  <span style="font-size:22px;font-weight:800;color:#0E7490">361,6 млн $</span>
+                  <span style="font-size:12px;font-weight:700;background:#CFFAFE;color:#164E63;border-radius:6px;padding:2px 8px">ўсиш +21%</span>
+                </div>
+                <div style="height:7px;background:#A5F3FC;border-radius:4px;overflow:hidden;margin-bottom:6px">
+                  <div style="width:37%;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:4px"></div>
+                </div>
+                <div style="font-size:11px;color:#0E7490">Йиллик мақсаднинг <b>37%</b> — биринчи ярим йилликда</div>
+              </div>
+
+              <!-- Йил якуни -->
+              <div style="background:#ECFEFF;border-radius:10px;border-left:4px solid #059669;padding:11px 14px">
+                <div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:7px">
+                  <span style="background:#D1FAE5;border-radius:5px;padding:2px 8px">🎯 Йил якуни мақсади</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">
+                  <span style="font-size:22px;font-weight:800;color:#065F46">976 млн $</span>
+                  <span style="font-size:12px;font-weight:700;background:#D1FAE5;color:#065F46;border-radius:6px;padding:2px 8px">ўсиш +32%</span>
+                </div>
+                <div style="height:7px;background:#A7F3D0;border-radius:4px;overflow:hidden;margin-bottom:6px">
+                  <div style="width:100%;height:100%;background:linear-gradient(90deg,#2563EB,#93C5FD);border-radius:4px"></div>
+                </div>
+                <div style="font-size:11px;color:#065F46">2026 йил якуни бўйича жами экспорт ҳажми</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="tasks-panel">
+            <div class="tasks-panel-header">
+              <h3>✅ Вазифалар ва ижро ҳолати</h3>
+              <span class="tasks-panel-tag">Экспорт ривожланиши — Асосий йўналишлар</span>
+            </div>
+
+            <!-- 1. Муаммоли корхоналар -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">1</div>
+              <div class="vtask-section-title">Муаммоли корхоналар билан манзилли иш</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#DC2626;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">⚠️ 46 та камайган + 11 та тўхтаган корхона</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#D97706">46 та</div><div class="vtask-stat-label">экспорт камайган</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#DC2626">11 та</div><div class="vtask-stat-label">тўхтаган</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">85 та</div><div class="vtask-stat-label">йил мақсади</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#0891B2"></div>Ҳар бир корхона бирма-бир ўрганилиб, тегишли чоралар кўрилади</div>
+              </div>
+            </div>
+
+            <div class="vtask-example" style="margin-bottom:10px">
+              <div class="vtask-example-head">📌 Намуналар — Манзилли ёрдам</div>
+              <div class="vtask-example-body">
+                • <b>Андижон ш. — 3 та корхона:</b> 3 млн $ айланма маблағ ажратиш → <b>4,2 млн $</b> экспорт<br>
+                • <b>Хўжаобод — 2 та корхона:</b> хорижий ҳамкор топиш → <b>150 минг $</b> экспорт<br>
+                • <b>Жалақудуқ — 1 та корхона:</b> электр энергиясини узлуксиз етказиш → <b>2,5 млн $</b> экспорт
+              </div>
+            </div>
+
+            <!-- 2. Экспортчилар сони -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">2</div>
+              <div class="vtask-section-title">Экспортга жалб қилиш — 400 та корхонага етказиш</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#0891B2;margin-bottom:10px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🏭 Йил якунигача 85 та корхона экспортга жалб қилиш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#0891B2">85 та</div><div class="vtask-stat-label">янги корхона</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">400 та</div><div class="vtask-stat-label">жами экспортчи</div></div>
+              </div>
+            </div>
+
+            <!-- 3. Экспорт географияси -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">3</div>
+              <div class="vtask-section-title">Экспорт географиясини кенгайтириш</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#7C3AED;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🌐 Ҳозир 28 давлатга — 82% 4 давлатга боғлиқ</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#64748B">28 та</div><div class="vtask-stat-label">давлат (I чорак)</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#DC2626">82%</div><div class="vtask-stat-label">РУ/ҚЗ/ҚЖ/ТЖ</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>4 та халқаро кўргазма (Германия, Афғонистон, Польша, Хитой) — 90 та корхона — <b>100 млн $</b> келишув</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>30 та корхона иштирокида бизнес-миссиялар — <b>50 млн $</b> келишув</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>3 та янги бозор: <b>Канада, Буюк Британия, Озарбайжон</b> — тизимли иш</div>
+              </div>
+            </div>
+
+            <!-- 4. Экспорт штаби -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px;margin-top:10px">
+              <div class="vtask-section-num">4</div>
+              <div class="vtask-section-title">57 та экспортчи билан манзилли иш — Экспорт штаби</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#059669;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">💼 Молиявий ва ташкилий-ҳуқуқий кўмак</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#0891B2">10 та</div><div class="vtask-stat-label">арзон кредит</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">12 та</div><div class="vtask-stat-label">субсидия/компенсация</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#7C3AED">22 та</div><div class="vtask-stat-label">муаммо ҳал этилди</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>10 та экспортчига <b>15,9 млн сўм</b> арзон кредит ажратилди</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>12 та экспортчига <b>336 млн сўм</b> субсидия ва компенсация</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>22 та корхонанинг муаммоси штаб доирасида ижобий ҳал этилди</div>
+              </div>
+            </div>
+
+            <div class="vtask-example">
+              <div class="vtask-example-head">📌 Экспорт штаби — Вилоят ҳокими назорати</div>
+              <div class="vtask-example-body">
+                Экспорт штаби фаолияти вилоят ҳокими томонидан <b>шахсан назоратга олинган</b>. Тадбиркорлар учун экспортдаги имкониятлар бўйича кенг тарғибот олиб борилади ва экспортга тўсқинлик қилаётган муаммолар <b>кунлик назорат</b> остида тезкор ҳал этилади.
+              </div>
+            </div>
+
+          </div>
+          <div style="margin-top:16px;">
+            <canvas id="exportChart" class="chart-container"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ████ VI БЎЛиМ: БАНДЛИК ████ -->
+  <div class="section-block t-rose" id="sec6">
+    <div class="section-header" onclick="toggleSection('sec6')">
+      <div class="section-header-left">
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="sec-info">
+          <h2>VI. Камбағалликни қисқартириш ва бандлик</h2>
+          <p>Иш ўринлари, ишсизлик даражаси, камбағаллик, МФЙ мониторинги</p>
+        </div>
+      </div>
+      <div class="sec-stats">
+        <div class="sec-kpi">
+          <div class="kpi-val">3,8%</div>
+          <div class="kpi-lbl">Ишсизлик даражаси</div>
+        </div>
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="8"
+              stroke-dasharray="163.4" stroke-dashoffset="57" stroke-linecap="round"/>
+          </svg>
+          <div class="pct" style="color:#E11D48">65%</div>
+        </div>
+        <div class="task-badge" id="tbadge-sec6"></div>
+        <button class="toggle-btn" id="btn-sec6">▼</button>
+      </div>
+    </div>
+    <div class="section-body" id="body-sec6">
+      <div class="body-grid">
+        <div class="kpi-cards">
+          <div class="kpi-card">
+            <div class="kpi-card-title">📉 Ишсизлик даражаси</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">3.84%</div><div class="kpi-card-sub">Ярим йиллик кутилаётган</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--rose)">→ 3.6%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="kpi-card-plan">Камайиши керак: <span>0.24 пп</span> • Андижон ш: <span>2.8%</span> (энг яхши)</div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:78%"></div></div>
+              <div class="bar-labels"><span>Ярим йиллик: 3.84%</span><span>Мақсад: 3.6%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🏠 Камбағаллик даражаси</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">4.5%</div><div class="kpi-card-sub">Ярим йиллик кутилаётган</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--rose)">→ 2.7%</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="kpi-card-plan">Камайиши керак: <span>1.8 пп</span> • 4 та туман "холи ҳудуд" мақсади бор</div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:60%"></div></div>
+              <div class="bar-labels"><span>Ярим йиллик: 4.5%</span><span>Мақсад: 2.7%</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">💼 Доимий иш жойи бериш</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">38 944</div><div class="kpi-card-sub">Ярим йиллик режа (киши)</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--rose)">→ 86 674</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="kpi-card-plan">Андижон ш: <span>18 076</span> • Асака: <span>8 821</span> • Шаҳрихон: <span>7 493</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:45%"></div></div>
+              <div class="bar-labels"><span>Ярим йиллик: 38 944</span><span>Йиллик: 86 674</span></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-title">🏘️ МФЙ — Камбағаллик ва ишсизликдан холи</div>
+            <div class="kpi-card-nums">
+              <div><div class="kpi-card-big">246 та</div><div class="kpi-card-sub">Ярим йиллик мақсад (МФЙ)</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--rose)">→ 442 та</div><div class="kpi-card-sub">Йиллик мақсад</div></div>
+            </div>
+            <div class="kpi-card-plan">Асака: <span>76 та</span> • Шаҳрихон: <span>79 та</span> • Андижон ш: <span>55 та</span></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:56%"></div></div>
+              <div class="bar-labels"><span>Ярим йиллик: 246 МФЙ</span><span>Йиллик: 442 МФЙ</span></div>
+            </div>
+          </div>
+          <button class="districts-btn" onclick="openModal('modal-employment')">🗺️ Туманлар бўйича кўриш</button>
+        </div>
+
+        <div>
+          <div class="tasks-panel">
+            <div class="tasks-panel-header">
+              <h3>✅ Вазифалар ва ижро ҳолати</h3>
+              <span class="tasks-panel-tag">Бандлик — Молиявий қўллаб-қувватлаш</span>
+            </div>
+
+            <!-- 1. Даромад ошириш -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">1</div>
+              <div class="vtask-section-title">Аҳоли даромадини ошириш — Молиявий қўллаб-қувватлаш</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#E11D48;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">👨‍👩‍👧 Тадбиркорларни молиявий қўллаш орқали даромад ошириш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#E11D48">13 329</div><div class="vtask-stat-label">ярим йиллик (киши)</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">26 658</div><div class="vtask-stat-label">йил якуни (киши)</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#E11D48"></div>Маҳалла ихтисослашувини чуқурлаштиришга қаратилган <b>3 834 та</b> микролойиҳа (ярим йиллик) — йил якуни <b>8 790 та</b></div>
+              </div>
+            </div>
+
+            <!-- Кредитлар жадвали -->
+            <div style="background:#FFF1F2;border-radius:10px;border:1px solid #FECDD3;padding:12px 14px;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:700;color:#881337;margin-bottom:9px">💳 Кредитлар — Ярим йиллик / Йил якуни</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:7px;padding:7px 11px;border-left:3px solid #E11D48">
+                  <div style="font-size:12px;color:#1E293B">Жами кичик ва ўрта бизнес</div>
+                  <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#E11D48">3,6 трлн</div><div style="font-size:10px;color:#64748B">→ 8 трлн сўм</div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:7px;padding:7px 11px;border-left:3px solid #7C3AED">
+                  <div style="font-size:12px;color:#1E293B">Тадбиркорлик дастурлари</div>
+                  <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#7C3AED">871 млрд</div><div style="font-size:10px;color:#64748B">→ 2,1 трлн сўм</div></div>
+                </div>
+                <div style="font-size:11px;font-weight:600;color:#881337;margin-top:4px;padding-left:4px">Шундан дастурлар бўйича (йил якуни):</div>
+                <div style="display:flex;flex-direction:column;gap:4px;padding-left:8px">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;background:#FFF1F2;border-radius:6px;padding:5px 10px">
+                    <span>Оилавий тадбиркорлик</span><b style="color:#E11D48">397 млрд сўм</b>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;background:#FFF1F2;border-radius:6px;padding:5px 10px">
+                    <span>Бизнесга биринчи қадам</span><b style="color:#E11D48">310 млрд сўм</b>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;background:#FFF1F2;border-radius:6px;padding:5px 10px">
+                    <span>Кичик бизнесни қўллаш</span><b style="color:#E11D48">352 млрд сўм</b>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;background:#FFF1F2;border-radius:6px;padding:5px 10px">
+                    <span>Маҳалла лойиҳаси</span><b style="color:#E11D48">1 трлн сўм</b>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Камайган туманлар -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">2</div>
+              <div class="vtask-section-title">Тадбиркорлик субъектлари камайган туманлар</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#D97706;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">⚠️ I чорак якунида янги субъектлар камайган 3 та туман</div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div><b>Қўрғонтепа:</b> 64 тадан → 34 тага камайган</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div><b>Пахтаобод:</b> 52 тадан → 44 тага камайган</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot amber"></div><b>Избоскан:</b> 58 тадан → 57 тага камайган</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#E11D48"></div>Ишбилармонлик муҳитини яхшилаш чоралари кўрилади</div>
+              </div>
+            </div>
+
+            <!-- 800 та субъект -->
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#059669;margin-bottom:10px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🏢 Йил якунига қадар 800 та субъект фаолиятини тиклаш</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">800 та</div><div class="vtask-stat-label">жами мақсад</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#2563EB">209 та</div><div class="vtask-stat-label">Андижон ш.</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#2563EB">71 та</div><div class="vtask-stat-label">Асака тум.</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Андижон ш. 209, Асака 71, Андижон тум. 63, Шаҳрихон 50, Қўрғонтепа 50</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Избоскан 46, Хўжаобод 44, Олтинкўл 40, Балиқчи 38, Пахтаобод 36</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot green"></div>Марҳамат 34, Жалақудуқ 31, Булоқбоши 27, Бўстон 26, Улуғнор 22, Хонобод 13</div>
+              </div>
+            </div>
+
+            <div class="vtask-example" style="margin-bottom:10px">
+              <div class="vtask-example-head">📌 Кичик тадбиркорлик — ЯҲМ улуши мақсади</div>
+              <div class="vtask-example-body">
+                Кичик тадбиркорликни қўллаш натижасида йил якунига кичик тадбиркорликнинг ялпи ҳудудий маҳсулотдаги улуши <b>71 фоизга</b> етказилади.
+              </div>
+            </div>
+
+            <!-- 3. Инфратузилма -->
+            <div class="vtask-section-header" style="background:linear-gradient(90deg,#4A6E8A,#5A82A0);margin-bottom:10px">
+              <div class="vtask-section-num">3</div>
+              <div class="vtask-section-title">Инфратузилмаларни яхшилаш — Дастурлар доирасида</div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#E11D48;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🏗️ "Оғир туманлар" — Бўстон, Улуғнор, Пахтаобод</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#E11D48">22,2 млрд</div><div class="vtask-stat-label">ярим йиллик / 3 та лойиҳа</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">180 млрд</div><div class="vtask-stat-label">йил якуни / 24 та</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#E11D48"></div>52 та оғир маҳаллада: <b>50,5 млрд сўм</b> / 52 та лойиҳа (ярим йиллик)</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#E11D48"></div>Йил якуни: 52 та маҳаллада <b>156 млрд сўм</b> / 145 та лойиҳа</div>
+              </div>
+            </div>
+
+            <div class="vtask-card" onclick="toggleVtask(this)" style="border-left-color:#7C3AED;margin-bottom:6px">
+              <div class="vtask-card-top">
+                <div class="vtask-card-check"></div>
+                <div class="vtask-card-title">🌟 "Янги Ўзбекистон қиёфаси" — Асака ва Шаҳрихон</div>
+              </div>
+              <div class="vtask-stats">
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#7C3AED">5,5 млрд</div><div class="vtask-stat-label">ярим йиллик / 2 та лойиҳа</div></div>
+                <div class="vtask-stat"><div class="vtask-stat-val" style="color:#059669">130 млрд</div><div class="vtask-stat-label">йил якуни / 19 та</div></div>
+              </div>
+              <div class="vtask-bullets">
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>28 та маҳаллада: <b>48 млрд сўм</b> / 28 та лойиҳа (ярим йиллик)</div>
+                <div class="vtask-bullet"><div class="vtask-bullet-dot" style="background:#7C3AED"></div>Йил якуни: 28 та маҳаллада <b>100 млрд сўм</b> / 140 та лойиҳа</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ MODAL: MACRO ═══ -->
+<div class="modal-overlay" id="modal-macro" onclick="closeModalOut(event,'modal-macro')">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:26px">🗺️</span>
+        <div>
+          <h2>Саноат Ишлаб Чиқариш — Туманлар Бўйича</h2>
+          <p style="font-size:12px;color:#64748b;margin-top:2px">2026 йиллик прогноз • млрд сўм</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-macro')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="district-grid" id="macro-districts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: BUDGET ═══ -->
+<div class="modal-overlay" id="modal-budget" onclick="closeModalOut(event,'modal-budget')">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:26px">💰</span>
+        <div>
+          <h2>Бюджет Тушумлари — Туманлар Бўйича</h2>
+          <p style="font-size:12px;color:#64748b;margin-top:2px">2026 йиллик режа ва ижро • млрд сўм</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-budget')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="district-grid" id="budget-districts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: EXPORT ═══ -->
+<div class="modal-overlay" id="modal-export" onclick="closeModalOut(event,'modal-export')">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:26px">🌍</span>
+        <div>
+          <h2>Экспорт — Туманлар Бўйича</h2>
+          <p style="font-size:12px;color:#64748b;margin-top:2px">I чорак 2026 • минг доллар</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-export')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="district-grid" id="export-districts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: EMPLOYMENT ═══ -->
+<div class="modal-overlay" id="modal-employment" onclick="closeModalOut(event,'modal-employment')">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:26px">👷</span>
+        <div>
+          <h2>Бандлик ва Камбағаллик — Туманлар Бўйича</h2>
+          <p style="font-size:12px;color:#64748b;margin-top:2px">2026 йиллик мақсад</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-employment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="district-grid" id="employment-districts"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  Андижон вилояти ҳокимлиги • Мақсадли кўрсаткичлар мониторинги 2026 • CERR
+</footer>
+
+<script>
+// ─── DATA ───
+const macroData = [
+  {name:"Андижон ш.",  val:20906.6, growth:109.4, q1:4600.9},
+  {name:"Хонобод ш.", val:4880.9,  growth:108.4, q1:1079.1},
+  {name:"Асака",       val:48639.1, growth:106.4, q1:10224.2},
+  {name:"Олтинкўл",   val:2609.6,  growth:109.3, q1:565.5},
+  {name:"Андижон т.", val:3044.2,  growth:109.7, q1:484.4},
+  {name:"Балиқчи",    val:4784.5,  growth:110.3, q1:1167.8},
+  {name:"Бўстон",     val:1175.0,  growth:109.4, q1:188.7},
+  {name:"Булоқбоши",  val:3019.4,  growth:109.5, q1:558.3},
+  {name:"Жалақудуқ",  val:3317.5,  growth:111.4, q1:554.3},
+  {name:"Избоскан",   val:2448.8,  growth:109.1, q1:241.4},
+  {name:"Улуғнор",    val:1487.6,  growth:109.8, q1:299.1},
+  {name:"Қўрғонтепа", val:6034.5,  growth:110.9, q1:1174.6},
+  {name:"Марҳамат",   val:2671.3,  growth:110.1, q1:481.0},
+  {name:"Шаҳрихон",   val:3835.6,  growth:110.9, q1:961.9},
+  {name:"Пахтаобод",  val:2438.5,  growth:109.6, q1:660.8},
+  {name:"Хўжаобод",   val:5192.7,  growth:110.2, q1:833.3},
+];
+
+const budgetData = [
+  {name:"Андижон ш.",  plan:172.2, ijro:186.5},
+  {name:"Хонобод ш.", plan:17.3,  ijro:18.8},
+  {name:"Олтинкўл",   plan:44.8,  ijro:48.6},
+  {name:"Андижон т.", plan:75.3,  ijro:81.6},
+  {name:"Балиқчи",    plan:51.2,  ijro:55.4},
+  {name:"Бўстон",     plan:20.9,  ijro:22.6},
+  {name:"Булоқбоши",  plan:38.2,  ijro:41.3},
+  {name:"Жалақудуқ",  plan:46.0,  ijro:49.8},
+  {name:"Избоскан",   plan:53.9,  ijro:58.4},
+  {name:"Улуғнор",    plan:22.5,  ijro:24.4},
+  {name:"Қўрғонтепа", plan:63.0,  ijro:68.2},
+  {name:"Асака",       plan:78.3,  ijro:84.8},
+  {name:"Марҳамат",   plan:46.5,  ijro:50.4},
+  {name:"Шаҳрихон",   plan:68.9,  ijro:74.6},
+  {name:"Пахтаобод",  plan:37.0,  ijro:40.1},
+  {name:"Хўжаобод",   plan:39.5,  ijro:42.8},
+];
+
+const exportData = [
+  {name:"Олтинкўл",   plan:13209, amal:19757, pct:149.6},
+  {name:"Андижон ш.", plan:13424, amal:20826, pct:155.1},
+  {name:"Андижон т.", plan:9283,  amal:10706, pct:115.3},
+  {name:"Асака",       plan:6385,  amal:15243, pct:238.7},
+  {name:"Балиқчи",    plan:9180,  amal:10453, pct:113.9},
+  {name:"Бўстон",     plan:4054,  amal:4174,  pct:102.9},
+  {name:"Булоқбоши",  plan:6432,  amal:11107, pct:172.7},
+  {name:"Жалақудуқ",  plan:12085, amal:15138, pct:125.3},
+  {name:"Избоскан",   plan:7803,  amal:15042, pct:192.8},
+];
+
+const employmentData = [
+  {name:"Андижон ш.",  unemployment:2.80, poverty:"Холи ҳудуд", jobs:18076, mfy:55},
+  {name:"Хонобод ш.", unemployment:3.47, poverty:2.3,           jobs:1574,  mfy:7},
+  {name:"Олтинкўл",   unemployment:2.80, poverty:"Холи ҳудуд", jobs:4213,  mfy:49},
+  {name:"Андижон т.", unemployment:3.55, poverty:2.3,           jobs:6544,  mfy:28},
+  {name:"Балиқчи",    unemployment:3.65, poverty:2.3,           jobs:4981,  mfy:21},
+  {name:"Бўстон",     unemployment:3.41, poverty:2.4,           jobs:1911,  mfy:10},
+  {name:"Булоқбоши",  unemployment:3.89, poverty:2.4,           jobs:3298,  mfy:12},
+  {name:"Жалақудуқ",  unemployment:3.47, poverty:2.3,           jobs:4889,  mfy:10},
+  {name:"Избоскан",   unemployment:3.81, poverty:2.4,           jobs:4771,  mfy:15},
+  {name:"Улуғнор",    unemployment:3.40, poverty:2.4,           jobs:1861,  mfy:10},
+  {name:"Қўрғонтепа", unemployment:3.92, poverty:2.4,           jobs:5837,  mfy:21},
+  {name:"Асака",       unemployment:2.50, poverty:"Холи ҳудуд", jobs:8821,  mfy:76},
+  {name:"Марҳамат",   unemployment:3.52, poverty:2.4,           jobs:4788,  mfy:8},
+  {name:"Шаҳрихон",   unemployment:2.80, poverty:"Холи ҳудуд", jobs:7493,  mfy:79},
+  {name:"Пахтаобод",  unemployment:3.31, poverty:2.4,           jobs:4359,  mfy:17},
+  {name:"Хўжаобод",   unemployment:2.90, poverty:"Холи ҳудуд", jobs:3258,  mfy:24},
+];
+
+// ─── MACRO KPI TASKS DATA ───
+const kpiTasks = {
+  yahm: {
+    label: 'ЯҲМ — Умумий',
+    items: [
+      {done:true,  name:'ЯҲМ ўсиш суръатини 107–108% даражасида таъминлаш', meta:'I чорак: 108.6% — Мақсад бажарилди', pct:'108.6%', pctColor:'var(--green)'},
+      {done:true,  name:'Саноат маҳсулотлари ишлаб чиқаришни 108.2% га ошириш', meta:'Асака: 106.4% • Андижон ш: 109.4% • Жалақудуқ: 111.4%', pct:'108.4%', pctColor:'var(--green)'},
+      {done:false, name:'Энергия тежаш — 81.4 млн кВт·соат тежаш', meta:'Ишлаб чиқаришда энергия самарадорлигини ошириш', pct:'35%', pctColor:'var(--amber)'},
+      {done:false, name:'Хонобод, Шаҳрихон саноат зоналарини ривожлантириш', meta:'Янги корхоналар очиш, ишлаб чиқаришни кенгайтириш', pct:'45%', pctColor:'var(--amber)'},
+      {done:false, name:'Қурилиш ишларини 112.5% га ошириш', meta:'I чорак: 113.5% — яхши старт, давом эттириш лозим', pct:'50%', pctColor:'var(--blue)'},
+    ]
+  },
+  sanoat: {
+    label: '⚙️ Саноат',
+    html: `
+      <!-- SECTION 1 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header">
+          <div class="vtask-section-num">1</div>
+          <div class="vtask-section-title">Пасайган туманлар ўсишини тиклаш</div>
+        </div>
+
+        <div class="vtask-card" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check">✓</div>
+            <div class="vtask-card-title">Жорий йил I чоракда паст ўсишга эришилган Хонобод шаҳри ва Шаҳрихон тумани бўйича ишланиб, биринчи ярим йилликда вилоят кўрсаткичларидан паст бўлмаган даражада ўсишига эришилади</div>
+            <span class="vtask-card-pct">Жараёнда</span>
+          </div>
+          <div class="vtask-bullets">
+            <div class="vtask-bullet">
+              <div class="vtask-bullet-dot amber"></div>
+              <span>Ишлаб чиқариш ҳажмини пасайтирган <b>6 та йирик корхонага</b> кўмаклашиш орқали биринчи ярим йилликда <b>55 млрд сўм</b>лик, йил якуни билан <b>120 млрд сўм</b>лик ҳажмларни қайта тиклаш</span>
+            </div>
+            <div class="vtask-bullet">
+              <div class="vtask-bullet-dot amber"></div>
+              <span>Йил якуни билан <b>1 335 млн долларлик 307 та лойиҳани</b> ишга тушириш — шундан 15 таси МИЗ, 116 таси саноат зоналаридаги лойиҳалар</span>
+            </div>
+            <div class="vtask-bullet">
+              <div class="vtask-bullet-dot amber"></div>
+              <span>Фаолиятини вақтинча тўхтатган <b>242 та корхонада</b> ишлаб чиқариш жараёнларини қайта йўлга қўйиш</span>
+            </div>
+            <div class="vtask-bullet">
+              <div class="vtask-bullet-dot amber"></div>
+              <span>Ҳудудий саноатнинг асосий қисмини (<b>67%</b>) ташкил этувчи <b>20 та корхона</b> билан манзилли ишлашни ташкил этиш</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vtask-example">
+          <div class="vtask-example-head">📌 Мисол — "Asakatekstil" МЧЖ</div>
+          <div class="vtask-example-body">
+            2025 йилда Россияга йирик экспорт шартномалари мавжудлиги сабабли <b>3 сменада</b> ишлаган. 2026 йилда ташқи ҳамкорлар билан шартнома тузилмагани боис <b>1 сменада</b> ишлаб, ишлаб чиқариш ҳажми ўтган йилга нисбатан <b>56 млрд сўмга</b> камайган. Айни пайтда экспорт шартномалари имзоланиб, йил якунига қадар <b>20–30 млрд сўм</b>лик қўшимча ишлаб чиқариш таъминланади.<br><br>
+            Булоқбоши туманидаги <b>"My Mady"</b> корхонасида трикотаж маҳсулотлар ишлаб чиқариш фаолияти қайта тикланади — <b>13 та иш ўрни</b>.
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header amber">
+          <div class="vtask-section-num">2</div>
+          <div class="vtask-section-title">Маҳаллийлаштириш дастури</div>
+        </div>
+
+        <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Йил якунига қадар <b>12,4 трлн сўм</b>лик маҳсулот ишлаб чиқарилади (ўсиш — 35%)</div>
+            <span class="vtask-card-pct">25%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">17 трлн</span>
+              <span class="vtask-stat-lbl">Давлат харидлари</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">70%</span>
+              <span class="vtask-stat-lbl">Рақобатли харидлар (2025: 29%)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">138 та хорижий инвестиция иштирокидаги лойиҳалар учун маҳаллий контент ҳажмини <b>1 505 млн долларга</b> (улуши 45%) етказиш</div>
+            <span class="vtask-card-pct">40%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">3 342 млн $</span>
+              <span class="vtask-stat-lbl">Режалаштирилган инвестиция</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">1 505 млн $</span>
+              <span class="vtask-stat-lbl">Маҳаллий контент мақсади</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">45%</span>
+              <span class="vtask-stat-lbl">Маҳаллий улуш</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header green">
+          <div class="vtask-section-num">3</div>
+          <div class="vtask-section-title">Энергия самарадорлигини ошириш</div>
+        </div>
+
+        <div class="vtask-card green-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">⚡ Электр энергия тежаш</div>
+            <span class="vtask-card-pct">35%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">81,4 млн</span>
+              <span class="vtask-stat-lbl">кВт·соат — Ярим йиллик</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">177,6 млн</span>
+              <span class="vtask-stat-lbl">кВт·соат — Йил якуни</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vtask-card green-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">🔥 Табиий газ тежаш</div>
+            <span class="vtask-card-pct">30%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">22,8 млн</span>
+              <span class="vtask-stat-lbl">куб метр — Ярим йиллик</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">53,1 млн</span>
+              <span class="vtask-stat-lbl">куб метр — Йил якуни</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  bozor: {
+    label: '🛍️ Бозор хизматлари',
+    html: `
+      <!-- SECTION 1 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header">
+          <div class="vtask-section-num">1</div>
+          <div class="vtask-section-title">Туну-кун ишлайдиган (24/7) гавжум кўчалар</div>
+        </div>
+
+        <div class="vtask-card" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">4 та шаҳар ва туманларнинг 6 та кўчаларида қиймати <b>29,7 млрд сўм</b>лик лойиҳалар амалга оширилади</div>
+            <span class="vtask-card-pct">40%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val">77 та</span>
+              <span class="vtask-stat-lbl">Янги лойиҳалар</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val">99 та</span>
+              <span class="vtask-stat-lbl">Тадбиркорлик субъектлари</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val">~500 та</span>
+              <span class="vtask-stat-lbl">Янги иш ўринлари</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header amber">
+          <div class="vtask-section-num">2</div>
+          <div class="vtask-section-title">Соҳил бўйларида (дарё, канал, кўл) хизматлар</div>
+        </div>
+
+        <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Соҳил бўйларида <b>3 та дам олиш маскани</b> ва хизмат кўрсатиш шаҳобчалари ташкил этилади</div>
+            <span class="vtask-card-pct">25%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">8,9 млрд</span>
+              <span class="vtask-stat-lbl">Умумий қиймат (сўм)</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">3 та</span>
+              <span class="vtask-stat-lbl">Дам олиш маскани</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header green">
+          <div class="vtask-section-num">3</div>
+          <div class="vtask-section-title">Йўл бўйларида хизмат соҳасини ривожлантириш</div>
+        </div>
+
+        <div class="vtask-card green-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">5 та йўналишда (4 та шаҳар/туман) <b>47 та хизмат кўрсатиш шаҳобчалари</b> ташкил этилади</div>
+            <span class="vtask-card-pct">20%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">12,1 млрд</span>
+              <span class="vtask-stat-lbl">Умумий қиймат (сўм)</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">47 та</span>
+              <span class="vtask-stat-lbl">Хизмат шаҳобчалари</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">5 та</span>
+              <span class="vtask-stat-lbl">Йўналиш</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  qishloq: {
+    label: '🌾 Қишлоқ хўжалиги',
+    html: `
+      <!-- SECTION 1 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header green">
+          <div class="vtask-section-num">1</div>
+          <div class="vtask-section-title">Деҳқончилик йўналиши</div>
+        </div>
+
+        <div class="vtask-card green-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Деҳқончилик йўналишида <b>8 та янги лойиҳалар</b> ишга туширилади</div>
+            <span class="vtask-card-pct">35%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">424,5 млрд</span>
+              <span class="vtask-stat-lbl">Умумий қиймат (сўм)</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val green">8 та</span>
+              <span class="vtask-stat-lbl">Янги лойиҳалар</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header amber">
+          <div class="vtask-section-num">2</div>
+          <div class="vtask-section-title">Чорвачилик йўналиши</div>
+        </div>
+
+        <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Чорвачилик йўналишида <b>38 та янги лойиҳалар</b> ишга туширилади</div>
+            <span class="vtask-card-pct">30%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">268,1 млрд</span>
+              <span class="vtask-stat-lbl">Умумий қиймат (сўм)</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">38 та</span>
+              <span class="vtask-stat-lbl">Янги лойиҳалар</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  qurilish: {
+    label: '🏗️ Қурилиш ишлари',
+    html: `
+      <!-- SECTION 1 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header amber">
+          <div class="vtask-section-num">1</div>
+          <div class="vtask-section-title">Биринчи ярим йилликда</div>
+        </div>
+
+        <div class="vtask-card amber-border" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Биринчи ярим йилликда кўп қаватли уйлар фойдаланишга топширилади</div>
+            <span class="vtask-card-pct">45%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">1 361 та</span>
+              <span class="vtask-stat-lbl">Бинолар сони</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val amber">30 та</span>
+              <span class="vtask-stat-lbl">Хонадонлар сони</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="vtask-section">
+        <div class="vtask-section-header">
+          <div class="vtask-section-num">2</div>
+          <div class="vtask-section-title">Йил якунига кўра</div>
+        </div>
+
+        <div class="vtask-card" onclick="toggleVtask(this)">
+          <div class="vtask-card-top">
+            <div class="vtask-card-check"></div>
+            <div class="vtask-card-title">Йил якунига кўра кўп қаватли уйлар фойдаланишга топширилади</div>
+            <span class="vtask-card-pct blue">18%</span>
+          </div>
+          <div class="vtask-stats">
+            <div class="vtask-stat">
+              <span class="vtask-stat-val">9 525 та</span>
+              <span class="vtask-stat-lbl">Бинолар сони</span>
+            </div>
+            <div class="vtask-stat">
+              <span class="vtask-stat-val">211 та</span>
+              <span class="vtask-stat-lbl">Хонадонлар сони</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+};
+
+function renderTasks(key) {
+  const panel = document.getElementById('sec1-tasks');
+  if (!panel) return;
+  const data = kpiTasks[key];
+  if (!data) return;
+
+  if (data.html) {
+    panel.innerHTML = `
+      <div class="tasks-panel-header">
+        <h3>✅ Вазифалар ва ижро ҳолати</h3>
+        <span class="tasks-panel-tag">${data.label}</span>
+      </div>
+      ${data.html}`;
+  } else {
+    const itemsHtml = data.items.map(t => `
+      <div class="task-item" onclick="toggleTask(this)">
+        <div class="task-checkbox ${t.done?'done':'todo'}">${t.done?'✓':''}</div>
+        <div class="task-content">
+          <div class="task-name">${t.name}</div>
+          <div class="task-meta">${t.meta}</div>
+        </div>
+        <div class="task-pct" style="color:${t.pctColor}">${t.pct}</div>
+      </div>`).join('');
+    panel.innerHTML = `
+      <div class="tasks-panel-header">
+        <h3>✅ Вазифалар ва ижро ҳолати</h3>
+        <span class="tasks-panel-tag">${data.label}</span>
+      </div>
+      ${itemsHtml}`;
+  }
+}
+
+function selectKpi(el, key) {
+  // Remove selected from all kpi cards in this section
+  document.querySelectorAll('#sec1-kpi-cards .kpi-card.clickable').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  renderTasks(key);
+}
+
+// ─── TOGGLE SECTION ───
+// Унификация рангов при загрузке
+(function unifyColors() {
+  const map = {
+    '#7C3AED':'#2563EB','#6D28D9':'#1E40AF','#5B21B6':'#1E3A8A',
+    '#4C1D95':'#1E3A8A','#9333EA':'#3B82F6','#A78BFA':'#93C5FD',
+    '#059669':'#2563EB','#065F46':'#1E40AF','#34D399':'#93C5FD',
+    '#0891B2':'#2563EB','#164E63':'#1E40AF','#0E7490':'#1E40AF',
+    '#22D3EE':'#93C5FD','#D97706':'#2563EB','#92400E':'#1E3A8A',
+    '#E11D48':'#1D4ED8','#881337':'#1E3A8A','#DC2626':'#1E40AF',
+    '#B45309':'#1E40AF','#78350F':'#1E3A8A',
+  };
+  document.querySelectorAll('[style]').forEach(el => {
+    let s = el.getAttribute('style');
+    let changed = false;
+    for (const [from, to] of Object.entries(map)) {
+      const re = new RegExp(from.replace('#','\\#'), 'gi');
+      if (re.test(s)) { s = s.replace(re, to); changed = true; }
+    }
+    if (changed) el.setAttribute('style', s);
+  });
+  // border-left-color inline
+  document.querySelectorAll('[style*="border-left-color"]').forEach(el => {
+    let s = el.getAttribute('style');
+    for (const [from, to] of Object.entries(map)) {
+      s = s.replace(new RegExp(from.replace('#','\\#'), 'gi'), to);
+    }
+    el.setAttribute('style', s);
+  });
+})();
+
+// ─── EMOJI → SVG REPLACEMENT ───
+(function replaceEmojis() {
+  const s = (p) => `<svg class="eicon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${p}</svg>`;
+  const icons = {
+    '🏭': s('<rect x="2" y="7" width="20" height="15" rx="1"/><polyline points="2 7 12 2 22 7"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/>'),
+    '⚙️': s('<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+    '🌾': s('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'),
+    '🏗️': s('<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'),
+    '🛍️': s('<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>'),
+    '🗺️': s('<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>'),
+    '📋': s('<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>'),
+    '🥩': s('<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>'),
+    '🥚': s('<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/>'),
+    '🧅': s('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+    '✅': s('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),
+    '💳': s('<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>'),
+    '📊': s('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'),
+    '🏦': s('<polyline points="22 8 12 2 2 8"/><line x1="6" y1="8" x2="6" y2="21"/><line x1="10" y1="8" x2="10" y2="21"/><line x1="14" y1="8" x2="14" y2="21"/><line x1="18" y1="8" x2="18" y2="21"/><line x1="2" y1="21" x2="22" y2="21"/>'),
+    '💵': s('<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'),
+    '🚀': s('<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>'),
+    '🛣️': s('<path d="M3 17l6-6 4 4 6-8"/><path d="M3 21h18"/>'),
+    '🌐': s('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+    '🎯': s('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+    '📦': s('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'),
+    '🥦': s('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'),
+    '⚠️': s('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+    '📉': s('<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>'),
+    '🏠': s('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'),
+    '💼': s('<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+    '🏘️': s('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+    '💰': s('<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'),
+    '🌍': s('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+    '📌': s('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'),
+    '🏢': s('<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>'),
+    '⚡': s('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
+  };
+  const sel = '.kpi-card-title, .inf-group-title, .inf-icon, .vtask-card-title, .vtask-section-num, .vtask-example-head, .districts-btn, h3';
+  document.querySelectorAll(sel).forEach(el => {
+    let h = el.innerHTML;
+    for (const [e, svg] of Object.entries(icons)) h = h.split(e).join(svg);
+    el.innerHTML = h;
+  });
+  document.querySelectorAll('span[style*="font-size:20px"], span[style*="font-size:26px"]').forEach(el => {
+    const t = el.textContent.trim();
+    if (icons[t]) { el.outerHTML = icons[t]; }
+  });
+})();
+
+// Init task badges on load
+document.addEventListener('DOMContentLoaded', () => {
+  ['sec1','sec2','sec3','sec4','sec5','sec6'].forEach(renderTaskBadge);
+});
+
+function selectQuarter(el, key) {
+  document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const labels = { q1:'I-чорак', q2:'II-чорак', q3:'III-чорак', q4:'IV-чорак' };
+  const sub = document.querySelector('.site-header .subtitle');
+  if (sub) sub.textContent = labels[key];
+}
+
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const btn  = document.getElementById('btn-' + id);
+  const wasOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  btn.classList.toggle('open');
+  if (!wasOpen) initCharts(id);
+}
+
+function openSection(id) {
+  const body = document.getElementById('body-' + id);
+  const btn  = document.getElementById('btn-' + id);
+  if (!body.classList.contains('open')) {
+    body.classList.add('open');
+    btn.classList.add('open');
+    initCharts(id);
+    setTimeout(() => document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}), 60);
+  }
+  return false;
+}
+
+function renderTaskBadge(secId) {
+  const body = document.getElementById('body-' + secId);
+  const badge = document.getElementById('tbadge-' + secId);
+  if (!body || !badge) return;
+  const all  = body.querySelectorAll('.vtask-card, .task-item');
+  const done = body.querySelectorAll('.vtask-card-check.done, .task-checkbox.done');
+  const total = all.length, finished = done.length;
+  const pct = total ? Math.round(finished / total * 100) : 0;
+  const circ = 2 * Math.PI * 14; // r=14
+  const offset = circ - (pct / 100) * circ;
+  badge.innerHTML = `
+    <div class="task-badge-text">
+      <div class="task-badge-count">${finished}/${total}</div>
+      <div class="task-badge-label">вазифа</div>
+    </div>`;
+}
+
+function toggleTask(el) {
+  const cb = el.querySelector('.task-checkbox');
+  cb.classList.toggle('done');
+  cb.classList.toggle('todo');
+  cb.textContent = cb.classList.contains('done') ? '✓' : '';
+  const sec = el.closest('.section-block');
+  if (sec) renderTaskBadge(sec.id);
+}
+
+function toggleVtask(el) {
+  const cb = el.querySelector('.vtask-card-check');
+  if (!cb) return;
+  const isDone = cb.classList.contains('done');
+  if (isDone) {
+    cb.classList.remove('done');
+    const sec = el.closest('.section-block');
+    if (sec) setTimeout(() => renderTaskBadge(sec.id), 0);
+    cb.textContent = '';
+  } else {
+    cb.classList.add('done');
+    cb.textContent = '✓';
+    const sec = el.closest('.section-block');
+    if (sec) setTimeout(() => renderTaskBadge(sec.id), 0);
+  }
+}
+
+// ─── MODAL ───
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-macro')      renderMacroDistricts();
+  if (id === 'modal-budget')     renderBudgetDistricts();
+  if (id === 'modal-export')     renderExportDistricts();
+  if (id === 'modal-employment') renderEmploymentDistricts();
+}
+function closeModal(id)       { document.getElementById(id).classList.remove('open'); }
+function closeModalOut(e, id) { if (e.target.id === id) closeModal(id); }
+
+// ─── DISTRICT RENDERS ───
+function renderMacroDistricts() {
+  const max = Math.max(...macroData.map(d => d.val));
+  document.getElementById('macro-districts').innerHTML =
+    [...macroData].sort((a,b)=>b.val-a.val).map(d=>`
+      <div class="district-card">
+        <div class="district-name">${d.name}</div>
+        <div class="district-val" style="color:#2563EB">${(d.val/1000).toFixed(1)} трлн</div>
+        <div class="district-growth up">▲ ${d.growth.toFixed(1)}% ўсиш</div>
+        <div class="bar-wrap" style="margin-top:8px">
+          <div class="bar-track"><div class="bar-fill" style="width:${(d.val/max*100).toFixed(0)}%;background:#2563EB"></div></div>
+        </div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px">I чорак: ${(d.q1/1000).toFixed(2)} трлн</div>
+      </div>`).join('');
+}
+
+function renderBudgetDistricts() {
+  document.getElementById('budget-districts').innerHTML =
+    [...budgetData].sort((a,b)=>b.ijro-a.ijro).map(d=>`
+      <div class="district-card">
+        <div class="district-name">${d.name}</div>
+        <div class="district-val" style="color:#059669">${d.ijro.toFixed(1)} млрд</div>
+        <div class="district-growth up">▲ 108.3% ижро</div>
+        <div class="bar-wrap" style="margin-top:8px">
+          <div class="bar-track"><div class="bar-fill" style="width:90%;background:#059669"></div></div>
+        </div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px">Режа: ${d.plan.toFixed(1)} млрд</div>
+      </div>`).join('');
+}
+
+function renderExportDistricts() {
+  const max = Math.max(...exportData.map(d=>d.amal));
+  document.getElementById('export-districts').innerHTML =
+    [...exportData].sort((a,b)=>b.amal-a.amal).map(d=>`
+      <div class="district-card">
+        <div class="district-name">${d.name}</div>
+        <div class="district-val" style="color:#0891B2">${(d.amal/1000).toFixed(1)} млн $</div>
+        <div class="district-growth up">▲ ${d.pct.toFixed(1)}% режа ижроси</div>
+        <div class="bar-wrap" style="margin-top:8px">
+          <div class="bar-track"><div class="bar-fill" style="width:${(d.amal/max*100).toFixed(0)}%;background:#0891B2"></div></div>
+        </div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px">Режа: ${(d.plan/1000).toFixed(1)} млн $</div>
+      </div>`).join('');
+}
+
+function renderEmploymentDistricts() {
+  document.getElementById('employment-districts').innerHTML =
+    employmentData.map(d=>{
+      const isXoli = d.poverty === 'Холи ҳудуд';
+      const uColor = d.unemployment<=3.0?'#059669':d.unemployment<=3.6?'#D97706':'#E11D48';
+      return `
+        <div class="district-card">
+          <div class="district-name">${d.name}</div>
+          <div style="display:flex;gap:14px;margin-top:6px;align-items:flex-start">
+            <div>
+              <div style="font-size:10px;color:#94A3B8;margin-bottom:2px">Ишсизлик</div>
+              <div style="font-size:18px;font-weight:800;color:${uColor}">${d.unemployment}%</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#94A3B8;margin-bottom:2px">Камбағаллик</div>
+              <div style="font-size:13px;font-weight:700;color:${isXoli?'#059669':'#1E293B'}">${isXoli?'✓ Холи ҳудуд':d.poverty+'%'}</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:#475569">
+            💼 <b>${d.jobs.toLocaleString()}</b> иш жойи &nbsp;🏘️ <b>${d.mfy}</b> МФЙ
+          </div>
+        </div>`}).join('');
+}
+
+// ─── CHARTS ───
+const charts = {};
+function initCharts(secId) {
+  if (secId==='sec1' && !charts.macro) {
+    charts.macro = new Chart(document.getElementById('macroChart'),{
+      type:'bar',
+      data:{
+        labels:['ЯҲМ','Саноат','Қ.хўжалиги','Қурилиш','Б.хизматлари'],
+        datasets:[
+          {label:'I чорак амалда (млрд)',data:[22701,25945,5236,3307,14356],backgroundColor:'#BFDBFE'},
+          {label:'Ярим йиллик прогноз (млрд)',   data:[52101,52646,21915,7063,27911],backgroundColor:'#2563EB'},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false},ticks:{font:{size:11}}}}
+      }
+    });
+  }
+  if (secId==='sec2' && !charts.inflation) {
+    charts.inflation = new Chart(document.getElementById('inflationChart'),{
+      type:'doughnut',
+      data:{
+        labels:['Ун (430 минг т)','Гўшт (197 т)','Картошка (990 т)','Ёғ (88 т)','Шакар (68 т)'],
+        datasets:[{data:[430,197,990,88,68],backgroundColor:['#FDE68A','#FCD34D','#F59E0B','#D97706','#B45309'],borderWidth:2,borderColor:'#fff'}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'right',labels:{font:{size:11}}}}
+      }
+    });
+  }
+  if (secId==='sec3' && !charts.budget) {
+    const top = budgetData.slice(0,8);
+    charts.budget = new Chart(document.getElementById('budgetChart'),{
+      type:'bar',
+      data:{
+        labels:top.map(d=>d.name),
+        datasets:[
+          {label:'Режа (млрд)',data:top.map(d=>d.plan),backgroundColor:'#A7F3D0'},
+          {label:'Ижро (млрд)',data:top.map(d=>d.ijro),backgroundColor:'#059669'},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false},ticks:{font:{size:10}}}}
+      }
+    });
+  }
+  if (secId==='sec5' && !charts.export) {
+    const sorted = [...exportData].sort((a,b)=>b.amal-a.amal);
+    charts.export = new Chart(document.getElementById('exportChart'),{
+      type:'bar',
+      data:{
+        labels:sorted.map(d=>d.name),
+        datasets:[
+          {label:'Режа (минг $)', data:sorted.map(d=>d.plan),backgroundColor:'#A5F3FC'},
+          {label:'Амал (минг $)', data:sorted.map(d=>d.amal),backgroundColor:'#0891B2'},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false},ticks:{font:{size:10}}}}
+      }
+    });
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+});
+
+// Биринчи бўлимни очик кўрсатиш
+toggleSection('sec1');
+// Дефолт вазифаларни кўрсатиш
+renderTasks('yahm');
+// Биринчи картани selected қилиш
+const firstCard = document.querySelector('#sec1-kpi-cards .kpi-card.clickable');
+if (firstCard) firstCard.classList.add('selected');
+</script>
+</body>
+</html>

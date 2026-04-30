@@ -1,0 +1,32 @@
+# Python/runtime noise
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Temporary working files
+tmp_*.mjs
+tmp_*.py
+*.tmp
+*.bak
+~$*
+handoff/
+
+# External/reference prototype with its own nested git metadata
+platform prototypes/claude/v2/
+
+# Source documents stay local; do not push raw DOCX/XLSX inputs to GitHub.
+data_source/
+
+# Dependency folders if future app scaffolding is added
+node_modules/
+dist/
+build/
+.next/
+coverage/
