@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KPI биринчи экран концепти</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --ink: #102033;
+      --muted: #607086;
+      --line: #d9e2ec;
+      --blue: #1e63c8;
+      --blue-2: #0e4fa8;
+      --green: #138a55;
+      --amber: #c57912;
+      --red: #c73535;
+      --grey: #718096;
+      --soft-blue: #e8f1ff;
+      --soft-green: #e7f7ef;
+      --soft-amber: #fff4d8;
+      --soft-red: #ffe8e8;
+      --soft-grey: #edf1f6;
+      --nav: #073763;
+      --nav-2: #0b4a80;
+      --shadow: 0 18px 40px rgba(18, 45, 78, .10);
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 244px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--nav), #052a4e);
+      color: #fff;
+      padding: 22px 16px;
+    }
+
+    .brand {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .seal {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.22);
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .brand strong { display: block; font-size: 15px; line-height: 1.15; }
+    .brand span { display: block; margin-top: 3px; color: rgba(255,255,255,.72); font-size: 12px; }
+
+    .nav-title {
+      margin: 18px 8px 8px;
+      color: rgba(255,255,255,.52);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .nav button {
+      width: 100%;
+      min-height: 46px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255,255,255,.82);
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .nav button.active {
+      background: #1f6fd0;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .nav svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.2;
+    }
+
+    .main {
+      padding: 22px 28px 30px;
+      min-width: 0;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    h1, h2, h3, p { margin: 0; letter-spacing: 0; }
+
+    h1 {
+      margin-top: 4px;
+      font-size: 30px;
+      line-height: 1.08;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .selectbox {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      padding: 10px 12px;
+      min-width: 160px;
+      font-weight: 700;
+    }
+
+    .direction-tabs {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .direction {
+      min-height: 66px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 10px 12px;
+      text-align: left;
+      box-shadow: 0 8px 18px rgba(18,45,78,.05);
+    }
+
+    .direction b {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.18;
+    }
+
+    .direction span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .direction.active {
+      border-color: rgba(30, 99, 200, .45);
+      background: var(--soft-blue);
+      box-shadow: inset 0 -4px 0 var(--blue);
+    }
+
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      min-height: 128px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+    }
+
+    .kpi-card:last-child { border-right: 0; }
+    .kpi-card.active { background: #f4f8ff; box-shadow: inset 0 -5px 0 var(--blue); }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), #3b82f6);
+      box-shadow: 0 10px 18px rgba(30, 99, 200, .25);
+    }
+
+    .icon svg {
+      width: 25px;
+      height: 25px;
+      stroke-width: 2.2;
+    }
+
+    .kpi-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .kpi-card strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--blue);
+      font-size: 30px;
+      line-height: .98;
+      white-space: nowrap;
+    }
+
+    .kpi-card small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .focus-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(330px, .75fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel-head {
+      min-height: 68px;
+      padding: 15px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .panel-head h2,
+    .panel-head h3 {
+      font-size: 20px;
+      line-height: 1.15;
+    }
+
+    .panel-head p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .chip.green { color: var(--green); background: var(--soft-green); }
+    .chip.amber { color: var(--amber); background: var(--soft-amber); }
+    .chip.red { color: var(--red); background: var(--soft-red); }
+    .chip.grey { color: var(--grey); background: var(--soft-grey); }
+    .chip.blue { color: var(--blue); background: var(--soft-blue); }
+
+    .quarter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px 18px;
+    }
+
+    .quarter {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      min-height: 172px;
+      padding: 13px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .quarter.actual { border-color: rgba(19, 138, 85, .28); background: #fbfffd; }
+    .quarter.target { border-color: rgba(30, 99, 200, .24); }
+
+    .quarter h3 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+
+    .metric {
+      display: grid;
+      gap: 4px;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .metric strong {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #e6edf5;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: var(--c);
+    }
+
+    .detail-row {
+      padding: 0 18px 18px;
+    }
+
+    .driver-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .driver {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-2);
+      padding: 12px;
+    }
+
+    .driver span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .driver strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--blue);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .driver small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .side-body {
+      padding: 16px 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .route {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 13px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .route span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .route strong {
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 12px;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .btn.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .note {
+      border-top: 1px solid var(--line);
+      padding: 13px 18px;
+      color: var(--muted);
+      font-size: 12px;
+      background: #fbfdff;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .direction-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-card { border-bottom: 1px solid var(--line); }
+      .focus-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="seal">CERR</div>
+        <div>
+          <strong>Ҳудудий мониторинг платформаси</strong>
+          <span>Андижон пилоти</span>
+        </div>
+      </div>
+      <div class="nav-title">Асосий бўлимлар</div>
+      <div class="nav">
+        <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/></svg>KPI</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>Туманлар</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l2 2 4-5M5 4h14v16H5z"/></svg>Топшириқлар</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16M4 12h16M4 19h10M8 9l2 2 4-4"/></svg>Ижро мониторинги</button>
+      </div>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div>
+          <div class="eyebrow">Андижон вилояти · 2026</div>
+          <h1>KPI мониторинг</h1>
+          <p class="subtitle">Биринчи экранда фақат KPI: йиллик мақсад, чораклар кесими, амалдаги ҳолат ва кейинги drill-down.</p>
+        </div>
+        <div class="filters">
+          <div class="selectbox">Андижон вилояти</div>
+          <div class="selectbox">2026 йил</div>
+        </div>
+      </section>
+
+      <section class="direction-tabs">
+        <button class="direction active"><span>1-йўналиш</span><b>Макроиқтисодиёт</b></button>
+        <button class="direction"><span>2-йўналиш</span><b>Инфляция ва озиқ-овқат</b></button>
+        <button class="direction"><span>3-йўналиш</span><b>Бюджет тушумлари</b></button>
+        <button class="direction"><span>4-йўналиш</span><b>Бюджет инвестициялари</b></button>
+        <button class="direction"><span>5-йўналиш</span><b>Хорижий инвестиция</b></button>
+        <button class="direction"><span>6-йўналиш</span><b>Экспорт</b></button>
+        <button class="direction"><span>7-йўналиш</span><b>Бандлик ва камбағаллик</b></button>
+      </section>
+
+      <section class="kpi-strip">
+        <button class="kpi-card active">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 17h16M6 14l4-5 4 3 4-7"/><path d="M16 5h4v4"/></svg></div>
+          <div><span>ЯҲМ</span><strong>+7,8%</strong><small>I чорак амалда: +8,6%</small></div>
+        </button>
+        <button class="kpi-card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V9l5 3V9l5 3h6v8H4Z"/></svg></div>
+          <div><span>Саноат</span><strong>+8,2%</strong><small>I чорак амалда: +8,4%</small></div>
+        </button>
+        <button class="kpi-card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M3 20h18M12 4l8 4H4l8-4Z"/></svg></div>
+          <div><span>Қишлоқ хўжалиги</span><strong>+4,9%</strong><small>I чорак амалда: +5,7%</small></div>
+        </button>
+        <button class="kpi-card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18M6 21V9l6-4 6 4v12"/></svg></div>
+          <div><span>Қурилиш</span><strong>+12,5%</strong><small>I чорак амалда: +13,5%</small></div>
+        </button>
+        <button class="kpi-card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2 3 5 3 8s-1 6-3 8"/></svg></div>
+          <div><span>Хизматлар</span><strong>+15,5%</strong><small>I чорак амалда: +14,2%</small></div>
+        </button>
+      </section>
+
+      <section class="focus-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>ЯҲМ: чораклар кесимида monitoring</h2>
+              <p>Ҳар бир KPI учун бир хил схема: режа, амалда ва ижро. Ортиқча топшириқлар биринчи экранга чиқмайди.</p>
+            </div>
+            <span class="chip grey">ЯҲМ туман кесимида эмас, таркиб орқали кўрилади</span>
+          </div>
+          <div class="quarter-grid">
+            <div class="quarter actual">
+              <h3>I чорак <span class="chip green">амалда</span></h3>
+              <div class="metric"><span>Амалда</span><strong>+8,6%</strong></div>
+              <div class="metric"><span>Ҳажм</span><strong>22,7 трлн сўм</strong></div>
+              <div class="bar"><i style="--w:88%;--c:var(--green)"></i></div>
+            </div>
+            <div class="quarter target">
+              <h3>II чорак <span class="chip grey">режа</span></h3>
+              <div class="metric"><span>Режа</span><strong>+7,2%</strong></div>
+              <div class="metric"><span>Ҳажм</span><strong>52,1 трлн сўм</strong></div>
+              <div class="bar"><i style="--w:72%;--c:var(--blue)"></i></div>
+            </div>
+            <div class="quarter target">
+              <h3>III чорак <span class="chip grey">режа</span></h3>
+              <div class="metric"><span>Режа</span><strong>+7,8%</strong></div>
+              <div class="metric"><span>Ҳажм</span><strong>86,6 трлн сўм</strong></div>
+              <div class="bar"><i style="--w:78%;--c:var(--blue)"></i></div>
+            </div>
+            <div class="quarter target">
+              <h3>IV / йиллик <span class="chip grey">мақсад</span></h3>
+              <div class="metric"><span>Режа</span><strong>+7,8%</strong></div>
+              <div class="metric"><span>Ҳажм</span><strong>124,8 трлн сўм</strong></div>
+              <div class="bar"><i style="--w:78%;--c:var(--blue)"></i></div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="driver-grid">
+              <div class="driver"><span>Саноат</span><strong>+8,2%</strong><small>ЯҲМ таркибидаги KPI</small></div>
+              <div class="driver"><span>Қишлоқ хўжалиги</span><strong>+4,9%</strong><small>ЯҲМ таркибидаги KPI</small></div>
+              <div class="driver"><span>Қурилиш</span><strong>+12,5%</strong><small>вилоят даражасида</small></div>
+              <div class="driver"><span>Хизматлар</span><strong>+15,5%</strong><small>ЯҲМ таркибидаги KPI</small></div>
+            </div>
+          </div>
+          <div class="note">Бу зона KPIнинг ички деталини кўрсатади. Масалан, Саноат босилса: саноат ўсиши, маҳаллийлаштириш, электр тежаш, газ тежаш алоҳида кўринади.</div>
+        </article>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Кейинги ўтишлар</h3>
+              <p>Биринчи экранда фақат йўналиш берилади, деталлар алоҳида саҳифада очилади.</p>
+            </div>
+          </div>
+          <div class="side-body">
+            <div class="route">
+              <span>Туманлар</span>
+              <strong>Танланган KPI бўйича туман/шаҳарлар кесими</strong>
+              <div class="button-row"><button class="btn primary">Туманлар кесими</button></div>
+            </div>
+            <div class="route">
+              <span>Ижро мониторинги</span>
+              <strong>Ҳисобот киритиш, тасдиқлаш ва KPIга таъсир</strong>
+              <div class="button-row"><button class="btn">Ижро журнали</button><button class="btn">Ҳисобот киритиш</button></div>
+            </div>
+            <div class="route">
+              <span>Топшириқлар</span>
+              <strong>KPIга эришиш учун амалий ишлар алоҳида саҳифада</strong>
+              <div class="button-row"><button class="btn">Топшириқлар</button></div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
