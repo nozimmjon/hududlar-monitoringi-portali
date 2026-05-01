@@ -1,0 +1,1911 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ҳудудлар мониторинги портали — final direction v3</title>
+  <style>
+    :root {
+      --ink: #0d2237;
+      --muted: #607187;
+      --paper: #eef4fa;
+      --surface: #fbfdff;
+      --line: #d3dfeb;
+      --line-strong: #b9cadd;
+      --nav: #061a2d;
+      --blue: #145fb8;
+      --blue-2: #2f6f9f;
+      --blue-soft: #e8f2ff;
+      --green: #087b53;
+      --green-soft: #e4f7ef;
+      --amber: #a76400;
+      --amber-soft: #fff0d1;
+      --red: #bd3126;
+      --red-soft: #ffe4e0;
+      --grey: #667789;
+      --grey-soft: #edf2f7;
+      --shadow: 0 20px 55px rgba(17, 48, 80, .14);
+      --nav-w: 224px;
+      --drawer-w: 430px;
+      --header-h: 58px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(145deg, #dce8f5 0%, #eef4fa 50%, #e4eef8 100%) fixed;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.35;
+      overflow-x: hidden;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    :focus-visible {
+      outline: 3px solid color-mix(in oklch, var(--blue) 70%, white);
+      outline-offset: 3px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      color: #f7fbff;
+      background: linear-gradient(135deg, #061a2d, #454f54);
+      box-shadow: 0 4px 16px rgba(7, 26, 45, .2);
+    }
+
+    .mast {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px clamp(16px, 2.5vw, 28px);
+      height: var(--header-h);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 38px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .quarters {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quarter {
+      border: 1px solid rgba(255,255,255,.36);
+      border-radius: 999px;
+      min-width: 90px;
+      padding: 7px 14px;
+      color: #f7fbff;
+      background: rgba(255,255,255,.08);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .quarter:hover,
+    .quarter.active {
+      color: #224b68;
+      background: #fff;
+      border-color: #fff;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.35);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #f7fbff;
+      letter-spacing: .5px;
+      flex-shrink: 0;
+    }
+
+    .user-details b {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f7fbff;
+      line-height: 1.2;
+    }
+
+    .user-details span {
+      display: block;
+      font-size: 11px;
+      color: rgba(247,251,255,.68);
+    }
+
+    .front-kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      background: rgba(255,255,255,.98);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 14px rgba(17, 48, 80, .07);
+    }
+
+    .front-kpi {
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: var(--blue-soft);;
+      min-height: 102px;
+      padding: 17px clamp(14px, 1.8vw, 24px);
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      gap: 13px;
+      align-items: center;
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .front-kpi:last-child { border-right: 0; }
+    .front-kpi:hover,
+    .front-kpi.active { background: transparent }
+
+    .kicon {
+      width: 54px;
+      height: 54px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, #3380c1, #637a89);
+      box-shadow: 0 12px 24px rgba(20, 95, 184, .25);
+    }
+
+    .kicon svg { width: 26px; height: 26px; }
+    .front-kpi h2 {
+      margin: 0 0 2px;
+      color: #5c6878;
+      text-transform: uppercase;
+      font-size: 15px;
+      line-height: 1.12;
+    }
+
+    .front-kpi strong {
+      display: block;
+      color: #2d4354;
+      font-size: clamp(27px, 2.4vw, 36px);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .front-kpi small {
+      display: block;
+      margin-top: 4px;
+      color: #5b6b7f;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--nav-w) minmax(0, 1fr);
+      min-height: calc(100vh - var(--header-h));
+    }
+
+    .nav {
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow: auto;
+      background: var(--nav);
+      color: #d6e7f8;
+      padding: 18px 14px;
+    }
+
+    .nav-title {
+      padding: 8px 10px 16px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.13);
+    }
+
+    .nav-title b {
+      display: block;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .nav-title span {
+      display: block;
+      margin-top: 5px;
+      color: #9db6cf;
+      font-size: 12px;
+    }
+
+    .nav-list { display: grid; gap: 6px; }
+
+    .nav-btn {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 10px;
+      background: transparent;
+      color: #d7e8f7;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      text-align: left;
+    }
+
+    .nav-btn:hover { background: rgba(255,255,255,.07); }
+    .nav-btn.active {
+      color: var(--nav);
+      background: #eef6ff;
+      border-color: #fff;
+    }
+
+    .nav-no {
+      width: 27px;
+      height: 27px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+    }
+
+    .nav-btn b { font-size: 13px; }
+    .nav-btn small { font-size: 12px; color: inherit; opacity: .72; }
+
+    .nav-note {
+      margin-top: 24px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px;
+      padding: 13px;
+      background: rgba(255,255,255,.04);
+      color: #cde0f3;
+      font-size: 12px;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 26px clamp(20px, 3vw, 36px) 44px;
+    }
+
+    .mobile-nav {
+      display: none;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 0 0 14px;
+    }
+
+    .mobile-nav button {
+      white-space: nowrap;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .mobile-nav button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .page-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .page-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 3.3vw, 42px);
+      line-height: 1.03;
+      letter-spacing: 0;
+    }
+
+    .page-head h2.title-sm {
+      font-size: clamp(16px, 1.6vw, 22px);
+    }
+
+    .page-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 760px;
+      font-size: 14px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .control {
+      height: 38px;
+      min-width: 160px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: rgba(255,255,255,.86);
+      padding: 0 12px;
+      color: var(--ink);
+    }
+
+    .cmd {
+      height: 38px;
+      border: 1px solid var(--blue);
+      border-radius: 9px;
+      background: var(--blue);
+      color: #fff;
+      padding: 0 13px;
+      font-weight: 850;
+    }
+
+    .cmd.secondary {
+      background: #fff;
+      color: var(--blue);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .surface {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 12px 30px rgba(24, 61, 92, .06);
+      overflow: hidden;
+    }
+
+    .surface-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 17px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .surface-head h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .surface-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .green { color: var(--green); background: var(--green-soft); border: 1px solid #a3dfc5; }
+    .amber { color: var(--amber); background: var(--amber-soft); border: 1px solid #ffd28a; }
+    .red { color: var(--red); background: var(--red-soft); border: 1px solid #ffb5ad; }
+    .grey { color: var(--grey); background: var(--grey-soft); border: 1px solid #d4dee9; }
+    .blue { color: var(--blue); background: var(--blue-soft); border: 1px solid #bad8ff; }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .cat-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 2px 12px rgba(17,48,80,.06);
+      text-align: left;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .12s;
+    }
+
+    .cat-card:hover {
+      box-shadow: 0 6px 22px rgba(17,48,80,.13);
+      transform: translateY(-2px);
+    }
+
+    .cat-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .cat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, #3380c1, #637a89);
+      box-shadow: 0 6px 16px rgba(20,95,184,.22);
+    }
+
+    .cat-icon svg { width: 22px; height: 22px; }
+
+    .cat-head-text { min-width: 0; }
+
+    .cat-head-text h3 {
+      margin: 0 0 5px;
+      font-size: 25px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .cat-kpi strong {
+      display: block;
+      font-size: 36px;
+      line-height: 1;
+      color: #0e2132;
+      font-weight: 900;
+    }
+
+    .cat-kpi span {
+      display: block;
+      margin-top: 3px;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .cat-progress {
+      height: 6px;
+      border-radius: 99px;
+      background: var(--line);
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .cat-fill {
+      height: 100%;
+      border-radius: 99px;
+    }
+
+    .cat-fill.green { background: var(--green); }
+    .cat-fill.amber { background: var(--amber); }
+    .cat-fill.red   { background: var(--red); }
+
+    .cat-task-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .cat-task-row b {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .section-heading {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .scoreline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .score {
+      min-width: 0;
+      padding: 16px 22px;
+      background: #fff;
+      border: 1px solid #dde3ec;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .score-label {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .score-chart-wrap {
+      position: relative;
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+    }
+
+    .score-chart-wrap svg { width: 70px; height: 70px; }
+
+    .score-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .score-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .score-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #555;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .score-leg-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .score-num {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+      margin-left: auto;
+    }
+
+    .score-dot {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .attention-list { padding: 10px; display: grid; gap: 8px; }
+
+    .attention {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 11px;
+      background: #fbfdff;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      text-align: left;
+      color: inherit;
+    }
+
+    .attention:hover { border-color: var(--blue); background: #fff; }
+    .num {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #e8eef5;
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .attention h4,
+    .task-card h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .attention p,
+    .task-card p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .district-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .district-btn {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fbfdff;
+      padding: 12px;
+      color: inherit;
+      text-align: left;
+      min-height: 112px;
+    }
+
+    .district-btn:hover,
+    .district-btn.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .district-btn h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .district-btn strong {
+      display: block;
+      margin-top: 9px;
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .district-btn span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .list-panel { padding: 8px; display: grid; gap: 6px; }
+
+    .list-btn {
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      padding: 10px;
+      text-align: left;
+      color: inherit;
+    }
+
+    .list-btn:hover,
+    .list-btn.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .list-btn h4 {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .list-btn p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profile { display: grid; gap: 14px; }
+
+    .profile-head {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.92);
+      padding: 17px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .profile-head h3 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .profile-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .task-deficit {
+      border-left: 1px solid var(--line);
+      padding-left: 18px;
+      min-width: 176px;
+    }
+
+    .task-deficit strong {
+      display: block;
+      color: var(--red);
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .task-deficit span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .mini-kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255,255,255,.93);
+    }
+
+    .mini-kpi {
+      min-width: 0;
+      padding: 13px;
+      border-right: 1px solid var(--line);
+    }
+
+    .mini-kpi:last-child { border-right: 0; }
+    .mini-kpi b {
+      display: block;
+      color: #5b6878;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .mini-kpi strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--blue);
+      font-size: 24px;
+      line-height: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-kpi span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sector-grid {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .sector-detail {
+      display: grid;
+      gap: 14px;
+    }
+
+    .sector-hero {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.93);
+      padding: 17px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+    }
+
+    .sector-hero h3 {
+      margin: 0;
+      font-size: 25px;
+    }
+
+    .sector-hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .sector-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 13px;
+      background: rgba(255,255,255,.92);
+    }
+
+    .metric b {
+      display: block;
+      color: #5b6878;
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--blue);
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.9);
+      overflow: hidden;
+    }
+
+    .lane-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 13px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .lane-head h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .lane-body {
+      padding: 8px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .task-card {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 11px;
+      background: #fbfdff;
+    }
+
+    .table-wrap { overflow: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: #536476;
+      background: #f0f6fb;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    tr.action-row:hover {
+      background: #f8fbff;
+      cursor: pointer;
+    }
+
+    .source-layout {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .rule-list {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .rule {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 12px;
+      background: #fbfdff;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .rule b {
+      display: block;
+      font-size: 13px;
+    }
+
+    .rule span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .evidence-form {
+      padding: 13px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .evidence-form textarea {
+      grid-column: 1 / -1;
+      min-height: 78px;
+      resize: vertical;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 29;
+      background: rgba(8, 23, 38, .34);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .drawer-mask.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      inset: 0 0 0 auto;
+      z-index: 30;
+      width: min(var(--drawer-w), 100vw);
+      background: #fbfdff;
+      box-shadow: -22px 0 50px rgba(8, 23, 38, .24);
+      transform: translateX(104%);
+      transition: transform .22s ease;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .drawer-head h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .drawer-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .x {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+    }
+
+    .x svg { width: 22px; height: 22px; }
+
+    .drawer-body {
+      overflow: auto;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .drawer-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .drawer-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .drawer-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .drawer-card dl {
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .drawer-card div {
+      display: grid;
+      grid-template-columns: 145px minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .drawer-card dt {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .drawer-card dd {
+      margin: 0;
+      font-weight: 850;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .mt { margin-top: 16px; }
+    .text-green { color: var(--green); }
+    .text-amber { color: var(--amber); }
+    .text-red { color: var(--red); }
+
+    .empty {
+      padding: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1220px) {
+      .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .front-kpi:nth-child(3n) { border-right: 0; }
+      .shell { grid-template-columns: 1fr; }
+      .nav { display: none; }
+      .topbar { position: relative; }
+      .main { padding-top: 14px; }
+      .mobile-nav { display: flex; }
+    }
+
+    @media (max-width: 920px) {
+      .mast { grid-template-columns: 1fr; gap: 14px; }
+      .kpi-mark { display: none; }
+      .year-box { justify-self: start; text-align: left; }
+      .page-head,
+      .workspace,
+      .sector-grid,
+      .source-layout {
+        grid-template-columns: 1fr;
+      }
+      .filters { justify-content: flex-start; }
+      .cat-grid,
+      .scoreline,
+      .district-strip,
+      .mini-kpis,
+      .sector-kpis,
+      .task-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .front-kpi {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .profile-head,
+      .sector-hero {
+        grid-template-columns: 1fr;
+      }
+      .task-deficit {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding-left: 0;
+        padding-top: 14px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .mast {
+        flex-wrap: wrap;
+        padding: 8px 16px;
+        gap: 8px;
+        height: auto;
+      }
+      .brand-logo {
+        width: 68px;
+        height: 32px;
+      }
+      .quarters {
+        order: 3;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .quarter {
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+        padding: 6px 8px;
+      }
+      .user-details { display: none; }
+      .front-kpis,
+      .cat-grid,
+      .scoreline,
+      .district-strip,
+      .mini-kpis,
+      .sector-kpis,
+      .task-grid,
+      .evidence-form {
+        grid-template-columns: 1fr;
+      }
+      .front-kpi {
+        min-height: 94px;
+        grid-template-columns: 50px minmax(0, 1fr);
+      }
+      .kicon {
+        width: 50px;
+        height: 50px;
+      }
+      .attention,
+      .rule {
+        grid-template-columns: 32px minmax(0, 1fr);
+      }
+      .attention .chip,
+      .rule .chip {
+        grid-column: 2;
+        justify-self: start;
+      }
+      .score { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+
+    @media print {
+      .topbar, .nav, .mobile-nav, .filters, .drawer, .drawer-mask { display: none; }
+      .shell { display: block; }
+      .main { padding: 0; }
+      body { background: #fff; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="mast">
+      <div class="brand">
+        <img class="brand-logo" src="images/logo.svg" alt="CERR">
+      </div>
+      <div class="quarters" id="quarters"></div>
+      <div class="user-info">
+        <div class="user-avatar">ЮУ</div>
+        <div class="user-details">
+          <b>Юнус У.</b>
+          <span>Андижон вилояти</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="nav">
+      <div class="nav-title">
+        <b>Ҳудудлар мониторинги</b>
+      </div>
+      <nav class="nav-list" id="sideNav"></nav>
+    </aside>
+
+    <main class="main">
+      <div class="mobile-nav" id="mobileNav"></div>
+      <div class="page-head">
+        <div>
+          <h2 id="pageTitle">Мақсадли кўрсаткичлар</h2>
+          <p id="pageSub">Аввал қарор талаб қиладиган KPI ва топшириқлар, кейин туман, сектор, манба ва далил.</p>
+        </div>
+        <div class="filters">
+          <select class="control" id="sectorFilter" aria-label="Йўналиш фильтри"></select>
+          <select class="control" id="statusFilter" aria-label="Ҳолат фильтри">
+            <option value="">Барча ҳолатлар</option>
+            <option>Қизил</option>
+            <option>Сариқ</option>
+            <option>Кулранг</option>
+            <option>Яшил</option>
+          </select>
+          <input class="control" id="search" aria-label="Қидириш" placeholder="туман, KPI, манба...">
+          <button class="cmd secondary" id="printBtn">Чоп этиш</button>
+          <button class="cmd" id="exportBtn">Экспорт</button>
+        </div>
+      </div>
+
+      <section class="view active" id="view-command"></section>
+      <section class="view" id="view-sectors"></section>
+      <section class="view" id="view-districts"></section>
+      <section class="view" id="view-monitoring"></section>
+      <section class="view" id="view-tasks"></section>
+      <section class="view" id="view-evidence"></section>
+      <section class="view" id="view-sources"></section>
+    </main>
+  </div>
+
+  <div class="drawer-mask" id="drawerMask"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-describedby="drawerSub" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <h2 id="drawerTitle">Кўрсаткич</h2>
+        <p id="drawerSub">манба ва ижро тафсилоти</p>
+      </div>
+      <button class="x" id="closeDrawer" aria-label="Ёпиш"><svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <script>
+    const icons = {
+      trend: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M15.22 6.268a.75.75 0 01.968-.431l5.942 2.28a.75.75 0 01.431.97l-2.28 5.941a.75.75 0 11-1.4-.537l1.63-4.251-1.086.483a11.2 11.2 0 00-5.45 5.174.75.75 0 01-1.199.19L9 12.31l-6.22 6.22a.75.75 0 11-1.06-1.06l6.75-6.75a.75.75 0 011.06 0l3.606 3.606a12.695 12.695 0 015.68-4.974l1.086-.483-4.251-1.63a.75.75 0 01-.432-.968z" clip-rule="evenodd"/></svg>',
+      dollar: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"/><path fill-rule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z" clip-rule="evenodd"/><path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z"/></svg>',
+      bank: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.584 2.376a.75.75 0 01.832 0l9 6a.75.75 0 11-.832 1.248L12 3.901 3.416 9.624a.75.75 0 01-.832-1.248l9-6z"/><path fill-rule="evenodd" d="M20.25 10.332v9.918H21a.75.75 0 010 1.5H3a.75.75 0 010-1.5h.75v-9.918a.75.75 0 01.634-.74A49.109 49.109 0 0112 9c2.59 0 5.134.202 7.616.592a.75.75 0 01.634.74zm-7.5 2.418a.75.75 0 00-1.5 0v6.75a.75.75 0 001.5 0v-6.75zm3-.75a.75.75 0 01.75.75v6.75a.75.75 0 01-1.5 0v-6.75a.75.75 0 01.75-.75zM9 12.75a.75.75 0 00-1.5 0v6.75a.75.75 0 001.5 0v-6.75z" clip-rule="evenodd"/><path d="M12 7.875a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z"/></svg>',
+      rocket: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clip-rule="evenodd"/><path d="M5.26 17.242a.75.75 0 10-.897-1.203 5.243 5.243 0 00-2.05 5.022.75.75 0 00.625.627 5.243 5.243 0 005.022-2.051.75.75 0 10-1.202-.897 3.744 3.744 0 01-3.008 1.51c0-1.23.592-2.323 1.51-3.008z"/></svg>',
+      globe: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.721 12.752a9.711 9.711 0 00-.945-5.003 12.754 12.754 0 01-4.339 2.708 18.991 18.991 0 01-.214 4.772 17.165 17.165 0 005.498-2.477zM14.634 15.55a17.324 17.324 0 00.332-4.647c-.952.227-1.945.347-2.966.347-1.021 0-2.014-.12-2.966-.347a17.515 17.515 0 00.332 4.647 17.385 17.385 0 005.268 0zM9.772 17.119a18.963 18.963 0 004.456 0A17.182 17.182 0 0112 21.724a17.18 17.18 0 01-2.228-4.605zM7.777 15.23a18.87 18.87 0 01-.214-4.774 12.753 12.753 0 01-4.34-2.708 9.711 9.711 0 00-.944 5.004 17.165 17.165 0 005.498 2.477zM21.356 14.752a9.765 9.765 0 01-7.478 6.817 18.64 18.64 0 001.988-4.718 18.627 18.627 0 005.49-2.098zM2.644 14.752c1.682.971 3.53 1.688 5.49 2.099a18.64 18.64 0 001.988 4.718 9.765 9.765 0 01-7.478-6.816zM13.878 2.43a9.755 9.755 0 016.116 3.986 11.267 11.267 0 01-3.746 2.504 18.63 18.63 0 00-2.37-6.49zM12 2.276a17.152 17.152 0 012.805 7.121c-.897.23-1.837.353-2.805.353-.968 0-1.908-.122-2.805-.353A17.151 17.151 0 0112 2.276zM10.122 2.43a18.629 18.629 0 00-2.37 6.49 11.266 11.266 0 01-3.746-2.504 9.754 9.754 0 016.116-3.985z"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM15.75 9.75a3 3 0 116 0 3 3 0 01-6 0zM2.25 9.75a3 3 0 116 0 3 3 0 01-6 0zM6.31 15.117A6.745 6.745 0 0112 12a6.745 6.745 0 016.709 7.498.75.75 0 01-.372.568A12.696 12.696 0 0112 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 01-.372-.568 6.787 6.787 0 011.019-4.38z" clip-rule="evenodd"/><path d="M5.082 14.254a8.287 8.287 0 00-1.308 5.135 9.687 9.687 0 01-1.764-.44l-.115-.04a.563.563 0 01-.373-.487l-.01-.121a3.75 3.75 0 013.57-4.047zM20.226 19.389a8.287 8.287 0 00-1.308-5.135 3.75 3.75 0 013.57 4.047l-.01.121a.563.563 0 01-.373.486l-.115.04c-.567.2-1.156.349-1.764.441z"/></svg>'
+    };
+
+    const quarters = ['I-чорак', 'II-чорак', 'III-чорак', 'IV-чорак'];
+    const nav = [
+      ['command', 'Бош саҳифа', '01', ''],
+      ['sectors', 'Йўналишлар', '02', '6'],
+      ['districts', 'Туманлар', '03', '16'],
+      ['monitoring', 'Мониторинг', '04', ''],
+      // ['tasks', 'Топшириқлар', '05', ''],
+      // ['evidence', 'Далиллар', '06', ''],
+      // ['sources', 'Манбалар', '07', '8']
+    ];
+
+    const kpis = [
+      {id:'grp', label:'ЯҲМ', value:'+7,2%', sub:'52,1 трлн сўм', icon:'trend', sector:'Макро иқтисодиёт', status:'green', note:'H1 мақсад: 107,16%; йил якуни: 107,79%.', current:{value:'+5,8%', sub:'I чорак ўсиши'}},
+      {id:'inflation', label:'Инфляция', value:'2,9%', sub:'II чорак лимити', icon:'dollar', sector:'Инфляция', status:'amber', note:'Паст яхши KPI; II чорак лимити 2,9%.', current:{value:'3,2%', sub:'I чорак факт'}},
+      {id:'budget', label:'Бюджет', value:'+7,9%', sub:'1,3 трлн сўм', icon:'bank', sector:'Бюджет', status:'green', note:'H1 кутилаётган тушум: 2 598,6 млрд сўм.', current:{value:'+5,4%', sub:'1,0 трлн сўм'}},
+      {id:'investment', label:'Инвестиция', value:'2,1 б.р.', sub:'1,8 млрд долл.', icon:'rocket', sector:'Хорижий инвестиция', status:'amber', note:'H1 режа: 1,783 млрд доллар; йил якуни 3,509 млрд доллар.', current:{value:'880 млн $', sub:'I чорак факт'}},
+      {id:'export', label:'Экспорт', value:'+21%', sub:'361,6 млн $', icon:'globe', sector:'Экспорт', status:'green', note:'H1 мақсад: 361,6 млн доллар; йил якуни 976,8 млн доллар.', current:{value:'196,6 млн $', sub:'I чорак факт'}},
+      {id:'unemployment', label:'Ишсизлик', value:'3,8%', sub:'I ярим йиллик', icon:'users', sector:'Бандлик', status:'amber', note:'Паст яхши KPI; H1 мақсад 3,84%, йил якуни 3,60%.', current:{value:'4,1%', sub:'I чорак факт'}}
+    ];
+
+    const kpiQuarterValues = {
+      'I-чорак': {
+        grp: ['—', 'I чорак факт кутилмоқда'],
+        inflation: ['—', 'I чорак факт кутилмоқда'],
+        budget: ['—', 'I чорак факт кутилмоқда'],
+        investment: ['880 млн $', 'I чорак факт'],
+        export: ['196,6 млн $', 'I чорак факт'],
+        unemployment: ['—', 'I чорак факт кутилмоқда']
+      },
+      'III-чорак': {
+        grp: ['—', '9 ой маълумот кутилмоқда'],
+        inflation: ['—', 'III чорак маълумоти кутилмоқда'],
+        budget: ['—', '9 ой маълумот кутилмоқда'],
+        investment: ['—', '9 ой маълумот кутилмоқда'],
+        export: ['—', '9 ой маълумот кутилмоқда'],
+        unemployment: ['—', '9 ой маълумот кутилмоқда']
+      },
+      'IV-чорак': {
+        grp: ['+7,8%', 'йил якуни мақсад'],
+        inflation: ['6,6%', 'йил якуни лимити'],
+        investment: ['3,509 млрд $', 'йил якуни мақсад'],
+        export: ['976,8 млн $', 'йил якуни мақсад'],
+        unemployment: ['3,6%', 'йил якуни мақсад'],
+        budget: ['5 888,6 млрд', 'йил якуни режа']
+      }
+    };
+
+    const sectors = [
+      {id:'macro', kpi:'grp', title:'ЯҲМ ва макро иқтисодиёт', sub:'саноат, қишлоқ хўжалиги, қурилиш, хизматлар', owner:'вилоят ҳокимлиги', unfinished:6, total:12, status:'amber', metrics:[['Саноат','52,6 трлн','H1 режа'],['Қишлоқ хўжалиги','21,9 трлн','H1 режа'],['Хизматлар','27,9 трлн','H1 режа']], tasks:['Хонобод ва Шаҳрихонда паст ўсишни тиклаш','6 та йирик корхона ишлаб чиқариш ҳажмини тиклаш','Маҳаллийлаштириш дастурини корхона кесимида янгилаш']},
+      {id:'inflation', kpi:'inflation', title:'Инфляция ва озиқ-овқат', sub:'нарх, захира, бозор назорати', owner:'туман ҳокимиятлари', unfinished:4, total:10, status:'amber', metrics:[['II чорак','2,9%','лимит'],['Йил якуни','6,6%','лимит'],['Захира','7 жадвал','назорат']], tasks:['Асосий маҳсулотлар нархини ҳафталик тасдиқлаш','Юқори ўсиш қайд этилган бозорлар бўйича изоҳ киритиш']},
+      {id:'budget', kpi:'budget', title:'Бюджет тушумлари', sub:'солиқ тушумлари, қўшимча манбалар', owner:'вилоят ҳокимлиги', unfinished:5, total:14, status:'amber', metrics:[['H1','2 598,6 млрд','кутилаётган тушум'],['Йил','5 888,6 млрд','режа'],['Қўшимча тушум','1,3 трлн','назорат']], tasks:['Режадан ортда қолган туманларни тасдиқлаш','Яширин иқтисодиётни камайтириш бўйича далил киритиш']},
+      {id:'investment', kpi:'investment', title:'Хорижий инвестиция', sub:'лойиҳалар, иш ўринлари, ҳудудлар', owner:'вилоят ва туман ҳокимиятлари', unfinished:8, total:20, status:'red', metrics:[['I чорак','880 млн $','факт'],['H1','1,783 млрд $','режа'],['Йил','3,509 млрд $','мақсад']], tasks:['155 та хорижий инвестиция лойиҳасини ишга тушириш','307 та йиллик лойиҳа бўйича масъул ва график киритиш']},
+      {id:'export', kpi:'export', title:'Экспорт', sub:'экспорт ҳажми, экспортчилар, корхоналар', owner:'вилоят экспорти штаби', unfinished:9, total:18, status:'red', metrics:[['I чорак','196,6 млн $','факт'],['H1','361,6 млн $','мақсад'],['Йил','976,8 млн $','мақсад']], tasks:['Экспорти пасайган 46 та корхона билан манзилли ишлаш','Экспортни тўхтатган 11 та корхона бўйича тиклаш режаси']},
+      {id:'employment', kpi:'unemployment', title:'Бандлик ва камбағаллик', sub:'иш ўринлари, камбағаллик, маҳаллалар', owner:'вилоят ва туман ҳокимиятлари', unfinished:7, total:19, status:'red', metrics:[['Доимий иш','38,9 минг','H1'],['Камбағаллик','4,5%','H1'],['Ишсизлик','3,84%','H1']], tasks:['38,9 минг аҳолини доимий ишга жойлаштириш','14,5 минг камбағал оилага хизмат кўрсатиш']}
+    ];
+
+    const districts = [
+      {name:'Андижон шаҳри', undone:6, total:24, owner:'шаҳар ҳокимияти'},
+      {name:'Хонобод шаҳри', undone:5, total:17, owner:'шаҳар ҳокимияти'},
+      {name:'Асака тумани', undone:3, total:21, owner:'туман ҳокимияти'},
+      {name:'Балиқчи тумани', undone:4, total:19, owner:'туман ҳокимияти'},
+      {name:'Булоқбоши тумани', undone:4, total:18, owner:'туман ҳокимияти'},
+      {name:'Бўстон тумани', undone:7, total:16, owner:'туман ҳокимияти'},
+      {name:'Жалақудуқ тумани', undone:2, total:18, owner:'туман ҳокимияти'},
+      {name:'Избоскан тумани', undone:8, total:22, owner:'туман ҳокимияти'},
+      {name:'Улуғнор тумани', undone:6, total:15, owner:'туман ҳокимияти'},
+      {name:'Қўрғонтепа тумани', undone:4, total:20, owner:'туман ҳокимияти'},
+      {name:'Марҳамат тумани', undone:5, total:20, owner:'туман ҳокимияти'},
+      {name:'Олтинкўл тумани', undone:3, total:17, owner:'туман ҳокимияти'},
+      {name:'Пахтаобод тумани', undone:6, total:19, owner:'туман ҳокимияти'},
+      {name:'Хўжаобод тумани', undone:4, total:18, owner:'туман ҳокимияти'},
+      {name:'Шаҳрихон тумани', undone:7, total:23, owner:'туман ҳокимияти'},
+      {name:'Андижон вилояти', undone:9, total:93, owner:'вилоят ҳокимлиги'}
+    ];
+
+    const districtKpis = {
+      'Андижон шаҳри': [['Саноат','+8,4%','I чорак ўсиши','green'],['Инвестиция','312 млн $','H1 режа','amber'],['Экспорт','58,2 млн $','H1 мақсад','green'],['Бюджет','412 млрд','ижро','green'],['Ишсизлик','3,7%','паст яхши','green'],['Бандлик','4,8 минг','иш ўрни','amber']],
+      'Избоскан тумани': [['Саноат','+5,9%','паст ўсиш','amber'],['Инвестиция','62,5%','режага нисбатан','red'],['Экспорт','18,4 млн $','H1 мақсад','amber'],['Бюджет','84,1%','ижро','amber'],['Ишсизлик','4,1%','юқори','red'],['Бандлик','2,1 минг','иш ўрни','amber']],
+      'Бўстон тумани': [['Саноат','+4,9%','паст ўсиш','red'],['Инвестиция','71,0%','режага нисбатан','red'],['Экспорт','9,2 млн $','H1 мақсад','amber'],['Бюджет','78,4%','ижро','red'],['Ишсизлик','4,2%','юқори','red'],['Бандлик','1,4 минг','иш ўрни','amber']],
+      'Шаҳрихон тумани': [['Саноат','+4,8%','паст ўсиш','red'],['Инвестиция','88,2%','режага нисбатан','amber'],['Экспорт','22,6 млн $','H1 мақсад','amber'],['Бюджет','91,0%','ижро','amber'],['Ишсизлик','4,0%','кузатувда','amber'],['Бандлик','3,2 минг','иш ўрни','green']]
+    };
+
+    const monitoring = [
+      {id:'M-031', district:'Андижон шаҳри', sector:'Бюджет инвестициялари', indicator:'Бюджет инвестициялари ўзлаштирилиши', period:'I ярим йиллик', target:'444,1 млрд сўм', actual:'321,5 млрд сўм', pct:72.4, status:'Қизил', source:'4.1-жадвал · 2.Анд', owner:'шаҳар ҳокимияти', evidence:'Далил киритилмаган'},
+      {id:'M-024', district:'Андижон шаҳри', sector:'Хорижий инвестиция', indicator:'Хорижий инвестициялар', period:'I чорак', target:'312 млн $', actual:'251,5 млн $', pct:80.6, status:'Сариқ', source:'4.2-жадвал', owner:'шаҳар ҳокимияти', evidence:'Изоҳ бор, ҳужжат йўқ'},
+      {id:'M-087', district:'Избоскан тумани', sector:'Хорижий инвестиция', indicator:'Хорижий инвестициялар', period:'I чорак', target:'110 млн $', actual:'68,8 млн $', pct:62.5, status:'Қизил', source:'4.2-жадвал', owner:'туман ҳокимияти', evidence:'Далил киритилмаган'},
+      {id:'M-116', district:'Марҳамат тумани', sector:'Бюджет инвестициялари', indicator:'Бюджет инвестициялари ўзлаштирилиши', period:'I ярим йиллик', target:'73 млрд сўм', actual:'61,8 млрд сўм', pct:84.6, status:'Сариқ', source:'4.1-жадвал', owner:'туман ҳокимияти', evidence:'Изоҳ бор'},
+      {id:'M-150', district:'Андижон вилояти', sector:'Экспорт', indicator:'Экспорт ҳажми', period:'I ярим йиллик', target:'361,6 млн $', actual:'361,6 млн $', pct:100, status:'Яшил', source:'5.1-5.2-жадвал', owner:'вилоят ҳокимлиги', evidence:'Қабул қилинган'},
+      {id:'M-161', district:'Шаҳрихон тумани', sector:'Экспорт', indicator:'Экспорт ҳажми', period:'I ярим йиллик', target:'28,0 млн $', actual:'22,6 млн $', pct:80.7, status:'Сариқ', source:'5.1-5.2-жадвал', owner:'туман ҳокимияти', evidence:'Изоҳ керак'},
+      {id:'M-206', district:'Андижон вилояти', sector:'Бандлик', indicator:'Доимий ишга жойлаштириш', period:'I ярим йиллик', target:'38,9 минг', actual:'31,1 минг', pct:79.9, status:'Қизил', source:'6-жадвал', owner:'вилоят ҳокимлиги', evidence:'Далил керак'},
+      {id:'M-209', district:'Андижон вилояти', sector:'Камбағаллик', indicator:'Камбағаллик даражаси', period:'I ярим йиллик', target:'4,5%', actual:'4,8%', pct:93.8, status:'Сариқ', source:'6-жадвал', owner:'вилоят ҳокимлиги', evidence:'Изоҳ бор'}
+    ];
+
+    const tasks = [
+      {sector:'Макро иқтисодиёт', district:'Хонобод шаҳри', title:'Паст ўсишни вилоят кўрсаткичидан паст бўлмаган даражага чиқариш', period:'II чорак', status:'Қизил', owner:'шаҳар ҳокимияти'},
+      {sector:'Макро иқтисодиёт', district:'Шаҳрихон тумани', title:'Саноат ўсиши бўйича тиклаш чораларини киритиш', period:'II чорак', status:'Қизил', owner:'туман ҳокимияти'},
+      {sector:'Хорижий инвестиция', district:'Андижон вилояти', title:'155 та хорижий инвестиция лойиҳасини ишга тушириш', period:'I ярим йиллик', status:'Сариқ', owner:'вилоят ҳокимлиги'},
+      {sector:'Хорижий инвестиция', district:'Балиқчи тумани', title:'Тўқимачилик лойиҳаси бўйича график ва далил киритиш', period:'II чорак', status:'Кулранг', owner:'туман ҳокимияти'},
+      {sector:'Экспорт', district:'Андижон вилояти', title:'Экспорти пасайган 46 та корхона билан манзилли ишлаш', period:'Йил якуни', status:'Қизил', owner:'вилоят ҳокимлиги'},
+      {sector:'Экспорт', district:'Андижон вилояти', title:'Экспортни тўхтатган 11 та корхона бўйича тиклаш режаси', period:'Йил якуни', status:'Сариқ', owner:'вилоят ҳокимлиги'},
+      {sector:'Бандлик', district:'Андижон вилояти', title:'38,9 минг аҳолини доимий ишга жойлаштириш', period:'I ярим йиллик', status:'Сариқ', owner:'вилоят ҳокимлиги'},
+      {sector:'Камбағаллик', district:'Андижон вилояти', title:'14,5 минг камбағал оилага хизмат кўрсатиш', period:'I ярим йиллик', status:'Қизил', owner:'вилоят ҳокимлиги'},
+      {sector:'Бюджет', district:'Андижон вилояти', title:'2 598,6 млрд сўм бюджет тушуми бўйича ижро ҳолатини тасдиқлаш', period:'I ярим йиллик', status:'Яшил', owner:'вилоят ҳокимлиги'}
+    ];
+
+    const evidence = [
+      ['EV-014','M-150','Экспорт ҳажми','5.1-5.2-жадвалдан ҳисобот','Қабул қилинган'],
+      ['EV-018','M-116','Бюджет инвестициялари','Туман изоҳи бор, ҳужжат талаб қилинади','Изоҳ бор'],
+      ['EV-022','M-087','Хорижий инвестиция','Факт паст, далил киритилмаган','Далил керак'],
+      ['EV-030','M-206','Бандлик','Ишга жойлаштириш реестри талаб қилинади','Далил керак']
+    ];
+
+    const sources = [
+      ['0. Кафолат хати (Андижон).docx','Топшириқлар','DOCX','нарратив мажбуриятлар вазифага айланади'],
+      ['1.1-1.5-жадваллар (макро).xlsx','Макро иқтисодиёт','Excel','бирлашган сарлавҳалар ва туман номлари нормаллаштирилади'],
+      ['2.1-2.2-жадваллар (инфляция).xlsx','Инфляция','Excel','нархлар ва озиқ-овқат баланси'],
+      ['3-жадвал (бюджет).xlsx','Бюджет','Excel','файл номи ҳудудлар кесимида фарқ қилиши мумкин'],
+      ['4.1-жадвал (бюджет инвестка).xlsx','Бюджет инвестициялари','Excel','ўзлаштириш режаси ва факт'],
+      ['4.2-жадвал (инвестициялар).xlsx','Хорижий инвестиция','Excel','#DIV/0! ва захира қаторлари текширилади'],
+      ['5.1-5.2-жадваллар (экспорт).xlsx','Экспорт','Excel','экспорт ҳажми ва экспортчилар'],
+      ['6-жадвал (бандлик ва камбағаллик даражаси).xlsx','Бандлик','Excel','ишсизлик, камбағаллик, иш ўринлари']
+    ];
+
+    const state = {
+      view: 'command',
+      quarter: 'II-чорак',
+      kpi: '',
+      sector: '',
+      status: '',
+      query: '',
+      district: 'Андижон шаҳри',
+      selectedSector: 'investment'
+    };
+
+    let localEvidence = readLocalEvidence();
+
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+    }
+
+    function readLocalEvidence() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem('hm_v3_evidence') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function cls(status) {
+      return {'Яшил':'green','Сариқ':'amber','Қизил':'red','Кулранг':'grey', green:'green', amber:'amber', red:'red', grey:'grey'}[status] || 'blue';
+    }
+
+    function init() {
+      renderQuarters();
+      populateFilters();
+      bindStatic();
+      render();
+    }
+
+    function bindStatic() {
+      $('#quarters').addEventListener('click', e => {
+        const btn = e.target.closest('[data-quarter]');
+        if (!btn) return;
+        state.quarter = btn.dataset.quarter;
+        renderQuarters();
+        render();
+      });
+      $('#sectorFilter').addEventListener('change', e => { state.sector = e.target.value; renderSearchSensitive(); });
+      $('#statusFilter').addEventListener('change', e => { state.status = e.target.value; renderSearchSensitive(); });
+      $('#search').addEventListener('input', e => { state.query = e.target.value.trim().toLowerCase(); renderSearchSensitive(); });
+      $('#printBtn').addEventListener('click', () => window.print());
+      $('#exportBtn').addEventListener('click', exportRows);
+      $('#closeDrawer').addEventListener('click', closeDrawer);
+      $('#drawerMask').addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+    }
+
+    function renderQuarters() {
+      $('#quarters').innerHTML = quarters.map(q => `<button class="quarter ${q === state.quarter ? 'active' : ''}" data-quarter="${q}">${q}</button>`).join('');
+    }
+
+    function populateFilters() {
+      $('#sectorFilter').innerHTML = '<option value="">Барча йўналишлар</option>' + [...new Set(monitoring.map(r => r.sector))].map(s => `<option>${esc(s)}</option>`).join('');
+    }
+
+    function render() {
+      renderNav();
+      $$('.view').forEach(v => v.classList.toggle('active', v.id === `view-${state.view}`));
+      const titles = {
+        command:['Мақсадли кўрсаткичлар',''],
+        sectors:['Йўналишлар','Ҳар бир секторда мақсад, ижро, тугалланмаган топшириқ ва масъул бир жойда.'],
+        districts:['Туманлар профили','Ҳар бир туман ичида вилоят KPI лентига ўхшаш кўрсаткичлар ва топшириқлар.'],
+        monitoring:['Мониторинг реестри','Мақсад, амалдаги натижа, манба, масъул ва далил ҳолати.'],
+        tasks:['Топшириқлар','Кафолат хати ва жадваллардан олинган мажбуриятлар ҳолат бўйича.'],
+        evidence:['Далиллар журнали','Факт, изоҳ, файл ва тасдиқ ҳолати KPI ёки топшириқ ID га боғланади.'],
+        sources:['Манбалар ва импорт аудити','Андижон папкасидаги файллар ва импортдаги нормаллаштириш қоидалари.']
+      };
+      $('#pageTitle').textContent = titles[state.view][0];
+      $('#pageTitle').classList.toggle('title-sm', state.view === 'command');
+      const sub = titles[state.view][1];
+      $('#pageSub').textContent = sub;
+      $('#pageSub').style.display = sub ? '' : 'none';
+      $('.filters').style.display = ['command', 'sectors', 'districts'].includes(state.view) ? 'none' : '';
+      if (state.view === 'command') renderCommand();
+      if (state.view === 'sectors') renderSectors();
+      if (state.view === 'districts') renderDistricts();
+      if (state.view === 'monitoring') renderMonitoring();
+      if (state.view === 'tasks') renderTasks();
+      if (state.view === 'evidence') renderEvidence();
+      if (state.view === 'sources') renderSources();
+    }
+
+    function renderNav() {
+      const html = nav.map(([id, label, no, count]) => `<button class="nav-btn ${state.view === id ? 'active' : ''}" data-view="${id}" ${state.view === id ? 'aria-current="page"' : ''}><span class="nav-no">${no}</span><b>${label}</b><small>${navCount(id, count)}</small></button>`).join('');
+      $('#sideNav').innerHTML = html;
+      $('#mobileNav').innerHTML = nav.map(([id, label]) => `<button class="${state.view === id ? 'active' : ''}" data-view="${id}" ${state.view === id ? 'aria-current="page"' : ''}>${label}</button>`).join('');
+      $$('[data-view]').forEach(btn => btn.addEventListener('click', () => {
+        state.view = btn.dataset.view;
+        render();
+      }));
+    }
+
+    function navCount(id, fallback) {
+      if (id === 'monitoring') return String(filteredRows().length);
+      if (id === 'tasks') return String(filteredTasks().length);
+      if (id === 'evidence') return String(allEvidence().length);
+      if (id === 'sources') return String(sources.length);
+      if (id === 'districts') return String(districts.length);
+      if (id === 'sectors') return String(sectors.length);
+      return fallback;
+    }
+
+    function renderFrontKpis() {
+      $('#frontKpis').innerHTML = kpis.map(k => {
+        const display = kpiDisplay(k);
+        return `<button class="front-kpi ${state.kpi === k.id ? 'active' : ''}" data-kpi="${k.id}" aria-pressed="${state.kpi === k.id}"><span class="kicon">${icons[k.icon]}</span><span><h2>${esc(k.label)}</h2><strong>${esc(display.value)}</strong><small>${esc(display.sub)}</small></span></button>`;
+      }).join('');
+      $$('[data-kpi]').forEach(btn => btn.addEventListener('click', () => {
+        const k = kpis.find(item => item.id === btn.dataset.kpi);
+        const sector = sectors.find(s => s.kpi === k.id);
+        state.kpi = k.id;
+        state.selectedSector = sector ? sector.id : state.selectedSector;
+        state.view = 'sectors';
+        render();
+      }));
+    }
+
+    function kpiDisplay(kpi) {
+      const override = kpiQuarterValues[state.quarter]?.[kpi.id];
+      return override ? {value: override[0], sub: override[1]} : {value: kpi.value, sub: kpi.sub};
+    }
+
+    function renderCommand() {
+      const sortedDistricts = [...districts].filter(d => d.name !== 'Андижон вилояти').sort((a,b) => b.undone - a.undone).slice(0, 8);
+      $('#view-command').innerHTML = `
+        <div class="front-kpis" id="frontKpis"></div>
+        <h3 class="section-heading">Жорий ҳолат</h3>
+        <div class="scoreline">${(() => {
+          const total = sectors.reduce((a, s) => a + s.total, 0);
+          const done  = sectors.reduce((a, s) => a + (s.total - s.unfinished), 0);
+          const left  = sectors.reduce((a, s) => a + s.unfinished, 0);
+          const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+          const r = 26, cx = 35, cy = 35;
+          const circ = 2 * Math.PI * r;
+          const greenArc = circ * (pct / 100);
+          const redArc   = circ * ((100 - pct) / 100);
+          const redStart = -90 + (pct / 100) * 360;
+          return `
+          <div class="score">
+            <div class="score-label">Жами топшириқлар:</div>
+            <div class="score-chart-wrap">
+              <svg viewBox="0 0 70 70" fill="none">
+                <circle cx="${cx}" cy="${cy}" r="${r}" stroke="#eaeaea" stroke-width="6"/>
+                <circle cx="${cx}" cy="${cy}" r="${r}" stroke="#22c55e" stroke-width="6"
+                  stroke-dasharray="${greenArc} ${circ}" stroke-linecap="butt"
+                  transform="rotate(-90 ${cx} ${cy})"/>
+                <circle cx="${cx}" cy="${cy}" r="${r}" stroke="#ef4444" stroke-width="6"
+                  stroke-dasharray="${redArc} ${circ}" stroke-linecap="butt"
+                  transform="rotate(${redStart} ${cx} ${cy})"/>
+              </svg>
+              <div class="score-pct">${pct}%</div>
+            </div>
+            <div class="score-legend">
+              <div class="score-leg-item"><div class="score-leg-dot" style="background:#22c55e"></div>Бажарилди</div>
+              <div class="score-leg-item"><div class="score-leg-dot" style="background:#ef4444"></div>Бажарилмади</div>
+            </div>
+            <div class="score-num">${total}</div>
+          </div>
+          <div class="score">
+            <div class="score-label">Бажарилди:</div>
+            <div class="score-num" style="color:#22c55e">${done}</div>
+          </div>
+          <div class="score">
+            <div class="score-label">Бажарилмади:</div>
+            <div class="score-num" style="color:#ef4444">${left}</div>
+          </div>`;
+        })()}</div>
+        <div class="cat-grid">${sectors.map(s => {
+          const kpi = kpis.find(k => k.id === s.kpi);
+          const display = kpi?.current ?? {value:'—', sub:''};
+          const done = s.total - s.unfinished;
+          const pct = Math.round(done / s.total * 100);
+          return `<button class="cat-card" data-sector-nav="${esc(s.id)}">
+            <div class="cat-head">
+              <span class="cat-icon">${kpi ? icons[kpi.icon] : ''}</span>
+              <div class="cat-head-text">
+                <h3>${esc(s.title)}</h3>
+              </div>
+            </div>
+            <div class="cat-kpi">
+              <strong>${esc(display.value)}</strong>
+              <span>${esc(display.sub)}</span>
+            </div>
+            <div>
+              <div class="cat-progress"><div class="cat-fill ${cls(s.status)}" style="width:${pct}%"></div></div>
+              <div class="cat-task-row"><span>Топшириқлар</span><b>${done}/${s.total} бажарилди</b></div>
+            </div>
+          </button>`;
+        }).join('')}</div>
+        <div class="surface mt">
+          <div class="surface-head"><div><h3>Туманлар бўйича бажарилмаган топшириқлар</h3><p>Рейтинг эмас; бажарилмаган / жами топшириқ кўринади.</p></div><button class="cmd secondary" data-go="districts">Барча туманлар</button></div>
+          <div class="district-strip">${sortedDistricts.map(districtButton).join('')}</div>
+        </div>`;
+      renderFrontKpis();
+      bindRowsAndDistricts();
+      $$('[data-sector-nav]').forEach(btn => btn.addEventListener('click', () => {
+        state.selectedSector = btn.dataset.sectorNav;
+        state.view = 'sectors';
+        render();
+      }));
+      $('[data-go="districts"]').addEventListener('click', () => { state.view = 'districts'; render(); });
+    }
+
+    function attentionRow(r, i) {
+      return `<button class="attention" data-row="${esc(r.id)}"><span class="num">${i + 1}</span><span><h4>${esc(r.district)} · ${esc(r.indicator)}</h4><p>${esc(r.sector)} · ${esc(r.period)} · ${esc(r.source)}</p></span><span class="chip ${cls(r.status)}">${esc(r.status)} · ${r.pct}%</span></button>`;
+    }
+
+    function districtButton(d) {
+      const status = d.undone / d.total > .34 ? 'red' : d.undone / d.total > .2 ? 'amber' : 'green';
+      return `<button class="district-btn ${state.district === d.name ? 'active' : ''}" data-district="${esc(d.name)}"><h4>${esc(d.name)}</h4><strong>${d.undone}/${d.total}</strong><span>бажарилмаган / жами</span><span class="chip ${status}">${d.owner}</span></button>`;
+    }
+
+    function renderSectors() {
+      const selected = sectors.find(s => s.id === state.selectedSector) || sectors[0];
+      $('#view-sectors').innerHTML = `
+        <div class="sector-grid">
+          <div class="surface">
+            <div class="surface-head"><div><h3>Йўналишлар</h3><p>Бирини танланг.</p></div></div>
+            <div class="list-panel">${sectors.map(s => `<button class="list-btn ${selected.id === s.id ? 'active' : ''}" data-sector-id="${esc(s.id)}" aria-pressed="${selected.id === s.id}"><h4>${esc(s.title)}</h4><p>${s.unfinished}/${s.total} бажарилмаган · ${esc(s.owner)}</p></button>`).join('')}</div>
+          </div>
+          <div class="sector-detail">
+            <div class="sector-hero">
+              <div><h3>${esc(selected.title)}</h3><p>${esc(selected.sub)} · ${esc(selected.owner)}</p></div>
+              <span class="chip ${cls(selected.status)}">${selected.unfinished}/${selected.total} бажарилмаган</span>
+            </div>
+            <div class="sector-kpis">${selected.metrics.map(m => `<div class="metric"><b>${esc(m[0])}</b><strong>${esc(m[1])}</strong><span>${esc(m[2])}</span></div>`).join('')}</div>
+            <div class="surface">
+              <div class="surface-head"><div><h3>Сектор топшириқлари</h3><p>Топшириқлар мақсад ва далил билан боғланади.</p></div></div>
+              <div class="attention-list">${selected.tasks.map((t,i) => `<div class="attention"><span class="num">${i + 1}</span><span><h4>${esc(t)}</h4><p>${esc(selected.owner)} · ${esc(state.quarter)}</p></span><span class="chip ${cls(selected.status)}">${selected.status === 'red' ? 'эътибор' : 'кузатув'}</span></div>`).join('')}</div>
+            </div>
+          </div>
+        </div>`;
+      $$('[data-sector-id]').forEach(btn => btn.addEventListener('click', () => {
+        state.selectedSector = btn.dataset.sectorId;
+        renderSectors();
+      }));
+    }
+
+    function renderDistricts() {
+      const current = districts.find(d => d.name === state.district) || districts[0];
+      const rows = monitoring.filter(r => r.district === current.name || (current.name !== 'Андижон вилояти' && r.district === 'Андижон вилояти'));
+      $('#view-districts').innerHTML = `
+        <div class="workspace">
+          <div class="surface">
+            <div class="surface-head"><div><h3>Туман/шаҳар</h3><p>Бажарилмаган топшириқлар бўйича.</p></div></div>
+            <div class="list-panel">${districts.map(d => `<button class="list-btn ${current.name === d.name ? 'active' : ''}" data-district="${esc(d.name)}"><h4>${esc(d.name)}</h4><p>${d.undone}/${d.total} бажарилмаган / жами</p></button>`).join('')}</div>
+          </div>
+          <div class="profile">
+            <div class="profile-head">
+              <div><h3>${esc(current.name)}</h3><p>${esc(current.owner)} · ${state.quarter} · KPI ва топшириқлар бир профилда.</p></div>
+              <div class="task-deficit"><strong>${current.undone}/${current.total}</strong><span>бажарилмаган / жами топшириқ</span></div>
+            </div>
+            <div class="mini-kpis">${districtKpiCards(current.name)}</div>
+            <div class="surface">
+              <div class="surface-head"><div><h3>Ушбу ҳудудга боғланган мониторинг</h3><p>Туман қаторлари ва вилоят умумий қаторлари.</p></div></div>
+              <div class="table-wrap"><table><thead>${monitorHead()}</thead><tbody>${rows.length ? rows.map(monitorRow).join('') : '<tr><td colspan="10"><div class="empty">Бу ҳудуд учун танланган даврда қатор топилмади.</div></td></tr>'}</tbody></table></div>
+            </div>
+          </div>
+        </div>`;
+      bindRowsAndDistricts();
+    }
+
+    function districtKpiCards(name) {
+      const fallback = [['Саноат','—','манба кутилмоқда','grey'],['Инвестиция','—','манба кутилмоқда','grey'],['Экспорт','—','манба кутилмоқда','grey'],['Бюджет','—','манба кутилмоқда','grey'],['Ишсизлик','—','манба кутилмоқда','grey'],['Бандлик','—','манба кутилмоқда','grey']];
+      return (districtKpis[name] || fallback).map(([label, value, sub, status]) => `<div class="mini-kpi"><b>${label}</b><strong>${value}</strong><span>${sub}</span><span class="chip ${cls(status)}">${statusLabel(status)}</span></div>`).join('');
+    }
+
+    function statusLabel(status) {
+      return {green:'яхши', amber:'эътибор', red:'ортда', grey:'маълумот йўқ'}[status] || status;
+    }
+
+    function periodMatches(period) {
+      if (state.quarter === 'I-чорак') return /I чорак/.test(period);
+      if (state.quarter === 'II-чорак') return /I ярим йиллик|II чорак/.test(period);
+      if (state.quarter === 'III-чорак') return /9 ой|III чорак/.test(period);
+      if (state.quarter === 'IV-чорак') return /йил|Йил|IV чорак/.test(period);
+      return true;
+    }
+
+    function filteredRows() {
+      return monitoring.filter(r => {
+        const periodOk = periodMatches(r.period);
+        const sectorOk = !state.sector || r.sector === state.sector;
+        const statusOk = !state.status || r.status === state.status;
+        const text = `${r.id} ${r.district} ${r.sector} ${r.indicator} ${r.period} ${r.source} ${r.owner} ${r.evidence}`.toLowerCase();
+        return periodOk && sectorOk && statusOk && (!state.query || text.includes(state.query));
+      });
+    }
+
+    function filteredTasks() {
+      return tasks.filter(t => {
+        const statusOk = !state.status || t.status === state.status;
+        const sectorOk = !state.sector || t.sector === state.sector;
+        const text = `${t.sector} ${t.district} ${t.title} ${t.period} ${t.status} ${t.owner}`.toLowerCase();
+        return statusOk && sectorOk && (!state.query || text.includes(state.query));
+      });
+    }
+
+    function allEvidence() {
+      return [
+        ...evidence,
+        ...localEvidence.map((item, index) => [
+          `LOCAL-${index + 1}`,
+          item.row || '',
+          item.file || '',
+          item.note || '',
+          'Янги'
+        ])
+      ];
+    }
+
+    function renderMonitoring() {
+      const rows = filteredRows();
+      $('#view-monitoring').innerHTML = `<div class="surface"><div class="surface-head"><div><h3>Мониторинг реестри</h3><p>${rows.length} қатор фильтрга тушди.</p></div><span class="chip blue">${esc(state.quarter)}</span></div><div class="table-wrap"><table><thead>${monitorHead()}</thead><tbody>${rows.length ? rows.map(monitorRow).join('') : '<tr><td colspan="10"><div class="empty">Танланган давр ва фильтрларда қатор топилмади.</div></td></tr>'}</tbody></table></div></div>`;
+      bindRowsAndDistricts();
+    }
+
+    function monitorHead() {
+      return '<tr><th>ID</th><th>Ҳудуд</th><th>Йўналиш</th><th>Кўрсаткич</th><th>Давр</th><th>Мақсад</th><th>Амалда</th><th>Ижро</th><th>Ҳолат</th><th>Манба</th></tr>';
+    }
+
+    function monitorRow(r) {
+      return `<tr class="action-row" data-row="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.indicator)} тафсилотини очиш"><td><b>${esc(r.id)}</b></td><td>${esc(r.district)}</td><td>${esc(r.sector)}</td><td>${esc(r.indicator)}</td><td>${esc(r.period)}</td><td>${esc(r.target)}</td><td>${esc(r.actual)}</td><td><b>${r.pct}%</b></td><td><span class="chip ${cls(r.status)}">${esc(r.status)}</span></td><td>${esc(r.source)}</td></tr>`;
+    }
+
+    function renderTasks() {
+      const statuses = ['Қизил','Сариқ','Кулранг','Яшил'];
+      const rows = filteredTasks();
+      $('#view-tasks').innerHTML = `<div class="task-grid">${statuses.map(s => `<div class="lane"><div class="lane-head"><h3>${esc(s)}</h3><span class="chip ${cls(s)}">${rows.filter(t => t.status === s).length}</span></div><div class="lane-body">${rows.filter(t => t.status === s).map(taskCard).join('') || '<div class="task-card"><p>Бу ҳолатда топшириқ йўқ.</p></div>'}</div></div>`).join('')}</div>`;
+    }
+
+    function taskCard(t) {
+      return `<div class="task-card"><h4>${esc(t.title)}</h4><p>${esc(t.district)} · ${esc(t.sector)} · ${esc(t.period)}</p><p><b>${esc(t.owner)}</b></p></div>`;
+    }
+
+    function renderEvidence() {
+      const rows = allEvidence();
+      $('#view-evidence').innerHTML = `
+        <div class="source-layout">
+          <div class="surface">
+            <div class="surface-head"><div><h3>Далиллар журнали</h3><p>Ҳар бир далил KPI ёки топшириқ ID га боғланади.</p></div></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Қатор</th><th>Кўрсаткич</th><th>Изоҳ</th><th>Ҳолат</th></tr></thead><tbody>${rows.map(e => `<tr><td><b>${esc(e[0])}</b></td><td>${esc(e[1])}</td><td>${esc(e[2])}</td><td>${esc(e[3])}</td><td><span class="chip ${e[4].includes('Қабул') || e[4].includes('Янги') ? 'green' : e[4].includes('Изоҳ') ? 'amber' : 'red'}">${esc(e[4])}</span></td></tr>`).join('')}</tbody></table></div>
+          </div>
+          <div class="surface">
+            <div class="surface-head"><div><h3>Далил киритиш</h3><p>Прототипда браузер хотирасига ёзилади.</p></div></div>
+            <form class="evidence-form" id="evidenceForm">
+              <input class="control" name="row" placeholder="KPI/топшириқ ID" required>
+              <input class="control" name="file" placeholder="файл ёки ҳавола" required>
+              <textarea name="note" placeholder="қисқа изоҳ" required></textarea>
+              <button class="cmd" type="submit">Сақлаш</button>
+            </form>
+          </div>
+        </div>`;
+      $('#evidenceForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target).entries());
+        try {
+          localEvidence = readLocalEvidence();
+          localEvidence.push({...data, at: new Date().toISOString()});
+          localStorage.setItem('hm_v3_evidence', JSON.stringify(localEvidence));
+          e.target.reset();
+          renderEvidence();
+          openDrawer('Далил сақланди', data.row || 'ID киритилмаган', `<div class="drawer-card"><h3>${esc(data.file || 'Файл кўрсатилмаган')}</h3><p>${esc(data.note || 'Изоҳ киритилмаган')}</p></div>`);
+        } catch {
+          openDrawer('Далил сақланмади', 'Браузер хотираси чекланган ёки ўчирилган.', '<div class="drawer-card"><p>Файл номи ва изоҳни қайта текширинг ёки браузер хотирасини тозаланг.</p></div>');
+        }
+      });
+    }
+
+    function renderSources() {
+      $('#view-sources').innerHTML = `
+        <div class="source-layout">
+          <div class="surface">
+            <div class="surface-head"><div><h3>Андижон манба реестри</h3><p>Импорт харитаси шу файллардан бошланади.</p></div><span class="chip blue">${sources.length} файл</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Файл</th><th>Йўналиш</th><th>Тур</th><th>Қайта ишлаш</th></tr></thead><tbody>${sources.map(s => `<tr><td><b>${esc(s[0])}</b></td><td>${esc(s[1])}</td><td>${esc(s[2])}</td><td>${esc(s[3])}</td></tr>`).join('')}</tbody></table></div>
+          </div>
+          <div class="surface">
+            <div class="surface-head"><div><h3>Импорт қоидалари</h3><p>Маълумот кирганда автоматик текширилади.</p></div></div>
+            <div class="rule-list">
+              ${rule('1','Ҳудуд номлари','Марҳамат/Мархамат, Шаҳрихон/Шахрихон вариантлари ягона ID га уланади.','blue')}
+              ${rule('2','Бирликлар','млн $, млрд сўм, минг киши алоҳида сақланади.','amber')}
+              ${rule('3','Паст яхши KPI','инфляция, ишсизлик, камбағаллик тескари қоида билан баҳоланади.','green')}
+              ${rule('4','Далилсиз қатор','факт бор, далил йўқ бўлса алоҳида назоратга тушади.','red')}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function rule(no, title, text, status) {
+      return `<div class="rule"><span class="num">${esc(no)}</span><span><b>${esc(title)}</b><span>${esc(text)}</span></span><span class="chip ${status}">${statusLabel(status)}</span></div>`;
+    }
+
+    function bindRowsAndDistricts() {
+      $$('[data-row]').forEach(el => {
+        const open = () => {
+        const r = monitoring.find(item => item.id === el.dataset.row);
+        if (!r) return;
+        openDrawer(r.indicator, `${r.district} · ${r.period}`, `<div class="drawer-card"><dl><div><dt>Ҳолат</dt><dd><span class="chip ${cls(r.status)}">${r.status} · ${r.pct}%</span></dd></div><div><dt>Мақсад</dt><dd>${esc(r.target)}</dd></div><div><dt>Амалда</dt><dd>${esc(r.actual)}</dd></div><div><dt>Манба</dt><dd>${esc(r.source)}</dd></div><div><dt>Масъул</dt><dd>${esc(r.owner)}</dd></div><div><dt>Далил</dt><dd>${esc(r.evidence)}</dd></div></dl></div><div class="drawer-card"><h3>Кейинги ҳаракат</h3><p>Манбани текширинг, фактни тасдиқланг ва далил/изоҳни журналга киритинг.</p></div>`);
+        };
+        el.addEventListener('click', open);
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            open();
+          }
+        });
+      });
+      $$('[data-district]').forEach(el => el.addEventListener('click', () => {
+        state.district = el.dataset.district;
+        state.view = 'districts';
+        render();
+      }));
+    }
+
+    function openDrawer(title, sub, body) {
+      $('#drawerTitle').textContent = title;
+      $('#drawerSub').textContent = sub;
+      $('#drawerBody').innerHTML = body;
+      $('#drawer').classList.add('open');
+      $('#drawerMask').classList.add('open');
+      $('#drawer').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeDrawer() {
+      $('#drawer').classList.remove('open');
+      $('#drawerMask').classList.remove('open');
+      $('#drawer').setAttribute('aria-hidden', 'true');
+    }
+
+    function renderSearchSensitive() {
+      render();
+    }
+
+    function exportRows() {
+      const rows = filteredRows();
+      const header = ['ID','Ҳудуд','Йўналиш','Кўрсаткич','Давр','Мақсад','Амалда','Ижро','Ҳолат','Манба'];
+      const csv = [header, ...rows.map(r => [r.id,r.district,r.sector,r.indicator,r.period,r.target,r.actual,r.pct,r.status,r.source])]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'andijon_monitoring_v3.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    init();
+  </script>
+</body>
+</html>

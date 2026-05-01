@@ -1017,6 +1017,95 @@ HTML = r"""<!doctype html>
       background: var(--accent-grad);
     }
 
+    .scoreline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .score {
+      min-width: 0;
+      padding: 16px 22px;
+      background: #fff;
+      border: 1px solid #dde3ec;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
+    }
+
+    .score:hover {
+      transform: translateY(-1px);
+      border-color: rgba(27, 77, 90, .35);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .score:focus-visible {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: var(--ring-blue);
+    }
+
+    .score-label {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .score-chart-wrap {
+      position: relative;
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+    }
+
+    .score-chart-wrap svg { width: 70px; height: 70px; }
+
+    .score-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .score-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .score-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #555;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .score-leg-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .score-num {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+      margin-left: auto;
+    }
+
     .front-kpis.module-kpis.macro-layout {
       grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
     }
@@ -2069,10 +2158,14 @@ HTML = r"""<!doctype html>
       font-feature-settings: "tnum", "ss01";
     }
 
-    .quarter-row .q-hero .q-trend {
+    .quarter-row .q-hero .q-trend,
+    .quarter-row .q-hero .q-trend.up,
+    .quarter-row .q-hero .q-trend.down,
+    .quarter-row .q-hero .q-trend.flat {
       font-size: clamp(22px, 2vw, 30px);
       font-weight: 800;
       letter-spacing: -0.022em;
+      color: var(--ink);
     }
 
     .quarter-row .q-hero .q-trend::before {
@@ -2413,10 +2506,360 @@ HTML = r"""<!doctype html>
       line-height: 1.25;
     }
 
+    .product-card {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      text-align: left;
+      padding: 14px 16px 14px 18px;
+    }
+
+    .product-card .product-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #fbfdfd;
+      border: 1px solid rgba(98, 148, 162, .18);
+      display: grid;
+      place-items: center;
+      flex: none;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+      margin: 0;
+      transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
+    }
+
+    .product-card .product-icon .emoji {
+      width: 32px;
+      height: 32px;
+      display: block;
+      background-color: #6294a2;
+      -webkit-mask: var(--icon-url) no-repeat center / contain;
+              mask: var(--icon-url) no-repeat center / contain;
+      pointer-events: none;
+    }
+
+    .product-card:hover .product-icon {
+      background: #ffffff;
+      border-color: rgba(98, 148, 162, .42);
+      box-shadow: 0 6px 14px rgba(98, 148, 162, .14);
+    }
+
+    .product-card .product-body {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: inherit;
+      font-weight: inherit;
+      margin: 0;
+      color: inherit;
+    }
+
+    .product-card .product-name {
+      display: block;
+      color: var(--ink);
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: -0.005em;
+      text-transform: none;
+      line-height: 1.25;
+      white-space: normal;
+      overflow: visible;
+    }
+
+    .product-card .product-value {
+      display: block;
+      margin-top: 2px;
+      color: var(--blue);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-card .product-note {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
     .drivers {
       border-top: 1px solid var(--line);
       padding: 12px 16px 14px;
       background: #fbfdff;
+    }
+
+    .poverty-section {
+      padding: 18px 20px 22px;
+      display: grid;
+      gap: 16px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(98, 148, 162, .07), transparent 45%),
+        #fafdfd;
+    }
+
+    .poverty-section .poverty-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .poverty-section .poverty-head strong {
+      display: block;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(17px, 1.6vw, 20px);
+      font-weight: 800;
+      letter-spacing: -0.014em;
+      color: var(--ink);
+    }
+
+    .poverty-section .poverty-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.4;
+      max-width: 60ch;
+    }
+
+    .poverty-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .poverty-stat {
+      position: relative;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 14px;
+      padding: 16px 18px 14px;
+      background: #ffffff;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
+    }
+
+    .poverty-stat:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(98, 148, 162, .35);
+    }
+
+    .poverty-stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(98, 148, 162, .18), rgba(98, 148, 162, .08));
+      color: #4a7280;
+      display: grid;
+      place-items: center;
+      align-self: start;
+      box-shadow: inset 0 0 0 1px rgba(98, 148, 162, .18);
+    }
+
+    .poverty-stat-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.7;
+    }
+
+    .poverty-stat-body { display: grid; gap: 6px; min-width: 0; }
+
+    .poverty-stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.32;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .poverty-stat-value {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--ink);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(20px, 1.9vw, 26px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.022em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
+    }
+
+    .poverty-stat-value em {
+      color: var(--muted);
+      font-style: normal;
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: 0;
+    }
+
+    .poverty-stat-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .poverty-stat-meta b {
+      color: var(--ink);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
+    }
+
+    .poverty-stat-divider { color: rgba(20, 30, 35, .25); }
+
+    .poverty-progress {
+      margin-top: 4px;
+      height: 5px;
+      background: rgba(98, 148, 162, .15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .poverty-progress i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #6294a2, #88b4c0);
+      border-radius: 999px;
+      transition: width var(--motion-slow);
+    }
+
+    .poverty-progress-label {
+      display: block;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .poverty-territory {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      padding: 18px 20px 20px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(98, 148, 162, .14), transparent 55%),
+        #ffffff;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .poverty-territory::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+      border-radius: 14px 14px 0 0;
+    }
+
+    .poverty-territory-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .poverty-territory-eyebrow {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .poverty-territory-head strong {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 4px;
+      color: var(--blue);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(28px, 3vw, 38px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.022em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .poverty-territory-head strong em {
+      color: var(--muted);
+      font-style: normal;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .poverty-territory p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+      max-width: 62ch;
+    }
+
+    .poverty-territory-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .poverty-territory-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(98, 148, 162, .1);
+      border: 1px solid rgba(98, 148, 162, .22);
+      color: #2f5560;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+      white-space: nowrap;
+    }
+
+    .poverty-territory-empty {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 12.5px;
+    }
+
+    @media (max-width: 1080px) {
+      .poverty-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .poverty-section { padding: 14px 14px 18px; }
+      .poverty-stats { grid-template-columns: 1fr; }
+      .poverty-section .poverty-head { grid-template-columns: 1fr; }
     }
 
     .small-stat {
@@ -3045,6 +3488,7 @@ HTML = r"""<!doctype html>
       .district-context-actions { justify-content: flex-start; }
       .district-preview { position: static; }
       .dashboard-module-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .scoreline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
@@ -3077,7 +3521,7 @@ HTML = r"""<!doctype html>
       .main { padding: 14px; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
-      .dashboard-module-tabs, .module-heading, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
@@ -3372,6 +3816,70 @@ HTML = r"""<!doctype html>
         users: '<path d="M16 19v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3"/><path d="M20 19v-2a3 3 0 0 0-2-2.8M16 4.2a3 3 0 0 1 0 5.6"/>'
       };
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons[name] || icons.trend}</svg>`;
+    }
+
+    function foodIcon(name) {
+      const codepoints = {
+        butter: "1f9c8",      egg: "1f95a",         potato: "1f954",
+        onion: "1f9c5",       carrot: "1f955",      fish: "1f41f",
+        bread: "1fad3",       fruit: "1f34e",       vegetable: "1f966",
+        tomato: "1f345",      cucumber: "1f952",    pepper: "1f336",
+        grapes: "1f347",      lemon: "1f34b",       melon: "1f348",
+        watermelon: "1f349",  pear: "1f350",        peach: "1f351",
+        produce: "1f345"
+      };
+      const customSvg = {
+        meat:        '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M511.904,253.069c-1.554-48.548-44.377-84.942-104.409-88.656c-120.865-7.486-109.51-67.345-209.664-73.722c-5.642-0.361-11.206-0.536-16.662-0.536c-102.294,0-171.103,61.839-180.098,137.418c-0.548,4.591-0.839,9.124-0.968,13.612H0v52.824h0.31c3.218,66.926,53.423,119.234,135.051,121.51c48.123,1.342,182.039,5.082,224.552,6.268c69.628,1.94,136.722-44.738,149.856-104.255c0.87-3.94,1.419-7.815,1.767-11.639H512v-52.824H511.904z M483.976,270.015c-10.169,46.098-63.947,83.595-119.866,83.595c-1.154,0-2.308-0.02-3.462-0.046l-56.247-1.574l-168.305-4.694c-36.877-1.032-66.784-13.638-86.496-36.458c-18.042-20.898-25.967-49.361-22.304-80.144c7.996-67.196,71.272-114.127,153.874-114.127c4.913,0,9.956,0.162,14.985,0.484c40.514,2.579,58.118,14.489,80.41,29.578c27.553,18.642,58.788,39.779,129.299,44.144c29.797,1.844,54.784,13.387,68.557,31.655C484.569,235.897,487.877,252.353,483.976,270.015z"/><path d="M338.827,236.587l-101.03-7.222c-10.969-0.786-20.957-6.596-27.05-15.746l-27.257-40.882c-3.037-4.553-9.182-5.784-13.734-2.747c-4.553,3.037-5.784,9.182-2.747,13.734l12.522,18.784c5.474,8.215,7.287,18.338,5.004,27.946c-2.283,9.608-8.454,17.829-17.043,22.704l-38.947,22.104c-4.759,2.702-6.43,8.744-3.728,13.502c2.702,4.759,8.744,6.43,13.502,3.728l69.48-39.431c6.1-3.469,13.09-5.043,20.086-4.546l109.535,7.828c5.455,0.387,10.188-3.72,10.582-9.176C348.39,241.714,344.289,236.974,338.827,236.587z"/></svg>',
+        sheep:       '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M392.8 107.5c9.3 5.3 25.8 9.3 40 9.2 7.7-.1 14.6-1.2 19.5-3.2 5-1.8 6.9-4.9 8.9-8.8-9.2-6.08-22.1-12.27-31.8-12.87-14.9.53-28.8 8.13-36.6 15.67zm-253 20.2c-1.7 5.5-7.9 8.1-13 5.4-26.5-14.5-50.46-6.9-67.71 8.7-35.93 32.6-45.13 87.3-32.47 145.7 7.31 33.6 18.99 53 41.29 62.8 0 .1.1.1.15.1 2.22 1 4.21 1.9 6.09 2.8l4.61-22c1.02-4.9 5.8-8 10.66-7s7.98 5.8 6.96 10.7l-23.5 112c4.79 7.2 16.4 1.2 21.3-1.2l38.12-106.5c10.8-9.4 21.2-19 28.7-29.2 6.6-9.1 10.4-18.4 10.6-23.5.2-5 4.4-8.9 9.4-8.7 5 .2 9 4.6 8.6 9.6-.6 11.2-6.2 22.4-14 33.2-7.3 10-16.7 19.6-27.2 27.2l-3.3 8.9c6.9 8.7 13.4 13.8 19.6 16.8 8.8 4.1 17.7 4.6 28.5 3.3 16.4-1.9 34.6-12.9 43.5-37.2 2.8-7.7 13.6-8 16.8-.5 7.7 21.2 36.1 32.6 55.1 24l-3.9-23.3c-.8-4.9 2.5-9.6 7.4-10.4 4.9-.9 9.6 2.5 10.4 7.4l17.6 105.9c9.2 6.3 14.5 2.4 19.9-4.4l-13.8-114.4c-.7-5.3 3.3-10 8.6-10.2 4.8-.2 8.8 3.3 9.3 8l4.3 35.7c5.1-1.2 9.1-2.5 12.4-5 4.3-3.2 8.5-8.7 12.1-21.5 1.7-6 9-8.5 14.1-4.7 13.6 8.3 27.4-1.8 35.6-12.2 12.9-16.5 14.7-42.4 13.2-69.2-2.1.3-4.2.5-6.3.6-8.8.5-17.9-.9-25.7-4.4-12.4-7-22-18.4-28.2-28.9-3.9-6.8-7.3-13.7-10.5-20-5.4 9.9-11 23.1-19.2 25-12.5 2.1-23.9-3.7-29.8-12.7-5.9-8.9-7.4-20.2-4.8-31.1 2.7-11.7 9.8-38.3 22.6-56.1 2.2-2.9 4.5-5.3 6.8-7.4-7.5-3.1-16.2-3.8-22.9-3.8-5.8 0-13.5 1.8-19.7 5-6.2 3.3-10.7 7.8-12.2 11.8-3.2 8.5-15.5 7.5-17.3-1.3-3.8-22.78-53.9-17.8-65.6 2-3.8 7-14.1 5.9-16.5-1.7-8.1-22.61-62.7-21.3-66.7 5.9zm345-1.5c1.7 16.4 3.5 32.2 4.2 45.6 1.8 6.5 6 18.9 8.7 7.3.9-4.1.8-11-.4-18.6-.1-7.1-14.5-47.3-12.5-34.3zm-112.7-2.5c-11.9 15-19.2 37.4-23.3 53.7-.6 5.8-.6 12.6 2.3 17.1 2.3 3.4 4.8 5.2 9.4 5 5.8-9.4 12.1-19.8 15.6-28.2-1.2-7.9-2.8-19.9-3.6-31.4-.4-5.8-.6-11.2-.4-16.2zm94.4 2.4c-2.4 1.6-4.8 3.1-7.5 4.1-7.8 3.2-16.8 4.4-26 4.5-14.8.1-30.2-2.7-42.9-8.4 0 3.6.1 7.7.4 12.3.9 12.6 3 27.2 4 33.5 10.5 16.6 19.9 44.4 36.8 52.5 5.8 2 11.9 3.1 17.2 2.9 6-.4 10.6-2.6 11.5-3.7 3.5-8 5.9-15.2 7.3-22.3 2.1-10.9 3.4-23.3 3.6-31.6.3-6.4-.6-13.3-1.1-18.7-1.4 4.1-5.7 6.6-10 5.9-4.3-.7-7.5-4.4-7.5-8.8 0-5.1 4.2-9.2 9.3-9 3 0 5.8 1.7 7.4 4.3-.9-6.1-1.4-12-2.5-17.5zm-58.3 16.5c4.9.2 8.7 4.2 8.7 9 0 5-4 9-9 9-4.9 0-9-4-9-9s4.2-9.1 9.3-9zm47.5 48.3c3.7-.1 6.5 1.9 6.5 6.2 0 7.8-5.8 15-12.7 19l-1-23.1c2.5-1.4 5-2.1 7.2-2.1zm-24.1 2c1.8-.1 3.9.4 5.8 1.3l3.8 22.5c-6-3.7-15.4-3.6-16.5-16.1-.5-5.2 2.8-7.7 6.9-7.7zm-30.9 164.2c-3.7 5.1-7.6 9.1-12.6 12.1l16.6 62c7.6 1.5 15.9 1 19.2-5.1zm-241.2 33.7l1.5 46.8c7.9 7.9 12.9 4.8 19.7-3l-3.7-39.5c-6.3-.9-12.6-2.2-17.5-4.3z"/></svg>',
+        rice:        '<svg viewBox="0 0 463.817 463.817" xmlns="http://www.w3.org/2000/svg"><polygon points="128.333,168.868 135.102,200.243 157.095,183.966 146.507,174.432"/><path d="M463.704,222.173c-2.286-8.346-17.073-16.156-42.492-22.516l-9.012-38.119l-58.427-83.057L231.136,27.628l-61.234,34.553l-30.771,39.605L76.574,112.6l-46.645,89.855c-18.332,5.646-27.768,12.783-29.665,19.717c0,0-0.327,1.299-0.253,2.646c0.801,74.245,35.159,140.254,88.343,183.057h-8.601v28.314h304.459v-28.314h-8.599c53.185-42.803,87.401-108.813,88.202-183.059C463.83,224.638,463.704,222.173,463.704,222.173z M380.28,238.595c-41.113,6.375-93.779,9.886-148.296,9.886c-54.518,0-107.184-3.511-148.299-9.886c-32.28-5.006-49.564-10.469-58.536-14.313c7.554-3.242,21.005-7.625,44.337-11.92l-10.857-8.662l34.732-68.357l47.002-8.125l48.099,26.174l1.914,1.041l1.04-0.037l62.008-2.092l-59.122-9.406l-33.175-27.373l25.74-33.9l45.965-25.938l104.491,43.328l51.454,73.148l5.385,22.146l-12.116,15.934c31.143,4.93,47.969,10.26,56.773,14.039C429.848,228.126,412.561,233.589,380.28,238.595z"/><polygon points="299.366,154.981 288.645,170.68 320.615,173.55 311.617,147.71"/><polygon points="246.532,208.364 259.93,223.405 273.62,208.364 260.077,202.743"/><polygon points="225.307,103.577 239.965,103.214 250.059,92.577 231.706,84.272"/></svg>',
+        flour:       '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M257.407,0.023l104.189,132.58h33.758C327.252,31.857,296.566,0.731,257.407,0.023z"/><path d="M257.407,0.023c29.516,0.956,52.787,32.228,104.189,132.58H116.657C185.558,30.652,216.165,0,256,0C256.473,0,256.945,0.011,257.407,0.023z"/><circle cx="306.637" cy="98.169" r="8.44"/><circle cx="284.132" cy="64.411" r="8.44"/><circle cx="205.363" cy="89.167" r="8.44"/><path d="M442.818,458.122c11.399,11.399,11.399,29.865,0,41.264c-10.217,10.217-26.129,11.275-37.517,3.162l-41.174-59.077v-257.08l56.264,33.758l7.776,223.322L442.818,458.122z"/><path d="M409.06,458.122c11.399,11.399,11.399,29.865,0,41.264c-1.182,1.182-2.442,2.239-3.758,3.162c-1.317-0.923-2.566-1.98-3.747-3.162l-5.345-5.345C356.037,505.642,301.36,512,256,512s-100.037-6.358-140.209-17.959l-5.345,5.345c-11.388,11.399-29.865,11.399-41.264,0c-11.399-11.399-11.399-29.865,0-41.264l14.651-14.651l7.776-223.322l147.512-45.011l147.512,45.011l7.776,223.322L409.06,458.122z"/><path d="M420.391,132.602h-33.758v87.546h33.758c12.333,0,22.325-9.992,22.325-22.314v-42.918C442.717,142.595,432.724,132.602,420.391,132.602z"/><path d="M408.959,154.917v42.918c0,12.322-9.992,22.314-22.325,22.314H91.609c-12.333,0-22.325-9.992-22.325-22.314v-42.918c0-12.322,9.992-22.314,22.325-22.314h295.025C398.966,132.602,408.959,142.595,408.959,154.917z"/></svg>',
+        cow:         '<svg viewBox="0 0 556.012 556.012" xmlns="http://www.w3.org/2000/svg"><path d="M9.469,226.129c0.992,5.573,2.358,11.102,2.999,16.712c1.428,12.501,3.949,25.108,3.362,37.543c-0.75,15.896-4.121,31.665-6.361,47.487c0.833-0.347,1.665-0.698,2.501-1.045c3.285,4.998,6.569,9.996,10.127,15.415c-1.437,4.622-3.129,10.064-5.104,16.409c2.432-1.946,4.268-3.415,4.811-3.848c1.265,7.385,2.636,15.378,4.215,24.599c2.57-2.117,3.37-2.778,3.949-3.26c0.673,3.578,1.351,7.168,2.028,10.759c0.445-0.024,0.889-0.049,1.334-0.073c0.698-2.815,1.396-5.635,2.093-8.45c0.665,0.024,1.33,0.05,1.995,0.074c10.18,30.791,22.595,59.535,25.063,90.584c0,0-1.787,5.594,2.191,8.127c3.978,2.53,44.847,2.893,48.462,0c3.615-2.893-8.604-17.14-17.683-21.049c-2.848-11.803-6.185-22.097-8.054-34.063c-1.897-12.143-2.746-24.509-3.166-36.806c-0.424-12.379,4.063-23.301,10.897-33.758c5.161-7.899,8.886-16.883,12.273-25.757c3.566-9.344,5.479-19.319,9.041-28.662c3.007-7.887,6.846-8.025,13.472-2.596c6.756,5.541,13.337,12.146,21.196,15.271c9.649,3.84,20.518,4.688,30.906,6.577c6.075,1.106,12.26,2.57,18.356,2.407c18.601-0.497,37.173-1.941,55.773-2.542c8.364-0.269,14.093,4.194,15.602,12.433c2.272,12.402,2.848,25.141,5.528,37.438c2.677,12.272,2.203,24.99,8.417,36.903c6.691,12.828,9.295,27.394,4.762,41.951c-1.049,3.37-3.721,6.772-6.605,8.771c0,0-3.383,16.961,0.478,20.82c3.859,3.855,24.112,2.411,35.202,1.448c0,0,27.968,5.786,39.058,2.412c11.094-3.375,5.304-10.127,4.341-13.982c-0.967-3.855-8.494-4.794-8.494-4.794c-1.469-2.856-6.59-4.125-7.169-7.152c-2.692-14.125-1.832-28.091,1.832-42.085c4.554-17.381,7.85-35.101,12.677-52.4c1.673-6.001,5.585-11.799,9.739-16.593c7.747-8.939,21.399-10.972,27.242-22.452c0.085-0.167,0.412-0.225,0.636-0.302c11.29-3.986,16.124-13.081,19.295-23.771c1.656-5.585,4.06-10.959,6.287-16.36c6.585-15.981,19.185-27.262,31.31-38.695c3.664-3.452,10.024-6.748,14.55-6.079c13.929,2.057,27.564,5.569,41.302-0.518c0.637-0.281,1.444-0.767,1.991-0.591c9.837,3.174,18.339-0.192,26.487-5.3c2.366-1.485,6.638-3.162,6.605-4.675c-0.147-6.752-0.204-14.056-2.791-20.082c-3.803-8.845-10.245-16.52-14.586-25.182c-2.982-5.949-3.064-12.709-0.6-19.56c2.081,0.718,3.427,1.167,4.757,1.648c9.172,3.301,15.745-1.979,14.827-11.473c-0.245-2.534,0.607-5.757,2.13-7.785c8.282-11.012,6.564-17.997-6.422-23.105c-2.546-1-5.61-1.167-8.385-0.975c-5.198,0.359-10.354,1.261-14.586,1.812c-2.791-3.929-4.325-8.278-7.303-9.796c-4.99-2.538-8.075-5.112-6.517-10.2c-8.637-3.207-16.695-6.202-25.561-9.494c2.011-1.057,3.043-1.595,4.076-2.138c-0.245-0.669-0.49-1.338-0.734-2.008c-7.487,2.277-14.974,4.558-22.697,6.908c0.171,4.602-0.094,9.298-7.308,8.817c-1.15-0.078-2.611,1.212-3.574,2.211c-4.182,4.333-8.404,6.609-14.517,3.043c-1.828-1.065-5.287-0.245-7.638,0.657c-7.144,2.742-13.293,7.165-22.064,6.096c-6.116-0.743-12.705,2.844-19.144,4.186c-14.822,3.093-29.376,3.623-42.979-4.818c-1.963-1.22-4.524-1.995-6.83-2.052c-9.649-0.229-19.318,0.171-28.964-0.2c-6.487-0.249-12.938-1.383-19.4-2.154c-3.239-0.388-6.454-1.012-9.702-1.253c-7.74-0.571-15.888,0.327-23.113-1.86c-5.985-1.812-12.228-1.318-16.634,0.11c-10.016,3.248-19.56,2.468-28.69-0.286c-29.192-8.809-59.185-13.072-89.254-16.797c-6.348-0.759-11.358-3.089-16.369-6.181c-3.75-2.318-7.177-5.235-11.383-2.126c-4.851-1.249-10.392-2.974-14.521-1.273c-5.757,2.371-13.386-0.779-17.572,5.908c-0.171,0.269-1.347-0.008-2.032-0.151c-7.928-1.648-14.305,2.656-19.854,6.769c-6.393,4.741-12.632,7.229-20.126,5.5c-3.321,4.133-2.644,11.122-9.861,11.42c-0.604,0.024-1.428,1.367-1.677,2.232C7.764,115.366,6.572,122,4.132,128.144c-4.757,11.991-2.607,24.57-3.941,36.834c-0.4,3.664-0.139,7.507,0.473,11.159C3.476,192.82,6.503,209.471,9.469,226.129z M317.652,411.418c0.641-0.032,1.285-0.061,1.926-0.094c1.028,7.426,2.627,14.831,2.93,22.285c0.306,7.613,1.767,15.626-2.689,23.896C314.625,441.394,312.307,426.494,317.652,411.418z"/></svg>',
+        sugar:       '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="8" height="8" rx=".8"/><rect x="13" y="13" width="8" height="8" rx=".8"/><rect x="8" y="3" width="8" height="8" rx=".8"/></svg>',
+        oil:         '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="2.5" rx=".5"/><path d="M10 4.5v2.5l-1.5 2"/><path d="M14 4.5v2.5l1.5 2"/><path d="M8 9.5h8v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><circle cx="12" cy="14.5" r="1.6"/><path d="M12 17.5v2.5"/></svg>',
+        milk_bottle: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="2.5" rx=".5"/><path d="M9 4.5v3l-1 1.5M15 4.5v3l1 1.5"/><path d="M8 9h8v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M9 13h6"/></svg>'
+      };
+      const lower = String(name || "").toLowerCase();
+      const map = [
+        [/мол\s*гўшт|қорамол/, "cow"],
+        [/қўй\s*гўшт|қўзи\s*гўшт|эчки\s*гўшт/, "sheep"],
+        [/гўшт|тарам/, "meat"],
+        [/тухум/, "egg"],
+        [/сариёғ|маска/, "butter"],
+        [/сут/, "milk_bottle"],
+        [/картошка/, "potato"],
+        [/пиёз/, "onion"],
+        [/сабзавот/, "vegetable"],
+        [/сабзи/, "carrot"],
+        [/гуруч/, "rice"],
+        [/балиқ/, "fish"],
+        [/шакар|қанд/, "sugar"],
+        [/нон|лаваш/, "bread"],
+        [/помидор/, "tomato"],
+        [/бодринг/, "cucumber"],
+        [/қалампир|мурч/, "pepper"],
+        [/узум/, "grapes"],
+        [/лимон/, "lemon"],
+        [/қовун/, "melon"],
+        [/тарвуз/, "watermelon"],
+        [/олма/, "fruit"],
+        [/беҳи|нок/, "pear"],
+        [/шафтоли|ўрик/, "peach"],
+        [/мева/, "fruit"],
+        [/ёғ/, "oil"],
+        [/(^|\s)ун($|\s)/, "flour"]
+      ];
+      let key = "produce";
+      for (const [pattern, k] of map) {
+        if (pattern.test(lower)) { key = k; break; }
+      }
+      let url;
+      if (customSvg[key]) {
+        url = "data:image/svg+xml;utf8," + encodeURIComponent(customSvg[key]);
+      } else {
+        const code = codepoints[key] || codepoints.produce;
+        url = `https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/${code}.svg`;
+      }
+      return `<span class="emoji" role="img" aria-label="${name}" style="--icon-url:url(&quot;${url}&quot;)"></span>`;
     }
 
     function macroByIndex(index, period) {
@@ -3985,6 +4493,47 @@ HTML = r"""<!doctype html>
       const selected = currentKpiDef();
       const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
       const moduleKpis = dashboardKpisForModule(state.dashboardModule);
+      const moduleTasks = DATA.tasks.filter(t => t.module === state.dashboardModule);
+      const moduleTotal = moduleTasks.length;
+      const moduleDone = moduleTasks.filter(t => t.status === "green").length;
+      const moduleLeft = moduleTotal - moduleDone;
+      const modulePct = moduleTotal > 0 ? Math.round(moduleDone / moduleTotal * 100) : 0;
+      const scoreR = 26, scoreCx = 35, scoreCy = 35;
+      const scoreCirc = 2 * Math.PI * scoreR;
+      const scoreGreen = scoreCirc * (modulePct / 100);
+      const scoreRed = scoreCirc * ((100 - modulePct) / 100);
+      const scoreRedStart = -90 + (modulePct / 100) * 360;
+      const scorelineHtml = `<div class="scoreline">
+          <div class="score" role="button" tabindex="0" data-scoreline-status="all">
+            <div class="score-label">Жами топшириқлар:</div>
+            <div class="score-chart-wrap">
+              <svg viewBox="0 0 70 70" fill="none">
+                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#eaeaea" stroke-width="6"/>
+                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#22c55e" stroke-width="6"
+                  stroke-dasharray="${scoreGreen} ${scoreCirc}" stroke-linecap="butt"
+                  transform="rotate(-90 ${scoreCx} ${scoreCy})"/>
+                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#ef4444" stroke-width="6"
+                  stroke-dasharray="${scoreRed} ${scoreCirc}" stroke-linecap="butt"
+                  transform="rotate(${scoreRedStart} ${scoreCx} ${scoreCy})"/>
+              </svg>
+              <div class="score-pct">${modulePct}%</div>
+            </div>
+            <div class="score-legend">
+              <div class="score-leg-item"><div class="score-leg-dot" style="background:#22c55e"></div>Бажарилди</div>
+              <div class="score-leg-item"><div class="score-leg-dot" style="background:#ef4444"></div>Бажарилмади</div>
+            </div>
+            <div class="score-num">${moduleTotal}</div>
+          </div>
+          <div class="score" role="button" tabindex="0" data-scoreline-status="done">
+            <div class="score-label">Бажарилди:</div>
+            <div class="score-num" style="color:#22c55e">${moduleDone}</div>
+          </div>
+          <div class="score" role="button" tabindex="0" data-scoreline-status="open">
+            <div class="score-label">Бажарилмади:</div>
+            <div class="score-num" style="color:#ef4444">${moduleLeft}</div>
+          </div>
+        </div>`;
+      const isMacro = state.dashboardModule === "macro";
       $("#dashboardPage").innerHTML = `
         <div class="dashboard-module-tabs">
           ${dashboardModules().map(module => `<button class="module-tab ${module.id === state.dashboardModule ? "active" : ""}" data-dashboard-module="${module.id}" type="button">
@@ -3999,8 +4548,10 @@ HTML = r"""<!doctype html>
           </div>
           <span class="chip">${moduleKpis.length} KPI</span>
         </div>
-        ${state.dashboardModule === "macro" ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
-        <div class="kpi-monitor-grid single">${kpiDashboardCard(selected)}</div>`;
+        ${isMacro ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
+        ${isMacro ? "" : scorelineHtml}
+        <div class="kpi-monitor-grid single">${state.dashboardModule === "employment" ? moduleKpis.map(kpiDashboardCard).join("") : kpiDashboardCard(selected)}</div>
+        ${isMacro ? scorelineHtml : ""}`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
         state.dashboardModule = btn.dataset.dashboardModule;
@@ -4031,6 +4582,24 @@ HTML = r"""<!doctype html>
         state.page = "profile";
         render();
       }));
+      const goToScorelineTasks = status => {
+        state.taskModule = state.dashboardModule;
+        state.taskStatus = status;
+        state.kpi = "all";
+        state.taskDistrict = "all";
+        state.taskPeriod = "all";
+        state.page = "tasks";
+        render();
+      };
+      $$("[data-scoreline-status]", $("#dashboardPage")).forEach(card => {
+        card.addEventListener("click", () => goToScorelineTasks(card.dataset.scorelineStatus));
+        card.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            goToScorelineTasks(card.dataset.scorelineStatus);
+          }
+        });
+      });
     }
 
     function signalBarWidth(def, row) {
@@ -4177,20 +4746,26 @@ HTML = r"""<!doctype html>
         <div class="composition">
           <div class="lagging-title"><strong>Асосий озиқ-овқат нархлари</strong><span class="chip grey">йиллик чегара</span></div>
           <div class="composition-grid">
-            ${priceCaps.map(([name, cap]) => `<button class="component-card" type="button">
-              <span>${name}</span>
-              <strong>${cap}</strong>
-              <small>йиллик нарх чегараси</small>
+            ${priceCaps.map(([name, cap]) => `<button class="component-card product-card" type="button">
+              <span class="product-icon" aria-hidden="true">${foodIcon(name)}</span>
+              <span class="product-body">
+                <span class="product-name">${name}</span>
+                <strong class="product-value">${cap}</strong>
+                <small class="product-note">йиллик нарх чегараси</small>
+              </span>
             </button>`).join("")}
           </div>
         </div>
         <div class="composition">
           <div class="lagging-title"><strong>Озиқ-овқат балансида эътибор талаб қиладиган маҳсулотлар</strong><span class="chip grey">2.1-жадвал</span></div>
           <div class="composition-grid">
-            ${sensitiveFoods.map(row => `<button class="component-card" type="button">
-              <span>${row.product}</span>
-              <strong>${fmt((n(row.local_supply_ratio) || 0) * 100, 1)}%</strong>
-              <small>маҳаллий таъминланиш · ресурс ${fmt(row.resource_total, 1)} минг т · импорт ${fmt(row.import, 1)} минг т</small>
+            ${sensitiveFoods.map(row => `<button class="component-card product-card" type="button">
+              <span class="product-icon" aria-hidden="true">${foodIcon(row.product)}</span>
+              <span class="product-body">
+                <span class="product-name">${row.product}</span>
+                <strong class="product-value">${fmt((n(row.local_supply_ratio) || 0) * 100, 1)}%</strong>
+                <small class="product-note">маҳаллий таъминланиш · ресурс ${fmt(row.resource_total, 1)} минг т · импорт ${fmt(row.import, 1)} минг т</small>
+              </span>
             </button>`).join("")}
           </div>
         </div>
@@ -4208,26 +4783,56 @@ HTML = r"""<!doctype html>
       const emp = DATA.regional.employment || {};
       const districts = DATA.districts || [];
       const clearTerritories = districts.filter(d => String(d.data?.employment?.poverty_year || "").includes("холи"));
-      return `<div class="drivers">
-        <div class="lagging-title"><strong>Камбағаллик KPI деталлари</strong><span class="chip blue">режа кўрсаткичлари</span></div>
-        <div class="driver-grid">
-          <div class="driver-card"><span>II чорак мақсад</span><strong>${fmt(emp.poverty_h1, 1)}%</strong><small>6-жадвал: камбағаллик даражаси</small></div>
-          <div class="driver-card"><span>Йиллик мақсад</span><strong>${fmt(emp.poverty_year, 1)}%</strong><small>йиллик режа</small></div>
-          <div class="driver-card"><span>Холи МФЙ</span><strong>${fmt(emp.mfy_h1, 0)} / ${fmt(emp.mfy_year, 0)}</strong><small>II чорак / йиллик</small></div>
-          <div class="driver-card"><span>Микролойиҳалар</span><strong>${fmt(emp.microprojects_h1, 0)} та</strong><small>йиллик ${fmt(emp.microprojects_year, 0)} та</small></div>
-        </div>
-        <div class="composition">
-          <div class="lagging-title"><strong>Камбағалликка таъсир қилувчи кўрсаткичлар</strong><span class="chip grey">туман кесими бор</span></div>
-          <div class="composition-grid">
-            <button class="component-card" type="button"><span>Доимий ишга жойлаштириш</span><strong>${fmt(emp.jobs_h1, 1)} минг</strong><small>йиллик ${fmt(emp.jobs_year, 1)} минг</small></button>
-            <button class="component-card" type="button"><span>Норасмий бандларни легаллаштириш</span><strong>${fmt(emp.legalization_h1, 1)} минг</strong><small>йиллик ${fmt(emp.legalization_year, 1)} минг</small></button>
-            <button class="component-card" type="button"><span>Холи МФЙлар</span><strong>${fmt(emp.mfy_h1, 0)} та</strong><small>йиллик ${fmt(emp.mfy_year, 0)} та</small></button>
-            <button class="component-card" type="button"><span>Микролойиҳалар</span><strong>${fmt(emp.microprojects_h1, 0)} та</strong><small>йиллик ${fmt(emp.microprojects_year, 0)} та</small></button>
+      const stats = [
+        { id: "jobs",          icon: "users",   label: "Доимий ишга жойлаштириш",        h1: emp.jobs_h1,          year: emp.jobs_year,          unit: "минг", digits: 1 },
+        { id: "legalization",  icon: "globe",   label: "Норасмий бандларни легаллаштириш", h1: emp.legalization_h1,  year: emp.legalization_year,  unit: "минг", digits: 1 },
+        { id: "mfy",           icon: "bank",    label: "Холи МФЙ",                         h1: emp.mfy_h1,           year: emp.mfy_year,           unit: "та",   digits: 0 },
+        { id: "microprojects", icon: "rocket",  label: "Микролойиҳалар",                   h1: emp.microprojects_h1, year: emp.microprojects_year, unit: "та",   digits: 0 }
+      ];
+      return `<div class="drivers poverty-section">
+        <header class="poverty-head">
+          <div>
+            <strong>Камбағалликка таъсир қилувчи драйверлар</strong>
+            <p>4 та амалий рычаг — ҳар бирида II чорак ўлчаш нуқтаси ва йиллик режа.</p>
           </div>
+          <span class="chip blue">режа · туман кесими бор</span>
+        </header>
+        <div class="poverty-stats">
+          ${stats.map(s => {
+            const h1Num = n(s.h1);
+            const yearNum = n(s.year);
+            const pct = h1Num !== null && yearNum !== null && yearNum !== 0 ? Math.min(100, Math.max(0, (h1Num / yearNum) * 100)) : 0;
+            const h1Text = h1Num !== null ? fmt(s.h1, s.digits) : "—";
+            const yearText = yearNum !== null ? fmt(s.year, s.digits) : "—";
+            return `<article class="poverty-stat">
+              <div class="poverty-stat-icon" aria-hidden="true">${icon(s.icon)}</div>
+              <div class="poverty-stat-body">
+                <span class="poverty-stat-label">${s.label}</span>
+                <strong class="poverty-stat-value">${yearText}<em>${s.unit}</em></strong>
+                <div class="poverty-stat-meta">
+                  <span>II чорак <b>${h1Text}</b></span>
+                  <span class="poverty-stat-divider">·</span>
+                  <span>Йиллик режа</span>
+                </div>
+                <div class="poverty-progress" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100">
+                  <i style="width:${pct.toFixed(1)}%"></i>
+                </div>
+                <small class="poverty-progress-label">II чорак йиллик режанинг ${pct.toFixed(0)}%</small>
+              </div>
+            </article>`;
+          }).join("")}
         </div>
-        <div class="driver-grid">
-          <button class="driver-card" type="button" data-open-districts="poverty" data-period="year"><span>Туманлар мониторинги</span><strong>${fmt(clearTerritories.length, 0)} та</strong><small>холи ҳудуд режада</small></button>
-        </div>
+        <article class="poverty-territory">
+          <div class="poverty-territory-head">
+            <div>
+              <span class="poverty-territory-eyebrow">Камбағалликдан холи ҳудудлар режада</span>
+              <strong>${fmt(clearTerritories.length, 0)}<em>та ҳудуд</em></strong>
+            </div>
+            <button class="mini-button primary" type="button" data-open-districts="poverty" data-period="year">Туманлар кесими →</button>
+          </div>
+          <p>Кафолат хатида камбағалликдан холи бўлиши кутилаётган маҳалла ва туманлар.</p>
+          ${clearTerritories.length ? `<div class="poverty-territory-list">${clearTerritories.map(d => `<span class="poverty-territory-chip">${d.name}</span>`).join("")}</div>` : `<p class="poverty-territory-empty">Холи ҳудуд режасида ҳудуд белгиланмаган.</p>`}
+        </article>
       </div>`;
     }
 
@@ -4915,7 +5520,8 @@ HTML = r"""<!doctype html>
         state.taskModule = "all";
         kpiOptions = taskKpiOptionsForModule("all");
       }
-      if (!kpiOptions.some(def => def.id === state.kpi)) state.kpi = kpiOptions[0]?.id || "export";
+      if (state.kpi !== "all" && !kpiOptions.some(def => def.id === state.kpi)) state.kpi = "all";
+      const allKpis = state.kpi === "all";
       const kpi = currentKpiDef();
       const q = state.search.trim().toLowerCase();
       const selectedModule = moduleById(state.taskModule);
@@ -4923,7 +5529,7 @@ HTML = r"""<!doctype html>
       const moduleSource = selectedModule ? selectedModule.source : "Кафолат хати ва 7 та жадвал";
       const moduleSheets = selectedModule ? selectedModule.sheets.join(" · ") : taskModules().map(module => module.short).join(" · ");
       const moduleScopedTasks = DATA.tasks.filter(t => state.taskModule === "all" || t.module === state.taskModule);
-      const allByKpi = tasksForKpi(kpi.id).filter(t => state.taskModule === "all" || t.module === state.taskModule);
+      const allByKpi = tasksForKpi(state.kpi).filter(t => state.taskModule === "all" || t.module === state.taskModule);
       const allTasks = allByKpi.filter(t => {
         const qOk = !q || `${t.title} ${t.sector} ${t.moduleLabel} ${t.owner} ${t.period} ${t.deadline} ${(t.districts || []).join(" ")}`.toLowerCase().includes(q);
         const periodOk = state.taskPeriod === "all" || t.periodCode === state.taskPeriod;
@@ -4948,7 +5554,8 @@ HTML = r"""<!doctype html>
           </label>
           <label>KPI / топшириқ йўналиши
             <select id="taskKpiSelect">
-              ${kpiOptions.map(def => `<option value="${def.id}" ${def.id === kpi.id ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
+              <option value="all" ${allKpis ? "selected" : ""}>Барча KPI</option>
+              ${kpiOptions.map(def => `<option value="${def.id}" ${!allKpis && def.id === kpi.id ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
             </select>
           </label>
           <label>Муддат
@@ -4973,15 +5580,14 @@ HTML = r"""<!doctype html>
           </label>
           <div class="action-row" style="margin-top:0">
             <button class="mini-button" data-task-page="dashboard">KPI экрани</button>
-            ${districtReady ? `<button class="mini-button primary" data-open-districts="${kpi.id}">Туманлар кесими</button>` : ""}
+            ${!allKpis && districtReady ? `<button class="mini-button primary" data-open-districts="${kpi.id}">Туманлар кесими</button>` : ""}
           </div>
         </div>
         <div class="task-summary-strip">
           <div class="small-stat"><span>Йўналиш</span><strong>${moduleLabel}</strong><small>${moduleSource}</small></div>
-          <div class="small-stat"><span>KPI</span><strong>${kpi.short}</strong><small>${kpi.label}</small></div>
+          <div class="small-stat"><span>KPI</span><strong>${allKpis ? "Барча KPI" : kpi.short}</strong><small>${allKpis ? "барча йўналишлар бўйича топшириқлар" : kpi.label}</small></div>
           <div class="small-stat"><span>Кафолат хати</span><strong>${meta.execution_tasks || DATA.tasks.length}</strong><small>ҳақиқий ижро топшириғи · ${meta.kpi_targets || 0} KPI мақсад чиқарилди</small></div>
           <div class="small-stat"><span>Топшириқлар</span><strong>${notDone.length}/${allTasks.length}</strong><small>бажарилмаган / танланган кесим</small></div>
-          <div class="small-stat"><span>Ҳисобот боғланган</span><strong>${reportLinked}/${allTasks.length}</strong><small>ижро журнали билан боғланган</small></div>
         </div>
         <div class="task-workspace">
           <div class="task-groups">
@@ -5007,7 +5613,7 @@ HTML = r"""<!doctype html>
         state.taskStatus = "open";
         state.taskDistrict = "all";
         const nextOptions = taskKpiOptionsForModule(state.taskModule);
-        if (!nextOptions.some(def => def.id === state.kpi)) state.kpi = nextOptions[0]?.id || "export";
+        if (state.kpi !== "all" && !nextOptions.some(def => def.id === state.kpi)) state.kpi = "all";
         render();
       });
       $("#taskKpiSelect").addEventListener("change", event => {
@@ -5075,6 +5681,7 @@ HTML = r"""<!doctype html>
     }
 
     function tasksForKpi(kpiId) {
+      if (kpiId === "all") return DATA.tasks.slice();
       if (DATA.tasks.some(t => t.kpi)) return DATA.tasks.filter(t => isSpecificTaskForKpi(t, kpiId));
       const sector = taskScopeForKpi(kpiId);
       return DATA.tasks.filter(t => (sector === "all" || t.sector === sector) && isSpecificTaskForKpi(t, kpiId));
@@ -5845,6 +6452,13 @@ HTML = r"""<!doctype html>
 
     $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
       state.page = btn.dataset.page;
+      if (state.page === "tasks") {
+        state.kpi = "all";
+        state.taskModule = "all";
+        state.taskStatus = "open";
+        state.taskDistrict = "all";
+        state.taskPeriod = "all";
+      }
       render();
     }));
 
