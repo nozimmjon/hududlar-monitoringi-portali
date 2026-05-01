@@ -1012,57 +1012,6 @@ HTML = r"""<!doctype html>
       line-height: 1.25;
     }
 
-    .kpi-route {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-      gap: 10px;
-      align-items: center;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--line);
-      background: #fff;
-    }
-
-    .route-cell {
-      min-width: 0;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #fbfdff;
-    }
-
-    .route-cell span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 950;
-      text-transform: uppercase;
-    }
-
-    .route-cell strong {
-      display: block;
-      margin-top: 4px;
-      color: var(--ink);
-      font-size: 15px;
-      line-height: 1.2;
-      overflow: hidden;
-      overflow-wrap: anywhere;
-    }
-
-    .route-cell small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.25;
-    }
-
-    .route-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
     .kpi-icon {
       width: 48px;
       height: 48px;
@@ -2737,9 +2686,8 @@ HTML = r"""<!doctype html>
       .grid-3, .grid-2, .profile-top { grid-template-columns: 1fr; }
       .profile-filter { align-items: stretch; flex-direction: column; }
       .district-workspace, .district-context { grid-template-columns: 1fr; }
-      .task-workspace, .task-filter, .task-filter.report-filter, .task-summary-strip, .workflow-strip, .kpi-route { grid-template-columns: 1fr; }
+      .task-workspace, .task-filter, .task-filter.report-filter, .task-summary-strip, .workflow-strip { grid-template-columns: 1fr; }
       .modal-grid, .report-context { grid-template-columns: 1fr; }
-      .route-actions { justify-content: flex-start; }
       .profile-grid, .profile-bottom-grid { grid-template-columns: 1fr; }
       .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .profile-secondary .district-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -2779,7 +2727,7 @@ HTML = r"""<!doctype html>
       .main { padding: 14px; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
-      .dashboard-module-tabs, .module-heading, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis, .kpi-route { grid-template-columns: 1fr; }
+      .dashboard-module-tabs, .module-heading, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
@@ -3686,31 +3634,6 @@ HTML = r"""<!doctype html>
       </div>`;
     }
 
-    function kpiRouteBar(def) {
-      const hasDistricts = def.id === "grp" || districtSelectorDefs().some(item => item.id === def.id);
-      const reportSummary = reportScopeSummary(def.id);
-      const isGrp = def.id === "grp";
-      return `<div class="kpi-route">
-        <div class="route-cell">
-          <span>KPI ҳолати</span>
-          <strong>${def.short}: режа / амалда / ижро</strong>
-        </div>
-        <div class="route-cell">
-          <span>${isGrp ? "ЯҲМ таркиби" : "Туманлар кесими"}</span>
-          <strong>${isGrp ? "саноат / қишлоқ хўжалиги / қурилиш / хизматлар" : hasDistricts ? "режа / амалда / ижро" : "вилоят даражасида"}</strong>
-        </div>
-        <div class="route-cell">
-          <span>Ижро ҳисоботлари</span>
-          <strong>${reportScopeText(reportSummary)}</strong>
-          <small>Фақат “Тасдиқланди” ҳолати KPI “амалда” қийматига ўтади.</small>
-        </div>
-        <div class="route-actions">
-          <button class="mini-button" data-open-execution data-exec-kpi="${def.id}">Ижро журнали</button>
-          ${hasDistricts ? `<button class="mini-button primary" data-open-districts="${def.id}">Туманлар кесими</button>` : ""}
-        </div>
-      </div>`;
-    }
-
     function renderDashboard() {
       if (state.page === "dashboard") {
         state.dashboardModule = dashboardModuleForKpi(state.kpi || "grp");
@@ -3734,7 +3657,7 @@ HTML = r"""<!doctype html>
           </div>
           <span class="chip blue">${moduleKpis.length} KPI</span>
         </div>
-        <div class="front-kpis module-kpis ${state.dashboardModule === "macro" ? "macro-layout" : ""}">${moduleKpis.map(kpiCard).join("")}</div>
+        ${state.dashboardModule === "macro" ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
         <div class="kpi-monitor-grid single">${kpiDashboardCard(selected)}</div>`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
@@ -3829,8 +3752,7 @@ HTML = r"""<!doctype html>
             <p>${def.label}</p>
           </div>
         </div>
-        ${kpiRouteBar(def)}
-        <div class="quarter-matrix">
+        ${def.id === "inflation" ? "" : `<div class="quarter-matrix">
           ${quarters.map(([label, period]) => {
             const row = dashboardPeriodKpi(def.id, period);
             const stateInfo = periodState(def, period, row);
@@ -3854,7 +3776,7 @@ HTML = r"""<!doctype html>
               <span class="chip ${chipClass}">${row.reportStatusLabel || stateInfo.label}</span>
             </div>`;
           }).join("")}
-        </div>
+        </div>`}
         ${def.id === "grp" ? renderMacroComposition() : ""}
         ${def.id === "industry" ? renderIndustryDrivers() : ""}
         ${def.id === "inflation" ? renderInflationDetails() : ""}
@@ -4051,31 +3973,6 @@ HTML = r"""<!doctype html>
       return getExecutionReports()
         .filter(report => report.kpi === kpiId && report.period === period && (!districtName || report.district === districtName))
         .sort((a, b) => String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)))[0] || null;
-    }
-
-    function reportsForScope(kpiId, period = null, districtName = null) {
-      return getExecutionReports()
-        .filter(report => (!kpiId || report.kpi === kpiId) && (!period || report.period === period) && (!districtName || report.district === districtName))
-        .sort((a, b) => String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)));
-    }
-
-    function reportScopeSummary(kpiId, period = null, districtName = null) {
-      const reports = reportsForScope(kpiId, period, districtName);
-      return {
-        total: reports.length,
-        approved: reports.filter(report => report.status === "approved").length,
-        waiting: reports.filter(report => ["submitted", "review"].includes(report.status)).length,
-        rejected: reports.filter(report => report.status === "rejected").length
-      };
-    }
-
-    function reportScopeText(summary) {
-      if (!summary.total) return "ҳисобот йўқ";
-      const parts = [];
-      if (summary.approved) parts.push(`${summary.approved} тасдиқланди`);
-      if (summary.waiting) parts.push(`${summary.waiting} тасдиқ кутади`);
-      if (summary.rejected) parts.push(`${summary.rejected} қайтарилди`);
-      return parts.join(" / ");
     }
 
     function openExecutionJournal(kpiId = null, districtName = null, period = null) {
