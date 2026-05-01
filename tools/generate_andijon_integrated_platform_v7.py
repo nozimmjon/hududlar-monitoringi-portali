@@ -552,6 +552,9 @@ HTML = r"""<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Андижон вилояти мониторинг платформаси · v7</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
   <style>
     :root {
       --bg: #f7f5f0;
@@ -575,9 +578,51 @@ HTML = r"""<!doctype html>
       --grey: #71717a;
       --grey-soft: #eceae3;
       --shadow: 0 16px 40px rgba(35, 45, 48, .10);
+      --shadow-sm: 0 1px 2px rgba(20, 30, 35, .06), 0 4px 12px rgba(20, 30, 35, .05);
+      --shadow-md: 0 4px 12px rgba(20, 30, 35, .08), 0 16px 40px rgba(20, 30, 35, .10);
+      --shadow-lg: 0 12px 24px rgba(20, 30, 35, .12), 0 24px 60px rgba(20, 30, 35, .14);
+      --ring-blue: 0 0 0 1px rgba(27, 77, 90, .12);
+      --accent-grad: linear-gradient(135deg, #1b4d5a 0%, #2a6f7e 100%);
+      --accent-grad-soft: linear-gradient(135deg, rgba(27, 77, 90, .08) 0%, rgba(42, 111, 126, .12) 100%);
+      --motion: 180ms cubic-bezier(.2, .7, .2, 1);
+      --motion-slow: 280ms cubic-bezier(.2, .7, .2, 1);
       --nav-w: 232px;
       --r: 8px;
-      font-family: "Segoe UI", Arial, sans-serif;
+      --r-md: 12px;
+      --r-lg: 16px;
+      font-family: "Inter", "Inter Tight", "Segoe UI", Arial, sans-serif;
+      font-feature-settings: "ss01", "cv11";
+    }
+
+    .num, .tabular {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01", "cv11";
+      letter-spacing: -0.005em;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.18); opacity: .82; }
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -120% 0; }
+      100% { background-position: 220% 0; }
+    }
+
+    .card-in { animation: card-in var(--motion-slow) both; }
+    .card-in-2 { animation: card-in var(--motion-slow) both; animation-delay: 60ms; }
+    .card-in-3 { animation: card-in var(--motion-slow) both; animation-delay: 120ms; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card-in, .card-in-2, .card-in-3 { animation: none; }
+      .module-tab.active .module-dot { animation: none; }
+      * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
     }
 
     * { box-sizing: border-box; }
@@ -593,7 +638,11 @@ HTML = r"""<!doctype html>
 
     button, input, select { font: inherit; }
     button { cursor: pointer; }
-    :focus-visible { outline: 3px solid rgba(23, 95, 193, .35); outline-offset: 2px; }
+    :focus-visible {
+      outline: 2px solid rgba(27, 77, 90, .55);
+      outline-offset: 3px;
+      transition: outline-color var(--motion), outline-offset var(--motion);
+    }
 
     .topbar {
       position: sticky;
@@ -609,7 +658,7 @@ HTML = r"""<!doctype html>
     .mast {
       min-height: 92px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 24px;
       padding: 16px clamp(18px, 3vw, 40px) 12px;
@@ -681,27 +730,6 @@ HTML = r"""<!doctype html>
       line-height: 1;
       position: relative;
       z-index: 1;
-    }
-
-    .year-box {
-      justify-self: end;
-      text-align: right;
-      font-weight: 900;
-      position: relative;
-      z-index: 1;
-    }
-
-    .year-box strong {
-      display: block;
-      font-size: clamp(33px, 4.2vw, 50px);
-      line-height: .95;
-    }
-
-    .year-box span {
-      display: block;
-      margin-top: 5px;
-      color: rgba(247,251,255,.76);
-      font-size: clamp(18px, 2vw, 26px);
     }
 
     .shell {
@@ -841,75 +869,167 @@ HTML = r"""<!doctype html>
     }
 
     .front-kpis {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      background: rgba(255,255,255,.98);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      border-radius: var(--r);
+      background: #fff;
+      border: 1px solid rgba(20, 30, 35, .07);
+      box-shadow: var(--shadow-md);
+      border-radius: var(--r-lg);
       overflow: hidden;
       margin-bottom: 16px;
+    }
+
+    .front-kpis::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+      z-index: 1;
     }
 
     .dashboard-module-tabs {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .module-tab {
+      position: relative;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255,255,255,.92);
+      border-radius: var(--r-md);
+      background: rgba(255, 255, 255, .85);
       color: var(--muted);
-      padding: 11px 12px;
+      padding: 12px 12px 12px 26px;
       text-align: left;
       cursor: pointer;
-      min-height: 58px;
-      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease;
+      min-height: 62px;
+      transition: transform var(--motion), background var(--motion), border-color var(--motion), box-shadow var(--motion), color var(--motion);
+      backdrop-filter: saturate(140%) blur(6px);
+    }
+
+    .module-tab .module-dot {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--module-color, var(--blue));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--module-color, var(--blue)) 18%, transparent);
+      transition: transform var(--motion), box-shadow var(--motion);
     }
 
     .module-tab strong {
       display: block;
       color: var(--ink);
-      font-size: 13px;
-      line-height: 1.15;
+      font-size: 14px;
+      line-height: 1.18;
       margin-top: 3px;
+      font-weight: 700;
+      letter-spacing: -0.005em;
     }
 
     .module-tab span {
       display: block;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 600;
       color: #718199;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
-    .module-tab.active,
     .module-tab:hover {
+      transform: translateY(-1px);
       background: #fff;
-      border-color: rgba(34, 100, 213, .35);
-      box-shadow: inset 0 -3px 0 var(--blue), 0 10px 24px rgba(28, 55, 90, .08);
+      border-color: rgba(27, 77, 90, .25);
+      box-shadow: var(--shadow-sm);
+      color: var(--ink);
+    }
+
+    .module-tab.active {
+      background: #fff;
+      border-color: transparent;
+      box-shadow: var(--ring-blue), var(--shadow-sm), inset 0 0 0 1px rgba(27, 77, 90, .35);
       color: var(--blue);
     }
+
+    .module-tab.active .module-dot {
+      animation: pulse-dot 1.6s ease-in-out infinite;
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--module-color, var(--blue)) 22%, transparent);
+    }
+
+    .module-tab.active strong { color: var(--ink); font-weight: 800; }
+
+    .module-tab[data-dashboard-module="macro"] { --module-color: #1b4d5a; }
+    .module-tab[data-dashboard-module="inflation"] { --module-color: #b45309; }
+    .module-tab[data-dashboard-module="budget"] { --module-color: #15803d; }
+    .module-tab[data-dashboard-module="budget_investment"] { --module-color: #0e7490; }
+    .module-tab[data-dashboard-module="investment"] { --module-color: #6d28d9; }
+    .module-tab[data-dashboard-module="export"] { --module-color: #1d4ed8; }
+    .module-tab[data-dashboard-module="employment"] { --module-color: #b91c1c; }
 
     .module-heading {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 12px;
       align-items: end;
-      margin: 6px 0 12px;
+      margin: 8px 0 14px;
+      position: relative;
+    }
+
+    .module-heading > div {
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .module-heading > div::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 4px;
+      border-radius: 4px;
+      background: var(--accent-grad);
     }
 
     .module-heading h2 {
       margin: 0;
-      font-size: 22px;
-      line-height: 1.15;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(22px, 2.4vw, 28px);
+      line-height: 1.12;
+      letter-spacing: -0.018em;
+      font-weight: 800;
     }
 
     .module-heading p {
-      margin: 4px 0 0;
+      margin: 6px 0 0;
       color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .module-heading .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 6px 12px;
+      font-weight: 700;
+    }
+
+    .module-heading .chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent-grad);
     }
 
     .front-kpis.module-kpis.macro-layout {
@@ -917,32 +1037,56 @@ HTML = r"""<!doctype html>
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi {
-      min-height: 132px;
+      min-height: 138px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent {
-      background: linear-gradient(180deg, #ffffff, #f5f9ff);
+      background:
+        radial-gradient(circle at 0% 100%, rgba(27, 77, 90, .12), transparent 55%),
+        linear-gradient(180deg, #ffffff, #f3f8fa);
+      box-shadow: inset -1px 0 0 rgba(27, 77, 90, .12);
+    }
+
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
+      background: var(--accent-grad);
+      box-shadow:
+        0 14px 28px rgba(27, 77, 90, .35),
+        0 0 0 5px rgba(27, 77, 90, .08),
+        inset 0 1px 0 rgba(255, 255, 255, .25);
     }
 
     .front-kpi {
+      position: relative;
       border: 0;
       border-right: 1px solid var(--line);
       background: transparent;
-      min-height: 154px;
-      padding: 15px clamp(10px, 1.35vw, 18px);
+      min-height: 158px;
+      padding: 16px clamp(10px, 1.35vw, 18px);
       display: grid;
-      grid-template-columns: 48px minmax(0, 1fr);
+      grid-template-columns: 50px minmax(0, 1fr);
       gap: 12px;
       align-items: center;
       text-align: left;
       color: inherit;
+      transition: transform var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .front-kpi::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 0;
+      background: var(--accent-grad);
+      transition: height var(--motion);
     }
 
     .front-kpi:nth-child(4n) { border-right: 0; }
     .front-kpi:last-child { border-right: 0; }
     .front-kpi:nth-child(n+5) { border-top: 1px solid var(--line); }
-    .front-kpi.active,
-    .front-kpi:hover { background: var(--surface); box-shadow: inset 0 -4px 0 var(--blue); }
+    .front-kpi:hover { background: var(--surface); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .front-kpi:hover::after { height: 3px; }
+    .front-kpi.active { background: #fff; box-shadow: inset 0 0 0 1px rgba(27, 77, 90, .22), var(--shadow-sm); }
+    .front-kpi.active::after { height: 4px; background: var(--accent-grad); }
 
     .yhm-focus-bar {
       margin-bottom: 16px;
@@ -1013,42 +1157,53 @@ HTML = r"""<!doctype html>
     }
 
     .kpi-icon {
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       border-radius: 14px;
       display: grid;
       place-items: center;
       color: #fff;
       background: linear-gradient(145deg, #173f9c, #347cef);
-      box-shadow: 0 9px 18px rgba(23, 95, 193, .28);
+      box-shadow:
+        0 10px 22px rgba(23, 95, 193, .28),
+        0 0 0 4px rgba(23, 95, 193, .08),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+      transition: transform var(--motion);
     }
+
+    .front-kpi:hover .kpi-icon { transform: rotate(-3deg) scale(1.04); }
 
     .kpi-icon svg { width: 25px; height: 25px; stroke-width: 2.2; }
     .front-kpi h3 {
-      color: #68788c;
-      font-size: 12px;
-      line-height: 1.15;
-      font-weight: 950;
+      color: #4d6172;
+      font-size: 11.5px;
+      line-height: 1.18;
+      font-weight: 700;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
     .front-kpi .big {
       display: block;
-      margin-top: 3px;
-      color: #1d55ca;
-      font-size: clamp(24px, 2vw, 31px);
+      margin-top: 4px;
+      color: var(--blue);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(26px, 2.2vw, 38px);
       line-height: 1;
-      font-weight: 950;
-      letter-spacing: 0;
+      font-weight: 800;
+      letter-spacing: -0.022em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
     }
 
     .mini-row {
-      margin-top: 8px;
+      margin-top: 9px;
       display: grid;
       gap: 3px;
       color: var(--muted);
       font-size: 10.5px;
-      line-height: 1.15;
+      line-height: 1.2;
+      font-weight: 500;
     }
 
     .mini-row span {
@@ -1062,7 +1217,11 @@ HTML = r"""<!doctype html>
     .mini-row b {
       display: block;
       color: var(--ink);
-      font-size: 11px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.005em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1698,47 +1857,94 @@ HTML = r"""<!doctype html>
     }
 
     .kpi-monitor-card {
+      position: relative;
       background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-md);
       overflow: hidden;
       min-width: 0;
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
+    }
+
+    .kpi-monitor-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+      z-index: 1;
+    }
+
+    .kpi-monitor-card:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(27, 77, 90, .18);
     }
 
     .kpi-monitor-head {
-      min-height: 78px;
+      position: relative;
+      min-height: 92px;
       display: grid;
-      grid-template-columns: 46px minmax(0, 1fr) auto;
-      gap: 12px;
+      grid-template-columns: 52px minmax(0, 1fr) auto;
+      gap: 14px;
       align-items: center;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background: #fbfdff;
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid rgba(20, 30, 35, .06);
+      background:
+        linear-gradient(90deg, #fbfdff 0%, #f4f8fa 100%);
+      overflow: hidden;
+    }
+
+    .kpi-monitor-head .head-watermark {
+      position: absolute;
+      right: -18px;
+      bottom: -34px;
+      width: 140px;
+      height: 140px;
+      color: var(--blue);
+      opacity: 0.05;
+      pointer-events: none;
+    }
+
+    .kpi-monitor-head .head-watermark svg {
+      width: 100%;
+      height: 100%;
+      stroke-width: 1.6;
     }
 
     .kpi-monitor-head h3 {
-      font-size: 16px;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 19px;
       line-height: 1.2;
+      letter-spacing: -0.012em;
+      font-weight: 800;
     }
 
     .kpi-monitor-head p {
       margin-top: 4px;
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.3;
+      font-size: 12.5px;
+      line-height: 1.35;
+      font-weight: 500;
     }
 
     .small-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 13px;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
       color: #fff;
       background: linear-gradient(145deg, #173f9c, #347cef);
-      box-shadow: 0 8px 18px rgba(23, 95, 193, .22);
+      box-shadow:
+        0 10px 22px rgba(23, 95, 193, .28),
+        0 0 0 4px rgba(23, 95, 193, .08),
+        inset 0 1px 0 rgba(255, 255, 255, .25);
+      transition: transform var(--motion);
     }
+
+    .kpi-monitor-card:hover .small-icon { transform: rotate(-3deg) scale(1.04); }
 
     .small-icon svg {
       width: 24px;
@@ -1767,53 +1973,120 @@ HTML = r"""<!doctype html>
     }
 
     .quarter-matrix {
-      padding: 12px 16px;
+      padding: 14px 18px 16px;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
     }
 
     .quarter-row {
+      position: relative;
       display: grid;
       gap: 8px;
       align-content: start;
-      min-height: 132px;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
+      padding: 10px 12px 11px;
+      border: 1px solid rgba(20, 30, 35, .06);
+      border-radius: 10px;
       background: #fff;
       font-size: 12px;
+      overflow: hidden;
+      transition: border-color var(--motion), background var(--motion);
     }
 
-    .quarter-row.actual { border-color: #a9c8ef; background: #f7fbff; }
-    .quarter-row.planned { background: #fff; }
-    .quarter-row.empty { background: #f7f9fc; }
+    .quarter-row::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 2px;
+      background: var(--row-accent, var(--line-strong));
+      opacity: .55;
+      transition: opacity var(--motion);
+    }
 
-    .quarter-row h4 {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.15;
+    .quarter-row:hover { border-color: rgba(27, 77, 90, .18); background: #fcfdfe; }
+    .quarter-row:hover::before { opacity: 1; }
+
+    .quarter-row.actual { --row-accent: var(--blue); }
+    .quarter-row.planned { --row-accent: var(--amber); }
+    .quarter-row.empty { --row-accent: var(--grey); background: #fbfaf6; }
+
+    .quarter-row .q-period {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .quarter-row .q-period::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--row-accent, var(--blue));
     }
 
     .quarter-row .q-metrics {
       display: grid;
-      gap: 5px;
+      gap: 4px;
     }
 
     .quarter-row .q-metrics span {
       display: grid;
-      grid-template-columns: 64px minmax(0, 1fr);
-      gap: 6px;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 8px;
       color: var(--muted);
       align-items: baseline;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
     }
 
     .quarter-row .q-metrics b {
       color: var(--ink);
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: -0.005em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .quarter-row .q-trend {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      padding: 0;
+      background: transparent;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
+    }
+
+    .quarter-row .q-trend::before {
+      content: "";
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+    }
+
+    .quarter-row .q-trend.up { color: var(--green); }
+    .quarter-row .q-trend.up::before { border-bottom: 5px solid var(--green); }
+    .quarter-row .q-trend.down { color: var(--red); }
+    .quarter-row .q-trend.down::before { border-top: 5px solid var(--red); }
+    .quarter-row .q-trend.flat { color: var(--muted); }
+    .quarter-row .q-trend.flat::before { width: 7px; height: 1.5px; border: 0; background: currentColor; align-self: center; }
 
     .quarter-main {
       display: block;
@@ -1984,23 +2257,42 @@ HTML = r"""<!doctype html>
     .component-card,
     .driver-card,
     .food-card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
+      position: relative;
+      border: 1px solid rgba(20, 30, 35, .06);
+      border-radius: var(--r-md);
       background: #fff;
-      padding: 11px 12px;
+      padding: 13px 14px 13px 18px;
       min-width: 0;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
     }
 
-    .component-card {
-      cursor: pointer;
+    .component-card::before,
+    .driver-card::before,
+    .food-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+      background: var(--accent-grad);
+      opacity: 0.7;
     }
+
+    .driver-card:hover,
+    .food-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: rgba(27, 77, 90, .18); }
+
+    .component-card { cursor: pointer; }
 
     .component-card:hover,
     .component-card.active {
-      border-color: var(--blue);
+      transform: translateY(-1px);
+      border-color: rgba(27, 77, 90, .25);
       background: #f7fbff;
-      box-shadow: inset 0 -3px 0 var(--blue);
+      box-shadow: var(--shadow-md);
     }
+
+    .component-card.active::before { opacity: 1; width: 4px; }
 
     .component-card span,
     .driver-card span,
@@ -2008,17 +2300,23 @@ HTML = r"""<!doctype html>
       display: block;
       color: var(--muted);
       font-size: 11px;
-      font-weight: 900;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .component-card strong,
     .driver-card strong,
     .food-card strong {
       display: block;
-      margin-top: 5px;
+      margin-top: 6px;
       color: var(--blue);
-      font-size: 18px;
+      font-size: 19px;
       line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: -0.012em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum", "ss01";
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2683,7 +2981,6 @@ HTML = r"""<!doctype html>
       .brand h1 { font-size: 18px; line-height: 1.12; }
       .brand p { display: none; }
       .kpi-mark { display: none; }
-      .year-box { justify-self: start; text-align: left; }
       .shell { grid-template-columns: 1fr; }
       .sidebar {
         position: static;
@@ -2734,11 +3031,6 @@ HTML = r"""<!doctype html>
           <h1>Андижон вилояти мониторинг платформаси</h1>
           <p>KPI · туманлар · ижро мониторинги</p>
         </div>
-      </div>
-      <div class="kpi-mark">KPI</div>
-      <div class="year-box">
-        <strong>2026</strong>
-        <span id="headerPeriod">Йиллик</span>
       </div>
     </div>
   </header>
@@ -3554,7 +3846,6 @@ HTML = r"""<!doctype html>
 
     function renderPeriodTabs() {
       $("#periodTabs").innerHTML = periods.map(p => `<button class="${p.id === state.period ? "active" : ""}" data-period="${p.id}">${p.label}</button>`).join("");
-      $("#headerPeriod").textContent = periodLabel();
       $$("#periodTabs button").forEach(btn => btn.addEventListener("click", () => {
         state.period = btn.dataset.period;
         render();
@@ -3618,19 +3909,20 @@ HTML = r"""<!doctype html>
       $("#dashboardPage").innerHTML = `
         <div class="dashboard-module-tabs">
           ${dashboardModules().map(module => `<button class="module-tab ${module.id === state.dashboardModule ? "active" : ""}" data-dashboard-module="${module.id}" type="button">
+            <span class="module-dot" aria-hidden="true"></span>
             <span>${module.short}</span>
             <strong>${module.label.replace(/^\d+\.\s*/, "")}</strong>
           </button>`).join("")}
         </div>
-        <div class="module-heading">
+        <div class="module-heading card-in">
           <div>
             <h2>${selectedModule?.label || "1. Макроиқтисодиёт"}</h2>
             <p>${dashboardModuleIntro(state.dashboardModule)}</p>
           </div>
-          <span class="chip blue">${moduleKpis.length} KPI</span>
+          <span class="chip">${moduleKpis.length} KPI</span>
         </div>
-        ${state.dashboardModule === "macro" ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
-        <div class="kpi-monitor-grid single">${kpiDashboardCard(selected)}</div>`;
+        ${state.dashboardModule === "macro" ? `<div class="front-kpis module-kpis macro-layout card-in-2">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
+        <div class="kpi-monitor-grid single card-in-3">${kpiDashboardCard(selected)}</div>`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
         state.dashboardModule = btn.dataset.dashboardModule;
@@ -3716,6 +4008,22 @@ HTML = r"""<!doctype html>
         ["III чорак", "m9"],
         ["Йиллик", "year"]
       ];
+      const seriesValues = quarters.map(([, period]) => {
+        const r = dashboardPeriodKpi(def.id, period);
+        if (n(r.growth) !== null) return n(r.growth);
+        if (n(r.execution) !== null) return n(r.execution);
+        if (n(r.fact) !== null) return n(r.fact);
+        if (n(r.plan) !== null) return n(r.plan);
+        return null;
+      });
+      const trendFor = (cur, prev) => {
+        if (cur === null || prev === null) return null;
+        const lowerBetter = ["inflation", "poverty", "unemployment"].includes(def.id);
+        const delta = cur - prev;
+        if (Math.abs(delta) < 0.05) return { cls: "flat" };
+        const up = delta > 0;
+        return { cls: lowerBetter ? (up ? "down" : "up") : (up ? "up" : "down") };
+      };
       return `<article class="kpi-monitor-card">
         <div class="kpi-monitor-head">
           <div class="small-icon">${icon(def.icon)}</div>
@@ -3723,24 +4031,27 @@ HTML = r"""<!doctype html>
             <h3>${def.short}</h3>
             <p>${def.label}</p>
           </div>
+          <div class="head-watermark" aria-hidden="true">${icon(def.icon)}</div>
         </div>
         ${def.id === "inflation" ? "" : `<div class="quarter-matrix">
-          ${quarters.map(([label, period]) => {
+          ${quarters.map(([label, period], idx) => {
             const row = dashboardPeriodKpi(def.id, period);
             const stateInfo = periodState(def, period, row);
             const main = n(row.growth) !== null ? growthValue(row.growth) : n(row.execution) !== null ? `${fmt(row.execution, 1)}%` : primaryMetric(row);
             const fact = factValue(row);
             const plan = planValue(row);
             const measureLabel = n(row.growth) !== null ? "Ўсиш" : n(row.execution) !== null ? "Ижро" : "Кўрсаткич";
+            const trend = idx > 0 ? trendFor(seriesValues[idx], seriesValues[idx - 1]) : null;
+            const trendChip = trend ? `<span class="q-trend ${trend.cls}">${main}</span>` : `<b class="num">${main}</b>`;
             const metricRows = growthOnly
-              ? `<span>${stateInfo.cls === "actual" ? "Амалда" : "Режа"} <b>${main}</b></span>`
-              : `<span>Режа <b>${plan}</b></span>
-                <span>Амалда <b>${fact}</b></span>
-                <span>${measureLabel} <b>${main}</b></span>`;
+              ? `<span>${stateInfo.cls === "actual" ? "Амалда" : "Режа"} ${trendChip}</span>`
+              : `<span>Режа <b class="num">${plan}</b></span>
+                <span>Амалда <b class="num">${fact}</b></span>
+                <span>${measureLabel} ${trendChip}</span>`;
             const reportLine = row.reportStatusLabel ? `<span>Таъсир <b>${row.reportImpact || "KPIга ўтмади"}</b></span>` : "";
             const chipClass = row.reportStatus ? reportStatusClass(row.reportStatus) : stateInfo.chip;
             return `<div class="quarter-row ${stateInfo.cls}">
-              <h4>${label}</h4>
+              <span class="q-period">${label}</span>
               <div class="q-metrics">
                 ${metricRows}
                 ${reportLine}
@@ -5440,7 +5751,6 @@ HTML = r"""<!doctype html>
       $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks"].includes(state.page));
       $("#sectorFilter").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
       $("#searchBox").classList.toggle("hidden", ["dashboard", "districts", "profile"].includes(state.page));
-      if (state.page === "dashboard") $("#headerPeriod").textContent = "Йиллик KPI";
       setPageMeta();
       $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === state.page));
       ["dashboard", "tasks", "districts", "profile", "execution"].forEach(page => {
