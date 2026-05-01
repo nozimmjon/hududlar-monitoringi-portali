@@ -21,6 +21,8 @@ Current direction:
 
 - `platform prototypes/andijon_integrated_platform_v7_1.html` — latest prototype.
 - `tools/generate_andijon_integrated_platform_v71.py` — generator for latest prototype.
+- `platform prototypes/andijon_integrated_platform_v7_2.html` — Refero-inspired visual-system variant of v7.1.
+- `tools/generate_andijon_integrated_platform_v72.py` — generator for the v7.2 design variant.
 - `platform prototypes/andijon_integrated_platform_v8.html` — experimental/reference version, not the current direction.
 - `tools/generate_andijon_integrated_platform_v8.py` — generator for the experimental/reference version.
 - `data_source/Кафолат хатлар имзога/2. Андижон/` — local-only Andijan source workbooks and guarantee letter; ignored by Git.
