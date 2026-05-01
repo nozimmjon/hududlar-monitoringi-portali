@@ -865,14 +865,7 @@ HTML = r"""<!doctype html>
       margin-bottom: 16px;
     }
 
-    .front-kpis::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-      z-index: 1;
-    }
+    .front-kpis::before { display: none; }
 
     .dashboard-module-tabs {
       display: grid;
@@ -1129,6 +1122,21 @@ HTML = r"""<!doctype html>
         inset 0 1px 0 rgba(255, 255, 255, .25);
     }
 
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent.active {
+      background:
+        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
+        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
+      box-shadow:
+        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
+        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+    }
+
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent.active .kpi-icon {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+
     .front-kpi {
       position: relative;
       border: 0;
@@ -1145,22 +1153,32 @@ HTML = r"""<!doctype html>
       transition: transform var(--motion), background var(--motion), box-shadow var(--motion);
     }
 
-    .front-kpi::after {
-      content: "";
-      position: absolute;
-      inset: auto 0 0 0;
-      height: 0;
-      background: var(--accent-grad);
-      transition: height var(--motion);
-    }
+    .front-kpi::after { display: none; }
 
     .front-kpi:nth-child(4n) { border-right: 0; }
     .front-kpi:last-child { border-right: 0; }
     .front-kpi:nth-child(n+5) { border-top: 1px solid var(--line); }
     .front-kpi:hover { background: var(--surface); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-    .front-kpi:hover::after { height: 3px; }
-    .front-kpi.active { background: #fff; box-shadow: inset 0 0 0 1px rgba(27, 77, 90, .22), var(--shadow-sm); }
-    .front-kpi.active::after { height: 4px; background: var(--accent-grad); }
+    .front-kpi.active {
+      background:
+        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
+        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
+      transform: translateY(-3px) scale(1.015);
+      box-shadow:
+        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
+        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+      z-index: 1;
+    }
+    .front-kpi.active h3 { color: rgba(255, 255, 255, 0.82); }
+    .front-kpi.active .big { color: #ffffff; }
+    .front-kpi.active .big-note { color: rgba(255, 255, 255, 0.7); }
+    .front-kpi.active .mini-row { color: rgba(255, 255, 255, 0.7); }
+    .front-kpi.active .mini-row b { color: #ffffff; }
+    .front-kpi.active .kpi-icon {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
 
     .yhm-focus-bar {
       margin-bottom: 16px;
@@ -1250,7 +1268,7 @@ HTML = r"""<!doctype html>
     .kpi-icon svg { width: 25px; height: 25px; stroke-width: 2.2; }
     .front-kpi h3 {
       color: #4d6172;
-      font-size: 11.5px;
+      font-size: 15px;
       line-height: 1.18;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -1954,14 +1972,7 @@ HTML = r"""<!doctype html>
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
     }
 
-    .kpi-monitor-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-      z-index: 1;
-    }
+    .kpi-monitor-card::before { display: none; }
 
     .kpi-monitor-card:hover {
       transform: translateY(-1px);
@@ -2082,15 +2093,7 @@ HTML = r"""<!doctype html>
       transition: border-color var(--motion), background var(--motion), transform var(--motion), box-shadow var(--motion);
     }
 
-    .quarter-row::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--row-accent, var(--line-strong));
-      opacity: .85;
-      transition: opacity var(--motion);
-    }
+    .quarter-row::before { display: none; }
 
     .quarter-row:hover {
       border-color: rgba(27, 77, 90, .22);
@@ -2443,15 +2446,7 @@ HTML = r"""<!doctype html>
 
     .component-card::before,
     .driver-card::before,
-    .food-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 3px;
-      border-radius: 3px 0 0 3px;
-      background: var(--accent-grad);
-      opacity: 0.7;
-    }
+    .food-card::before { display: none; }
 
     .driver-card:hover,
     .food-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: rgba(27, 77, 90, .18); }
@@ -2466,7 +2461,7 @@ HTML = r"""<!doctype html>
       box-shadow: var(--shadow-md);
     }
 
-    .component-card.active::before { opacity: 1; width: 4px; }
+    .component-card.active::before { display: none; }
 
     .component-card span,
     .driver-card span,
@@ -2600,8 +2595,19 @@ HTML = r"""<!doctype html>
 
     .drivers {
       border-top: 1px solid var(--line);
-      padding: 12px 16px 14px;
+      padding: 14px 16px 16px;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .drivers .composition,
+    .drivers .lagging {
+      border-top: 0;
+      border-radius: 12px;
       background: #fbfdff;
+      padding: 14px 16px 16px;
     }
 
     .poverty-section {
@@ -2770,14 +2776,7 @@ HTML = r"""<!doctype html>
       box-shadow: var(--shadow-sm);
     }
 
-    .poverty-territory::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-      border-radius: 14px 14px 0 0;
-    }
+    .poverty-territory::before { display: none; }
 
     .poverty-territory-head {
       display: grid;
@@ -2947,20 +2946,13 @@ HTML = r"""<!doctype html>
     .districts-map {
       position: relative;
       background: linear-gradient(180deg, #ffffff 0%, #f7fbfc 100%);
-      border: 1px solid rgba(20, 30, 35, .07);
       border-radius: var(--r-lg);
       box-shadow: var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, .9) inset;
       padding: 18px 20px 22px;
       overflow: hidden;
     }
 
-    .districts-map::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-    }
+    .districts-map::before { display: none; }
 
     .districts-map::after {
       content: "";
@@ -3139,7 +3131,6 @@ HTML = r"""<!doctype html>
     .districts-leaderboard {
       position: relative;
       background: #ffffff;
-      border: 1px solid rgba(20, 30, 35, .07);
       border-radius: var(--r-lg);
       box-shadow: var(--shadow-sm);
       padding: 16px 16px 14px;
@@ -3148,14 +3139,7 @@ HTML = r"""<!doctype html>
       grid-template-rows: auto 1fr;
     }
 
-    .districts-leaderboard::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-      opacity: 0.45;
-    }
+    .districts-leaderboard::before { display: none; }
 
     .districts-lb-head {
       display: flex;
@@ -3267,7 +3251,6 @@ HTML = r"""<!doctype html>
     .district-profile-card {
       position: relative;
       background: #ffffff;
-      border: 1px solid rgba(20, 30, 35, .07);
       border-radius: var(--r-lg);
       box-shadow: var(--shadow-md);
       padding: 18px 22px 20px;
@@ -3276,13 +3259,7 @@ HTML = r"""<!doctype html>
       overflow: hidden;
     }
 
-    .district-profile-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: var(--accent-grad);
-    }
+    .district-profile-card::before { display: none; }
 
     .dpc-head {
       display: grid;
@@ -3435,19 +3412,7 @@ HTML = r"""<!doctype html>
       transition: transform var(--motion), border-color var(--motion), box-shadow var(--motion);
     }
 
-    .dpc-cross-tile::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 3px;
-      border-radius: 3px 0 0 3px;
-      background: rgba(98, 148, 162, .25);
-    }
-
-    .dpc-cross-tile.green::before { background: #5b9a72; }
-    .dpc-cross-tile.amber::before { background: #b8821f; }
-    .dpc-cross-tile.red::before   { background: #a93434; }
-    .dpc-cross-tile.grey::before  { background: #918f83; }
+    .dpc-cross-tile::before { display: none; }
 
     .dpc-cross-tile:hover {
       transform: translateY(-1px);
@@ -4362,7 +4327,7 @@ HTML = r"""<!doctype html>
       { id: "budget_investment", label: "Бюджет инвестициялари ўзлаштирилиши", short: "Бюджет инвест", sector: "Бюджет инвестициялари", icon: "bank" },
       { id: "jobs", label: "Доимий ишга жойлаштириш", short: "Ишга жойлаштириш", sector: "Бандлик ва камбағаллик", icon: "users" },
       { id: "legalization", label: "Норасмий бандларни легаллаштириш", short: "Легаллаштириш", sector: "Бандлик ва камбағаллик", icon: "users" },
-      { id: "mfy_clear", label: "Камбағаллик ва ишсизликдан холи МФЙлар", short: "Холи МФЙ", sector: "Бандлик ва камбағаллик", icon: "users" },
+      { id: "mfy_clear", label: "Камбағаллик ва ишсизликдан холи МФЙлар", short: "Камбағалликдан холи МФЙлар", sector: "Бандлик ва камбағаллик", icon: "users" },
       { id: "microprojects", label: "Микролойиҳалар", short: "Микролойиҳа", sector: "Бандлик ва камбағаллик", icon: "users" }
     ];
 
@@ -4922,7 +4887,7 @@ HTML = r"""<!doctype html>
       if (id === "mfy_clear") {
         const row = data.employment || {};
         const target = period === "year" ? row.mfy_year : period === "h1" ? row.mfy_h1 : null;
-        return { label: "Холи МФЙ", fact: null, plan: target, unit: "та", execution: null, main: displayValue(target, "та") };
+        return { label: "Камбағалликдан холи МФЙлар", fact: null, plan: target, unit: "та", execution: null, main: displayValue(target, "та") };
       }
       if (id === "microprojects") {
         const row = data.employment || {};
@@ -5087,7 +5052,7 @@ HTML = r"""<!doctype html>
         { id: "poverty", label: "Камбағаллик" },
         { id: "jobs", label: "Бандлик" },
         { id: "legalization", label: "Легаллаштириш" },
-        { id: "mfy_clear", label: "Холи МФЙ" },
+        { id: "mfy_clear", label: "Камбағалликдан холи МФЙлар" },
         { id: "microprojects", label: "Микролойиҳа" },
         { id: "inflation", label: "Омборлар" }
       ];
@@ -5274,12 +5239,10 @@ HTML = r"""<!doctype html>
             <h2>${selectedModule?.label || "1. Макроиқтисодиёт"}</h2>
             <p>${dashboardModuleIntro(state.dashboardModule)}</p>
           </div>
-          <span class="chip">${moduleKpis.length} KPI</span>
         </div>
         ${isMacro ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
-        ${isMacro ? "" : scorelineHtml}
         <div class="kpi-monitor-grid single">${state.dashboardModule === "employment" ? moduleKpis.map(kpiDashboardCard).join("") : kpiDashboardCard(selected)}</div>
-        ${isMacro ? scorelineHtml : ""}`;
+        ${scorelineHtml}`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
         state.dashboardModule = btn.dataset.dashboardModule;
@@ -5466,13 +5429,15 @@ HTML = r"""<!doctype html>
         .sort((a, b) => (n(a.local_supply_ratio) || 0) - (n(b.local_supply_ratio) || 0))
         .slice(0, 4);
       return `<div class="drivers">
-        <div class="lagging-title"><strong>Инфляция KPI деталлари</strong><span class="chip blue">режа кўрсаткичлари</span></div>
-        <div class="driver-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-          <div class="driver-card"><span>II чорак инфляция чегараси</span><strong>≤2,9%</strong><small>белгиланган прогноз даражасидан оширмаслик</small></div>
-          <div class="driver-card"><span>Йиллик инфляция чегараси</span><strong>≤6,6%</strong><small>йил якуни бўйича асосий KPI</small></div>
+        <div class="lagging">
+          <div class="lagging-title"><strong>Инфляция KPI деталлари</strong></div>
+          <div class="driver-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            <div class="driver-card"><span>II чорак инфляция чегараси</span><strong>≤2,9%</strong><small>белгиланган прогноз даражасидан оширмаслик</small></div>
+            <div class="driver-card"><span>Йиллик инфляция чегараси</span><strong>≤6,6%</strong><small>йил якуни бўйича асосий KPI</small></div>
+          </div>
         </div>
         <div class="composition">
-          <div class="lagging-title"><strong>Асосий озиқ-овқат нархлари</strong><span class="chip grey">йиллик чегара</span></div>
+          <div class="lagging-title"><strong>Асосий озиқ-овқат нархлари</strong></div>
           <div class="composition-grid">
             ${priceCaps.map(([name, cap]) => `<button class="component-card product-card" type="button">
               <span class="product-icon" aria-hidden="true">${foodIcon(name)}</span>
@@ -5485,7 +5450,7 @@ HTML = r"""<!doctype html>
           </div>
         </div>
         <div class="composition">
-          <div class="lagging-title"><strong>Озиқ-овқат балансида эътибор талаб қиладиган маҳсулотлар</strong><span class="chip grey">2.1-жадвал</span></div>
+          <div class="lagging-title"><strong>Озиқ-овқат балансида эътибор талаб қиладиган маҳсулотлар</strong></div>
           <div class="composition-grid">
             ${sensitiveFoods.map(row => `<button class="component-card product-card" type="button">
               <span class="product-icon" aria-hidden="true">${foodIcon(row.product)}</span>
@@ -5498,7 +5463,7 @@ HTML = r"""<!doctype html>
           </div>
         </div>
         <div class="lagging">
-          <div class="lagging-title"><strong>Омборлар туманлар кесимида</strong><span class="chip grey">2.2-жадвал</span></div>
+          <div class="lagging-title"><strong>Омборлар туманлар кесимида</strong></div>
           <div class="driver-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
             <div class="driver-card"><span>Совутгичли омборлар</span><strong>33 та</strong><small>II чорак: 4 та, 1 300 т · йил: 8 810 т</small></div>
             <div class="driver-card"><span>Захира жамғармаси</span><strong>50 млрд сўм</strong><small>йиллик режа</small></div>
@@ -5514,18 +5479,17 @@ HTML = r"""<!doctype html>
       const stats = [
         { id: "jobs",          icon: "users",   label: "Доимий ишга жойлаштириш",        h1: emp.jobs_h1,          year: emp.jobs_year,          unit: "минг", digits: 1 },
         { id: "legalization",  icon: "globe",   label: "Норасмий бандларни легаллаштириш", h1: emp.legalization_h1,  year: emp.legalization_year,  unit: "минг", digits: 1 },
-        { id: "mfy",           icon: "bank",    label: "Холи МФЙ",                         h1: emp.mfy_h1,           year: emp.mfy_year,           unit: "та",   digits: 0 },
+        { id: "mfy",           icon: "bank",    label: "Камбағалликдан холи МФЙлар",                         h1: emp.mfy_h1,           year: emp.mfy_year,           unit: "та",   digits: 0 },
         { id: "microprojects", icon: "rocket",  label: "Микролойиҳалар",                   h1: emp.microprojects_h1, year: emp.microprojects_year, unit: "та",   digits: 0 }
       ];
       return `<div class="drivers poverty-section">
-        <header class="poverty-head">
-          <div>
-            <strong>Камбағалликка таъсир қилувчи драйверлар</strong>
-            <p>4 та амалий рычаг — ҳар бирида II чорак ўлчаш нуқтаси ва йиллик режа.</p>
-          </div>
-          <span class="chip blue">режа · туман кесими бор</span>
-        </header>
-        <div class="poverty-stats">
+        <div class="lagging">
+          <header class="poverty-head">
+            <div>
+              <strong>Камбағалликка таъсир қилувчи драйверлар</strong>
+            </div>
+          </header>
+          <div class="poverty-stats">
           ${stats.map(s => {
             const h1Num = n(s.h1);
             const yearNum = n(s.year);
@@ -5549,6 +5513,7 @@ HTML = r"""<!doctype html>
               </div>
             </article>`;
           }).join("")}
+          </div>
         </div>
         <article class="poverty-territory">
           <div class="poverty-territory-head">
@@ -5570,7 +5535,7 @@ HTML = r"""<!doctype html>
       const h1Electricity = districts.reduce((s, d) => s + (n(d.data?.energy_electricity_h1) || 0), 0);
       const h1Gas = districts.reduce((s, d) => s + (n(d.data?.energy_gas_h1) || 0), 0);
       return `<div class="drivers">
-        <div class="lagging-title"><strong>Саноат драйверлари</strong><span class="chip blue">1.3-жадвал · туман кесими бор</span></div>
+        <div class="lagging-title"><strong>Саноат драйверлари</strong></div>
         <div class="driver-grid">
           <button class="component-card" type="button" data-open-districts="industry" data-period="h1"><span>Ҳудудий саноат</span><strong>${growthValue(dashboardPeriodKpi("industry", "h1").growth)}</strong><small>II чорак ўсиш · туманлар бўйича ҳажм ва ўсиш</small></button>
           <button class="component-card" type="button" data-open-districts="localization" data-period="h1"><span>Маҳаллийлаштириш</span><strong>${fmt(h1Projects, 0)} та</strong><small>II чорак · 16 туман йиғиндиси</small></button>
@@ -6623,7 +6588,7 @@ HTML = r"""<!doctype html>
           columns: [
             metricColumn("H1 камбағаллик", "poverty", "h1", "plan"),
             metricColumn("Йиллик камбағаллик", "poverty", "year", "plan"),
-            metricColumn("Холи МФЙ H1", "mfy_clear", "h1", "plan"),
+            metricColumn("Камбағалликдан холи МФЙлар H1", "mfy_clear", "h1", "plan"),
             metricColumn("Микролойиҳа H1", "microprojects", "h1", "plan")
           ]
         },
