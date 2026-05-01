@@ -4259,18 +4259,18 @@
       }
       if (id === "localization") {
         const row = data.localization || {};
-        const projects = period === "year" ? row.year_projects : period === "h1" ? row.h1_projects : null;
-        const value = period === "year" ? row.year_value_mln : period === "h1" ? row.h1_value_mln : null;
+        const projects = period === "year" ? (row.year_projects ?? data.localization_projects_year) : period === "h1" ? (row.h1_projects ?? data.localization_projects_h1) : null;
+        const value = period === "year" ? (row.year_value_mln ?? data.localization_value_year_mln) : period === "h1" ? (row.h1_value_mln ?? data.localization_value_h1_mln) : null;
         return { label: "Маҳаллийлаштириш", fact: null, plan: projects, unit: "та", execution: null, main: displayValue(projects, "та"), note: value ? `қиймати ${displayValue(value, "млн сўм")}` : "1.3-жадвал" };
       }
       if (id === "energy_electricity") {
         const row = data.energy_efficiency || {};
-        const value = period === "year" ? row.electricity_year : period === "h1" ? row.electricity_h1 : null;
+        const value = period === "year" ? (row.electricity_year ?? data.energy_electricity_year) : period === "h1" ? (row.electricity_h1 ?? data.energy_electricity_h1) : null;
         return { label: "Электр тежаш", fact: null, plan: value, unit: "млн кВт·с", execution: null, main: displayValue(value, "млн кВт·с"), note: "энергия самарадорлиги" };
       }
       if (id === "energy_gas") {
         const row = data.energy_efficiency || {};
-        const value = period === "year" ? row.gas_year : period === "h1" ? row.gas_h1 : null;
+        const value = period === "year" ? (row.gas_year ?? data.energy_gas_year) : period === "h1" ? (row.gas_h1 ?? data.energy_gas_h1) : null;
         return { label: "Газ тежаш", fact: null, plan: value, unit: "млн куб метр", execution: null, main: displayValue(value, "млн куб метр"), note: "энергия самарадорлиги" };
       }
       if (id === "agriculture") {
