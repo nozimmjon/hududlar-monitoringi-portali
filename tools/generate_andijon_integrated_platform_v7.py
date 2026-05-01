@@ -2002,34 +2002,6 @@ HTML = r"""<!doctype html>
       box-shadow: inset 0 -3px 0 var(--blue);
     }
 
-    .macro-composition {
-      background: #f7fbff;
-      padding: 16px;
-    }
-
-    .macro-composition .composition-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .macro-composition .component-card {
-      min-height: 148px;
-      padding: 16px;
-      display: grid;
-      align-content: space-between;
-    }
-
-    .macro-composition .component-card strong {
-      font-size: clamp(30px, 3vw, 46px);
-      line-height: .95;
-      color: #154eb5;
-    }
-
-    .macro-composition .component-card small {
-      font-size: 13px;
-      line-height: 1.25;
-    }
-
     .component-card span,
     .driver-card span,
     .food-card span {
@@ -2738,7 +2710,7 @@ HTML = r"""<!doctype html>
       .annual-plan { grid-column: 1 / -1; text-align: left; }
       .quarter-matrix { grid-template-columns: 1fr; }
       .quarter-row { min-height: 0; }
-      .composition-grid, .driver-grid, .macro-composition .composition-grid { grid-template-columns: 1fr; }
+      .composition-grid, .driver-grid { grid-template-columns: 1fr; }
       .front-kpi { border-right: 0; border-bottom: 1px solid var(--line); }
       .district-card { grid-template-columns: 1fr; }
       .metric-cell, .debt-cell { border-left: 0; border-top: 1px solid var(--line); padding: 8px 0 0; justify-items: start; }
@@ -3777,30 +3749,12 @@ HTML = r"""<!doctype html>
             </div>`;
           }).join("")}
         </div>`}
-        ${def.id === "grp" ? renderMacroComposition() : ""}
         ${def.id === "industry" ? renderIndustryDrivers() : ""}
         ${def.id === "inflation" ? renderInflationDetails() : ""}
         ${def.id === "poverty" ? renderPovertyDetails() : ""}
       </article>`;
     }
 
-    function renderMacroComposition() {
-      return `<div class="composition macro-composition">
-        <div class="lagging-title"><strong>ЯҲМ таркиби</strong><span class="chip blue">фақат ўсиш кўрсаткичлари</span></div>
-        <div class="composition-grid">
-          ${macroComponentDefs.map(def => {
-            const annual = annualPlanKpi(def.id);
-            const h1 = dashboardPeriodKpi(def.id, "h1");
-            const q1 = dashboardPeriodKpi(def.id, "q1");
-            return `<button class="component-card ${state.kpi === def.id ? "active" : ""}" data-component="${def.id}">
-              <span>${def.short}</span>
-              <strong>${growthValue(annual.growth)}</strong>
-              <small>I чорак амалда: ${growthValue(q1.growth)} · II чорак: ${growthValue(h1.growth)}</small>
-            </button>`;
-          }).join("")}
-        </div>
-      </div>`;
-    }
 
     function renderInflationDetails() {
       const priceCaps = [
