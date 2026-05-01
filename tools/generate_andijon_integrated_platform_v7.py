@@ -2862,6 +2862,734 @@ HTML = r"""<!doctype html>
       .poverty-section .poverty-head { grid-template-columns: 1fr; }
     }
 
+    .districts-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .districts-head .eyebrow {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .districts-head h2 {
+      margin: 4px 0 4px;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 800;
+      letter-spacing: -0.018em;
+      color: var(--ink);
+    }
+
+    .districts-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.4;
+      max-width: 70ch;
+    }
+
+    .districts-head-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    .districts-control {
+      display: grid;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .districts-control > span {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .districts-control select,
+    .districts-control input {
+      border: 1px solid rgba(20, 30, 35, .12);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 12.5px;
+      outline: none;
+      min-width: 170px;
+      transition: border-color var(--motion), box-shadow var(--motion);
+    }
+
+    .districts-control select:focus,
+    .districts-control input:focus {
+      border-color: rgba(98, 148, 162, .55);
+      box-shadow: 0 0 0 3px rgba(98, 148, 162, .15);
+    }
+
+    .districts-control--search input { min-width: 190px; }
+
+    .districts-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .districts-map {
+      position: relative;
+      background: linear-gradient(180deg, #ffffff 0%, #f7fbfc 100%);
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, .9) inset;
+      padding: 18px 20px 22px;
+      overflow: hidden;
+    }
+
+    .districts-map::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+    }
+
+    .districts-map::after {
+      content: "";
+      position: absolute;
+      inset: -40% -10% auto auto;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(27, 77, 90, .07), transparent 60%);
+      pointer-events: none;
+    }
+
+    .districts-map-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .districts-map-head strong {
+      display: block;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+    }
+
+    .districts-map-head span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .districts-map-canvas {
+      position: relative;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(ellipse at 30% 20%, rgba(98, 148, 162, .12), transparent 55%),
+        radial-gradient(ellipse at 75% 80%, rgba(27, 77, 90, .06), transparent 55%),
+        linear-gradient(135deg, #f9fcfd 0%, #eef5f7 100%);
+      border: 1px solid rgba(27, 77, 90, .12);
+      border-radius: 16px;
+      padding: 18px 12px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .8),
+        inset 0 -1px 0 rgba(27, 77, 90, .04),
+        0 1px 2px rgba(20, 30, 35, .03);
+    }
+
+    .districts-map-canvas::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(rgba(27, 77, 90, .06) 1px, transparent 1px);
+      background-size: 18px 18px;
+      background-position: 9px 9px;
+      border-radius: 16px;
+      pointer-events: none;
+      opacity: .55;
+      mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
+    }
+
+    .andijan-map {
+      width: 100%;
+      max-width: 820px;
+      height: auto;
+      display: block;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 6px 14px rgba(20, 30, 35, .08));
+    }
+
+    .map-cell { cursor: pointer; outline: none; }
+
+    .map-cell .map-fill {
+      stroke: rgba(20, 30, 35, .35);
+      stroke-width: 1;
+      stroke-linejoin: round;
+      transition: fill var(--motion), stroke var(--motion), stroke-width var(--motion), transform var(--motion), filter var(--motion);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .map-label {
+      fill: #0f1d22;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      pointer-events: none;
+      paint-order: stroke fill;
+      stroke: #ffffff;
+      stroke-width: 4.5;
+      stroke-linejoin: round;
+      stroke-opacity: .95;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      opacity: 0;
+      transition: opacity var(--motion), fill var(--motion);
+    }
+
+    .map-label.is-city {
+      font-size: 11px;
+      stroke-width: 3.2;
+    }
+
+    .map-label.selected,
+    .map-label.hover {
+      opacity: 1;
+    }
+
+    .map-label.selected { fill: var(--blue); }
+
+    .map-cell.green .map-fill { fill: url(#mapGradGreen); stroke: #4f8c63; }
+    .map-cell.amber .map-fill { fill: url(#mapGradAmber); stroke: #ad7918; }
+    .map-cell.red   .map-fill { fill: url(#mapGradRed);   stroke: #9d2f2f; }
+    .map-cell.grey  .map-fill { fill: url(#mapGradGrey);  stroke: #8a8779; }
+
+    .map-cell.is-city .map-fill {
+      stroke-width: 1.8;
+      stroke-dasharray: 3 2.5;
+    }
+
+    .map-cell:hover .map-fill,
+    .map-cell:focus .map-fill {
+      filter: brightness(1.05) saturate(1.08) drop-shadow(0 4px 10px rgba(20, 30, 35, .22));
+      transform: translateY(-1px);
+    }
+
+    .map-cell.selected .map-fill {
+      stroke: var(--blue);
+      stroke-width: 2.6;
+      filter: drop-shadow(0 6px 16px rgba(27, 77, 90, .42)) brightness(1.04);
+    }
+
+
+    .districts-map-legend {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid rgba(20, 30, 35, .08);
+      background: #ffffff;
+      color: var(--muted);
+    }
+
+    .legend-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+
+    .legend-chip.green::before { background: #5b9a72; }
+    .legend-chip.amber::before { background: #b8821f; }
+    .legend-chip.red::before   { background: #a93434; }
+    .legend-chip.grey::before  { background: #918f83; }
+
+    .districts-leaderboard {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 16px 16px 14px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .districts-leaderboard::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+      opacity: 0.45;
+    }
+
+    .districts-lb-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .districts-lb-head strong {
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+    }
+
+    .districts-lb-head span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .districts-lb-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 4px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .lb-row {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      grid-template-areas: "rank name value" "bar bar bar";
+      align-items: center;
+      gap: 4px 10px;
+      padding: 9px 12px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(98, 148, 162, .04);
+      cursor: pointer;
+      transition: background var(--motion), border-color var(--motion), box-shadow var(--motion);
+      outline: none;
+    }
+
+    .lb-row:hover { background: rgba(98, 148, 162, .1); }
+
+    .lb-row.selected {
+      background: #ffffff;
+      border-color: rgba(27, 77, 90, .35);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lb-rank {
+      grid-area: rank;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+
+    .lb-name {
+      grid-area: name;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lb-value {
+      grid-area: value;
+      color: var(--blue);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.005em;
+      white-space: nowrap;
+    }
+
+    .lb-bar {
+      grid-area: bar;
+      height: 4px;
+      background: rgba(98, 148, 162, .14);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .lb-bar i {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      transition: width var(--motion-slow);
+    }
+
+    .lb-row.green .lb-bar i { background: #5b9a72; }
+    .lb-row.amber .lb-bar i { background: #b8821f; }
+    .lb-row.red .lb-bar i   { background: #a93434; }
+    .lb-row.grey .lb-bar i  { background: #918f83; }
+
+    .district-profile-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-md);
+      padding: 18px 22px 20px;
+      display: grid;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .district-profile-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--accent-grad);
+    }
+
+    .dpc-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) auto auto;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .dpc-head-titles .eyebrow {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .dpc-head-titles h3 {
+      margin: 4px 0 2px;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 800;
+      letter-spacing: -0.018em;
+      color: var(--ink);
+    }
+
+    .dpc-head-titles p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    .dpc-head-stat { text-align: right; }
+
+    .dpc-head-stat strong {
+      display: block;
+      color: var(--blue);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: clamp(24px, 2.4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.022em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .dpc-head-stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .dpc-head-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dpc-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .dpc-metric {
+      display: grid;
+      gap: 3px;
+      padding: 12px 14px;
+      background: rgba(98, 148, 162, .04);
+      border: 1px solid rgba(98, 148, 162, .15);
+      border-radius: 10px;
+    }
+
+    .dpc-metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dpc-metric-value {
+      color: var(--ink);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dpc-metric-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .dpc-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .dpc-cross {
+      display: grid;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(20, 30, 35, .1);
+    }
+
+    .dpc-cross-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .dpc-cross-head strong {
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+    }
+
+    .dpc-cross-head span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .dpc-cross-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .dpc-cross-tile {
+      position: relative;
+      display: grid;
+      gap: 4px;
+      padding: 11px 13px;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: 10px;
+      background: #ffffff;
+      text-align: left;
+      cursor: pointer;
+      transition: transform var(--motion), border-color var(--motion), box-shadow var(--motion);
+    }
+
+    .dpc-cross-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+      background: rgba(98, 148, 162, .25);
+    }
+
+    .dpc-cross-tile.green::before { background: #5b9a72; }
+    .dpc-cross-tile.amber::before { background: #b8821f; }
+    .dpc-cross-tile.red::before   { background: #a93434; }
+    .dpc-cross-tile.grey::before  { background: #918f83; }
+
+    .dpc-cross-tile:hover {
+      transform: translateY(-1px);
+      border-color: rgba(27, 77, 90, .3);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dpc-cross-label {
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dpc-cross-value {
+      color: var(--ink);
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dpc-tasks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(20, 30, 35, .1);
+    }
+
+    .dpc-task-panel {
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px;
+      border: 1px solid rgba(20, 30, 35, .07);
+      border-radius: 10px;
+      background: rgba(98, 148, 162, .04);
+    }
+
+    .dpc-task-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .dpc-task-head strong {
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+    }
+
+    .dpc-task-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .dpc-task-item {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      background: #ffffff;
+      border: 1px solid rgba(20, 30, 35, .06);
+      border-radius: 8px;
+    }
+
+    .dpc-task-id {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 6px;
+      border-radius: 6px;
+      background: rgba(27, 77, 90, .08);
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .dpc-task-body { display: grid; gap: 2px; min-width: 0; }
+
+    .dpc-task-body strong {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .dpc-task-body small {
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.3;
+    }
+
+    .dpc-task-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .dpc-task-more {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      padding-top: 4px;
+    }
+
+    @media (max-width: 720px) {
+      .dpc-tasks-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 1080px) {
+      .districts-grid { grid-template-columns: 1fr; }
+      .dpc-head { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .districts-head { grid-template-columns: 1fr; }
+      .districts-head-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .districts-control select, .districts-control input { min-width: 0; width: 100%; }
+      .dpc-head { grid-template-columns: 1fr; }
+    }
+
     .small-stat {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -3643,7 +4371,7 @@ HTML = r"""<!doctype html>
       period: "h1",
       dashboardModule: "macro",
       kpi: "grp",
-      district: "Асака тумани",
+      district: null,
       sector: "all",
       search: "",
       districtSort: "attention",
@@ -4838,22 +5566,16 @@ HTML = r"""<!doctype html>
 
     function renderIndustryDrivers() {
       const districts = DATA.districts || [];
-      const totals = DATA.regional.industry_drivers || {};
-      const h1Projects = n(totals.localization_h1_projects) ?? districts.reduce((s, d) => s + (n(d.data?.localization?.h1_projects) || 0), 0);
-      const yearProjects = n(totals.localization_year_projects) ?? districts.reduce((s, d) => s + (n(d.data?.localization?.year_projects) || 0), 0);
-      const h1LocalValue = n(totals.localization_h1_value_mln) ?? districts.reduce((s, d) => s + (n(d.data?.localization?.h1_value_mln) || 0), 0);
-      const yearLocalValue = n(totals.localization_year_value_mln) ?? districts.reduce((s, d) => s + (n(d.data?.localization?.year_value_mln) || 0), 0);
-      const h1Electricity = n(totals.energy_electricity_h1) ?? districts.reduce((s, d) => s + (n(d.data?.energy_efficiency?.electricity_h1) || 0), 0);
-      const yearElectricity = n(totals.energy_electricity_year) ?? districts.reduce((s, d) => s + (n(d.data?.energy_efficiency?.electricity_year) || 0), 0);
-      const h1Gas = n(totals.energy_gas_h1) ?? districts.reduce((s, d) => s + (n(d.data?.energy_efficiency?.gas_h1) || 0), 0);
-      const yearGas = n(totals.energy_gas_year) ?? districts.reduce((s, d) => s + (n(d.data?.energy_efficiency?.gas_year) || 0), 0);
+      const h1Projects = districts.reduce((s, d) => s + (n(d.data?.localization_projects_h1) || 0), 0);
+      const h1Electricity = districts.reduce((s, d) => s + (n(d.data?.energy_electricity_h1) || 0), 0);
+      const h1Gas = districts.reduce((s, d) => s + (n(d.data?.energy_gas_h1) || 0), 0);
       return `<div class="drivers">
         <div class="lagging-title"><strong>Саноат драйверлари</strong><span class="chip blue">1.3-жадвал · туман кесими бор</span></div>
         <div class="driver-grid">
           <button class="component-card" type="button" data-open-districts="industry" data-period="h1"><span>Ҳудудий саноат</span><strong>${growthValue(dashboardPeriodKpi("industry", "h1").growth)}</strong><small>II чорак ўсиш · туманлар бўйича ҳажм ва ўсиш</small></button>
-          <button class="component-card" type="button" data-open-districts="localization" data-period="h1"><span>Маҳаллийлаштириш</span><strong>${fmt(h1Projects, 0)} та</strong><small>II чорак қиймати ${displayValue(h1LocalValue, "млн сўм")} · йиллик ${fmt(yearProjects, 0)} та / ${displayValue(yearLocalValue, "млн сўм")}</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_electricity" data-period="h1"><span>Электр тежаш</span><strong>${fmt(h1Electricity, 1)} млн кВт·с</strong><small>йиллик ${fmt(yearElectricity, 1)} млн кВт·с</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_gas" data-period="h1"><span>Газ тежаш</span><strong>${fmt(h1Gas, 1)} млн м³</strong><small>йиллик ${fmt(yearGas, 1)} млн м³</small></button>
+          <button class="component-card" type="button" data-open-districts="localization" data-period="h1"><span>Маҳаллийлаштириш</span><strong>${fmt(h1Projects, 0)} та</strong><small>II чорак · 16 туман йиғиндиси</small></button>
+          <button class="component-card" type="button" data-open-districts="energy_electricity" data-period="h1"><span>Электр тежаш</span><strong>${fmt(h1Electricity, 1)} млн кВт·с</strong><small>II чорак · 16 туман йиғиндиси</small></button>
+          <button class="component-card" type="button" data-open-districts="energy_gas" data-period="h1"><span>Газ тежаш</span><strong>${fmt(h1Gas, 1)} млн м³</strong><small>II чорак · 16 туман йиғиндиси</small></button>
         </div>
       </div>`;
     }
@@ -6018,71 +6740,333 @@ HTML = r"""<!doctype html>
       </article>`;
     }
 
+    const ANDIJAN_MAP_VIEWBOX = "0 0 600 328";
+    const ANDIJAN_DISTRICT_GEOMETRY = [
+      { name: "Андижон тумани", short: "Андижон", cx: 331.4, cy: 129.2, path: "M381.7 83.5 L376.7 83.3 L366.1 77.5 L351.4 77.9 L335.6 78.2 L325.7 83.8 L317.5 83.7 L303.7 88.3 L296.8 93.6 L292.4 90.3 L288.7 91.7 L289.5 96.5 L284.6 99.0 L292.7 106.3 L294.5 113.0 L299.3 117.9 L302.7 117.6 L306.4 111.0 L309.0 111.5 L313.4 121.6 L317.2 124.7 L320.0 127.1 L320.6 129.7 L319.9 132.4 L319.0 140.4 L316.2 143.4 L309.0 146.6 L297.6 148.3 L296.9 152.7 L303.6 162.3 L293.4 175.6 L294.0 189.9 L301.6 185.6 L307.7 186.1 L310.9 179.9 L308.7 171.1 L314.7 168.9 L319.0 167.6 L324.5 177.6 L339.5 172.7 L338.9 166.4 L344.4 167.5 L345.4 162.0 L339.3 158.2 L340.2 155.6 L373.0 157.5 L377.5 152.6 L371.8 147.6 L372.5 143.2 L379.1 138.2 L376.9 129.9 L387.9 121.5 L385.8 115.6 L374.7 115.5 L368.8 109.3 L375.3 102.2 L377.7 95.3 L380.3 92.3 L381.7 83.5 Z" },
+      { name: "Андижон шаҳри", short: "Андижон ш.", cx: 308.1, cy: 130.0, path: "M297.6 148.3 L309.0 146.6 L316.2 143.4 L319.0 140.4 L319.9 132.4 L320.6 129.7 L320.0 127.1 L317.2 124.7 L313.4 121.6 L309.0 111.5 L306.4 111.0 L302.7 117.6 L299.3 117.9 L299.0 126.4 L296.9 128.9 L293.7 134.9 L297.6 148.3 Z" },
+      { name: "Асака тумани", short: "Асака", cx: 272.7, cy: 189.1, path: "M296.9 152.7 L290.3 158.1 L286.0 157.1 L283.4 153.0 L273.3 155.6 L268.5 146.3 L268.9 141.9 L254.2 139.6 L245.5 145.4 L244.4 154.8 L242.1 167.4 L251.0 168.7 L253.0 176.6 L252.1 181.7 L236.7 179.6 L231.8 183.1 L235.6 186.2 L249.4 190.1 L252.8 193.4 L245.5 199.2 L238.1 200.2 L214.7 212.3 L224.7 212.7 L232.0 209.1 L231.2 221.4 L238.2 224.8 L242.8 222.9 L247.3 232.0 L255.1 232.2 L263.2 239.9 L272.6 226.9 L269.8 221.7 L273.7 218.8 L277.6 219.4 L280.6 215.7 L287.5 217.1 L294.5 209.6 L305.4 209.1 L320.7 203.2 L315.2 199.2 L306.1 201.1 L305.2 197.0 L308.4 193.8 L310.9 187.9 L319.0 181.0 L314.7 168.9 L308.7 171.1 L310.9 179.9 L307.7 186.1 L301.6 185.6 L294.0 189.9 L293.4 175.6 L303.6 162.3 L296.9 152.7 Z" },
+      { name: "Балиқчи тумани", short: "Балиқчи", cx: 182.8, cy: 104.0, path: "M228.5 90.4 L223.0 86.9 L218.3 93.6 L214.2 86.1 L206.7 84.9 L199.9 89.6 L193.2 86.0 L169.4 83.3 L160.6 75.5 L143.9 72.8 L131.9 75.3 L116.5 78.1 L110.7 84.2 L103.3 81.8 L101.3 91.7 L113.9 102.9 L117.9 103.2 L123.5 107.3 L117.7 113.9 L136.1 132.4 L143.6 132.8 L146.6 139.0 L156.9 135.1 L158.8 133.8 L174.2 123.6 L183.7 122.6 L183.3 119.6 L178.9 116.9 L179.2 113.3 L184.6 111.4 L182.3 104.1 L188.3 101.7 L187.1 95.0 L200.7 107.5 L215.3 108.8 L229.5 120.8 L235.4 120.1 L255.9 119.0 L262.8 113.7 L260.4 108.1 L254.3 110.5 L245.4 105.0 L230.4 109.6 L231.5 96.6 L228.5 90.4 Z" },
+      { name: "Булоқбоши тумани", short: "Булоқбоши", cx: 354.5, cy: 205.8, path: "M339.5 172.7 L324.5 177.6 L319.0 167.6 L314.7 168.9 L319.0 181.0 L310.9 187.9 L308.4 193.8 L305.2 197.0 L306.1 201.1 L315.2 199.2 L320.7 203.2 L327.9 204.8 L337.0 210.0 L338.6 215.8 L349.3 224.7 L353.4 232.3 L360.2 241.5 L363.6 244.9 L365.2 245.2 L370.4 243.0 L374.1 244.4 L374.8 245.0 L379.5 233.7 L385.5 232.7 L396.8 236.8 L397.0 231.4 L400.7 230.2 L395.0 226.5 L394.5 224.2 L404.9 213.3 L403.2 210.4 L394.9 211.9 L395.2 200.3 L368.5 191.5 L356.1 188.6 L354.5 183.8 L361.7 177.5 L358.7 175.3 L352.7 180.1 L348.7 178.8 L345.6 182.7 L339.9 184.9 L341.7 174.9 L339.5 172.7 Z" },
+      { name: "Бўстон тумани", short: "Бўстон", cx: 162.0, cy: 173.6, path: "M195.9 210.6 L196.6 202.2 L192.9 188.3 L189.1 186.7 L188.9 183.2 L198.2 180.1 L193.8 174.5 L194.8 168.4 L192.0 166.7 L183.4 170.1 L180.8 166.4 L179.4 157.6 L175.5 144.7 L168.8 138.1 L162.0 140.0 L158.8 133.8 L156.9 135.1 L146.6 139.0 L142.2 143.7 L133.6 144.7 L132.6 148.3 L134.3 151.2 L132.9 153.1 L129.1 149.3 L124.9 153.4 L128.3 165.0 L127.9 175.7 L124.9 183.1 L131.9 189.6 L136.0 196.2 L142.3 205.2 L148.4 202.2 L154.9 203.8 L163.5 208.7 L167.5 209.3 L170.8 209.2 L180.5 209.0 L195.9 210.6 Z" },
+      { name: "Жалақудуқ тумани", short: "Жалақудуқ", cx: 424.5, cy: 155.9, path: "M468.9 187.0 L459.3 174.4 L447.9 182.4 L445.8 178.8 L439.4 179.1 L422.5 191.1 L411.5 178.7 L415.1 171.1 L431.2 160.5 L446.9 156.6 L441.5 151.6 L450.6 142.6 L448.1 121.3 L461.3 121.4 L461.9 117.5 L457.0 115.8 L465.0 112.0 L463.5 108.6 L454.3 113.5 L442.3 111.6 L429.6 115.1 L416.9 110.9 L405.3 104.0 L397.6 104.0 L377.7 95.3 L375.3 102.2 L368.8 109.3 L374.7 115.5 L385.8 115.6 L387.9 121.5 L376.9 129.9 L379.1 138.2 L372.5 143.2 L371.8 147.6 L377.5 152.6 L373.0 157.5 L377.3 161.1 L371.5 165.5 L377.3 171.9 L389.4 175.8 L406.0 178.1 L409.1 188.8 L416.7 193.3 L430.3 201.8 L443.1 208.7 L459.2 218.3 L458.6 210.0 L459.4 206.8 L465.0 202.2 L464.7 199.6 L461.9 196.1 L460.8 192.8 L461.2 190.4 L463.5 187.7 L468.9 187.0 Z" },
+      { name: "Избоскан тумани", short: "Избоскан", cx: 281.9, cy: 73.4, path: "M303.7 88.3 L313.2 79.7 L321.0 78.1 L329.8 70.6 L339.9 62.6 L340.7 53.8 L332.2 50.0 L325.5 52.9 L316.1 60.4 L307.1 61.9 L304.2 55.7 L296.4 50.8 L281.7 44.1 L280.1 35.0 L275.6 37.0 L272.3 39.3 L269.4 40.4 L264.4 40.5 L259.8 37.7 L251.6 53.9 L242.2 53.6 L241.7 66.6 L237.1 72.2 L235.5 77.4 L228.5 90.4 L231.5 96.6 L230.4 109.6 L245.4 105.0 L254.3 110.5 L260.4 108.1 L274.2 103.4 L279.4 111.6 L292.7 106.3 L284.6 99.0 L289.5 96.5 L288.7 91.7 L292.4 90.3 L296.8 93.6 L303.7 88.3 Z" },
+      { name: "Марҳамат тумани", short: "Марҳамат", cx: 314.9, cy: 258.3, path: "M338.6 215.8 L337.0 210.0 L327.9 204.8 L320.7 203.2 L305.4 209.1 L294.5 209.6 L287.5 217.1 L280.6 215.7 L277.6 219.4 L273.7 218.8 L269.8 221.7 L272.6 226.9 L263.2 239.9 L262.6 246.5 L252.3 253.5 L259.3 271.5 L261.5 271.0 L269.5 272.9 L278.3 272.2 L281.7 274.3 L282.2 276.2 L279.7 284.7 L279.7 286.0 L281.0 287.7 L283.0 288.6 L289.8 288.5 L292.0 290.1 L295.7 295.5 L298.2 297.1 L304.1 294.8 L306.3 295.5 L311.2 299.0 L320.6 308.1 L322.9 311.1 L326.3 313.2 L329.0 314.4 L333.4 314.8 L337.4 316.1 L339.6 315.6 L340.9 314.4 L341.4 309.6 L339.3 303.2 L342.8 293.6 L347.9 283.0 L346.1 277.3 L343.5 275.3 L342.4 273.4 L341.3 269.5 L340.7 262.2 L338.7 259.5 L336.7 259.3 L334.3 260.3 L330.6 260.3 L329.6 256.8 L330.8 253.0 L332.8 251.6 L338.6 251.6 L340.6 250.8 L343.2 247.8 L343.8 246.0 L343.5 243.6 L342.1 240.9 L340.5 239.4 L332.6 236.9 L331.4 235.5 L329.1 229.2 L326.7 226.9 L318.3 224.0 L317.2 221.8 L318.3 219.3 L320.2 217.7 L323.0 218.2 L328.4 217.7 L330.6 216.1 L335.8 214.5 L338.6 215.8 Z" },
+      { name: "Олтинкўл тумани", short: "Олтинкўл", cx: 239.0, cy: 126.1, path: "M260.4 108.1 L262.8 113.7 L255.9 119.0 L235.4 120.1 L229.5 120.8 L215.3 108.8 L200.7 107.5 L187.1 95.0 L188.3 101.7 L182.3 104.1 L184.6 111.4 L179.2 113.3 L178.9 116.9 L183.3 119.6 L183.7 122.6 L185.7 122.8 L191.7 121.6 L198.9 126.1 L200.1 122.3 L203.1 120.5 L208.2 122.7 L205.0 129.3 L211.5 132.8 L211.6 145.3 L221.7 154.2 L235.7 143.9 L245.5 145.4 L254.2 139.6 L268.9 141.9 L268.5 146.3 L273.3 155.6 L283.4 153.0 L286.0 157.1 L290.3 158.1 L296.9 152.7 L297.6 148.3 L293.7 134.9 L296.9 128.9 L299.0 126.4 L299.3 117.9 L294.5 113.0 L292.7 106.3 L279.4 111.6 L274.2 103.4 L260.4 108.1 Z" },
+      { name: "Пахтаобод тумани", short: "Пахтаобод", cx: 342.7, cy: 49.0, path: "M393.8 82.7 L393.9 79.1 L393.1 76.8 L388.8 71.6 L387.8 69.2 L382.3 61.4 L378.8 54.6 L375.7 51.7 L372.2 49.9 L370.3 50.1 L368.6 50.5 L365.2 55.9 L364.1 56.1 L362.7 54.4 L362.6 52.7 L368.8 41.3 L369.6 36.5 L368.7 30.0 L367.6 27.6 L362.6 25.3 L356.8 24.0 L350.3 24.6 L345.3 22.8 L344.3 21.7 L341.2 21.1 L337.7 21.3 L336.1 20.7 L330.4 16.2 L322.1 13.5 L320.4 13.6 L319.4 12.2 L316.9 12.0 L314.1 12.7 L311.2 15.3 L305.6 22.0 L296.5 28.9 L290.8 30.3 L285.9 32.5 L280.1 35.0 L281.7 44.1 L296.4 50.8 L304.2 55.7 L307.1 61.9 L316.1 60.4 L325.5 52.9 L332.2 50.0 L340.7 53.8 L339.9 62.6 L329.8 70.6 L321.0 78.1 L313.2 79.7 L303.7 88.3 L317.5 83.7 L325.7 83.8 L335.6 78.2 L351.4 77.9 L366.1 77.5 L376.7 83.3 L381.7 83.5 L393.8 82.7 Z" },
+      { name: "Улуғнор тумани", short: "Улуғнор", cx: 84.9, cy: 147.4, path: "M146.6 139.0 L143.6 132.8 L136.1 132.4 L117.7 113.9 L123.5 107.3 L117.9 103.2 L113.9 102.9 L101.3 91.7 L103.3 81.8 L99.6 82.6 L94.9 89.4 L82.6 87.8 L78.2 90.2 L74.3 97.0 L65.2 106.4 L53.8 111.6 L42.7 119.6 L35.4 125.7 L34.1 132.5 L43.2 147.4 L37.2 152.6 L22.9 158.4 L12.0 163.4 L16.4 165.7 L21.8 165.7 L28.9 171.5 L34.3 180.8 L40.7 192.3 L44.8 199.3 L46.8 207.0 L55.0 201.7 L61.4 194.8 L68.3 188.4 L71.9 185.0 L63.4 175.4 L62.9 166.2 L64.4 159.8 L70.7 153.9 L77.0 161.4 L84.1 167.0 L91.7 169.6 L99.5 172.2 L108.8 174.0 L116.3 177.9 L124.9 183.1 L127.9 175.7 L128.3 165.0 L124.9 153.4 L129.1 149.3 L132.9 153.1 L134.3 151.2 L132.6 148.3 L133.6 144.7 L142.2 143.7 L146.6 139.0 Z" },
+      { name: "Хонобод шаҳри", short: "Хонобод ш.", cx: 537.1, cy: 122.4, path: "M539.4 122.8 L537.8 120.3 L535.1 120.8 L534.4 123.1 L536.2 124.9 L539.4 122.8 Z" },
+      { name: "Хўжаобод тумани", short: "Хўжаобод", cx: 395.1, cy: 209.6, path: "M373.0 157.5 L340.2 155.6 L339.3 158.2 L345.4 162.0 L344.4 167.5 L338.9 166.4 L339.5 172.7 L341.7 174.9 L339.9 184.9 L345.6 182.7 L348.7 178.8 L352.7 180.1 L358.7 175.3 L361.7 177.5 L354.5 183.8 L356.1 188.6 L368.5 191.5 L395.2 200.3 L394.9 211.9 L403.2 210.4 L404.9 213.3 L394.5 224.2 L395.0 226.5 L400.7 230.2 L397.0 231.4 L396.8 236.8 L385.5 232.7 L379.5 233.7 L374.8 245.0 L381.0 251.0 L386.2 253.8 L393.0 253.5 L397.2 254.3 L407.7 262.8 L410.8 263.1 L415.9 261.9 L420.2 253.8 L421.8 243.2 L422.9 241.4 L429.4 236.7 L429.7 230.9 L432.2 228.1 L443.5 230.7 L446.7 233.1 L450.7 238.1 L454.6 240.4 L457.7 240.0 L459.4 238.7 L459.9 230.7 L459.4 222.1 L459.2 218.3 L443.1 208.7 L430.3 201.8 L416.7 193.3 L409.1 188.8 L406.0 178.1 L389.4 175.8 L377.3 171.9 L371.5 165.5 L377.3 161.1 L373.0 157.5 Z" },
+      { name: "Шаҳрихон тумани", short: "Шаҳрихон", cx: 209.5, cy: 161.0, path: "M245.5 145.4 L235.7 143.9 L221.7 154.2 L211.6 145.3 L211.5 132.8 L205.0 129.3 L208.2 122.7 L203.1 120.5 L200.1 122.3 L198.9 126.1 L191.7 121.6 L185.7 122.8 L183.7 122.6 L174.2 123.6 L158.8 133.8 L162.0 140.0 L168.8 138.1 L175.5 144.7 L179.4 157.6 L180.8 166.4 L183.4 170.1 L192.0 166.7 L194.8 168.4 L193.8 174.5 L198.2 180.1 L188.9 183.2 L189.1 186.7 L192.9 188.3 L196.6 202.2 L195.9 210.6 L214.7 212.3 L238.1 200.2 L245.5 199.2 L252.8 193.4 L249.4 190.1 L235.6 186.2 L231.8 183.1 L236.7 179.6 L252.1 181.7 L253.0 176.6 L251.0 168.7 L242.1 167.4 L244.4 154.8 L245.5 145.4 Z" },
+      { name: "Қўрғонтепа тумани", short: "Қўрғонтепа", cx: 491.6, cy: 128.4, path: "M468.9 187.0 L469.4 186.9 L472.4 187.9 L477.9 188.0 L483.2 186.8 L489.5 184.3 L495.4 179.2 L497.0 177.0 L503.3 174.0 L507.1 171.4 L513.6 169.9 L514.0 168.2 L516.9 168.0 L520.1 166.9 L530.6 161.0 L539.3 154.9 L544.1 148.4 L556.5 146.6 L562.6 143.9 L565.9 143.2 L575.0 138.3 L578.1 137.5 L581.5 135.1 L584.8 130.5 L586.4 126.1 L588.0 117.5 L587.6 113.4 L586.3 110.2 L583.0 107.3 L580.1 106.5 L571.7 106.8 L566.3 110.1 L564.6 110.7 L562.5 109.9 L556.1 104.9 L551.8 104.5 L549.4 103.4 L542.6 94.3 L541.8 92.4 L538.5 92.4 L536.8 94.1 L533.6 104.8 L536.2 108.5 L540.6 111.5 L541.4 112.6 L541.7 115.5 L539.1 117.1 L534.7 117.3 L531.7 120.9 L526.9 123.4 L525.5 125.6 L520.8 126.8 L520.6 127.6 L516.8 127.9 L511.8 126.6 L510.5 125.5 L507.7 117.6 L501.2 111.2 L496.3 105.1 L493.3 102.9 L490.1 101.7 L484.7 101.5 L468.1 105.7 L463.0 104.1 L456.0 105.6 L449.0 108.6 L440.5 106.6 L435.4 106.4 L431.2 107.9 L419.4 103.5 L410.7 99.8 L409.4 98.7 L400.4 96.0 L396.8 94.0 L394.6 91.9 L393.7 86.1 L393.8 82.7 L381.7 83.5 L380.3 92.3 L377.7 95.3 L397.6 104.0 L405.3 104.0 L416.9 110.9 L429.6 115.1 L442.3 111.6 L454.3 113.5 L463.5 108.6 L465.0 112.0 L457.0 115.8 L461.9 117.5 L461.3 121.4 L448.1 121.3 L450.6 142.6 L441.5 151.6 L446.9 156.6 L431.2 160.5 L415.1 171.1 L411.5 178.7 L422.5 191.1 L439.4 179.1 L445.8 178.8 L447.9 182.4 L459.3 174.4 L468.9 187.0 Z M539.4 122.8 L536.2 124.9 L534.4 123.1 L535.1 120.8 L537.8 120.3 L539.4 122.8 Z" },
+    ];
+
+    function renderAndijanHexMap(kpi, statusByDistrict, selectedDistrict) {
+      const cellShapes = ANDIJAN_DISTRICT_GEOMETRY.map(cell => {
+        const info = statusByDistrict.get(cell.name) || { status: "grey", row: null };
+        const selected = cell.name === selectedDistrict?.name ? "selected" : "";
+        const isCity = cell.name === "Андижон шаҳри" || cell.name === "Хонобод шаҳри";
+        const valLabel = info.row ? districtPrimaryValue(info.row, kpi.id) : "—";
+        return `<g class="map-cell ${info.status} ${selected} ${isCity ? "is-city" : ""}" data-select-district="${cell.name}" tabindex="0">
+          <title>${cell.name} · ${valLabel}</title>
+          <path class="map-fill" d="${cell.path}"/>
+        </g>`;
+      }).join("");
+      const cellLabels = ANDIJAN_DISTRICT_GEOMETRY.map(cell => {
+        const isCity = cell.name === "Андижон шаҳри" || cell.name === "Хонобод шаҳри";
+        const selected = cell.name === selectedDistrict?.name ? "selected" : "";
+        return `<text class="map-label ${isCity ? "is-city" : ""} ${selected}" data-label-district="${cell.name}" x="${cell.cx}" y="${cell.cy + 1}" text-anchor="middle" dominant-baseline="central">${cell.short}</text>`;
+      }).join("");
+      return `<section class="districts-map">
+        <header class="districts-map-head">
+          <div>
+            <strong>${kpi.short} — ${kpi.label}</strong>
+          </div>
+        </header>
+        <div class="districts-map-canvas">
+          <svg viewBox="${ANDIJAN_MAP_VIEWBOX}" class="andijan-map" role="img" aria-label="Андижон вилоятининг ҳудудлар харитаси">
+            <defs>
+              <linearGradient id="mapGradGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#d6ecdb"/>
+                <stop offset="100%" stop-color="#8fc69f"/>
+              </linearGradient>
+              <linearGradient id="mapGradAmber" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fbe9b6"/>
+                <stop offset="100%" stop-color="#e3b766"/>
+              </linearGradient>
+              <linearGradient id="mapGradRed" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f5cfcf"/>
+                <stop offset="100%" stop-color="#d68585"/>
+              </linearGradient>
+              <linearGradient id="mapGradGrey" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#e8e6dd"/>
+                <stop offset="100%" stop-color="#bcb9ac"/>
+              </linearGradient>
+              <filter id="mapCellShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#1b4d5a" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <g filter="url(#mapCellShadow)">${cellShapes}</g>
+            <g class="map-labels">${cellLabels}</g>
+          </svg>
+        </div>
+      </section>`;
+    }
+
+    function renderDistrictLeaderboard(ranked, kpi, period, selected, maxAbs) {
+      const withData = ranked.filter(item => hasPeriodValue(districtKpi(item.d, kpi.id, period)));
+      return `<section class="districts-leaderboard">
+        <header class="districts-lb-head">
+          <strong>Туманлар</strong>
+          <span>${withData.length} та туманлар · ${kpi.short}</span>
+        </header>
+        <ol class="districts-lb-list">
+          ${withData.map((item, idx) => {
+            const d = item.d;
+            const row = districtKpi(d, kpi.id, period);
+            const status = rowStatus(row);
+            const value = districtPrimaryValue(row, kpi.id);
+            const num = districtRowValue(item, kpi.id);
+            const barPct = num !== null && maxAbs ? Math.min(100, (Math.abs(num) / maxAbs) * 100) : 0;
+            const isSelected = d.name === selected?.name;
+            return `<li class="lb-row ${status} ${isSelected ? "selected" : ""}" data-select-district="${d.name}" tabindex="0">
+              <span class="lb-rank">${idx + 1}</span>
+              <span class="lb-name">${d.name}</span>
+              <span class="lb-value">${value}</span>
+              <span class="lb-bar"><i style="width:${barPct.toFixed(1)}%"></i></span>
+            </li>`;
+          }).join("")}
+        </ol>
+      </section>`;
+    }
+
+    function districtScopedTasks(d) {
+      if (!d) return [];
+      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
+      return (DATA.tasks || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
+        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
+    }
+
+    function districtScopedTargets(d) {
+      if (!d) return [];
+      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
+      return (DATA.kafolat_district_targets || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
+        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
+    }
+
+    function renderDistrictCrossKpi(d) {
+      if (!d) return "";
+      const tiles = [
+        { id: "industry",    label: "Саноат",          period: "h1",   formatter: r => growthValue(r.growth) },
+        { id: "agriculture", label: "Қишлоқ хўжалиги", period: "h1",   formatter: r => growthValue(r.growth) },
+        { id: "services",    label: "Хизматлар",       period: "h1",   formatter: r => growthValue(r.growth) },
+        { id: "export",      label: "Экспорт",         period: "h1",   formatter: r => growthValue(r.growth) },
+        { id: "budget",      label: "Бюджет",          period: "year", formatter: r => n(r.execution) !== null ? `${fmt(r.execution, 1)}%` : displayValue(r.fact ?? r.plan, r.unit) },
+        { id: "jobs",        label: "Бандлик",         period: "year", formatter: r => displayValue(r.fact ?? r.plan, r.unit || "") }
+      ];
+      return `<section class="dpc-cross">
+        <header class="dpc-cross-head">
+          <strong>Туман KPI кесими</strong>
+          <span>Бошқа йўналишлар бўйича қисқача кўриниш</span>
+        </header>
+        <div class="dpc-cross-grid">
+          ${tiles.map(tile => {
+            const row = districtKpi(d, tile.id, tile.period);
+            const value = row && hasPeriodValue(row) ? tile.formatter(row) : "—";
+            const status = row && hasPeriodValue(row) ? rowStatus(row) : "grey";
+            return `<button class="dpc-cross-tile ${status}" type="button" data-cross-kpi="${tile.id}" title="${tile.label} — ${tile.id} KPIга ўтиш">
+              <span class="dpc-cross-label">${tile.label}</span>
+              <strong class="dpc-cross-value">${value}</strong>
+            </button>`;
+          }).join("")}
+        </div>
+      </section>`;
+    }
+
+    function renderDistrictTasksPanels(d) {
+      if (!d) return "";
+      const tasks = districtScopedTasks(d);
+      const targets = districtScopedTargets(d);
+      const sortByStatus = arr => [...arr].sort((a, b) => {
+        const order = { red: 0, amber: 1, grey: 2, green: 3 };
+        return (order[a.status || "grey"] ?? 4) - (order[b.status || "grey"] ?? 4);
+      });
+      const taskItems = sortByStatus(tasks).slice(0, 12).map(t => {
+        const status = t.status || "grey";
+        const id = t.platformId || t.id || "T-—";
+        const title = cleanTaskTitle(t.title || "");
+        const period = t.deadline || t.period || "";
+        return `<li class="dpc-task-item ${status}">
+          <span class="dpc-task-id">${id}</span>
+          <span class="dpc-task-body">
+            <strong>${title}</strong>
+            ${period ? `<small>${period}</small>` : ""}
+          </span>
+          <span class="chip ${status}">${statusLabel(status)}</span>
+        </li>`;
+      }).join("");
+      const targetItems = sortByStatus(targets).slice(0, 12).map(t => {
+        const status = t.status || "grey";
+        const id = t.platformId || t.sourceId || "D-—";
+        const title = cleanTaskTitle(t.title || "");
+        const kpiTag = t.kpi || "—";
+        return `<li class="dpc-task-item ${status}">
+          <span class="dpc-task-id">${id}</span>
+          <span class="dpc-task-body">
+            <strong>${title}</strong>
+            <small>KPI: ${kpiTag}${t.deadline ? ` · ${t.deadline}` : ""}</small>
+          </span>
+        </li>`;
+      }).join("");
+      return `<section class="dpc-tasks-grid">
+        <div class="dpc-task-panel">
+          <header class="dpc-task-head">
+            <strong>Тумандаги топшириқлар</strong>
+            <span class="chip ${tasks.length ? "blue" : "grey"}">${tasks.length} та</span>
+          </header>
+          ${tasks.length ? `<ul class="dpc-task-list">${taskItems}</ul>${tasks.length > 12 ? `<p class="dpc-task-more">…ва яна ${tasks.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Бу ҳудудга бириктирилган T-топшириқ йўқ.</p>`}
+        </div>
+        <div class="dpc-task-panel">
+          <header class="dpc-task-head">
+            <strong>Туман мақсадлари</strong>
+            <span class="chip ${targets.length ? "blue" : "grey"}">${targets.length} та</span>
+          </header>
+          ${targets.length ? `<ul class="dpc-task-list">${targetItems}</ul>${targets.length > 12 ? `<p class="dpc-task-more">…ва яна ${targets.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Кафолат хатида D-кўрсаткич ажратилмаган.</p>`}
+        </div>
+      </section>`;
+    }
+
+    function renderSelectedDistrictCard(d, kpi, cfg, period) {
+      if (!d) return "";
+      const row = districtKpi(d, kpi.id, period);
+      const status = rowStatus(row);
+      const scopedTasks = districtScopedTasks(d);
+      const scopedTargets = districtScopedTargets(d);
+      const scopedTotal = scopedTasks.length + scopedTargets.length;
+      const scopedUnfinished = scopedTasks.filter(t => (t.status || "grey") !== "green").length
+        + scopedTargets.filter(t => (t.status || "grey") !== "green").length;
+      const taskClass = scopedTotal && scopedUnfinished ? "red" : scopedTotal ? "green" : "grey";
+      const report = latestAnyReportFor(kpi.id, period, d.name);
+      return `<article class="district-profile-card">
+        <header class="dpc-head">
+          <div class="dpc-head-titles">
+            <span class="eyebrow">Танланган ҳудуд</span>
+            <h3>${d.name}</h3>
+            <p>${d.owner ? `Маъсул: ${d.owner}` : ""}</p>
+          </div>
+          <div class="dpc-head-stat">
+            <strong>${districtPrimaryValue(row, kpi.id)}</strong>
+            <span>${districtPrimaryLabel(kpi.id)} · ${kpi.short}</span>
+          </div>
+          <div class="dpc-head-chips">
+            <span class="chip ${status}">${statusLabel(status)}</span>
+            <span class="chip ${taskClass}">${scopedUnfinished}/${scopedTotal} топшириқ</span>
+          </div>
+        </header>
+        <div class="dpc-metrics">
+          ${cfg.columns.map(col => `<div class="dpc-metric">
+            <span class="dpc-metric-label">${col.label}</span>
+            <strong class="dpc-metric-value">${col.value(d)}</strong>
+            <small class="dpc-metric-note">${col.note ? col.note(d) : ""}</small>
+          </div>`).join("")}
+        </div>
+        ${renderDistrictCrossKpi(d)}
+        ${renderDistrictTasksPanels(d)}
+        <footer class="dpc-actions">
+          <button class="mini-button primary" data-profile-district="${d.name}">Туман профили →</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
+          <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
+          <button class="mini-button" data-page-jump="tasks">Топшириқларни кўриш</button>
+          ${report ? `<span class="chip ${reportStatusClass(report.status)}" style="margin-left:auto">${reportStatusLabel(report.status)} · ${h(report.date || "")}</span>` : ""}
+        </footer>
+      </article>`;
+    }
+
+    function kpiHasAnyDistrictData(kpiId) {
+      const cfg = districtTableConfig(districtSelectorDefs().find(def => def.id === kpiId) || currentKpiDef());
+      const period = cfg.primaryPeriod || state.period;
+      return (DATA.districts || []).some(d => hasPeriodValue(districtKpi(d, kpiId, period)));
+    }
+
+    function mapColorValue(row) {
+      if (n(row.execution) !== null) return n(row.execution);
+      if (n(row.growth) !== null) return n(row.growth);
+      if (n(row.fact) !== null) return n(row.fact);
+      if (n(row.plan) !== null) return n(row.plan);
+      return null;
+    }
+
+    function buildMapStatusByDistrict(kpiId, period) {
+      const lowerBetter = ["inflation", "poverty", "unemployment"].includes(kpiId);
+      const items = (DATA.districts || []).map(d => {
+        const row = districtKpi(d, kpiId, period);
+        return { name: d.name, row, value: mapColorValue(row) };
+      });
+      const valued = items.filter(it => it.value !== null);
+      const sorted = [...valued].sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
+      const total = sorted.length;
+      const greenCut = Math.max(1, Math.ceil(total / 3));
+      const amberCut = Math.max(greenCut + 1, Math.ceil(total * 2 / 3));
+      const tierByName = new Map();
+      sorted.forEach((it, idx) => {
+        let status = "red";
+        if (idx < greenCut) status = "green";
+        else if (idx < amberCut) status = "amber";
+        tierByName.set(it.name, status);
+      });
+      const out = new Map();
+      items.forEach(it => {
+        const status = it.value === null ? "grey" : (tierByName.get(it.name) || "grey");
+        out.set(it.name, { row: it.row, status });
+      });
+      return out;
+    }
+
+    function districtSelectorDefsWithData() {
+      return districtSelectorDefs().filter(def => kpiHasAnyDistrictData(def.id));
+    }
+
     function renderDistrictsPage() {
-      if (!districtSelectorDefs().some(def => def.id === state.kpi)) state.kpi = "grp";
+      const availableDefs = districtSelectorDefsWithData();
+      if (!availableDefs.some(def => def.id === state.kpi)) state.kpi = availableDefs[0]?.id || "grp";
       const kpi = currentKpiDef();
       const cfg = districtTableConfig(kpi);
+      const period = cfg.primaryPeriod || state.period;
       const ranked = districtRowsForKpi(kpi.id);
       const districts = ranked.map(x => x.d);
-      const selectedDistrict = districts.find(d => d.name === state.district) || districts[0] || currentDistrict();
-      if (selectedDistrict?.name) state.district = selectedDistrict.name;
-      const taskSet = tasksForKpi(kpi.id);
-      const taskUnfinished = taskSet.filter(t => (t.status || "grey") !== "green").length;
-      const districtTargetSet = districtTargetsForKpi(kpi.id);
-      const measurable = ranked.filter(item => cfg.columns.some(col => col.value(item.d) !== "—")).length;
-      const primaryValues = ranked.map(x => districtRowValue(x, kpi.id)).filter(v => v !== null && v !== 0);
-      const growthRange = ["grp", "industry", "agriculture", "services", "export"].includes(kpi.id);
-      const rangeText = primaryValues.length
-        ? `Асосий қийматлар оралиғи: ${growthRange ? `${growthValue(Math.min(...primaryValues))} – ${growthValue(Math.max(...primaryValues))}` : `${fmt(Math.min(...primaryValues), 1)} – ${fmt(Math.max(...primaryValues), 1)}`}`
-        : "Маълумот киритилиши кутилмоқда.";
+      const selectedDistrict = state.district ? districts.find(d => d.name === state.district) : null;
+      const statusByDistrict = buildMapStatusByDistrict(kpi.id, period);
+      const values = ranked.map(r => districtRowValue(r, kpi.id)).filter(v => v !== null);
+      const maxAbs = values.length ? Math.max(...values.map(Math.abs)) : 1;
       $("#districtsPage").innerHTML = `
-        <div class="district-context">
-          <div>
-            <div class="eyebrow">Туманлар кесими</div>
-            <h3>${cfg.title}</h3>
-            <p>${cfg.description}</p>
+        <header class="districts-head">
+          <div class="districts-head-actions">
+            <label class="districts-control">
+              <span>KPI / маълумот</span>
+              <select id="districtKpiSelect">
+                ${availableDefs.map(def => `<option value="${def.id}" ${def.id === state.kpi ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
+              </select>
+            </label>
+            <label class="districts-control">
+              <span>Саралаш</span>
+              <select id="districtSortSelect">
+                <option value="attention" ${state.districtSort === "attention" ? "selected" : ""}>Эътибор талаб</option>
+                <option value="execution" ${state.districtSort === "execution" ? "selected" : ""}>Юқоридан</option>
+                <option value="plan" ${state.districtSort === "plan" ? "selected" : ""}>Режа каттадан</option>
+                <option value="tasks" ${state.districtSort === "tasks" ? "selected" : ""}>Топшириқлар</option>
+                <option value="name" ${state.districtSort === "name" ? "selected" : ""}>Алифбо бўйича</option>
+              </select>
+            </label>
+            <label class="districts-control districts-control--search">
+              <span>Қидириш</span>
+              <input id="districtSearchBox" value="${state.search}" placeholder="Туман қидириш">
+            </label>
           </div>
-          <div class="district-context-actions">
-            <button class="mini-button" data-page-jump="dashboard">KPI экрани</button>
-            <button class="mini-button primary" data-profile-district="${state.district}">Туман профили</button>
-            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${state.district}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
-          </div>
+        </header>
+        <div class="districts-grid">
+          ${renderAndijanHexMap(kpi, statusByDistrict, selectedDistrict)}
+          ${renderDistrictLeaderboard(ranked, kpi, period, selectedDistrict, maxAbs)}
         </div>
-        <div class="district-controls">
-          <label>KPI / маълумот тури
-            <select id="districtKpiSelect">
-              ${districtSelectorDefs().map(def => `<option value="${def.id}" ${def.id === state.kpi ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
-            </select>
-          </label>
-          <label>Саралаш
-            <select id="districtSortSelect">
-              <option value="attention" ${state.districtSort === "attention" ? "selected" : ""}>Эътибор талаб қиладиганлар</option>
-              <option value="execution" ${state.districtSort === "execution" ? "selected" : ""}>Ижро/ўсиш юқоридан</option>
-              <option value="plan" ${state.districtSort === "plan" ? "selected" : ""}>Режа каттадан</option>
-              <option value="tasks" ${state.districtSort === "tasks" ? "selected" : ""}>Бажарилмаган топшириқлар</option>
-              <option value="name" ${state.districtSort === "name" ? "selected" : ""}>Номи бўйича</option>
-            </select>
-          </label>
-          <label>Туман/шаҳар қидириш
-            <input id="districtSearchBox" value="${state.search}" placeholder="Қидириш">
-          </label>
-        </div>
-        <div class="task-summary-strip">
-          <div class="small-stat"><span>Ҳудудлар</span><strong>${districts.length}/${DATA.districts.length}</strong><small>жорий фильтр бўйича</small></div>
-          <div class="small-stat"><span>Маълумот бор</span><strong>${measurable}/${DATA.districts.length}</strong><small>танланган KPI бўйича</small></div>
-          <div class="small-stat"><span>Бажарилмаган T-топшириқ</span><strong>${taskUnfinished}/${taskSet.length}</strong><small>ҳақиқий ижро топшириқлари</small></div>
-          <div class="small-stat"><span>Туман мақсадлари</span><strong>${districtTargetSet.length}</strong><small>кафолат хатидан ажратилган D-қаторлар</small></div>
-        </div>
-        <div class="district-workspace">
-          <article class="panel">
-            <div class="panel-head">
-              <div><h3>Туманлар солиштируви</h3><p>${rangeText}</p></div>
-              <span class="chip blue">солиштирув</span>
-            </div>
-            <div class="panel-body">${renderDistrictTable(ranked, kpi, cfg)}</div>
-          </article>
-          ${renderDistrictPreview(selectedDistrict, kpi, cfg)}
-        </div>`;
+        ${renderSelectedDistrictCard(selectedDistrict, kpi, cfg, period)}`;
       $("#districtKpiSelect").addEventListener("change", event => {
         state.kpi = event.target.value;
         render();
@@ -6094,6 +7078,17 @@ HTML = r"""<!doctype html>
       $("#districtSearchBox").addEventListener("input", event => {
         state.search = event.target.value;
         render();
+      });
+      $$(".map-cell", $("#districtsPage")).forEach(cell => {
+        const name = cell.dataset.selectDistrict;
+        const label = $(`.map-label[data-label-district="${name}"]`, $("#districtsPage"));
+        if (!label) return;
+        const show = () => label.classList.add("hover");
+        const hide = () => label.classList.remove("hover");
+        cell.addEventListener("mouseenter", show);
+        cell.addEventListener("mouseleave", hide);
+        cell.addEventListener("focus", show);
+        cell.addEventListener("blur", hide);
       });
       $$("[data-select-district]", $("#districtsPage")).forEach(el => el.addEventListener("click", event => {
         if (event.target.closest("button")) return;
@@ -6108,6 +7103,11 @@ HTML = r"""<!doctype html>
       }));
       $$("[data-page-jump]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
         state.page = btn.dataset.pageJump;
+        render();
+      }));
+      $$("[data-cross-kpi]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", event => {
+        event.stopPropagation();
+        state.kpi = btn.dataset.crossKpi;
         render();
       }));
       $$("[data-open-report-modal]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
