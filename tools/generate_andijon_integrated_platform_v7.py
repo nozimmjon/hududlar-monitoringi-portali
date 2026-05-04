@@ -123,6 +123,7 @@ def has_action_word(text: str) -> bool:
     action_words = [
         "ишга тушир",
         "ташкил эт",
+        "ташкиллаштир",
         "қайта тиклаш",
         "қайта йўлга қўйиш",
         "кўмаклашиш",
@@ -132,8 +133,18 @@ def has_action_word(text: str) -> bool:
         "ўқит",
         "легаллаштир",
         "ўтказ",
+        "олиб келиш",
+        "етказиб бериш",
+        "экиш",
         "ишлаб чиқ",
         "амалга ошир",
+        "чоралар кўриш",
+        "сақлаб",
+        "сақлаш",
+        "оширмаслик",
+        "пасайтириш",
+        "қайта кўриб чиқиш",
+        "эришиш",
         "назорат",
         "мониторинг",
         "кредит",
@@ -148,7 +159,7 @@ def has_action_word(text: str) -> bool:
 def is_platform_kpi_target(task: dict) -> bool:
     text = str(task.get("title") or "")
     low = text.casefold()
-    if "ялпи ҳудудий маҳсулот" in low:
+    if "ялпи ҳудудий маҳсулот" in low and "кичик тадбиркорлик" not in low:
         return True
     if "саноат маҳсулот" in low and "ўсиш суръат" in low:
         return True
@@ -368,23 +379,47 @@ def task_kpi_from_section(section: str, text: str) -> str:
 def district_names_in_text(text: str, districts: list[dict]) -> list[str]:
     low = text.casefold()
     found: list[str] = []
+    stems: dict[str, int] = {}
+    for district in districts:
+        stem = re.sub(r"\s+(шаҳри|тумани)$", "", str(district.get("name") or ""), flags=re.IGNORECASE).casefold()
+        stems[stem] = stems.get(stem, 0) + 1
     aliases = {
         "Андижон шаҳри": ["андижон шаҳар", "андижон шаҳри", "андижон шаҳарда"],
+        "Андижон тумани": ["андижон тум.", "андижон тумани", "андижон туманида", "андижон тум"],
         "Хонобод шаҳри": ["хонобод шаҳар", "хонабод шаҳар", "хонобод шаҳри", "хонабод шаҳри", "хонобод шаҳарда", "хонабод шаҳарларида"],
     }
     for district in districts:
         name = str(district.get("name") or "")
         stem = re.sub(r"\s+(шаҳри|тумани)$", "", name, flags=re.IGNORECASE)
-        variants = aliases.get(name, [])
-        variants += [
-            name.casefold(),
-            stem.casefold() + " тум",
-            stem.casefold() + " тумани",
-            stem.casefold() + "да",
-            stem.casefold() + "даги",
-        ]
+        stem_key = stem.casefold()
+        ambiguous = stems.get(stem_key, 0) > 1
+        variants = aliases.get(name, []) + [name.casefold()]
+        if name.casefold().endswith("тумани"):
+            variants += [
+                stem_key + " тум",
+                stem_key + " тум.",
+                stem_key + " тумани",
+                stem_key + " туманида",
+            ]
+        elif name.casefold().endswith("шаҳри"):
+            variants += [
+                stem_key + " шаҳар",
+                stem_key + " шаҳарда",
+                stem_key + " шаҳри",
+                stem_key + " шаҳрида",
+            ]
+        if not ambiguous:
+            variants += [
+                stem_key + "да",
+                stem_key + "даги",
+            ]
         stem_pattern = rf"(^|[\s,;:()–-]){re.escape(stem.casefold())}($|[\s,.;:()–-]|да|даги|нинг|ни|га)"
-        if any(v and v in low for v in variants) or re.search(stem_pattern, low):
+        if any(v and v in low for v in variants):
+            found.append(name)
+            continue
+        if ambiguous:
+            continue
+        if re.search(stem_pattern, low):
             found.append(name)
     return sorted(set(found))
 
@@ -537,8 +572,42 @@ def enrich_industry_drivers(data: dict) -> None:
     }
 
 
+def normalize_source_data(data: dict) -> None:
+    """Remove non-indicator helper rows and attach a compact audit summary."""
+    regional = data.setdefault("regional", {})
+    regional["food_balance"] = [
+        row for row in regional.get("food_balance", [])
+        if row.get("product") and any(row.get(key) is not None for key in [
+            "resource_total",
+            "production",
+            "import",
+            "use_total",
+            "local_supply_ratio",
+            "year_end_stock",
+        ])
+    ]
+    data["source_audit"] = {
+        "kpi_sources_checked": 7,
+        "andijon_workbooks": [
+            "1.1-1.5-жадваллар (макро).xlsx",
+            "2.1-2.2-жадваллар (инфляция).xlsx",
+            "3-жадвал (бюджет).xlsx",
+            "4.1-жадвал (бюджет инвестка).xlsx",
+            "4.2-жадвал (инвестициялар).xlsx",
+            "5.1-5.2-жадваллар (экспорт).xlsx",
+            "6-жадвал (бандлик ва камбағаллик даражаси).xlsx",
+        ],
+        "notes": [
+            "ЯҲМ туман кесимида берилмаган, шунинг учун туманлар экранида ЯҲМ таркибий кўрсаткичлари орқали очилади.",
+            "Бюджет ва инвестиция жадвалларида келгуси даврлар учун 'кутилиш' қиймати режага нисбатан ижро сифатида кўрсатилади.",
+            "Кафолат хатидаги платформа KPIлари топшириқлар сонидан чиқарилди, амалий чоралар эса топшириқ сифатида қолдирилди.",
+        ],
+    }
+
+
 def main() -> None:
     data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    normalize_source_data(data)
     enrich_industry_drivers(data)
     data["tasks"] = extract_kafolat_tasks(data)
     html = HTML.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</", "<\\/"))
@@ -5141,6 +5210,7 @@ HTML = r"""<!doctype html>
       if (row?.reportStatusLabel) return { cls: "planned", chip: reportStatusClass(row.reportStatus), label: row.reportStatusLabel };
       if (period === "q1" && (n(row.fact) !== null || n(row.growth) !== null)) return { cls: "actual", chip: "", label: "" };
       if (period === "q1") return { cls: "empty", chip: "grey", label: "I чорак белгиланмаган" };
+      if (n(row?.execution) !== null) return { cls: "planned", chip: row.status || statusFor(row.execution), label: statusLabel(row.status || statusFor(row.execution)) };
       if (hasPeriodValue(row)) return { cls: "planned", chip: "grey", label: "Режа" };
       return { cls: "empty", chip: "grey", label: "Давр белгиланмаган" };
     }
@@ -5323,19 +5393,19 @@ HTML = r"""<!doctype html>
       if (id === "budget") {
         const b = DATA.regional.budget;
         const map = {
-          year: [null, b.year_expected],
-          h1: [null, b.h1_expected],
+          year: [b.year_expected, b.year_plan],
+          h1: [b.h1_expected, b.h1_plan],
           m9: [null, null]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
-        return { label: "Бюджет тушумлари", fact, plan, unit: b.unit, growth: null, execution, main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, b.unit), status: statusFor(execution), note: "режа" };
+        return { label: "Бюджет тушумлари", fact, plan, unit: b.unit, growth: null, execution, main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, b.unit), status: statusFor(execution), note: "кутилиш / режа" };
       }
       if (id === "investment") {
         const x = DATA.regional.foreign_investment;
         const map = {
-          year: [null, x.year_expected],
-          h1: [null, x.h1_expected],
+          year: [x.year_expected, x.year_forecast],
+          h1: [x.h1_expected, x.h1_plan],
           m9: [null, null]
         };
         const [fact, plan] = map[period] || map.year;
@@ -5345,8 +5415,8 @@ HTML = r"""<!doctype html>
       if (id === "export") {
         const e = DATA.regional.export;
         const map = {
-          year: [null, e.year_expected, e.year_growth],
-          h1: [null, e.h1_expected, e.h1_growth],
+          year: [e.year_expected, e.year_forecast, e.year_growth],
+          h1: [e.h1_expected, e.h1_expected, e.h1_growth],
           m9: [null, null, null]
         };
         const [fact, plan, growth] = map[period] || map.year;
@@ -5392,9 +5462,9 @@ HTML = r"""<!doctype html>
         const b = DATA.regional.budget;
         const map = {
           q1: [null, null],
-          h1: [null, b.h1_expected],
+          h1: [b.h1_expected, b.h1_plan],
           m9: [null, null],
-          year: [null, b.year_expected]
+          year: [b.year_expected, b.year_plan]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
@@ -5404,9 +5474,9 @@ HTML = r"""<!doctype html>
         const x = DATA.regional.foreign_investment;
         const map = {
           q1: [x.q1_actual, x.q1_plan],
-          h1: [null, x.h1_expected],
+          h1: [x.h1_expected, x.h1_plan],
           m9: [null, null],
-          year: [null, x.year_expected]
+          year: [x.year_expected, x.year_forecast]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
@@ -5416,9 +5486,9 @@ HTML = r"""<!doctype html>
         const e = DATA.regional.export;
         const map = {
           q1: [e.q1_value, null, e.q1_growth],
-          h1: [null, e.h1_expected, e.h1_growth],
+          h1: [e.h1_expected, e.h1_expected, e.h1_growth],
           m9: [null, null, null],
-          year: [null, e.year_expected, e.year_growth]
+          year: [e.year_expected, e.year_forecast, e.year_growth]
         };
         const [fact, plan, growth] = map[period] || map.year;
         const execution = pct(fact, plan);
