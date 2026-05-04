@@ -5165,6 +5165,12 @@ HTML = r"""<!doctype html>
       return displayValue(row.fact, row.unit, compact);
     }
 
+    function factLabel(row, period) {
+      if (row?.reportStatus === "approved") return "Амалда";
+      if (period === "q1") return "Амалда";
+      return "Кутилиш";
+    }
+
     function tinyValue(value, unit = "") {
       const num = n(value);
       if (num === null) return "—";
@@ -6069,7 +6075,7 @@ HTML = r"""<!doctype html>
         if (def.id === "inflation") return "Йил якунида инфляция белгиланган чегарадан ошмаслиги керак.";
         if (def.id === "poverty") return "Камбағаллик даражаси туманлар кесимида кузатилади.";
         if (def.id === "unemployment") return "Ишсизлик даражаси режага нисбатан баҳоланади.";
-        if (["budget", "investment"].includes(def.id)) return "Амалдаги натижа режага нисбатан баҳоланади.";
+        if (["budget", "investment"].includes(def.id)) return "Кутилиш ёки тасдиқланган амалдаги натижа режага нисбатан баҳоланади.";
         if (growthOnly) return "Асосий кўрсаткич ўсиш суръати.";
         return "Режа, амалдаги натижа ва ижро бир жойда.";
       })();
@@ -6165,7 +6171,7 @@ HTML = r"""<!doctype html>
             const statusText = chipText || (stateInfo.cls === "actual" ? "Амалда бор" : "—");
             const auxRows = `<dl class="q-aux">
               <div class="q-aux-row"><span>Режа</span><b class="num">${planDisplay}</b></div>
-              <div class="q-aux-row"><span>Амалда</span><b class="num">${factDisplay}</b></div>
+              <div class="q-aux-row"><span>${factLabel(row, period)}</span><b class="num">${factDisplay}</b></div>
               <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip ${chipClass || "grey"}">${statusText}</span></b></div>
             </dl>`;
             return `<div class="quarter-row ${stateInfo.cls}">
