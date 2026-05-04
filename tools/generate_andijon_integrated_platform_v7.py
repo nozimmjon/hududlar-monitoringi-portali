@@ -6086,7 +6086,7 @@ HTML = r"""<!doctype html>
             const heroValue = trend
               ? `<span class="q-hero-value q-trend ${trend.cls}">${main}</span>`
               : `<span class="q-hero-value">${main}</span>`;
-            const reportFooter = row.reportStatusLabel ? `<div class="q-report"><span>Таъсир</span><b>${row.reportImpact || "KPIга ўтмади"}</b></div>` : "";
+            const reportFooter = row.reportStatusLabel ? `<div class="q-report"><span>Таъсир</span><b>${row.reportImpact || "KPIга қўшилмади"}</b></div>` : "";
             const chipClass = row.reportStatus ? reportStatusClass(row.reportStatus) : stateInfo.chip;
             const chipText = row.reportStatusLabel || stateInfo.label;
             const growthText = n(row.growth) !== null ? growthValue(row.growth) : "—";
@@ -6377,8 +6377,8 @@ HTML = r"""<!doctype html>
         .filter((def, idx, arr) => def && arr.findIndex(item => item.id === def.id) === idx);
     }
 
-    function defaultReportUnit(kpiId) {
-      const row = baseDashboardPeriodKpi(kpiId, state.period);
+    function defaultReportUnit(kpiId, period = state.period) {
+      const row = baseDashboardPeriodKpi(kpiId, period);
       if (row?.unit?.includes("минг доллар")) return "млн $";
       if (row?.unit?.includes("млн доллар")) return "млн $";
       if (row?.unit?.includes("млрд сўм")) return "млрд сўм";
@@ -6422,8 +6422,8 @@ HTML = r"""<!doctype html>
     }
 
     function reportImpactLabel(report) {
-      if (report.status === "approved") return "KPIга ўтди";
-      return "KPIга ўтмади";
+      if (report.status === "approved") return "KPIга қўшилди";
+      return "KPIга қўшилмади";
     }
 
     function reportImpactClass(report) {
@@ -6650,7 +6650,7 @@ HTML = r"""<!doctype html>
       const district = (DATA.districts || []).find(item => item.name === selectedDistrict) || currentDistrict();
       const tasks = tasksForReportContext(kpi.id, district.name);
       const taskId = tasks[0]?.id || defaultTaskForReport(kpi.id);
-      const unit = defaultReportUnit(kpi.id);
+      const unit = defaultReportUnit(kpi.id, selectedPeriod);
       $("#reportModal").innerHTML = `
         <div class="modal-head">
           <div>
@@ -6717,7 +6717,10 @@ HTML = r"""<!doctype html>
         const nextKpi = kpiById(event.target.value);
         $("#reportContextKpi").textContent = nextKpi.short;
         $("#reportTask").innerHTML = taskOptionsHtml(nextTasks);
-        $("#reportUnit").value = defaultReportUnit(event.target.value);
+        $("#reportUnit").value = defaultReportUnit(event.target.value, $("#reportPeriod").value);
+      });
+      $("#reportPeriod").addEventListener("change", () => {
+        $("#reportUnit").value = defaultReportUnit($("#reportKpi").value, $("#reportPeriod").value);
       });
       $("#reportDistrict").addEventListener("change", event => {
         const nextDistrict = (DATA.districts || []).find(item => item.name === event.target.value);
@@ -6938,6 +6941,11 @@ HTML = r"""<!doctype html>
       const donePct = allTasks.length > 0 ? Math.round(done.length / allTasks.length * 100) : 0;
       const taskScopeTitle = allKpis ? `${cleanModuleLabel} топшириқлари` : `${kpi.short}га оид топшириқлар`;
       const shownScope = state.taskStatus === "done" ? "Бажарилган" : state.taskStatus === "open" ? "Бажарилмаган" : "Барчаси";
+      const contextBits = [
+        cleanModuleLabel,
+        state.taskDistrict !== "all" ? state.taskDistrict : "",
+        state.taskPeriod !== "all" ? (state.taskPeriod === "h1" ? "II чорак / I ярим йиллик" : "Йил якуни / давомида") : ""
+      ].filter(Boolean);
       $("#tasksPage").innerHTML = `
         <div class="task-filter report-filter">
           <label>Йўналиш / жадвал
@@ -6985,7 +6993,7 @@ HTML = r"""<!doctype html>
           <div class="task-summary-copy">
             <span>Ижро ҳолати</span>
             <strong>${taskScopeTitle}</strong>
-            <small>${cleanModuleLabel} бўйича ${shownScope.toLowerCase()} топшириқлар кўрсатилмоқда.</small>
+            <small>${contextBits.join(" · ")} бўйича ${shownScope.toLowerCase()} топшириқлар кўрсатилмоқда.</small>
           </div>
           <div class="exec-status-grid">
             <button class="exec-status-pill ${state.taskStatus === "all" ? "active" : ""}" type="button" data-task-status-jump="all">
@@ -7138,6 +7146,28 @@ HTML = r"""<!doctype html>
       const districtStem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
       const related = all.filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name)) || cleanTaskTitle(t.title).toLowerCase().includes(districtStem));
       return related.length ? related : all;
+    }
+
+    function taskDistrictFilterFor(kpiId, districtName) {
+      if (!districtName || districtName === "all") return "all";
+      const districtStem = districtName.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
+      const hasDistrictTasks = tasksForKpi(kpiId).some(t =>
+        (Array.isArray(t.districts) && t.districts.includes(districtName)) ||
+        cleanTaskTitle(t.title).toLowerCase().includes(districtStem)
+      );
+      return hasDistrictTasks ? districtName : "all";
+    }
+
+    function openTasksForContext(kpiId = state.kpi, districtName = null, period = null, status = "open") {
+      const targetKpi = kpiId || "all";
+      state.page = "tasks";
+      state.kpi = targetKpi;
+      state.taskModule = targetKpi === "all" ? "all" : dashboardModuleForKpi(targetKpi);
+      state.taskStatus = status || "open";
+      state.taskDistrict = taskDistrictFilterFor(targetKpi, districtName || state.district);
+      state.taskPeriod = period || "all";
+      state.search = "";
+      render();
     }
 
     function districtTaskSummary(d, kpiId = state.kpi) {
@@ -7886,6 +7916,10 @@ HTML = r"""<!doctype html>
         render();
       }));
       $$("[data-page-jump]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        if (btn.dataset.pageJump === "tasks") {
+          openTasksForContext(state.kpi, state.district, state.period, "open");
+          return;
+        }
         state.page = btn.dataset.pageJump;
         render();
       }));
@@ -8047,6 +8081,10 @@ HTML = r"""<!doctype html>
         render();
       }));
       $$("[data-page-jump]", $("#profilePage")).forEach(btn => btn.addEventListener("click", () => {
+        if (btn.dataset.pageJump === "tasks") {
+          openTasksForContext(state.kpi, state.district, state.period, "open");
+          return;
+        }
         state.page = btn.dataset.pageJump;
         render();
       }));
@@ -8209,7 +8247,7 @@ HTML = r"""<!doctype html>
                   <td>${h(report.evidenceName || "—")}<br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span></td>
                   <td>
                     <div class="action-row compact">
-                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга ўтди</span>`}
+                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
                       ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Қайта кўриш</button>` : ""}
                       ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
                     </div>
