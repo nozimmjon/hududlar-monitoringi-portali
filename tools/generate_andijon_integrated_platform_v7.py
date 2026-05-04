@@ -3929,7 +3929,7 @@ HTML = r"""<!doctype html>
     }
 
     .task-filter.report-filter {
-      grid-template-columns: repeat(5, minmax(145px, 1fr)) auto;
+      grid-template-columns: minmax(220px, .9fr) minmax(240px, 1fr) minmax(150px, .55fr) minmax(220px, .85fr);
     }
 
     .task-summary-strip {
@@ -3937,6 +3937,94 @@ HTML = r"""<!doctype html>
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 16px;
+    }
+
+    .task-summary-strip.execution-overview {
+      grid-template-columns: minmax(220px, .8fr) minmax(460px, 1.25fr) minmax(110px, .28fr) minmax(170px, .42fr);
+      align-items: center;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .task-summary-strip.execution-overview .exec-status-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .task-summary-copy {
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .task-summary-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .task-summary-copy strong {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .task-summary-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .task-summary-strip .exec-status-pill.active {
+      border-color: rgba(23, 105, 224, .42);
+      background: #eef6ff;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, .12);
+    }
+
+    .exec-status-pill.blue strong { color: var(--blue); }
+
+    .task-advanced-filters {
+      margin: -4px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.78);
+      overflow: hidden;
+    }
+
+    .task-advanced-filters summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+      list-style-position: inside;
+    }
+
+    .task-advanced-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 0 12px 12px;
+    }
+
+    .task-advanced-grid label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .task-advanced-grid select {
+      width: 100%;
+      min-width: 0;
     }
 
     .task-focus {
@@ -3957,6 +4045,41 @@ HTML = r"""<!doctype html>
       color: var(--muted);
       font-size: 13px;
       line-height: 1.4;
+    }
+
+    .task-side-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .task-side-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .task-side-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .task-side-row strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .task-side-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
     }
 
     .task-groups {
@@ -4487,6 +4610,7 @@ HTML = r"""<!doctype html>
       .scoreline.execution-strip { grid-template-columns: 1fr; }
       .scoreline-copy, .score-actions { grid-column: 1 / -1; }
       .exec-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .task-summary-strip.execution-overview .exec-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
@@ -4521,6 +4645,7 @@ HTML = r"""<!doctype html>
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
       .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
@@ -6179,7 +6304,7 @@ HTML = r"""<!doctype html>
         <div class="modal-head">
           <div>
             <div class="modal-title" id="taskModalTitle">${h(task.id)} · ${h(cleanTaskTitle(task.title))}</div>
-            <div class="modal-sub">${h(task.section || task.sector)} · ${h(task.deadline || task.period)} · ${h(task.owner)} · манба: ${h(task.sourceId || task.id)}</div>
+            <div class="modal-sub">${h(task.section || task.sector)} · ${h(task.deadline || task.period)} · ${h(task.owner)}</div>
           </div>
           <button class="modal-close" type="button" data-close-modal aria-label="Ёпиш">×</button>
         </div>
@@ -6192,9 +6317,9 @@ HTML = r"""<!doctype html>
           <div class="modal-grid">
             <div class="modal-field"><span>Ҳудуд</span><strong>${h(districtText)}</strong></div>
             <div class="modal-field"><span>Гуруҳ</span><strong>${h(task.group || taskGroupLabel(task, kpi.id))}</strong></div>
-            <div class="modal-field"><span>Манба</span><strong>${h(task.source || "—")}</strong></div>
+            <div class="modal-field"><span>Йўналиш</span><strong>${h(task.moduleLabel || task.sector || "—")}</strong></div>
           </div>
-          <div class="callout-note">Бу қатор классификациядан кейин ҳақиқий ижро топшириғи сифатида қолдирилган. KPI мақсадлар ва туман мақсадлари ҳисобот топшириғи сифатида танланмайди.</div>
+          <div class="callout-note">Бу топшириқ KPIга эришиш учун бажариладиган амалий иш сифатида юритилади. Ҳисобот киритилса, унинг ҳолати ижро журналида кўринади.</div>
           <div>
             <div class="eyebrow">Далил / изоҳ</div>
             <textarea id="taskEvidenceText" placeholder="Қисқа изоҳ, файл номи ёки далил ҳаволасини киритинг"></textarea>
@@ -6403,7 +6528,7 @@ HTML = r"""<!doctype html>
       return `<article class="task-card" data-task-id="${t.id}">
         <span class="task-code">${t.id}</span>
         <header><strong>${cleanTaskTitle(t.title)}</strong><span class="chip ${status}">${statusLabel(status)}</span></header>
-        <div class="task-meta"><span>${t.sector}</span><span>${t.period}</span><span>${t.owner}</span><span>манба: ${t.sourceId || t.platformId || t.id}</span></div>
+        <div class="task-meta"><span>${t.sector}</span><span>${t.period}</span><span>${t.owner}</span></div>
       </article>`;
     }
 
@@ -6452,7 +6577,7 @@ HTML = r"""<!doctype html>
         <header>
           <span class="task-code">${t.id}</span>
           <strong>${cleanTaskTitle(t.title)}</strong>
-          <div class="task-meta"><span>${t.deadline || t.period}</span><span>${districtText}</span><span>${t.moduleShort || t.sector}</span><span>манба: ${t.sourceId || t.id}</span></div>
+          <div class="task-meta"><span>${t.deadline || t.period}</span><span>${districtText}</span><span>${t.owner || t.moduleShort || t.sector}</span></div>
         </header>
         <div class="task-actions">
           <span class="chip ${status}">${statusLabel(status)}</span>
@@ -6533,8 +6658,7 @@ HTML = r"""<!doctype html>
       const q = state.search.trim().toLowerCase();
       const selectedModule = moduleById(state.taskModule);
       const moduleLabel = selectedModule ? selectedModule.label : "Барча 7 йўналиш";
-      const moduleSource = selectedModule ? selectedModule.source : "Кафолат хати ва 7 та жадвал";
-      const moduleSheets = selectedModule ? selectedModule.sheets.join(" · ") : taskModules().map(module => module.short).join(" · ");
+      const cleanModuleLabel = moduleLabel.replace(/^\d+\.\s*/, "");
       const moduleScopedTasks = DATA.tasks.filter(t => state.taskModule === "all" || t.module === state.taskModule);
       const allByKpi = tasksForKpi(state.kpi).filter(t => state.taskModule === "all" || t.module === state.taskModule);
       const allTasks = allByKpi.filter(t => {
@@ -6547,10 +6671,11 @@ HTML = r"""<!doctype html>
       const done = allTasks.filter(t => t.status === "green");
       const visibleTasks = state.taskStatus === "all" ? allTasks : state.taskStatus === "done" ? done : notDone;
       const districtReady = districtSelectorDefs().some(def => def.id === kpi.id);
-      const annual = annualPlanKpi(kpi.id);
-      const meta = DATA.task_meta || {};
       const kpiDistricts = [...new Set(allByKpi.flatMap(t => Array.isArray(t.districts) ? t.districts : []))].sort((a, b) => a.localeCompare(b, "uz-Cyrl-UZ"));
       const reportLinked = allTasks.filter(t => getExecutionReports().some(report => report.taskId === t.id)).length;
+      const donePct = allTasks.length > 0 ? Math.round(done.length / allTasks.length * 100) : 0;
+      const taskScopeTitle = allKpis ? `${cleanModuleLabel} топшириқлари` : `${kpi.short}га оид топшириқлар`;
+      const shownScope = state.taskStatus === "done" ? "Бажарилган" : state.taskStatus === "open" ? "Бажарилмаган" : "Барчаси";
       $("#tasksPage").innerHTML = `
         <div class="task-filter report-filter">
           <label>Йўналиш / жадвал
@@ -6565,19 +6690,6 @@ HTML = r"""<!doctype html>
               ${kpiOptions.map(def => `<option value="${def.id}" ${!allKpis && def.id === kpi.id ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
             </select>
           </label>
-          <label>Муддат
-            <select id="taskPeriodSelect">
-              <option value="all" ${state.taskPeriod === "all" ? "selected" : ""}>Барча муддатлар</option>
-              <option value="h1" ${state.taskPeriod === "h1" ? "selected" : ""}>II чорак / I ярим йиллик</option>
-              <option value="year" ${state.taskPeriod === "year" ? "selected" : ""}>Йил якуни / давомида</option>
-            </select>
-          </label>
-          <label>Туман/шаҳар
-            <select id="taskDistrictSelect">
-              <option value="all" ${state.taskDistrict === "all" ? "selected" : ""}>Барча ҳудудлар</option>
-              ${kpiDistricts.map(name => `<option value="${h(name)}" ${state.taskDistrict === name ? "selected" : ""}>${h(name)}</option>`).join("")}
-            </select>
-          </label>
           <label>Ҳолат
             <select id="taskStatusSelect">
               <option value="open" ${state.taskStatus === "open" ? "selected" : ""}>Бажарилмаган</option>
@@ -6585,33 +6697,77 @@ HTML = r"""<!doctype html>
               <option value="done" ${state.taskStatus === "done" ? "selected" : ""}>Бажарилган</option>
             </select>
           </label>
-          <div class="action-row" style="margin-top:0">
-            <button class="mini-button" data-task-page="dashboard">KPI экрани</button>
-            ${!allKpis && districtReady ? `<button class="mini-button primary" data-open-districts="${kpi.id}">Туманлар кесими</button>` : ""}
-          </div>
+          <label>Қидириш
+            <input id="taskSearchBox" value="${h(state.search)}" placeholder="Топшириқ, масъул ёки ҳудуд">
+          </label>
         </div>
-        <div class="task-summary-strip">
-          <div class="small-stat"><span>Йўналиш</span><strong>${moduleLabel}</strong><small>${moduleSource}</small></div>
-          <div class="small-stat"><span>KPI</span><strong>${allKpis ? "Барча KPI" : kpi.short}</strong><small>${allKpis ? "барча йўналишлар бўйича топшириқлар" : kpi.label}</small></div>
-          <div class="small-stat"><span>Кафолат хати</span><strong>${meta.execution_tasks || DATA.tasks.length}</strong><small>ҳақиқий ижро топшириғи · ${meta.kpi_targets || 0} KPI мақсад чиқарилди</small></div>
-          <div class="small-stat"><span>Топшириқлар</span><strong>${notDone.length}/${allTasks.length}</strong><small>бажарилмаган / танланган кесим</small></div>
+        <details class="task-advanced-filters" ${state.taskPeriod !== "all" || state.taskDistrict !== "all" ? "open" : ""}>
+          <summary>Қўшимча фильтрлар</summary>
+          <div class="task-advanced-grid">
+            <label>Муддат
+              <select id="taskPeriodSelect">
+                <option value="all" ${state.taskPeriod === "all" ? "selected" : ""}>Барча муддатлар</option>
+                <option value="h1" ${state.taskPeriod === "h1" ? "selected" : ""}>II чорак / I ярим йиллик</option>
+                <option value="year" ${state.taskPeriod === "year" ? "selected" : ""}>Йил якуни / давомида</option>
+              </select>
+            </label>
+            <label>Туман/шаҳар
+              <select id="taskDistrictSelect">
+                <option value="all" ${state.taskDistrict === "all" ? "selected" : ""}>Барча ҳудудлар</option>
+                ${kpiDistricts.map(name => `<option value="${h(name)}" ${state.taskDistrict === name ? "selected" : ""}>${h(name)}</option>`).join("")}
+              </select>
+            </label>
+          </div>
+        </details>
+        <div class="task-summary-strip execution-overview">
+          <div class="task-summary-copy">
+            <span>Ижро ҳолати</span>
+            <strong>${taskScopeTitle}</strong>
+            <small>${cleanModuleLabel} бўйича ${shownScope.toLowerCase()} топшириқлар кўрсатилмоқда.</small>
+          </div>
+          <div class="exec-status-grid">
+            <button class="exec-status-pill ${state.taskStatus === "all" ? "active" : ""}" type="button" data-task-status-jump="all">
+              <span>Жами</span>
+              <strong>${allTasks.length}</strong>
+            </button>
+            <button class="exec-status-pill green ${state.taskStatus === "done" ? "active" : ""}" type="button" data-task-status-jump="done">
+              <span>Бажарилди</span>
+              <strong>${done.length}</strong>
+            </button>
+            <button class="exec-status-pill red ${state.taskStatus === "open" ? "active" : ""}" type="button" data-task-status-jump="open">
+              <span>Бажарилмади</span>
+              <strong>${notDone.length}</strong>
+            </button>
+            <button class="exec-status-pill blue" type="button" data-task-execution>
+              <span>Ҳисобот киритилган</span>
+              <strong>${reportLinked}</strong>
+            </button>
+          </div>
+          <div class="exec-progress-box">
+            <div class="exec-donut" style="--pct:${donePct}"><strong>${donePct}%</strong></div>
+            <small>бажарилиш</small>
+          </div>
+          <div class="score-actions">
+            <button class="score-action primary" type="button" data-task-page="dashboard">KPI экрани</button>
+            <button class="score-action" type="button" data-task-execution>Ижро журнали</button>
+          </div>
         </div>
         <div class="task-workspace">
           <div class="task-groups">
             <section class="task-group">
-              <div class="task-group-head"><h3>Ижро топшириқлари</h3><span class="chip grey">${visibleTasks.length} та</span></div>
+              <div class="task-group-head"><h3>${shownScope} топшириқлар</h3><span class="chip grey">${visibleTasks.length} та</span></div>
               <div class="task-list">${visibleTasks.map(task => compactTaskCard(task, kpi.id)).join("") || `<p class="muted">Бу KPI бўйича топшириқ топилмади.</p>`}</div>
             </section>
           </div>
           <aside class="task-focus">
             <div class="eyebrow">Топшириқлар</div>
-            <h3>${moduleLabel}: кафолат хатидан келган ишлар</h3>
-            <p>Топшириқлар 7 та манба жадвалига мос йўналишларда юритилади. KPI шу йўналиш ичидаги мониторинг кесими, T-топшириқ эса KPIга эришиш учун бажариладиган амалий иш.</p>
-            <div class="task-list" style="margin-top:14px">
-              <article class="task-card"><header><strong>Манба жадвал</strong><span class="chip blue">${moduleScopedTasks.length} T-топшириқ</span></header><div class="task-meta"><span>${moduleSource}</span><span>${moduleSheets}</span></div></article>
-              <article class="task-card"><header><strong>KPI мақсади</strong><span class="chip blue">${primaryMetric(annual)}</span></header><div class="task-meta"><span>KPI экрани</span></div></article>
-              <article class="task-card"><header><strong>Ижро ҳолати</strong><span class="chip ${notDone.length ? "red" : "green"}">${notDone.length}/${allTasks.length}</span></header><div class="task-meta"><span>бажарилмаган / жами T-топшириқ</span></div></article>
-              <article class="task-card"><header><strong>Ҳисобот боғланиши</strong><span class="chip ${reportLinked ? "green" : "grey"}">${reportLinked}/${allTasks.length}</span></header><div class="task-meta"><span>ижро журнали</span></div></article>
+            <h3>KPI → топшириқ → ҳисобот</h3>
+            <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради. Карточкага босганда тўлиқ матн, далил ва ҳисобот киритиш ойнаси очилади.</p>
+            <div class="task-side-stack">
+              <div class="task-side-row"><div><strong>Танланган йўналиш</strong><span>${cleanModuleLabel}</span></div><span class="chip blue">${moduleScopedTasks.length} та</span></div>
+              <div class="task-side-row"><div><strong>Танланган KPI</strong><span>${allKpis ? "Барча KPI бўйича топшириқлар" : kpi.label}</span></div><span class="chip blue">${allKpis ? "ҳаммаси" : kpi.short}</span></div>
+              <div class="task-side-row"><div><strong>Ҳисобот киритилган</strong><span>Киритилган ҳисоботлар ижро журналида текширилади.</span></div><span class="chip ${reportLinked ? "green" : "grey"}">${reportLinked}/${allTasks.length}</span></div>
+              ${!allKpis && districtReady ? `<div class="task-side-row"><div><strong>Туманлар кесими</strong><span>Шу KPI бўйича ҳудудлар ҳолатини очиш.</span></div><button class="mini-button primary" data-open-districts="${kpi.id}" type="button">Очиш</button></div>` : ""}
             </div>
           </aside>
         </div>`;
@@ -6641,6 +6797,17 @@ HTML = r"""<!doctype html>
         state.taskStatus = event.target.value;
         render();
       });
+      $("#taskSearchBox").addEventListener("input", event => {
+        state.search = event.target.value;
+        render();
+      });
+      $$("[data-task-status-jump]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.taskStatus = btn.dataset.taskStatusJump;
+        render();
+      }));
+      $$("[data-task-execution]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
+        openExecutionJournal(allKpis ? "all" : kpi.id, state.taskDistrict === "all" ? null : state.taskDistrict, state.taskPeriod === "all" ? null : state.taskPeriod);
+      }));
       $$("[data-task-page]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
         state.page = btn.dataset.taskPage;
         render();
@@ -7782,7 +7949,7 @@ HTML = r"""<!doctype html>
       renderSectorFilter();
       $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks"].includes(state.page));
       $("#sectorFilter").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
-      $("#searchBox").classList.toggle("hidden", ["dashboard", "districts", "profile"].includes(state.page));
+      $("#searchBox").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile"].includes(state.page));
       $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === state.page));
       ["dashboard", "tasks", "districts", "profile", "execution"].forEach(page => {
         $(`#${page}Page`).classList.toggle("hidden", page !== state.page);
