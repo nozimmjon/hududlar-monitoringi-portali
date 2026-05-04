@@ -557,33 +557,33 @@ HTML = r"""<!doctype html>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
   <style>
     :root {
-      --bg: #f7f5f0;
+      --bg: #f4f7fb;
       --paper: #ffffff;
-      --surface: #fbfaf6;
-      --ink: #1a1a1a;
-      --muted: #66645e;
-      --line: #e0ddd3;
-      --line-strong: #c9c4b8;
-      --nav: #183f4a;
-      --nav-2: #0f313a;
-      --blue: #1b4d5a;
-      --blue-2: #284f59;
-      --blue-soft: #dce8ea;
+      --surface: #fbfdff;
+      --ink: #102033;
+      --muted: #657386;
+      --line: #dfe7f0;
+      --line-strong: #c5d2e0;
+      --nav: #062844;
+      --nav-2: #08395d;
+      --blue: #1769e0;
+      --blue-2: #0b4c7a;
+      --blue-soft: #eef6ff;
       --green: #15803d;
-      --green-soft: #e2f4e8;
+      --green-soft: #e7f7ed;
       --amber: #b45309;
-      --amber-soft: #fff1cc;
+      --amber-soft: #fff3d6;
       --red: #b91c1c;
-      --red-soft: #fde3df;
+      --red-soft: #fee5e5;
       --grey: #71717a;
-      --grey-soft: #eceae3;
-      --shadow: 0 16px 40px rgba(35, 45, 48, .10);
-      --shadow-sm: 0 1px 2px rgba(20, 30, 35, .06), 0 4px 12px rgba(20, 30, 35, .05);
-      --shadow-md: 0 4px 12px rgba(20, 30, 35, .08), 0 16px 40px rgba(20, 30, 35, .10);
-      --shadow-lg: 0 12px 24px rgba(20, 30, 35, .12), 0 24px 60px rgba(20, 30, 35, .14);
-      --ring-blue: 0 0 0 1px rgba(27, 77, 90, .12);
-      --accent-grad: linear-gradient(135deg, #1b4d5a 0%, #2a6f7e 100%);
-      --accent-grad-soft: linear-gradient(135deg, rgba(27, 77, 90, .08) 0%, rgba(42, 111, 126, .12) 100%);
+      --grey-soft: #f0f1f3;
+      --shadow: 0 14px 34px rgba(15, 42, 71, .09);
+      --shadow-sm: 0 1px 2px rgba(15, 42, 71, .05), 0 5px 14px rgba(15, 42, 71, .06);
+      --shadow-md: 0 6px 18px rgba(15, 42, 71, .08), 0 18px 44px rgba(15, 42, 71, .08);
+      --shadow-lg: 0 12px 26px rgba(15, 42, 71, .10), 0 24px 60px rgba(15, 42, 71, .12);
+      --ring-blue: 0 0 0 1px rgba(23, 105, 224, .20), 0 0 0 4px rgba(23, 105, 224, .08);
+      --accent-grad: linear-gradient(135deg, #1769e0 0%, #0b4c7a 100%);
+      --accent-grad-soft: linear-gradient(135deg, rgba(23, 105, 224, .08) 0%, rgba(11, 76, 122, .10) 100%);
       --motion: 180ms cubic-bezier(.2, .7, .2, 1);
       --motion-slow: 280ms cubic-bezier(.2, .7, .2, 1);
       --nav-w: 232px;
@@ -616,8 +616,8 @@ HTML = r"""<!doctype html>
       margin: 0;
       color: var(--ink);
       background:
-        radial-gradient(circle at 100% 0, rgba(27, 77, 90, .08), transparent 34%),
-        linear-gradient(180deg, #fbfaf6 0%, var(--bg) 42%, #f0eee7 100%);
+        radial-gradient(circle at 92% 0, rgba(23, 105, 224, .10), transparent 30%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 45%, #eef3f8 100%);
       overflow-x: hidden;
     }
 
@@ -636,8 +636,8 @@ HTML = r"""<!doctype html>
       color: #f7fbff;
       background:
         radial-gradient(circle at 78% 0, rgba(255,255,255,.12), transparent 30%),
-        linear-gradient(135deg, #163a45, #235965);
-      box-shadow: 0 12px 28px rgba(21, 42, 45, .18);
+        linear-gradient(135deg, #082c49, #0b4c7a);
+      box-shadow: 0 12px 28px rgba(7, 36, 61, .20);
     }
 
     .mast {
@@ -780,7 +780,8 @@ HTML = r"""<!doctype html>
     .nav-btn.active,
     .nav-btn:hover {
       color: #fff;
-      background: rgba(255,255,255,.12);
+      background: var(--blue);
+      box-shadow: 0 10px 24px rgba(23, 105, 224, .28);
     }
 
     .main {
@@ -794,6 +795,11 @@ HTML = r"""<!doctype html>
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
     }
 
     .eyebrow {
@@ -857,11 +863,12 @@ HTML = r"""<!doctype html>
       position: relative;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      background: #fff;
-      border: 1px solid rgba(20, 30, 35, .07);
-      box-shadow: var(--shadow-md);
-      border-radius: var(--r-lg);
-      overflow: hidden;
+      gap: 10px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
       margin-bottom: 16px;
     }
 
@@ -871,34 +878,24 @@ HTML = r"""<!doctype html>
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .module-tab {
       position: relative;
       border: 1px solid var(--line);
       border-radius: var(--r-md);
-      background: rgba(255, 255, 255, .85);
+      background: #fff;
       color: var(--muted);
-      padding: 12px 12px 12px 26px;
+      padding: 12px;
       text-align: left;
       cursor: pointer;
-      min-height: 62px;
+      min-height: 54px;
       transition: transform var(--motion), background var(--motion), border-color var(--motion), box-shadow var(--motion), color var(--motion);
-      backdrop-filter: saturate(140%) blur(6px);
     }
 
     .module-tab .module-dot {
-      position: absolute;
-      left: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--module-color, var(--blue));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--module-color, var(--blue)) 18%, transparent);
-      transition: transform var(--motion), box-shadow var(--motion);
+      display: none;
     }
 
     .module-tab strong {
@@ -912,7 +909,7 @@ HTML = r"""<!doctype html>
     }
 
     .module-tab span {
-      display: block;
+      display: none;
       font-size: 11px;
       font-weight: 600;
       color: #718199;
@@ -923,32 +920,25 @@ HTML = r"""<!doctype html>
     .module-tab:hover {
       transform: translateY(-1px);
       background: #fff;
-      border-color: rgba(27, 77, 90, .25);
+      border-color: rgba(23, 105, 224, .30);
       box-shadow: var(--shadow-sm);
       color: var(--ink);
     }
 
     .module-tab.active {
       background: #fff;
-      border-color: transparent;
-      box-shadow: var(--ring-blue), var(--shadow-sm), inset 0 0 0 1px rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .50);
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
       color: var(--blue);
     }
 
     .module-tab.active .module-dot {
-      animation: pulse-dot 1.6s ease-in-out infinite;
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--module-color, var(--blue)) 22%, transparent);
+      animation: none;
     }
 
     .module-tab.active strong { color: var(--ink); font-weight: 800; }
 
-    .module-tab[data-dashboard-module="macro"] { --module-color: #1b4d5a; }
-    .module-tab[data-dashboard-module="inflation"] { --module-color: #b45309; }
-    .module-tab[data-dashboard-module="budget"] { --module-color: #15803d; }
-    .module-tab[data-dashboard-module="budget_investment"] { --module-color: #0e7490; }
-    .module-tab[data-dashboard-module="investment"] { --module-color: #6d28d9; }
-    .module-tab[data-dashboard-module="export"] { --module-color: #1d4ed8; }
-    .module-tab[data-dashboard-module="employment"] { --module-color: #b91c1c; }
+    .module-tab[data-dashboard-module] { --module-color: var(--blue); }
 
     .module-heading {
       display: grid;
@@ -1012,27 +1002,60 @@ HTML = r"""<!doctype html>
 
     .scoreline {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: minmax(180px, .9fr) minmax(180px, 1.15fr) repeat(2, minmax(130px, .72fr)) minmax(190px, .86fr);
+      gap: 10px;
+      align-items: stretch;
       margin: 16px 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .scoreline-copy {
+      min-width: 0;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .scoreline-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .scoreline-copy strong {
+      font-size: 18px;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .scoreline-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
     }
 
     .score {
       min-width: 0;
-      padding: 16px 22px;
-      background: #fff;
-      border: 1px solid #dde3ec;
-      border-radius: 10px;
+      padding: 13px;
+      background: #fbfdff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       cursor: pointer;
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
     }
 
     .score:hover {
       transform: translateY(-1px);
-      border-color: rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .38);
       box-shadow: var(--shadow-sm);
     }
 
@@ -1043,20 +1066,22 @@ HTML = r"""<!doctype html>
     }
 
     .score-label {
-      font-size: 20px;
+      font-size: 12px;
       font-weight: 800;
-      color: var(--ink);
+      color: var(--muted);
       white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .035em;
     }
 
     .score-chart-wrap {
       position: relative;
-      width: 70px;
-      height: 70px;
+      width: 64px;
+      height: 64px;
       flex-shrink: 0;
     }
 
-    .score-chart-wrap svg { width: 70px; height: 70px; }
+    .score-chart-wrap svg { width: 64px; height: 64px; }
 
     .score-pct {
       position: absolute;
@@ -1064,23 +1089,21 @@ HTML = r"""<!doctype html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: var(--ink);
     }
 
     .score-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      display: none;
     }
 
     .score-leg-item {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      color: #555;
+      font-size: 12px;
+      color: var(--muted);
       font-weight: 600;
       white-space: nowrap;
     }
@@ -1093,14 +1116,51 @@ HTML = r"""<!doctype html>
     }
 
     .score-num {
-      font-size: 42px;
+      font-size: 34px;
       font-weight: 900;
       line-height: 1;
       margin-left: auto;
     }
 
+    .score-actions {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .score-action {
+      min-height: 38px;
+      border: 1px solid rgba(23, 105, 224, .36);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: left;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion), background var(--motion);
+    }
+
+    .score-action.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .score-action:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .score-action:focus-visible {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: var(--ring-blue);
+    }
+
     .front-kpis.module-kpis.macro-layout {
-      grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi {
@@ -1108,42 +1168,33 @@ HTML = r"""<!doctype html>
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent {
-      background:
-        radial-gradient(circle at 0% 100%, rgba(27, 77, 90, .12), transparent 55%),
-        linear-gradient(180deg, #ffffff, #f3f8fa);
-      box-shadow: inset -1px 0 0 rgba(27, 77, 90, .12);
+      background: #fff;
+      box-shadow: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
-      background: linear-gradient(145deg, #4a7280, #6294a2);
-      box-shadow:
-        0 14px 28px rgba(98, 148, 162, .35),
-        0 0 0 5px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .25);
+      background: var(--blue-soft);
+      box-shadow: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent.active {
-      background:
-        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
-        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
-      box-shadow:
-        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
-        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+      background: #fff;
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent.active .kpi-icon {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      background: var(--blue-soft);
+      color: var(--blue);
+      box-shadow: none;
     }
 
     .front-kpi {
       position: relative;
-      border: 0;
-      border-right: 1px solid var(--line);
-      background: transparent;
-      min-height: 158px;
-      padding: 16px clamp(10px, 1.35vw, 18px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      min-height: 126px;
+      padding: 16px;
       display: grid;
       grid-template-columns: 50px minmax(0, 1fr);
       gap: 12px;
@@ -1155,29 +1206,26 @@ HTML = r"""<!doctype html>
 
     .front-kpi::after { display: none; }
 
-    .front-kpi:nth-child(4n) { border-right: 0; }
-    .front-kpi:last-child { border-right: 0; }
-    .front-kpi:nth-child(n+5) { border-top: 1px solid var(--line); }
+    .front-kpi:nth-child(4n),
+    .front-kpi:last-child,
+    .front-kpi:nth-child(n+5) { border: 1px solid var(--line); }
     .front-kpi:hover { background: var(--surface); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
     .front-kpi.active {
-      background:
-        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
-        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
-      transform: translateY(-3px) scale(1.015);
-      box-shadow:
-        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
-        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+      background: #fff;
+      border-color: rgba(23, 105, 224, .62);
+      transform: none;
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
       z-index: 1;
     }
-    .front-kpi.active h3 { color: rgba(255, 255, 255, 0.82); }
-    .front-kpi.active .big { color: #ffffff; }
-    .front-kpi.active .big-note { color: rgba(255, 255, 255, 0.7); }
-    .front-kpi.active .mini-row { color: rgba(255, 255, 255, 0.7); }
-    .front-kpi.active .mini-row b { color: #ffffff; }
+    .front-kpi.active h3 { color: var(--ink); }
+    .front-kpi.active .big { color: var(--blue); }
+    .front-kpi.active .big-note { color: var(--muted); }
+    .front-kpi.active .mini-row { color: var(--muted); }
+    .front-kpi.active .mini-row b { color: var(--ink); }
     .front-kpi.active .kpi-icon {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      background: var(--blue-soft);
+      color: var(--blue);
+      box-shadow: none;
     }
 
     .yhm-focus-bar {
@@ -1254,16 +1302,13 @@ HTML = r"""<!doctype html>
       border-radius: 14px;
       display: grid;
       place-items: center;
-      color: #fff;
-      background: linear-gradient(145deg, #557e8a, #6294a2);
-      box-shadow:
-        0 10px 22px rgba(98, 148, 162, .28),
-        0 0 0 4px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .2);
+      color: var(--blue);
+      background: var(--blue-soft);
+      box-shadow: none;
       transition: transform var(--motion);
     }
 
-    .front-kpi:hover .kpi-icon { transform: rotate(-3deg) scale(1.04); }
+    .front-kpi:hover .kpi-icon { transform: scale(1.03); }
 
     .kpi-icon svg { width: 25px; height: 25px; stroke-width: 2.2; }
     .front-kpi h3 {
@@ -1964,9 +2009,9 @@ HTML = r"""<!doctype html>
     .kpi-monitor-card {
       position: relative;
       background: #fff;
-      border: 1px solid rgba(20, 30, 35, .07);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-md);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
       overflow: hidden;
       min-width: 0;
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
@@ -1975,34 +2020,26 @@ HTML = r"""<!doctype html>
     .kpi-monitor-card::before { display: none; }
 
     .kpi-monitor-card:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-lg);
-      border-color: rgba(27, 77, 90, .18);
+      transform: none;
+      box-shadow: var(--shadow);
+      border-color: var(--line);
     }
 
     .kpi-monitor-head {
       position: relative;
-      min-height: 92px;
+      min-height: 84px;
       display: grid;
       grid-template-columns: 52px minmax(0, 1fr) auto;
       gap: 14px;
       align-items: center;
-      padding: 18px 20px 16px;
-      border-bottom: 1px solid rgba(20, 30, 35, .06);
-      background:
-        linear-gradient(90deg, #fbfdff 0%, #f4f8fa 100%);
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
       overflow: hidden;
     }
 
     .kpi-monitor-head .head-watermark {
-      position: absolute;
-      right: -18px;
-      bottom: -34px;
-      width: 140px;
-      height: 140px;
-      color: #6294a2;
-      opacity: 0.05;
-      pointer-events: none;
+      display: none;
     }
 
     .kpi-monitor-head .head-watermark svg {
@@ -2033,16 +2070,13 @@ HTML = r"""<!doctype html>
       border-radius: 14px;
       display: grid;
       place-items: center;
-      color: #fff;
-      background: linear-gradient(145deg, #557e8a, #6294a2);
-      box-shadow:
-        0 10px 22px rgba(98, 148, 162, .28),
-        0 0 0 4px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .25);
+      color: var(--blue);
+      background: var(--blue-soft);
+      box-shadow: none;
       transition: transform var(--motion);
     }
 
-    .kpi-monitor-card:hover .small-icon { transform: rotate(-3deg) scale(1.04); }
+    .kpi-monitor-card:hover .small-icon { transform: scale(1.02); }
 
     .small-icon svg {
       width: 24px;
@@ -2071,23 +2105,21 @@ HTML = r"""<!doctype html>
     }
 
     .quarter-matrix {
-      padding: 14px 18px 16px;
+      padding: 18px 20px 20px;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 12px;
     }
 
     .quarter-row {
       position: relative;
       display: grid;
-      gap: 10px;
+      gap: 12px;
       align-content: start;
-      padding: 14px 14px 14px;
-      border: 1px solid rgba(20, 30, 35, .07);
-      border-radius: 12px;
-      background:
-        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--row-accent, var(--blue)) 8%, transparent), transparent 55%),
-        #ffffff;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
       font-size: 12px;
       overflow: hidden;
       transition: border-color var(--motion), background var(--motion), transform var(--motion), box-shadow var(--motion);
@@ -2096,8 +2128,8 @@ HTML = r"""<!doctype html>
     .quarter-row::before { display: none; }
 
     .quarter-row:hover {
-      border-color: rgba(27, 77, 90, .22);
-      transform: translateY(-1px);
+      border-color: rgba(23, 105, 224, .24);
+      transform: none;
       box-shadow: var(--shadow-sm);
     }
     .quarter-row:hover::before { opacity: 1; }
@@ -2119,9 +2151,9 @@ HTML = r"""<!doctype html>
       align-items: center;
       gap: 6px;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0;
       text-transform: uppercase;
     }
 
@@ -2153,7 +2185,7 @@ HTML = r"""<!doctype html>
     .quarter-row .q-hero-value {
       color: var(--ink);
       font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
-      font-size: clamp(22px, 2vw, 30px);
+      font-size: clamp(25px, 2.15vw, 34px);
       line-height: 1;
       font-weight: 800;
       letter-spacing: -0.022em;
@@ -2165,7 +2197,7 @@ HTML = r"""<!doctype html>
     .quarter-row .q-hero .q-trend.up,
     .quarter-row .q-hero .q-trend.down,
     .quarter-row .q-hero .q-trend.flat {
-      font-size: clamp(22px, 2vw, 30px);
+      font-size: clamp(25px, 2.15vw, 34px);
       font-weight: 800;
       letter-spacing: -0.022em;
       color: var(--ink);
@@ -2193,8 +2225,8 @@ HTML = r"""<!doctype html>
       margin: 0;
       display: grid;
       gap: 4px;
-      padding-top: 8px;
-      border-top: 1px dashed rgba(20, 30, 35, .09);
+      padding-top: 10px;
+      border-top: 1px solid rgba(223, 231, 240, .95);
     }
 
     .quarter-row .q-aux-row {
@@ -2205,6 +2237,16 @@ HTML = r"""<!doctype html>
       color: var(--muted);
       font-size: 11.5px;
       font-weight: 500;
+    }
+
+    .quarter-row .q-aux-row.status b {
+      justify-self: end;
+    }
+
+    .quarter-row .q-aux-row.status .chip {
+      font-size: 11px;
+      text-transform: none;
+      letter-spacing: 0;
     }
 
     .quarter-row .q-aux-row b {
@@ -4182,6 +4224,7 @@ HTML = r"""<!doctype html>
       .district-preview { position: static; }
       .dashboard-module-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .scoreline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scoreline-copy, .score-actions { grid-column: 1 / -1; }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
@@ -4203,14 +4246,15 @@ HTML = r"""<!doctype html>
       .sidebar {
         position: static;
         height: auto;
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
-        overflow-x: auto;
+        overflow: visible;
         padding: 10px;
       }
       .side-title { display: none; }
-      .nav-btn { min-width: 96px; margin: 0; gap: 6px; }
-      .nav-btn span { display: block; font-size: 11px; line-height: 1.1; }
+      .nav-btn { min-width: 0; margin: 0; gap: 6px; padding: 8px 4px; }
+      .nav-btn span { display: block; font-size: 10.5px; line-height: 1.1; white-space: normal; }
       .main { padding: 14px; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
@@ -5196,9 +5240,15 @@ HTML = r"""<!doctype html>
       const scoreGreen = scoreCirc * (modulePct / 100);
       const scoreRed = scoreCirc * ((100 - modulePct) / 100);
       const scoreRedStart = -90 + (modulePct / 100) * 360;
+      const scorelineTitle = selectedModule?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш";
       const scorelineHtml = `<div class="scoreline">
+          <div class="scoreline-copy">
+            <span>Топшириқлар ҳолати</span>
+            <strong>${scorelineTitle}</strong>
+            <small>KPIга боғланган топшириқлар: бажарилган, бажарилмаган ва кейинги назорат нуқтаси.</small>
+          </div>
           <div class="score" role="button" tabindex="0" data-scoreline-status="all">
-            <div class="score-label">Жами топшириқлар:</div>
+            <div class="score-label">Жами топшириқлар</div>
             <div class="score-chart-wrap">
               <svg viewBox="0 0 70 70" fill="none">
                 <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#eaeaea" stroke-width="6"/>
@@ -5218,12 +5268,17 @@ HTML = r"""<!doctype html>
             <div class="score-num">${moduleTotal}</div>
           </div>
           <div class="score" role="button" tabindex="0" data-scoreline-status="done">
-            <div class="score-label">Бажарилди:</div>
+            <div class="score-label">Бажарилди</div>
             <div class="score-num" style="color:#22c55e">${moduleDone}</div>
           </div>
           <div class="score" role="button" tabindex="0" data-scoreline-status="open">
-            <div class="score-label">Бажарилмади:</div>
+            <div class="score-label">Бажарилмади</div>
             <div class="score-num" style="color:#ef4444">${moduleLeft}</div>
+          </div>
+          <div class="score-actions">
+            <button class="score-action primary" type="button" data-open-districts="${selected.id}">Туманлар кесими</button>
+            <button class="score-action" type="button" data-open-execution data-exec-kpi="${selected.id}">Ижро журнали</button>
+            <button class="score-action" type="button" data-scoreline-status="all">Топшириқлар</button>
           </div>
         </div>`;
       const isMacro = state.dashboardModule === "macro";
@@ -5383,17 +5438,21 @@ HTML = r"""<!doctype html>
             const heroValue = trend
               ? `<span class="q-hero-value q-trend ${trend.cls}">${main}</span>`
               : `<span class="q-hero-value">${main}</span>`;
-            const auxRows = growthOnly ? "" : `<dl class="q-aux">
-              <div class="q-aux-row"><span>Режа</span><b class="num">${plan}</b></div>
-              <div class="q-aux-row"><span>Амалда</span><b class="num">${fact}</b></div>
-            </dl>`;
             const reportFooter = row.reportStatusLabel ? `<div class="q-report"><span>Таъсир</span><b>${row.reportImpact || "KPIга ўтмади"}</b></div>` : "";
             const chipClass = row.reportStatus ? reportStatusClass(row.reportStatus) : stateInfo.chip;
             const chipText = row.reportStatusLabel || stateInfo.label;
+            const growthText = n(row.growth) !== null ? growthValue(row.growth) : "—";
+            const planDisplay = growthOnly ? (stateInfo.cls === "actual" ? "—" : growthText) : plan;
+            const factDisplay = growthOnly ? (stateInfo.cls === "actual" ? growthText : fact) : fact;
+            const statusText = chipText || (stateInfo.cls === "actual" ? "Амалда бор" : "—");
+            const auxRows = `<dl class="q-aux">
+              <div class="q-aux-row"><span>Режа</span><b class="num">${planDisplay}</b></div>
+              <div class="q-aux-row"><span>Амалда</span><b class="num">${factDisplay}</b></div>
+              <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip ${chipClass || "grey"}">${statusText}</span></b></div>
+            </dl>`;
             return `<div class="quarter-row ${stateInfo.cls}">
               <div class="q-head">
                 <span class="q-period">${label}</span>
-                ${chipText ? `<span class="chip ${chipClass}">${chipText}</span>` : ""}
               </div>
               <div class="q-hero">
                 ${heroValue}
