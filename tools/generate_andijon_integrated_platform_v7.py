@@ -1021,14 +1021,95 @@ HTML = r"""<!doctype html>
       box-shadow: var(--shadow);
     }
 
-    .scoreline.kpi-followup {
-      grid-template-columns: minmax(0, 1fr) minmax(220px, .28fr);
+    .scoreline.execution-strip {
+      grid-template-columns: minmax(240px, 1fr) minmax(330px, .9fr) minmax(120px, .32fr) minmax(170px, .42fr);
       align-items: center;
       margin-top: 16px;
     }
 
-    .kpi-followup .score-actions {
+    .execution-strip .score-actions {
       align-content: stretch;
+    }
+
+    .exec-status-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .exec-status-pill {
+      min-width: 0;
+      min-height: 64px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+      padding: 10px 12px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      color: var(--ink);
+      transition: border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+    }
+
+    .exec-status-pill:hover {
+      border-color: rgba(23, 105, 224, .35);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    .exec-status-pill span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .035em;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .exec-status-pill strong {
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 950;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .exec-status-pill.green strong { color: #16a34a; }
+    .exec-status-pill.red strong { color: #ef4444; }
+
+    .exec-progress-box {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+    }
+
+    .exec-donut {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 56%, transparent 57%),
+        conic-gradient(#16a34a calc(var(--pct) * 1%), #eef2f6 0);
+      border: 1px solid var(--line);
+    }
+
+    .exec-donut strong {
+      font-size: 14px;
+      font-weight: 950;
+      color: var(--ink);
+    }
+
+    .exec-progress-box small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
     }
 
     .scoreline-copy {
@@ -2054,6 +2135,14 @@ HTML = r"""<!doctype html>
       border-bottom: 1px solid var(--line);
       background: #fff;
       overflow: hidden;
+    }
+
+    .kpi-head-district {
+      position: relative;
+      z-index: 1;
+      min-height: 36px;
+      padding: 8px 12px;
+      white-space: nowrap;
     }
 
     .kpi-monitor-head .head-watermark {
@@ -4395,7 +4484,9 @@ HTML = r"""<!doctype html>
       .district-preview { position: static; }
       .dashboard-module-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .scoreline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scoreline.execution-strip { grid-template-columns: 1fr; }
       .scoreline-copy, .score-actions { grid-column: 1 / -1; }
+      .exec-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
@@ -4437,6 +4528,7 @@ HTML = r"""<!doctype html>
       .kpi-monitor-grid { grid-template-columns: 1fr; }
       .kpi-monitor-head { grid-template-columns: 46px minmax(0, 1fr); }
       .kpi-monitor-head .mini-button { grid-column: 1 / -1; justify-self: start; }
+      .exec-status-grid { grid-template-columns: 1fr; }
       .annual-plan { grid-column: 1 / -1; text-align: left; }
       .quarter-matrix { grid-template-columns: 1fr; }
       .quarter-row { min-height: 0; }
@@ -5401,21 +5493,38 @@ HTML = r"""<!doctype html>
       const selected = currentKpiDef();
       const moduleKpis = dashboardKpisForModule(state.dashboardModule);
       const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
-      const districtKpi = kpiHasAnyDistrictData(selected.id)
-        ? selected.id
-        : moduleKpis.find(def => kpiHasAnyDistrictData(def.id))?.id || selected.id;
-      const districtActionText = selected.id === districtKpi ? "Туманлар кесими" : "Таркибий KPIлар кесими";
-      const followupNote = selected.id === districtKpi
-        ? "Бу экранда KPIнинг режа, амалдаги натижа ва чораклар кесими қолади. Топшириқлар алоҳида экранда юритилади."
-        : `${selected.short} учун туман кесими тўғридан-тўғри эмас, таркибий KPIлар орқали кўрилади. Топшириқлар алоҳида экранда юритилади.`;
-      const scorelineHtml = `<div class="scoreline kpi-followup">
+      const moduleTasks = DATA.tasks.filter(t => t.module === state.dashboardModule);
+      const moduleTotal = moduleTasks.length;
+      const moduleDone = moduleTasks.filter(t => t.status === "green").length;
+      const moduleOpen = moduleTotal - moduleDone;
+      const modulePct = moduleTotal > 0 ? Math.round(moduleDone / moduleTotal * 100) : 0;
+      const taskScope = `${selected.short}га оид топшириқлар`;
+      const scorelineHtml = `<div class="scoreline execution-strip">
           <div class="scoreline-copy">
-            <span>Кейинги ҳаракат</span>
-            <strong>${selected.short} мониторингини давом эттириш</strong>
-            <small>${followupNote}</small>
+            <span>Ижро ҳолати</span>
+            <strong>${taskScope}</strong>
+            <small>${selectedModule?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш"} бўйича топшириқлар ҳолати. KPI мониторинги юқорида, топшириқлар назорати шу ерда қисқа кўрсатилади.</small>
+          </div>
+          <div class="exec-status-grid">
+            <button class="exec-status-pill" type="button" data-scoreline-status="all">
+              <span>Жами</span>
+              <strong>${moduleTotal}</strong>
+            </button>
+            <button class="exec-status-pill green" type="button" data-scoreline-status="done">
+              <span>Бажарилди</span>
+              <strong>${moduleDone}</strong>
+            </button>
+            <button class="exec-status-pill red" type="button" data-scoreline-status="open">
+              <span>Бажарилмади</span>
+              <strong>${moduleOpen}</strong>
+            </button>
+          </div>
+          <div class="exec-progress-box">
+            <div class="exec-donut" style="--pct:${modulePct}"><strong>${modulePct}%</strong></div>
+            <small>бажарилиш</small>
           </div>
           <div class="score-actions">
-            <button class="score-action primary" type="button" data-open-districts="${districtKpi}">${districtActionText}</button>
+            <button class="score-action primary" type="button" data-scoreline-status="all">Топшириқларни кўриш</button>
             <button class="score-action" type="button" data-open-execution data-exec-kpi="${selected.id}">Ижро журнали</button>
           </div>
         </div>`;
@@ -5466,6 +5575,24 @@ HTML = r"""<!doctype html>
         state.page = "profile";
         render();
       }));
+      const goToScorelineTasks = status => {
+        state.taskModule = state.dashboardModule;
+        state.taskStatus = status;
+        state.kpi = "all";
+        state.taskDistrict = "all";
+        state.taskPeriod = "all";
+        state.page = "tasks";
+        render();
+      };
+      $$("[data-scoreline-status]", $("#dashboardPage")).forEach(card => {
+        card.addEventListener("click", () => goToScorelineTasks(card.dataset.scorelineStatus));
+        card.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            goToScorelineTasks(card.dataset.scorelineStatus);
+          }
+        });
+      });
     }
 
     function signalBarWidth(def, row) {
@@ -5513,8 +5640,21 @@ HTML = r"""<!doctype html>
       </div>`;
     }
 
+    function dashboardDistrictRoute(def) {
+      const moduleKpis = dashboardKpisForModule(dashboardModuleForKpi(def.id));
+      const kpiId = kpiHasAnyDistrictData(def.id)
+        ? def.id
+        : moduleKpis.find(item => kpiHasAnyDistrictData(item.id))?.id || null;
+      if (!kpiId) return null;
+      return {
+        kpiId,
+        label: def.id === kpiId ? "Туманлар кесими" : "Таркибий KPIлар кесими"
+      };
+    }
+
     function kpiDashboardCard(def) {
       const growthOnly = def.id === "grp" || macroComponentDefs.some(item => item.id === def.id);
+      const districtRoute = dashboardDistrictRoute(def);
       const quarters = [
         ["I чорак", "q1"],
         ["II чорак", "h1"],
@@ -5544,6 +5684,7 @@ HTML = r"""<!doctype html>
             <h3>${def.short}</h3>
             <p>${def.label}</p>
           </div>
+          ${districtRoute ? `<button class="mini-button primary kpi-head-district" type="button" data-open-districts="${districtRoute.kpiId}">${districtRoute.label}</button>` : ""}
           <div class="head-watermark" aria-hidden="true">${icon(def.icon)}</div>
         </div>
         ${def.id === "inflation" ? "" : `<div class="quarter-matrix">
