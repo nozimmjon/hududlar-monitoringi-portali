@@ -473,6 +473,16 @@
       box-shadow: var(--shadow);
     }
 
+    .scoreline.kpi-followup {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, .28fr);
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .kpi-followup .score-actions {
+      align-content: stretch;
+    }
+
     .scoreline-copy {
       min-width: 0;
       display: grid;
@@ -4841,57 +4851,24 @@
         if (!allowed.some(def => def.id === state.kpi)) state.kpi = allowed[0]?.id || "grp";
       }
       const selected = currentKpiDef();
-      const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
       const moduleKpis = dashboardKpisForModule(state.dashboardModule);
-      const moduleTasks = DATA.tasks.filter(t => t.module === state.dashboardModule);
-      const moduleTotal = moduleTasks.length;
-      const moduleDone = moduleTasks.filter(t => t.status === "green").length;
-      const moduleLeft = moduleTotal - moduleDone;
-      const modulePct = moduleTotal > 0 ? Math.round(moduleDone / moduleTotal * 100) : 0;
-      const scoreR = 26, scoreCx = 35, scoreCy = 35;
-      const scoreCirc = 2 * Math.PI * scoreR;
-      const scoreGreen = scoreCirc * (modulePct / 100);
-      const scoreRed = scoreCirc * ((100 - modulePct) / 100);
-      const scoreRedStart = -90 + (modulePct / 100) * 360;
-      const scorelineTitle = selectedModule?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш";
-      const scorelineHtml = `<div class="scoreline">
+      const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
+      const districtKpi = kpiHasAnyDistrictData(selected.id)
+        ? selected.id
+        : moduleKpis.find(def => kpiHasAnyDistrictData(def.id))?.id || selected.id;
+      const districtActionText = selected.id === districtKpi ? "Туманлар кесими" : "Таркибий KPIлар кесими";
+      const followupNote = selected.id === districtKpi
+        ? "Бу экранда KPIнинг режа, амалдаги натижа ва чораклар кесими қолади. Топшириқлар алоҳида экранда юритилади."
+        : `${selected.short} учун туман кесими тўғридан-тўғри эмас, таркибий KPIлар орқали кўрилади. Топшириқлар алоҳида экранда юритилади.`;
+      const scorelineHtml = `<div class="scoreline kpi-followup">
           <div class="scoreline-copy">
-            <span>Топшириқлар ҳолати</span>
-            <strong>${scorelineTitle}</strong>
-            <small>KPIга боғланган топшириқлар: бажарилган, бажарилмаган ва кейинги назорат нуқтаси.</small>
-          </div>
-          <div class="score" role="button" tabindex="0" data-scoreline-status="all">
-            <div class="score-label">Жами топшириқлар</div>
-            <div class="score-chart-wrap">
-              <svg viewBox="0 0 70 70" fill="none">
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#eaeaea" stroke-width="6"/>
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#22c55e" stroke-width="6"
-                  stroke-dasharray="${scoreGreen} ${scoreCirc}" stroke-linecap="butt"
-                  transform="rotate(-90 ${scoreCx} ${scoreCy})"/>
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#ef4444" stroke-width="6"
-                  stroke-dasharray="${scoreRed} ${scoreCirc}" stroke-linecap="butt"
-                  transform="rotate(${scoreRedStart} ${scoreCx} ${scoreCy})"/>
-              </svg>
-              <div class="score-pct">${modulePct}%</div>
-            </div>
-            <div class="score-legend">
-              <div class="score-leg-item"><div class="score-leg-dot" style="background:#22c55e"></div>Бажарилди</div>
-              <div class="score-leg-item"><div class="score-leg-dot" style="background:#ef4444"></div>Бажарилмади</div>
-            </div>
-            <div class="score-num">${moduleTotal}</div>
-          </div>
-          <div class="score" role="button" tabindex="0" data-scoreline-status="done">
-            <div class="score-label">Бажарилди</div>
-            <div class="score-num" style="color:#22c55e">${moduleDone}</div>
-          </div>
-          <div class="score" role="button" tabindex="0" data-scoreline-status="open">
-            <div class="score-label">Бажарилмади</div>
-            <div class="score-num" style="color:#ef4444">${moduleLeft}</div>
+            <span>Кейинги ҳаракат</span>
+            <strong>${selected.short} мониторингини давом эттириш</strong>
+            <small>${followupNote}</small>
           </div>
           <div class="score-actions">
-            <button class="score-action primary" type="button" data-open-districts="${selected.id}">Туманлар кесими</button>
+            <button class="score-action primary" type="button" data-open-districts="${districtKpi}">${districtActionText}</button>
             <button class="score-action" type="button" data-open-execution data-exec-kpi="${selected.id}">Ижро журнали</button>
-            <button class="score-action" type="button" data-scoreline-status="all">Топшириқлар</button>
           </div>
         </div>`;
       const isMacro = state.dashboardModule === "macro";
@@ -4941,24 +4918,6 @@
         state.page = "profile";
         render();
       }));
-      const goToScorelineTasks = status => {
-        state.taskModule = state.dashboardModule;
-        state.taskStatus = status;
-        state.kpi = "all";
-        state.taskDistrict = "all";
-        state.taskPeriod = "all";
-        state.page = "tasks";
-        render();
-      };
-      $$("[data-scoreline-status]", $("#dashboardPage")).forEach(card => {
-        card.addEventListener("click", () => goToScorelineTasks(card.dataset.scorelineStatus));
-        card.addEventListener("keydown", event => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            goToScorelineTasks(card.dataset.scorelineStatus);
-          }
-        });
-      });
     }
 
     function signalBarWidth(def, row) {
@@ -6773,8 +6732,7 @@
             ${renderSelectedDistrictSummaryCard(selectedDistrict, kpi, cfg, period)}
             ${renderDistrictLeaderboard(visibleRanked, kpi, period, selectedDistrict, maxAbs)}
           </aside>
-        </div>
-        ${renderSelectedDistrictCard(selectedDistrict, kpi, cfg, period)}`;
+        </div>`;
       $("#districtKpiSelect").addEventListener("change", event => {
         state.kpi = event.target.value;
         render();
@@ -7136,16 +7094,16 @@
       $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks"].includes(state.page));
       $("#sectorFilter").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
       $("#searchBox").classList.toggle("hidden", ["dashboard", "districts", "profile"].includes(state.page));
-      setPageMeta();
       $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === state.page));
       ["dashboard", "tasks", "districts", "profile", "execution"].forEach(page => {
         $(`#${page}Page`).classList.toggle("hidden", page !== state.page);
       });
-      renderDashboard();
-      renderTasksPage();
-      renderDistrictsPage();
-      renderProfilePage();
-      renderExecutionPage();
+      if (state.page === "dashboard") renderDashboard();
+      if (state.page === "tasks") renderTasksPage();
+      if (state.page === "districts") renderDistrictsPage();
+      if (state.page === "profile") renderProfilePage();
+      if (state.page === "execution") renderExecutionPage();
+      setPageMeta();
       if (pageChanged) {
         renderedPage = state.page;
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
