@@ -3932,6 +3932,10 @@ HTML = r"""<!doctype html>
       grid-template-columns: minmax(220px, .9fr) minmax(240px, 1fr) minmax(150px, .55fr) minmax(220px, .85fr);
     }
 
+    .task-filter.report-filter.execution-filter {
+      grid-template-columns: repeat(5, minmax(135px, 1fr)) auto;
+    }
+
     .task-summary-strip {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4552,6 +4556,261 @@ HTML = r"""<!doctype html>
       line-height: 1.35;
     }
 
+    .execution-command {
+      display: grid;
+      grid-template-columns: minmax(260px, .85fr) minmax(420px, 1.2fr) minmax(190px, .45fr);
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .execution-command-copy {
+      display: grid;
+      align-content: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .execution-command-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .execution-command-copy strong {
+      color: var(--ink);
+      font-size: 19px;
+      line-height: 1.16;
+    }
+
+    .execution-command-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-status-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .execution-status-btn {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+      padding: 10px 11px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      color: var(--ink);
+      transition: border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+    }
+
+    .execution-status-btn:hover {
+      border-color: rgba(23, 105, 224, .35);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    .execution-status-btn.active {
+      border-color: rgba(23, 105, 224, .42);
+      background: #eef6ff;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, .12);
+    }
+
+    .execution-status-btn span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .025em;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .execution-status-btn strong {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 950;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .execution-status-btn.green strong { color: #16a34a; }
+    .execution-status-btn.amber strong { color: #d97706; }
+    .execution-status-btn.red strong { color: #ef4444; }
+    .execution-status-btn.blue strong { color: var(--blue); }
+
+    .execution-actions {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .execution-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .execution-step {
+      display: grid;
+      gap: 5px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.84);
+    }
+
+    .execution-step span {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .execution-step strong {
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .execution-step small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .42fr);
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .execution-lane {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 14px 28px rgba(16, 48, 82, .07);
+    }
+
+    .execution-lane-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .execution-lane-head h3 {
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .execution-card-list {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .execution-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .execution-card header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .execution-card strong {
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .execution-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .execution-impact {
+      display: grid;
+      gap: 10px;
+    }
+
+    .impact-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .impact-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .impact-row strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .impact-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .execution-empty {
+      padding: 18px;
+      border: 1px dashed #cbd8e8;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .history-list {
       display: grid;
       gap: 6px;
@@ -4599,6 +4858,8 @@ HTML = r"""<!doctype html>
       .profile-filter { align-items: stretch; flex-direction: column; }
       .district-workspace, .district-context { grid-template-columns: 1fr; }
       .task-workspace, .task-filter, .task-filter.report-filter, .task-summary-strip, .workflow-strip { grid-template-columns: 1fr; }
+      .execution-command, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
+      .execution-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .modal-grid, .report-context { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid { grid-template-columns: 1fr; }
       .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -4645,6 +4906,7 @@ HTML = r"""<!doctype html>
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
       .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .execution-command, .execution-status-grid, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
       .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
@@ -7799,32 +8061,94 @@ HTML = r"""<!doctype html>
     function renderExecutionPage() {
       const reports = filteredExecutionReports();
       const allReports = getExecutionReports();
-      const approved = allReports.filter(r => r.status === "approved").length;
-      const review = allReports.filter(r => r.status === "review" || r.status === "rejected").length;
-      const submitted = allReports.filter(r => r.status === "submitted").length;
-      $("#executionPage").innerHTML = `
-        <div class="district-context">
+      const approvedReports = allReports.filter(r => r.status === "approved");
+      const submittedReports = allReports.filter(r => r.status === "submitted");
+      const reviewReports = allReports.filter(r => r.status === "review");
+      const rejectedReports = allReports.filter(r => r.status === "rejected");
+      const queueReports = allReports.filter(r => r.status === "submitted" || r.status === "review").slice(0, 5);
+      const visibleQueue = queueReports.length ? queueReports : allReports.slice(0, 5);
+      const approved = approvedReports.length;
+      const submitted = submittedReports.length;
+      const review = reviewReports.length;
+      const rejected = rejectedReports.length;
+      const approvedPct = allReports.length ? Math.round(approved / allReports.length * 100) : 0;
+      const impactMap = new Map();
+      approvedReports.forEach(report => {
+        const key = report.kpiLabel || report.kpi || "KPI";
+        const current = impactMap.get(key) || { label: key, count: 0, latest: report };
+        current.count += 1;
+        current.latest = report;
+        impactMap.set(key, current);
+      });
+      const impactRows = [...impactMap.values()].slice(0, 5);
+      const statusButton = (id, label, count, tone = "") => `<button class="execution-status-btn ${tone} ${state.reportStatus === id ? "active" : ""}" type="button" data-report-status-filter="${id}"><span>${label}</span><strong>${count}</strong></button>`;
+      const reportCard = report => `<article class="execution-card">
+        <header>
           <div>
-            <div class="eyebrow">Ижро мониторинги</div>
-            <h3>Ижро ҳисоботлари журнали</h3>
-            <p>Ҳар бир киритилган амалдаги натижа шу ерда текширилади. “Тасдиқланди” ҳолатига ўтмагунча у KPI натижасига қўшилмайди.</p>
+            <strong>${h(report.district)} · ${h(report.kpiLabel)}</strong>
+            <p>${h(report.taskTitle || report.comment || "Топшириқ танланмаган")}</p>
           </div>
-          <div class="district-context-actions">
-            <button class="mini-button primary" data-open-report-modal>+ Ҳисобот киритиш</button>
+          <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
+        </header>
+        <div class="execution-card-meta">
+          <span>${h(report.periodLabel || report.period || "давр йўқ")}</span>
+          <span>амалда: ${h(report.actualValue || "—")} ${h(report.unit || "")}</span>
+          <span>${h(report.createdBy || report.responsible || "киритувчи йўқ")}</span>
+        </div>
+        <div class="action-row compact">
+          ${report.status !== "approved" ? `<button class="mini-button primary" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
+          ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Қайта кўриш</button>` : ""}
+          ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
+        </div>
+      </article>`;
+      $("#executionPage").innerHTML = `
+        <div class="execution-command">
+          <div class="execution-command-copy">
+            <span>Ижро мониторинги</span>
+            <strong>Ҳисоботдан KPI амалда қийматигача</strong>
+            <small>Ҳар бир ҳисобот аввал журналга тушади. Фақат тасдиқланган ҳисобот KPI “амалда” қийматига қўшилади.</small>
+          </div>
+          <div class="execution-status-grid">
+            ${statusButton("all", "Жами", allReports.length)}
+            ${statusButton("submitted", "Киритилди", submitted, "blue")}
+            ${statusButton("review", "Қайта кўришда", review, "amber")}
+            ${statusButton("approved", "Тасдиқланди", approved, "green")}
+            ${statusButton("rejected", "Қайтарилди", rejected, "red")}
+          </div>
+          <div class="execution-actions">
+            <button class="score-action primary" type="button" data-open-report-modal>Ҳисобот киритиш</button>
+            <button class="score-action" type="button" data-clear-report-filters>Фильтрни тозалаш</button>
           </div>
         </div>
-        <div class="task-summary-strip">
-          <div class="small-stat"><span>Жами ҳисобот</span><strong>${allReports.length}</strong><small>браузерда сақланган журнал</small></div>
-          <div class="small-stat"><span>Тасдиқланди</span><strong>${approved}</strong><small>KPI “амалда” қийматига ўтган</small></div>
-          <div class="small-stat"><span>Қайта кўриш / қайтарилди</span><strong>${review}</strong><small>KPIга ўтмаган ҳисоботлар</small></div>
-          <div class="small-stat"><span>Киритилди</span><strong>${submitted}</strong><small>тасдиқ кутаётган ҳисоботлар</small></div>
+        <div class="execution-flow">
+          <div class="execution-step"><span>1</span><strong>Ҳисобот киритилади</strong><small>Туман/шаҳар KPI, топшириқ, факт ва далилни киритади.</small></div>
+          <div class="execution-step"><span>2</span><strong>Журналга тушади</strong><small>Ҳолат автоматик равишда “Киритилди” бўлади.</small></div>
+          <div class="execution-step"><span>3</span><strong>Вилоят текширади</strong><small>Тасдиқлаш, қайта кўриш ёки қайтариш амалга оширилади.</small></div>
+          <div class="execution-step"><span>4</span><strong>KPIга қўшилади</strong><small>Фақат тасдиқланган ҳисобот “амалда” қийматга ўтади.</small></div>
         </div>
-        <div class="workflow-strip">
-          <div class="workflow-step"><span>1</span><strong>Ҳисобот киритилади</strong><small>Туман KPI бўйича амалдаги натижа, бирлик ва далилни киритади.</small></div>
-          <div class="workflow-step"><span>2</span><strong>Текширилади</strong><small>Маълумот қабул қилинади, қайта кўришга юборилади ёки қайтарилади.</small></div>
-          <div class="workflow-step"><span>3</span><strong>KPIга ўтади</strong><small>Фақат “Тасдиқланди” ҳолатидаги ҳисобот мониторингда амалдаги қиймат бўлади.</small></div>
+        <div class="execution-workspace">
+          <section class="execution-lane">
+            <div class="execution-lane-head">
+              <h3>${queueReports.length ? "Текшириш навбати" : "Сўнгги ҳисоботлар"}</h3>
+              <span class="chip ${queueReports.length ? "blue" : "grey"}">${visibleQueue.length} та</span>
+            </div>
+            <div class="execution-card-list">
+              ${visibleQueue.length ? visibleQueue.map(reportCard).join("") : `<div class="execution-empty">Ҳали ҳисобот киритилмаган. Биринчи ҳисоботни “Ҳисобот киритиш” орқали киритинг.</div>`}
+            </div>
+          </section>
+          <aside class="task-focus">
+            <div class="eyebrow">KPIга қўшилган ҳисоботлар</div>
+            <h3>${approvedPct}% тасдиқланган</h3>
+            <p>Тасдиқланган ҳисоботлар KPI мониторингида амалдаги натижа сифатида ишлатилади. Қайта кўриш ва қайтарилган ҳисоботлар KPIга қўшилмайди.</p>
+            <div class="execution-impact">
+              <div class="impact-row"><div><strong>Тасдиқланган</strong><span>KPI амалда қийматига қўшилган</span></div><span class="chip green">${approved}</span></div>
+              <div class="impact-row"><div><strong>Кутилаётган</strong><span>киритилган ёки қайта кўришда</span></div><span class="chip blue">${submitted + review}</span></div>
+              <div class="impact-row"><div><strong>Қайтарилган</strong><span>KPIга қўшилмайди</span></div><span class="chip red">${rejected}</span></div>
+              ${impactRows.length ? impactRows.map(row => `<div class="impact-row"><div><strong>${h(row.label)}</strong><span>${h(row.latest.district)} · ${h(row.latest.periodLabel || "")}</span></div><span class="chip green">${row.count}</span></div>`).join("") : `<div class="execution-empty">Тасдиқланган ҳисобот йўқ.</div>`}
+            </div>
+          </aside>
         </div>
-        <div class="task-filter report-filter">
+        <div class="task-filter report-filter execution-filter">
           <label>KPI
             <select id="reportKpiFilter">
               <option value="all" ${state.sector === "all" ? "selected" : ""}>Барча KPI</option>
@@ -7862,8 +8186,8 @@ HTML = r"""<!doctype html>
         </div>
         <article class="panel">
           <div class="panel-head">
-            <div><h3>Ҳисоботлар</h3><p>${reports.length} / ${allReports.length} та ҳисобот кўрсатилмоқда.</p></div>
-            <span class="chip blue">ҳисобот киритиш</span>
+            <div><h3>Батафсил журнал</h3><p>${reports.length} / ${allReports.length} та ҳисобот кўрсатилмоқда. Бу ерда ҳар бир ҳисоботнинг ҳолати, далили ва KPIга қўшилган-қўшилмагани кўринади.</p></div>
+            <span class="chip blue">ҳисоботлар журнали</span>
           </div>
           <div class="panel-body">
             ${reports.length ? `<div class="table-scroll">
@@ -7879,7 +8203,7 @@ HTML = r"""<!doctype html>
                   <td><strong>${h(report.createdBy || report.responsible || "—")}</strong><br><span class="muted">${report.checkedBy ? `Текширди: ${h(report.checkedBy)}` : "текширув кутилмоқда"}</span></td>
                   <td>
                     <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
-                    <div style="margin-top:6px"><span class="chip ${reportImpactClass(report)}">${reportImpactLabel(report)}</span></div>
+                    <div style="margin-top:6px"><span class="chip ${reportImpactClass(report)}">${report.status === "approved" ? "KPIга қўшилди" : "KPIга қўшилмади"}</span></div>
                     <div class="history-list">${reportHistory(report).slice(0, 3).map(item => `<span>${h(reportStatusLabel(item.status))} · ${h(item.actor || "—")} · ${h((item.at || "").slice(0, 10))}</span>`).join("")}</div>
                   </td>
                   <td>${h(report.evidenceName || "—")}<br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span></td>
@@ -7892,7 +8216,7 @@ HTML = r"""<!doctype html>
                   </td>
                 </tr>`).join("")}</tbody>
               </table>
-            </div>` : `<div class="empty"><b>Ҳисобот киритилмаган</b><br>“+ Ҳисобот киритиш” тугмаси орқали биринчи ижро ҳисоботини киритинг.</div>`}
+            </div>` : `<div class="execution-empty"><b>Ҳисобот киритилмаган</b><br>“Ҳисобот киритиш” тугмаси орқали биринчи ижро ҳисоботини киритинг.</div>`}
           </div>
         </article>`;
       $("#reportKpiFilter").addEventListener("change", event => {
@@ -7924,6 +8248,10 @@ HTML = r"""<!doctype html>
         state.search = "";
         render();
       }));
+      $$("[data-report-status-filter]", $("#executionPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.reportStatus = btn.dataset.reportStatusFilter;
+        render();
+      }));
       $$("[data-report-status]", $("#executionPage")).forEach(btn => btn.addEventListener("click", () => {
         const [id, status] = btn.dataset.reportStatus.split(":");
         openStatusModal(id, status);
@@ -7947,9 +8275,9 @@ HTML = r"""<!doctype html>
       const pageChanged = renderedPage !== state.page;
       renderPeriodTabs();
       renderSectorFilter();
-      $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks"].includes(state.page));
+      $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks", "execution"].includes(state.page));
       $("#sectorFilter").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
-      $("#searchBox").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile"].includes(state.page));
+      $("#searchBox").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
       $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === state.page));
       ["dashboard", "tasks", "districts", "profile", "execution"].forEach(page => {
         $(`#${page}Page`).classList.toggle("hidden", page !== state.page);
