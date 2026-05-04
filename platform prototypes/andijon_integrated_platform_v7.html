@@ -714,6 +714,10 @@
       grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
+    .front-kpis.module-kpis.employment-layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .front-kpis.module-kpis.macro-layout .front-kpi {
       min-height: 138px;
     }
@@ -1143,6 +1147,10 @@
 
     .district-table-wrap {
       overflow-x: auto;
+    }
+
+    .district-detail-table {
+      margin-top: 16px;
     }
 
     .district-table {
@@ -1880,6 +1888,1125 @@
       min-height: 16px;
     }
 
+    .macro-growth-panel {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .macro-growth-overview {
+      display: grid;
+      grid-template-columns: minmax(220px, .7fr) minmax(0, 1.7fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .macro-annual-card,
+    .macro-period-card,
+    .macro-composition-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      min-width: 0;
+    }
+
+    .macro-annual-card {
+      padding: 18px 18px 16px;
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .macro-annual-card span,
+    .macro-period-card span,
+    .macro-composition-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .macro-annual-card strong {
+      color: var(--blue);
+      font-size: clamp(38px, 4vw, 58px);
+      line-height: .95;
+      letter-spacing: -0.04em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-annual-card small,
+    .macro-period-card small,
+    .macro-composition-card small {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+
+    .macro-period-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .macro-period-card {
+      padding: 14px;
+      display: grid;
+      gap: 9px;
+      align-content: start;
+    }
+
+    .macro-period-card.actual { border-color: rgba(23, 105, 224, .24); }
+    .macro-period-card.planned { border-color: rgba(100, 116, 139, .18); }
+
+    .macro-period-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .macro-period-head b {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .macro-period-card strong {
+      color: var(--ink);
+      font-size: clamp(24px, 2.4vw, 36px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-mini-bar {
+      display: block;
+      height: 6px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .macro-mini-bar i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .macro-composition-panel {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .macro-composition-panel > summary {
+      list-style: none;
+    }
+
+    .macro-composition-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .macro-composition-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .macro-composition-head strong {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-composition-head small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .macro-dropdown-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .macro-dropdown-caret {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--blue);
+      transition: transform var(--motion), border-color var(--motion), background var(--motion);
+    }
+
+    .macro-composition-panel[open] .macro-dropdown-caret {
+      transform: rotate(180deg);
+      border-color: rgba(30, 86, 168, .28);
+      background: var(--blue-soft);
+    }
+
+    .macro-composition-body {
+      display: grid;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .macro-composition-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .macro-composition-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .macro-composition-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      gap: 8px;
+      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .macro-composition-card:hover,
+    .macro-composition-card.active {
+      border-color: rgba(23, 105, 224, .26);
+      background: #f7fbff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .macro-composition-card strong {
+      color: var(--blue);
+      font-size: clamp(24px, 2.2vw, 34px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-composition-bar {
+      display: block;
+      height: 7px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .macro-composition-bar i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .kpi-monitor-card.macro-layout-card {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .kpi-monitor-card.macro-layout-card .kpi-monitor-head {
+      display: none;
+    }
+
+    .kpi-monitor-card.macro-layout-card:hover {
+      box-shadow: none;
+    }
+
+    .macro-layout-card .macro-growth-panel {
+      padding: 0;
+      border-top: 0;
+      background: transparent;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 16px;
+    }
+
+    .macro-layout-card .macro-growth-panel.with-side {
+      grid-template-columns: minmax(0, 1.04fr) minmax(340px, .7fr);
+    }
+
+    .macro-main-panel,
+    .industry-driver-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+
+    .macro-main-panel {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .macro-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .macro-section-title strong {
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-section-title span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .macro-hero-card {
+      position: relative;
+      min-height: 170px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 210px;
+      align-items: center;
+      gap: 22px;
+      padding: 28px 34px;
+      border: 1px solid rgba(19, 126, 61, .18);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f5fbf7 0%, #eff8f3 100%);
+      overflow: hidden;
+    }
+
+    .macro-hero-copy {
+      display: grid;
+      gap: 6px;
+      text-align: center;
+      justify-items: center;
+    }
+
+    .macro-hero-copy span {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .macro-hero-copy strong {
+      color: #08742d;
+      font-size: clamp(48px, 5vw, 72px);
+      line-height: .9;
+      letter-spacing: -0.055em;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-hero-copy small {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .macro-target-visual {
+      position: relative;
+      height: 150px;
+      display: grid;
+      place-items: center;
+    }
+
+    .macro-target-visual::before,
+    .macro-target-visual::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      border: 11px solid rgba(15, 135, 58, .62);
+    }
+
+    .macro-target-visual::before {
+      width: 112px;
+      height: 112px;
+    }
+
+    .macro-target-visual::after {
+      width: 63px;
+      height: 63px;
+      border-width: 10px;
+    }
+
+    .macro-target-dot {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0f873a;
+      z-index: 2;
+    }
+
+    .macro-target-arrow {
+      position: absolute;
+      width: 82px;
+      height: 10px;
+      border-radius: 999px;
+      background: #0f873a;
+      transform: rotate(-42deg) translate(34px, -20px);
+      transform-origin: center;
+      z-index: 3;
+    }
+
+    .macro-target-arrow::after {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: -8px;
+      border-left: 18px solid #0f873a;
+      border-top: 13px solid transparent;
+      border-bottom: 13px solid transparent;
+    }
+
+    .macro-target-bars {
+      position: absolute;
+      left: 10px;
+      bottom: 22px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      opacity: .14;
+    }
+
+    .macro-target-bars i {
+      display: block;
+      width: 18px;
+      background: #0f873a;
+    }
+
+    .macro-target-bars i:nth-child(1) { height: 30px; }
+    .macro-target-bars i:nth-child(2) { height: 48px; }
+    .macro-target-bars i:nth-child(3) { height: 66px; }
+
+    .macro-layout-card .macro-growth-overview {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .macro-layout-card .macro-period-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .macro-layout-card .macro-period-card {
+      min-height: 128px;
+      justify-items: center;
+      text-align: center;
+      background: #f9fbfd;
+    }
+
+    .macro-layout-card .macro-period-card.actual {
+      background: #f2fbf5;
+      border-color: rgba(15, 135, 58, .18);
+    }
+
+    .macro-layout-card .macro-period-card strong {
+      color: var(--blue);
+      font-size: clamp(28px, 2.5vw, 38px);
+    }
+
+    .macro-layout-card .macro-period-card.actual strong {
+      color: #08742d;
+    }
+
+    .macro-layout-card .macro-period-head {
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+    }
+
+    .macro-layout-card .macro-mini-bar {
+      display: none;
+    }
+
+    .macro-layout-card .macro-composition-panel {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: none;
+      background: #f9fbfd;
+    }
+
+    .macro-layout-card .macro-composition-head {
+      align-items: center;
+    }
+
+    .macro-layout-card .macro-composition-body {
+      margin-top: 12px;
+    }
+
+    .macro-layout-card .macro-composition-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .macro-layout-card .macro-composition-card {
+      grid-template-columns: 40px minmax(150px, .5fr) minmax(180px, 1fr) 78px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .macro-layout-card .macro-composition-card:hover,
+    .macro-layout-card .macro-composition-card.active {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .macro-comp-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .macro-comp-icon svg {
+      width: 21px;
+      height: 21px;
+      stroke-width: 1.8;
+    }
+
+    .macro-comp-name {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .macro-layout-card .macro-composition-card strong.macro-comp-value {
+      color: #08742d;
+      font-size: 20px;
+      text-align: right;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-layout-card .macro-composition-bar {
+      height: 14px;
+      background: #eef3f7;
+    }
+
+    .macro-layout-card .macro-composition-bar i {
+      background: var(--macro-color, var(--blue));
+    }
+
+    .industry-driver-panel {
+      padding: 24px 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .industry-driver-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .industry-driver-head strong {
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .industry-driver-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .industry-driver-card {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) 18px;
+      gap: 14px;
+      align-items: start;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .industry-driver-card:hover {
+      border-color: rgba(23, 105, 224, .25);
+      background: #f9fbfd;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .driver-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+    }
+
+    .driver-icon svg {
+      width: 30px;
+      height: 30px;
+      stroke-width: 2;
+    }
+
+    .driver-icon.green { color: #08742d; background: #eef9f1; }
+    .driver-icon.blue { color: var(--blue); background: #eef5ff; }
+    .driver-icon.orange { color: #d35a0f; background: #fff3ea; }
+
+    .industry-driver-arrow {
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1;
+      padding-top: 5px;
+    }
+
+    .industry-driver-body {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .industry-driver-title strong {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .industry-driver-title span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.3;
+    }
+
+    .industry-driver-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .industry-driver-divider {
+      width: 1px;
+      height: 48px;
+      background: var(--line);
+      align-self: center;
+    }
+
+    .industry-driver-metric {
+      display: grid;
+      gap: 4px;
+    }
+
+    .industry-driver-metric span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .industry-driver-metric strong {
+      color: var(--blue);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.012em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .industry-driver-metric small {
+      color: var(--muted);
+      font-size: 10.8px;
+      line-height: 1.25;
+    }
+
+    .industry-driver-card.green .industry-driver-metric strong { color: #08742d; }
+    .industry-driver-card.orange .industry-driver-metric strong { color: #d35a0f; }
+
+    .industry-driver-panel .mini-button {
+      width: 100%;
+      justify-content: center;
+      min-height: 38px;
+      color: var(--blue-dark);
+      border-color: var(--blue);
+      background: #fff;
+    }
+
+    .budget-invest-panel {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 16px;
+      background: linear-gradient(180deg, #fbfdff 0%, #fff 45%);
+      border-top: 1px solid var(--line);
+    }
+
+    .budget-invest-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .budget-invest-summary > div {
+      min-width: 0;
+      padding: 14px 16px;
+      border-right: 1px solid var(--line);
+    }
+
+    .budget-invest-summary > div:last-child { border-right: 0; }
+
+    .budget-invest-summary span,
+    .budget-period-card span,
+    .budget-dynamics-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .budget-invest-summary strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: clamp(21px, 2vw, 31px);
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -0.018em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-invest-summary small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .budget-invest-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .budget-periods-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .budget-period-card,
+    .budget-dynamics-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .budget-period-card {
+      display: grid;
+      gap: 11px;
+      align-content: start;
+    }
+
+    .budget-period-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .budget-period-top b {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .budget-period-card strong {
+      color: var(--ink);
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-period-card.actual { border-color: rgba(23, 105, 224, .24); }
+    .budget-period-card.expected { border-color: rgba(100, 116, 139, .22); }
+    .budget-period-card.missing {
+      background: #f8fafc;
+      border-style: dashed;
+    }
+
+    .budget-period-card.missing strong,
+    .budget-period-card.missing .budget-period-meta b {
+      color: var(--muted);
+    }
+
+    .budget-period-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .budget-period-meta b {
+      color: var(--ink);
+      font-size: 19px;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-progress {
+      height: 8px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .budget-progress i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c, var(--blue));
+    }
+
+    .budget-period-note {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.25;
+    }
+
+    .budget-dynamics-card {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      background: #fcfdff;
+    }
+
+    .budget-dynamics-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .budget-dynamics-head strong {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .budget-dynamics-svg {
+      width: 100%;
+      height: 116px;
+      display: block;
+    }
+
+    .budget-dynamics-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .budget-dynamics-list div {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .budget-dynamics-list i {
+      height: 5px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .budget-dynamics-list i::before {
+      content: "";
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c, var(--blue));
+    }
+
+    .budget-dynamics-list b {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-sector-panel {
+      display: grid;
+      gap: 16px;
+    }
+
+    .finance-sector-grid {
+      display: block;
+    }
+
+    .finance-active-pane {
+      min-width: 0;
+    }
+
+    .finance-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .finance-card.active {
+      border-color: rgba(30, 86, 168, .28);
+      box-shadow: 0 18px 42px rgba(15, 43, 77, .1);
+    }
+
+    .finance-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 92px;
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .finance-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+      flex: 0 0 auto;
+    }
+
+    .finance-icon.purple {
+      color: #6d45c4;
+      background: #f0ecff;
+    }
+
+    .finance-icon.green {
+      color: #0b8a65;
+      background: #eaf8f3;
+    }
+
+    .finance-icon.gold {
+      color: #b67805;
+      background: #fff5df;
+    }
+
+    .finance-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.9;
+    }
+
+    .finance-card-head strong {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.012em;
+      line-height: 1.18;
+    }
+
+    .finance-card-body {
+      display: grid;
+      gap: 18px;
+      padding: 20px 18px;
+      align-content: start;
+    }
+
+    .finance-card-body.two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .finance-section-title {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .finance-metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .finance-metric-row.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .finance-metric {
+      min-width: 0;
+    }
+
+    .finance-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .finance-metric strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: clamp(20px, 1.8vw, 28px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-metric.accent strong { color: var(--blue); }
+    .finance-metric.gold strong { color: #b67805; }
+
+    .finance-metric small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .finance-divider {
+      height: 1px;
+      background: var(--line);
+    }
+
+    .finance-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .finance-summary-tile,
+    .finance-quarter-cell {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfdff;
+      padding: 13px 14px;
+      min-width: 0;
+    }
+
+    .finance-summary-tile span,
+    .finance-quarter-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .finance-summary-tile strong,
+    .finance-quarter-cell strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: clamp(18px, 1.7vw, 24px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.018em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-summary-tile.accent strong,
+    .finance-quarter-cell.accent strong { color: var(--blue); }
+
+    .finance-summary-tile.purple strong,
+    .finance-quarter-cell.purple strong { color: #6d45c4; }
+
+    .finance-summary-tile.gold strong,
+    .finance-quarter-cell.gold strong { color: #b67805; }
+
+    .finance-summary-tile small,
+    .finance-quarter-cell small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .finance-quarter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .finance-source {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f7fbff;
+      color: var(--blue);
+      font-size: 11.5px;
+      line-height: 1.3;
+    }
+
+    .kpi-monitor-card > .finance-source {
+      margin: 14px 16px 16px;
+    }
+
+    .finance-action {
+      justify-self: stretch;
+      margin-top: 4px;
+    }
+
     .kpi-signal {
       padding: 14px 16px 4px;
       display: grid;
@@ -2024,6 +3151,10 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
+    }
+
+    .industry-driver-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .inflation-grid {
@@ -2211,6 +3342,13 @@
       padding: 14px 16px 16px;
     }
 
+    .data-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     .poverty-section {
       padding: 18px 20px 22px;
       display: grid;
@@ -2248,6 +3386,10 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .employment-driver-section .poverty-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .poverty-stat {
@@ -2454,11 +3596,13 @@
 
     @media (max-width: 1080px) {
       .poverty-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .employment-driver-section .poverty-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 640px) {
       .poverty-section { padding: 14px 14px 18px; }
       .poverty-stats { grid-template-columns: 1fr; }
+      .employment-driver-section .poverty-stats { grid-template-columns: 1fr; }
       .poverty-section .poverty-head { grid-template-columns: 1fr; }
     }
 
@@ -2494,7 +3638,7 @@
 
     .districts-head-actions {
       display: grid;
-      grid-template-columns: minmax(260px, 1fr) minmax(170px, .34fr) minmax(190px, .38fr);
+      grid-template-columns: minmax(170px, .45fr) minmax(240px, .65fr);
       gap: 10px;
       align-items: end;
       padding: 14px;
@@ -2502,6 +3646,153 @@
       border-radius: 16px;
       background: #fff;
       box-shadow: var(--shadow-sm);
+    }
+
+    .district-module-tabs {
+      margin-bottom: 12px;
+    }
+
+    .district-kpi-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .district-kpi-option {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 11px 12px;
+      text-align: left;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
+    }
+
+    .district-kpi-option:hover,
+    .district-kpi-option.active {
+      border-color: rgba(23, 105, 224, .44);
+      background: #f7fbff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .district-kpi-option.active {
+      box-shadow: inset 0 -3px 0 var(--blue), var(--shadow-sm);
+    }
+
+    .district-kpi-option .kpi-mini-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .district-kpi-option svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.9;
+    }
+
+    .district-kpi-option strong,
+    .district-kpi-option small {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-kpi-option strong {
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 850;
+      line-height: 1.18;
+      white-space: nowrap;
+    }
+
+    .district-kpi-option small {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .district-data-layers {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .district-data-layer {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .district-data-layer span,
+    .district-layer-note span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .district-data-layer strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-data-layer small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.3;
+    }
+
+    .district-layer-note {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 12px;
+      grid-column: 1 / -1;
+    }
+
+    .district-layer-note strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .district-count-split {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
     }
 
     .districts-control {
@@ -3297,6 +4588,7 @@
       .districts-head-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
       .districts-control select, .districts-control input { min-width: 0; width: 100%; }
       .dpc-head { grid-template-columns: 1fr; }
+      .district-data-layers { grid-template-columns: 1fr; }
       .district-summary-metrics, .district-summary-actions { grid-template-columns: 1fr; }
       .districts-grid, .districts-map, .districts-side, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }
       .districts-map { padding: 14px; }
@@ -4326,6 +5618,7 @@
       .task-summary-strip.execution-overview .exec-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .front-kpis.module-kpis.employment-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
       .front-kpi:nth-child(n+4) { border-top: 1px solid var(--line); }
       .district-card { grid-template-columns: minmax(150px, .8fr) repeat(2, minmax(110px, 1fr)); }
@@ -4357,7 +5650,7 @@
       .main { padding: 14px; min-width: 0; max-width: 100vw; overflow-x: hidden; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
-      .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .front-kpis.module-kpis.employment-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
       .execution-command, .execution-status-grid, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
       .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
@@ -4371,6 +5664,28 @@
       .annual-plan { grid-column: 1 / -1; text-align: left; }
       .quarter-matrix { grid-template-columns: 1fr; }
       .quarter-row { min-height: 0; }
+      .macro-layout-card .macro-growth-panel,
+      .finance-sector-grid,
+      .finance-card-body.two-col,
+      .finance-metric-row,
+      .finance-metric-row.two,
+      .finance-summary-grid,
+      .finance-quarter-grid,
+      .macro-growth-overview,
+      .macro-period-grid,
+      .macro-composition-grid,
+      .budget-invest-summary,
+      .budget-invest-body,
+      .budget-periods-grid { grid-template-columns: 1fr; }
+      .macro-hero-card { grid-template-columns: 1fr; text-align: center; }
+      .macro-target-visual { display: none; }
+      .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
+      .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
+      .industry-driver-arrow { display: none; }
+      .industry-driver-metrics { grid-template-columns: 1fr; gap: 10px; }
+      .industry-driver-divider { display: none; }
+      .budget-invest-summary > div { border-right: 0; border-bottom: 1px solid var(--line); }
+      .budget-invest-summary > div:last-child { border-bottom: 0; }
       .composition-grid, .driver-grid { grid-template-columns: 1fr; }
       .front-kpi { border-right: 0; border-bottom: 1px solid var(--line); }
       .district-card { grid-template-columns: 1fr; }
@@ -4477,6 +5792,27 @@
       { id: "microprojects", label: "Микролойиҳалар", short: "Микролойиҳа", sector: "Бандлик ва камбағаллик", icon: "users" }
     ];
 
+    const districtKpiRegistry = {
+      grp: { layer: "composition", source: "1.2, 1.4, 1.5-жадваллар", periods: ["q1", "h1", "m9", "year"], note: "ЯҲМ туман кесимида берилмаган; саноат, қишлоқ хўжалиги ва хизматлар орқали кўрилади." },
+      industry: { layer: "excel", source: "1.2-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      agriculture: { layer: "excel", source: "1.4-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      services: { layer: "excel", source: "1.5-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      localization: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: лойиҳа сони ва қиймати." },
+      energy_electricity: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: тежаладиган электр энергияси." },
+      energy_gas: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: тежаладиган табиий газ." },
+      inflation: { layer: "excel-proxy", source: "2.2-жадвал", periods: ["year"], note: "Туман инфляция фоизи эмас; нарх барқарорлиги учун омбор инфратузилмаси." },
+      budget: { layer: "excel", source: "3-жадвал", periods: ["q2", "h1", "year"], note: "Excel туман KPI: режа, кутилиш/амалда ва ижро." },
+      budget_investment: { layer: "excel", source: "4.1-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: лимит, объектлар ва ўзлаштириш." },
+      investment: { layer: "excel", source: "4.2-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: режа/прогноз, кутилиш, лойиҳа ва иш ўрни." },
+      export: { layer: "excel", source: "5.1-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: экспорт ҳажми, ўсиш ва экспортчилар." },
+      unemployment: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: ишсизлик даражаси чегараси." },
+      poverty: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик даражаси чегараси." },
+      jobs: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: доимий ишга жойлаштириш." },
+      legalization: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: норасмий бандларни легаллаштириш." },
+      mfy_clear: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик ва ишсизликдан холи МФЙлар." },
+      microprojects: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: микролойиҳалар." }
+    };
+
     const state = {
       page: "dashboard",
       period: "h1",
@@ -4548,10 +5884,21 @@
       return displayValue(row.fact, row.unit, compact);
     }
 
-    function factLabel(row, period) {
-      if (row?.reportStatus === "approved") return "Амалда";
-      if (period === "q1") return "Амалда";
-      return "Кутилиш";
+    function periodSourceKind(def, period, row) {
+      const id = typeof def === "string" ? def : def?.id;
+      if (row?.reportStatus === "approved") return "actual";
+      if (period === "q1" && (n(row?.fact) !== null || n(row?.growth) !== null)) return "actual";
+      if (["budget", "budget_investment", "investment", "export"].includes(id) && period !== "q1" && (n(row?.fact) !== null || n(row?.execution) !== null)) return "expected";
+      if (["inflation", "unemployment", "poverty"].includes(id)) return "target";
+      return hasPeriodValue(row) ? "plan" : "empty";
+    }
+
+    function planLabel(def, row, period) {
+      return periodSourceKind(def, period, row) === "target" ? "Режа (мақсад)" : "Режа";
+    }
+
+    function factLabel(def, row, period) {
+      return periodSourceKind(def, period, row) === "expected" ? "Кутилиш" : "Амалда";
     }
 
     function tinyValue(value, unit = "") {
@@ -4599,9 +5946,19 @@
       if (row?.reportStatusLabel) return { cls: "planned", chip: reportStatusClass(row.reportStatus), label: row.reportStatusLabel };
       if (period === "q1" && (n(row.fact) !== null || n(row.growth) !== null)) return { cls: "actual", chip: "", label: "" };
       if (period === "q1") return { cls: "empty", chip: "grey", label: "I чорак белгиланмаган" };
-      if (n(row?.execution) !== null) return { cls: "planned", chip: row.status || statusFor(row.execution), label: statusLabel(row.status || statusFor(row.execution)) };
-      if (hasPeriodValue(row)) return { cls: "planned", chip: "grey", label: "Режа" };
+      const kind = periodSourceKind(def, period, row);
+      if (kind === "expected") return { cls: "planned", chip: "grey", label: "Кутилиш" };
+      if (kind === "target") return { cls: "planned", chip: "grey", label: "Маълумот кутилмоқда" };
+      if (kind === "plan") return { cls: "planned", chip: "grey", label: "Режа" };
       return { cls: "empty", chip: "grey", label: "Давр белгиланмаган" };
+    }
+
+    function executionLabel(def, row, period) {
+      const kind = periodSourceKind(def, period, row);
+      if (kind === "target") return "Мақсад";
+      if (n(row?.execution) === null) return "Кўрсаткич";
+      if (row?.reportStatus === "approved" || period === "q1") return "Ижро";
+      return "Кутилган ижро";
     }
 
     function pct(actual, target, direction = "higher") {
@@ -4659,6 +6016,7 @@
         price: '<path d="M12 3v18"/><path d="M17 7.5C16.2 6 14.7 5 12.3 5H11a3 3 0 0 0 0 6h2a3 3 0 0 1 0 6h-1.3C9.3 17 7.8 16 7 14.5"/>',
         rocket: '<path d="M12 15l-3-3c1-5 4-8 10-9-1 6-4 9-9 10Z"/><path d="M9 12l-4 1-2 4 4-2 1-4M12 15l-1 4-4 2 2-4 4-1"/><circle cx="15" cy="8" r="1.5"/>',
         globe: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2 3 5 3 8s-1 6-3 8M12 4c-2 2-3 5-3 8s1 6 3 8"/>',
+        briefcase: '<path d="M10 6V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v1"/><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 12h16M10 12v2h4v-2"/>',
         users: '<path d="M16 19v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3"/><path d="M20 19v-2a3 3 0 0 0-2-2.8M16 4.2a3 3 0 0 1 0 5.6"/>'
       };
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons[name] || icons.trend}</svg>`;
@@ -4847,6 +6205,27 @@
         };
       }
       if (id === "inflation") return inflationPeriodKpi(period);
+      if (id === "budget_investment") {
+        const row = DATA.regional.budget_investment || {};
+        const map = {
+          q1: [row.q1_absorption, row.limit, row.q1_pct],
+          h1: [row.h1_absorption, row.limit, row.h1_pct],
+          m9: [null, null, null],
+          year: [row.year_absorption, row.limit, row.year_pct]
+        };
+        const [fact, plan, executionFromSource] = map[period] || map.year;
+        const execution = n(executionFromSource) ?? pct(fact, plan);
+        return {
+          fact,
+          plan,
+          unit: row.unit || "млн сўм",
+          growth: null,
+          execution,
+          status: statusFor(execution),
+          main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, row.unit || "млн сўм"),
+          note: `${fmt(row.objects, 0)} та объект · 4.1-жадвал Жами қатори`
+        };
+      }
       if (id === "budget") {
         const b = DATA.regional.budget;
         const map = {
@@ -5094,6 +6473,12 @@
       return "macro";
     }
 
+    const financeKpiIds = ["budget", "budget_investment", "investment", "export"];
+
+    function isFinanceKpi(kpiId) {
+      return financeKpiIds.includes(kpiId);
+    }
+
     function dashboardModuleIntro(moduleId) {
       const text = {
         macro: "ЯҲМ ва асосий таркибий кўрсаткичлар",
@@ -5119,6 +6504,70 @@
         kpiDefs.find(k => k.id === "poverty"),
         ...districtOnlyDefs
       ].filter(Boolean);
+    }
+
+    function districtKpiMeta(kpiId) {
+      return districtKpiRegistry[kpiId] || { layer: "excel", source: "Excel жадвал", periods: [state.period], note: "Excel туман KPI." };
+    }
+
+    function districtLayerTitle(meta) {
+      const labels = {
+        composition: "Excel таркибий KPI",
+        excel: "Excel туман KPI",
+        "excel-proxy": "Excel ёрдамчи KPI",
+        "excel-target": "Excel мақсад KPI"
+      };
+      return labels[meta.layer] || "Excel туман KPI";
+    }
+
+    function districtKpiCoverage(kpiId, period = null) {
+      const meta = districtKpiMeta(kpiId);
+      const def = districtSelectorDefs().find(item => item.id === kpiId) || currentKpiDef();
+      const cfg = districtTableConfig(def);
+      const usePeriod = period || cfg.primaryPeriod || state.period;
+      const districts = DATA.districts || [];
+      const available = districts.filter(d => hasPeriodValue(districtKpi(d, kpiId, usePeriod))).length;
+      return {
+        total: districts.length,
+        available,
+        period: usePeriod,
+        periods: meta.periods || [],
+        label: `${available}/${districts.length}`
+      };
+    }
+
+    function periodNameById(periodId) {
+      if (periodId === "q2") return "II чорак";
+      return periods.find(item => item.id === periodId)?.label || periodId;
+    }
+
+    function renderDistrictDataLayers(kpi, period) {
+      const meta = districtKpiMeta(kpi.id);
+      const coverage = districtKpiCoverage(kpi.id, period);
+      const targetCount = districtTargetsForKpi(kpi.id).length;
+      const taskCount = tasksForKpi(kpi.id).length;
+      const periodList = coverage.periods.length ? coverage.periods.map(periodNameById).join(", ") : "давр белгиланмаган";
+      return `<div class="district-data-layers">
+        <div class="district-data-layer">
+          <span>${districtLayerTitle(meta)}</span>
+          <strong>${coverage.label} ҳудуд</strong>
+          <small>${meta.source} · ${periodList}</small>
+        </div>
+        <div class="district-data-layer">
+          <span>D-мақсад</span>
+          <strong>${targetCount} та</strong>
+          <small>Кафолат хатидан ажратилган туман/шаҳар мажбурияти.</small>
+        </div>
+        <div class="district-data-layer">
+          <span>T-топшириқ</span>
+          <strong>${taskCount} та</strong>
+          <small>Ижро назоратидаги амалий топшириқлар; D-мақсадлар бунга қўшилмайди.</small>
+        </div>
+        <div class="district-layer-note">
+          <span>Мантиқ</span>
+          <strong>${meta.note}</strong>
+        </div>
+      </div>`;
     }
 
     function currentDistrict() {
@@ -5227,7 +6676,10 @@
     }
 
     function isSpecificTaskForKpi(task, kpiId) {
-      if (task.kpi) return task.kpi === kpiId;
+      if (task.kpi) {
+        if (kpiId === "industry") return ["industry", "localization", "energy_electricity", "energy_gas"].includes(task.kpi);
+        return task.kpi === kpiId;
+      }
       const title = cleanTaskTitle(task.title);
       const lower = title.toLowerCase();
       if (lower.includes("ялпи ҳудудий маҳсулотнинг 7,2") || title === "1. Саноат маҳсулотларини ишлаб чиқариш.") {
@@ -5330,6 +6782,50 @@
       </div>`;
     }
 
+    function uniqueTasks(tasks) {
+      const seen = new Set();
+      return tasks.filter(task => {
+        const key = task.id || `${task.kpi || ""}:${task.title || ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function dashboardScorelineTasks(selected, moduleId) {
+      if (moduleId === "employment") {
+        if (selected.id === "unemployment") {
+          return uniqueTasks(["unemployment", "jobs", "legalization"].flatMap(tasksForKpi));
+        }
+        if (selected.id === "poverty") {
+          return uniqueTasks(["poverty", "mfy_clear", "microprojects"].flatMap(tasksForKpi));
+        }
+      }
+      if (moduleId !== "macro") return DATA.tasks.filter(t => t.module === moduleId);
+      if (selected.id === "grp") return DATA.tasks.filter(t => t.module === "macro");
+      if (selected.id === "industry") {
+        return uniqueTasks(["industry", "localization", "energy_electricity", "energy_gas"].flatMap(tasksForKpi));
+      }
+      return uniqueTasks(tasksForKpi(selected.id).filter(t => t.module === "macro"));
+    }
+
+    function dashboardScorelineLabel(selected, moduleId) {
+      if (moduleId !== "macro") {
+        const module = moduleById(moduleId);
+        return `${module?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш"} бўйича топшириқлар ҳолати. KPI мониторинги юқорида, топшириқлар назорати шу ерда қисқа кўрсатилади.`;
+      }
+      if (selected.id === "grp") {
+        return "Макроиқтисодиёт бўйича топшириқлар ҳолати. ЯҲМ якуний натижа бўлгани учун унга олиб борувчи таркибий топшириқлар умумий кўрсатилади.";
+      }
+      return `${selected.short} бўйича боғланган топшириқлар ҳолати.`;
+    }
+
+    function dashboardScorelineRouteKpi(selected, moduleId) {
+      if (moduleId !== "macro") return "all";
+      if (selected.id === "grp") return "all";
+      return selected.id;
+    }
+
     function renderDashboard() {
       if (state.page === "dashboard") {
         state.dashboardModule = dashboardModuleForKpi(state.kpi || "grp");
@@ -5339,7 +6835,7 @@
       const selected = currentKpiDef();
       const moduleKpis = dashboardKpisForModule(state.dashboardModule);
       const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
-      const moduleTasks = DATA.tasks.filter(t => t.module === state.dashboardModule);
+      const moduleTasks = dashboardScorelineTasks(selected, state.dashboardModule);
       const moduleTotal = moduleTasks.length;
       const moduleDone = moduleTasks.filter(t => t.status === "green").length;
       const moduleOpen = moduleTotal - moduleDone;
@@ -5349,7 +6845,7 @@
           <div class="scoreline-copy">
             <span>Ижро ҳолати</span>
             <strong>${taskScope}</strong>
-            <small>${selectedModule?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш"} бўйича топшириқлар ҳолати. KPI мониторинги юқорида, топшириқлар назорати шу ерда қисқа кўрсатилади.</small>
+            <small>${dashboardScorelineLabel(selected, state.dashboardModule)}</small>
           </div>
           <div class="exec-status-grid">
             <button class="exec-status-pill" type="button" data-scoreline-status="all">
@@ -5375,6 +6871,9 @@
           </div>
         </div>`;
       const isMacro = state.dashboardModule === "macro";
+      const showModuleKpis = isMacro || state.dashboardModule === "employment";
+      const moduleKpiLayout = isMacro ? "macro-layout" : state.dashboardModule === "employment" ? "employment-layout" : "";
+      const kpiWorkspaceHtml = `<div class="kpi-monitor-grid single">${kpiDashboardCard(selected)}</div>`;
       $("#dashboardPage").innerHTML = `
         <div class="dashboard-module-tabs">
           ${dashboardModules().map(module => `<button class="module-tab ${module.id === state.dashboardModule ? "active" : ""}" data-dashboard-module="${module.id}" type="button">
@@ -5388,8 +6887,8 @@
             <p>${dashboardModuleIntro(state.dashboardModule)}</p>
           </div>
         </div>
-        ${isMacro ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
-        <div class="kpi-monitor-grid single">${state.dashboardModule === "employment" ? moduleKpis.map(kpiDashboardCard).join("") : kpiDashboardCard(selected)}</div>
+        ${showModuleKpis ? `<div class="front-kpis module-kpis ${moduleKpiLayout}">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
+        ${kpiWorkspaceHtml}
         ${scorelineHtml}`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
@@ -5424,7 +6923,7 @@
       const goToScorelineTasks = status => {
         state.taskModule = state.dashboardModule;
         state.taskStatus = status;
-        state.kpi = "all";
+        state.kpi = dashboardScorelineRouteKpi(selected, state.dashboardModule);
         state.taskDistrict = "all";
         state.taskPeriod = "all";
         state.page = "tasks";
@@ -5498,8 +6997,432 @@
       };
     }
 
+    function macroGrowthPeriods() {
+      return [
+        { label: "I чорак", period: "q1", state: "Амалда", cls: "actual" },
+        { label: "II чорак", period: "h1", state: "Режа", cls: "planned" },
+        { label: "III чорак", period: "m9", state: "Режа", cls: "planned" },
+        { label: "Йиллик", period: "year", state: "Режа", cls: "planned" }
+      ];
+    }
+
+    function macroGrowthWidth(value, values) {
+      const delta = Math.max(0, Math.abs((n(value) || 100) - 100));
+      const maxDelta = Math.max(1, ...values.map(v => Math.max(0, Math.abs((n(v) || 100) - 100))));
+      return Math.max(8, Math.min(100, (delta / maxDelta) * 100));
+    }
+
+    function renderMacroComposition() {
+      const yearValues = macroComponentDefs.map(def => dashboardPeriodKpi(def.id, "year").growth);
+      return `<details class="macro-composition-panel macro-composition-dropdown" aria-label="ЯҲМ таркиби">
+        <summary class="macro-composition-head">
+          <div>
+            <strong>ЯҲМ таркибий мақсадлари</strong>
+            <small>Саноат, қишлоқ хўжалиги, қурилиш ва хизматлар ўсиш суръати</small>
+          </div>
+          <span class="macro-dropdown-meta">
+            <span>${macroComponentDefs.length} та мақсад</span>
+            <span class="macro-dropdown-caret" aria-hidden="true">⌄</span>
+          </span>
+        </summary>
+        <div class="macro-composition-body">
+          <div class="macro-composition-grid">
+            ${macroComponentDefs.map((item, idx) => {
+              const year = dashboardPeriodKpi(item.id, "year");
+              const width = macroGrowthWidth(year.growth, yearValues);
+              const colors = ["#08742d", "#43a95d", "#24959a", "var(--blue)"];
+              return `<button class="macro-composition-card ${state.kpi === item.id ? "active" : ""}" type="button" data-component="${item.id}">
+                <span class="macro-comp-icon">${icon(item.icon)}</span>
+                <span class="macro-comp-name">${item.short}</span>
+                <i class="macro-composition-bar" aria-hidden="true"><i style="--w:${width}%;--macro-color:${colors[idx]}"></i></i>
+                <strong class="macro-comp-value">${growthValue(year.growth)}</strong>
+              </button>`;
+            }).join("")}
+          </div>
+          <div class="macro-composition-actions">
+            <button class="mini-button primary" type="button" data-open-districts="industry" data-period="h1">Туманлар кесимига ўтиш</button>
+          </div>
+        </div>
+      </details>`;
+    }
+
+    function renderIndustryDriversPanel() {
+      const src = DATA.regional.industry_drivers || {};
+      const drivers = [
+        {
+          id: "localization",
+          cls: "green",
+          icon: "factory",
+          title: "Маҳаллийлаштириш",
+          desc: "Лойиҳалар сони ва қиймати",
+          h1: `${fmt(src.localization_h1_projects, 0)} та`,
+          h1Note: displayValue(src.localization_h1_value_mln, "млн сўм"),
+          year: `${fmt(src.localization_year_projects, 0)} та`,
+          yearNote: displayValue(src.localization_year_value_mln, "млн сўм")
+        },
+        {
+          id: "energy_electricity",
+          cls: "blue",
+          icon: "trend",
+          title: "Электр тежаш",
+          desc: "Тежаладиган электр энергияси",
+          h1: `${fmt(src.energy_electricity_h1, 1)} млн кВт·соат`,
+          h1Note: "",
+          year: `${fmt(src.energy_electricity_year, 1)} млн кВт·соат`,
+          yearNote: ""
+        },
+        {
+          id: "energy_gas",
+          cls: "orange",
+          icon: "rocket",
+          title: "Газ тежаш",
+          desc: "Тежаладиган табиий газ",
+          h1: `${fmt(src.energy_gas_h1, 1)} млн м³`,
+          h1Note: "",
+          year: `${fmt(src.energy_gas_year, 1)} млн м³`,
+          yearNote: ""
+        }
+      ];
+      return `<aside class="industry-driver-panel" aria-label="Саноат драйверлари">
+        <div class="industry-driver-head">
+          <strong>Саноат драйверлари</strong>
+          <span class="info-dot" title="Саноатга боғланган туманлар кесимидаги драйверлар">i</span>
+        </div>
+        <div class="industry-driver-list">
+          ${drivers.map(item => `<button class="industry-driver-card ${item.cls}" type="button" data-open-districts="${item.id}" data-period="h1">
+            <span class="driver-icon ${item.cls}">${icon(item.icon)}</span>
+            <span class="industry-driver-body">
+              <span class="industry-driver-title">
+                <strong>${item.title}</strong>
+                <span>${item.desc}</span>
+              </span>
+              <span class="industry-driver-metrics">
+                <span class="industry-driver-metric"><span>I ярим йиллик</span><strong>${item.h1}</strong>${item.h1Note ? `<small>${item.h1Note}</small>` : ""}</span>
+                <span class="industry-driver-divider" aria-hidden="true"></span>
+                <span class="industry-driver-metric"><span>Йиллик кутилиш</span><strong>${item.year}</strong>${item.yearNote ? `<small>${item.yearNote}</small>` : ""}</span>
+              </span>
+            </span>
+            <span class="industry-driver-arrow" aria-hidden="true">›</span>
+          </button>`).join("")}
+        </div>
+        <button class="mini-button" type="button" data-open-districts="industry" data-period="h1">Саноат деталларига ўтиш ›</button>
+      </aside>`;
+    }
+
+    function renderMacroGrowthPanel(def) {
+      const year = dashboardPeriodKpi(def.id, "year");
+      const periods = macroGrowthPeriods();
+      const values = periods.map(item => dashboardPeriodKpi(def.id, item.period).growth);
+      const showComposition = def.id === "grp";
+      const showIndustryDrivers = def.id === "grp" || def.id === "industry";
+      return `<section class="macro-growth-panel ${showIndustryDrivers ? "with-side" : "solo"}" aria-label="${def.label} ўсиш мониторинги">
+        <div class="macro-main-panel">
+          <div class="macro-section-title"><strong>${def.short} ўсиши</strong><span>(солиштирма нархларда)</span></div>
+          <div class="macro-hero-card">
+            <div class="macro-hero-copy">
+              <span>Йиллик ўсиш (мақсад)</span>
+              <strong>${growthValue(year.growth)}</strong>
+              <small>2026 йил</small>
+            </div>
+            <div class="macro-target-visual" aria-hidden="true">
+              <span class="macro-target-dot"></span>
+              <span class="macro-target-arrow"></span>
+              <span class="macro-target-bars"><i></i><i></i><i></i></span>
+            </div>
+          </div>
+          <div class="macro-period-grid">
+            ${periods.map(item => {
+              const row = dashboardPeriodKpi(def.id, item.period);
+              const width = macroGrowthWidth(row.growth, values);
+              return `<div class="macro-period-card ${item.cls}">
+                <div class="macro-period-head">
+                  <b>${item.label}</b>
+                  <span class="chip ${item.cls === "actual" ? "blue" : "grey"}">${item.state}</span>
+                </div>
+                <strong>${growthValue(row.growth)}</strong>
+                <small>ўсиш суръати</small>
+                <i class="macro-mini-bar" aria-hidden="true"><i style="--w:${width}%"></i></i>
+              </div>`;
+            }).join("")}
+          </div>
+          ${showComposition ? renderMacroComposition() : ""}
+        </div>
+        ${showIndustryDrivers ? renderIndustryDriversPanel() : ""}
+      </section>`;
+    }
+
+    function budgetInvestmentPeriods() {
+      return [
+        { label: "I чорак", period: "q1", kind: "actual", chip: "blue", state: "Амалда", note: "амалдаги ўзлаштириш" },
+        { label: "II чорак", period: "h1", kind: "expected", chip: "grey", state: "Кутилиш", note: "тезкор кутилиш" },
+        { label: "III чорак", period: "m9", kind: "missing", chip: "grey", state: "Маълумот йўқ", note: "9 ой учун алоҳида маълумот йўқ" },
+        { label: "Йиллик", period: "year", kind: "expected", chip: "grey", state: "Кутилиш", note: "йил якуни бўйича кутилиш" }
+      ];
+    }
+
+    function budgetInvestmentCard(item) {
+      const row = dashboardPeriodKpi("budget_investment", item.period);
+      const value = item.kind === "missing" ? "—" : factValue(row);
+      const execution = n(row.execution);
+      const pctText = execution === null ? "—" : `${fmt(execution, 1)}%`;
+      const progress = execution === null ? 0 : Math.max(0, Math.min(execution, 108));
+      const accent = item.kind === "missing" ? "var(--grey)" : "var(--blue)";
+      return `<div class="budget-period-card ${item.kind}">
+        <div class="budget-period-top">
+          <b>${item.label}</b>
+          <span class="chip ${item.chip}">${item.state}</span>
+        </div>
+        <strong>${value}</strong>
+        <div class="budget-period-meta">
+          <span>йиллик лимитга нисбатан</span>
+          <b>${pctText}</b>
+        </div>
+        <div class="budget-progress" aria-hidden="true"><i style="--w:${progress}%;--c:${accent}"></i></div>
+        <div class="budget-period-note">${item.note}</div>
+      </div>`;
+    }
+
+    function renderBudgetInvestmentDynamics(items) {
+      const points = items
+        .map((item, index) => {
+          const row = dashboardPeriodKpi("budget_investment", item.period);
+          const value = n(row.execution);
+          if (value === null) return null;
+          const x = [24, 96, 168, 240][index];
+          const y = 100 - (Math.min(Math.max(value, 0), 110) / 110) * 78;
+          return { ...item, x, y, value };
+        })
+        .filter(Boolean);
+      const path = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+      return `<div class="budget-dynamics-card">
+        <div class="budget-dynamics-head">
+          <strong>Ўзлаштириш динамикаси</strong>
+          <span>йиллик лимитга нисбатан</span>
+        </div>
+        <svg class="budget-dynamics-svg" viewBox="0 0 264 116" role="img" aria-label="Бюджет инвестициялари ўзлаштириш динамикаси">
+          <line x1="16" y1="100" x2="250" y2="100" stroke="#dce6f0" stroke-width="1"/>
+          <line x1="16" y1="61" x2="250" y2="61" stroke="#edf2f7" stroke-width="1"/>
+          <line x1="16" y1="22" x2="250" y2="22" stroke="#edf2f7" stroke-width="1"/>
+          <path d="${path}" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          ${points.map(point => `<circle cx="${point.x}" cy="${point.y}" r="4.5" fill="#fff" stroke="var(--blue)" stroke-width="3"><title>${point.label}: ${fmt(point.value, 1)}%</title></circle>`).join("")}
+        </svg>
+        <div class="budget-dynamics-list">
+          ${items.map(item => {
+            const row = dashboardPeriodKpi("budget_investment", item.period);
+            const value = n(row.execution);
+            const pctText = value === null ? "—" : `${fmt(value, 1)}%`;
+            const width = value === null ? 0 : Math.max(0, Math.min(value, 100));
+            return `<div><span>${item.label}</span><i style="--w:${width}%;--c:${item.kind === "missing" ? "var(--grey)" : "var(--blue)"}"></i><b>${pctText}</b></div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
+
+    function renderBudgetInvestmentPanel() {
+      const source = DATA.regional.budget_investment || {};
+      const annual = dashboardPeriodKpi("budget_investment", "year");
+      const items = budgetInvestmentPeriods();
+      return `<section class="budget-invest-panel" aria-label="Бюджет инвестициялари ўзлаштирилиши">
+        <div class="budget-invest-summary">
+          <div><span>Йиллик лимит</span><strong>${displayValue(source.limit, source.unit || "млн сўм")}</strong><small>2026 йил прогноз лимити</small></div>
+          <div><span>Объектлар</span><strong>${fmt(source.objects, 0)} та</strong><small>жами объектлар</small></div>
+          <div><span>Йиллик кутилиш</span><strong>${factValue(annual)}</strong><small>йил якуни бўйича тезкор кутилиш</small></div>
+          <div><span>Йиллик ижро</span><strong>${n(annual.execution) === null ? "—" : `${fmt(annual.execution, 1)}%`}</strong><small>йиллик лимитга нисбатан</small></div>
+        </div>
+        <div class="budget-invest-body">
+          <div class="budget-periods-grid">
+            ${items.map(budgetInvestmentCard).join("")}
+          </div>
+          ${renderBudgetInvestmentDynamics(items)}
+        </div>
+      </section>`;
+    }
+
+    function financeMetric(label, value, note = "", tone = "") {
+      return `<div class="finance-metric ${tone}">
+        <span>${label}</span>
+        <strong>${value}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeSummaryTile(label, value, note = "", tone = "") {
+      return `<div class="finance-summary-tile ${tone}">
+        <span>${label}</span>
+        <strong>${value}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeIconTone(kpiId) {
+      return kpiId === "budget_investment" ? "purple" : kpiId === "investment" ? "green" : kpiId === "export" ? "gold" : "";
+    }
+
+    function financeDisplayLabel(def) {
+      return def.short === "Бюджет инвест" ? "Бюджет инвестициялари" : def.label;
+    }
+
+    function financeCardHead(def) {
+      return `<header class="finance-card-head">
+        <span class="finance-icon ${financeIconTone(def.id)}" aria-hidden="true">${icon(def.icon)}</span>
+        <strong>${financeDisplayLabel(def)}</strong>
+      </header>`;
+    }
+
+    function financeQuarterCell(label, row, options = {}) {
+      const main = options.main || (n(row.growth) !== null ? growthValue(row.growth) : n(row.execution) !== null ? `${fmt(row.execution, 1)}%` : factValue(row));
+      const note = options.note || "";
+      return `<div class="finance-quarter-cell ${options.tone || ""}">
+        <span>${label}</span>
+        <strong>${main}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeBudgetCard(activeId) {
+      const def = kpiDefById("budget");
+      const h1 = dashboardPeriodKpi("budget", "h1");
+      const year = dashboardPeriodKpi("budget", "year");
+      return `<article class="finance-card ${activeId === "budget" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div>
+            <div class="finance-section-title">I ярим йиллик</div>
+            <div class="finance-metric-row">
+              ${financeMetric("Режа", planValue(h1))}
+              ${financeMetric("Кутилиш", factValue(h1))}
+              ${financeMetric("Кутилган ижро", n(h1.execution) === null ? "—" : `${fmt(h1.execution, 1)}%`, "", "accent")}
+            </div>
+          </div>
+          <div class="finance-divider"></div>
+          <div>
+            <div class="finance-section-title">Йиллик</div>
+            <div class="finance-metric-row two">
+              ${financeMetric("Режа", planValue(year))}
+              ${financeMetric("Кутилиш", factValue(year))}
+            </div>
+          </div>
+          <button class="mini-button primary finance-action" type="button" data-open-districts="budget" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeBudgetInvestmentCell(item) {
+      const row = dashboardPeriodKpi("budget_investment", item.period);
+      const value = item.kind === "missing" ? "—" : factValue(row);
+      const execution = n(row.execution);
+      const tone = item.kind === "actual" ? "accent" : item.kind === "missing" ? "" : "purple";
+      const note = execution === null ? item.note : `${fmt(execution, 1)}% · ${item.note}`;
+      return `<div class="finance-quarter-cell ${tone}">
+        <span>${item.label} · ${item.state}</span>
+        <strong>${value}</strong>
+        <small>${note}</small>
+      </div>`;
+    }
+
+    function financeBudgetInvestmentCard(activeId) {
+      const def = kpiDefById("budget_investment");
+      const source = DATA.regional.budget_investment || {};
+      const annual = dashboardPeriodKpi("budget_investment", "year");
+      const items = budgetInvestmentPeriods();
+      return `<article class="finance-card finance-card-wide ${activeId === "budget_investment" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-summary-grid">
+            ${financeSummaryTile("Йиллик лимит", displayValue(source.limit, source.unit || "млн сўм"))}
+            ${financeSummaryTile("Объектлар", `${fmt(source.objects, 0)} та`)}
+            ${financeSummaryTile("Йиллик кутилиш", factValue(annual), "", "purple")}
+            ${financeSummaryTile("Йиллик ижро", n(annual.execution) === null ? "—" : `${fmt(annual.execution, 1)}%`, "лимитга нисбатан", "purple")}
+          </div>
+          <div class="finance-quarter-grid">
+            ${items.map(financeBudgetInvestmentCell).join("")}
+          </div>
+          ${renderBudgetInvestmentDynamics(items)}
+          <button class="mini-button primary finance-action" type="button" data-open-districts="budget_investment" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeInvestmentCard(activeId) {
+      const def = kpiDefById("investment");
+      const x = DATA.regional.foreign_investment || {};
+      const year = dashboardPeriodKpi("investment", "year");
+      const h1 = dashboardPeriodKpi("investment", "h1");
+      return `<article class="finance-card ${activeId === "investment" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-metric-row two">
+            ${financeMetric("Йиллик прогноз", planValue(year))}
+            ${financeMetric("Кутилиш", factValue(year))}
+          </div>
+          <div class="finance-divider"></div>
+          <div class="finance-metric-row two">
+            ${financeMetric("Лойиҳалар", `${fmt(x.h1_projects, 0)} та`, "I ярим йиллик")}
+            ${financeMetric("Иш ўринлари", `${fmt(x.h1_jobs, 0)} та`, "I ярим йиллик")}
+          </div>
+          ${financeQuarterCell("II чорак кутилиш", h1, { main: factValue(h1), note: n(h1.execution) === null ? "" : `${fmt(h1.execution, 1)}% ижро`, tone: "accent" })}
+          <button class="mini-button primary finance-action" type="button" data-open-districts="investment" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeExportCard(activeId) {
+      const def = kpiDefById("export");
+      const e = DATA.regional.export || {};
+      const q1 = dashboardPeriodKpi("export", "q1");
+      const h1 = dashboardPeriodKpi("export", "h1");
+      const year = dashboardPeriodKpi("export", "year");
+      return `<article class="finance-card ${activeId === "export" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-metric-row two">
+            ${financeMetric("Йиллик ўсиш", growthValue(year.growth), "", "gold")}
+            ${financeMetric("Йиллик кутилиш", factValue(year))}
+          </div>
+          <div class="finance-divider"></div>
+          ${financeMetric("Экспортёрлар", `${fmt(e.year_exporters, 0)} та`, "йиллик режа")}
+          <div class="finance-quarter-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            ${financeQuarterCell("I чорак амалда", q1, { main: growthValue(q1.growth), note: factValue(q1), tone: "accent" })}
+            ${financeQuarterCell("II чорак кутилиш", h1, { main: growthValue(h1.growth), note: factValue(h1), tone: "gold" })}
+          </div>
+          <button class="mini-button primary finance-action" type="button" data-open-districts="export" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeActiveCard(activeId) {
+      const renderers = {
+        budget: financeBudgetCard,
+        budget_investment: financeBudgetInvestmentCard,
+        investment: financeInvestmentCard,
+        export: financeExportCard
+      };
+      return (renderers[activeId] || financeBudgetCard)(activeId);
+    }
+
+    function financeSourceText(kpiId) {
+      const map = {
+        budget: "Манба: 3-жадвал (бюджет тушумлари).",
+        budget_investment: "Манба: 4.1-жадвал (бюджет инвестициялари).",
+        investment: "Манба: 4.2-жадвал (хорижий инвестициялар).",
+        export: "Манба: 5.1-5.2-жадваллар (экспорт)."
+      };
+      return map[kpiId] || "Манба: тегишли жадвал маълумотлари.";
+    }
+
+    function renderFinanceSectorPanel(selected) {
+      const activeId = isFinanceKpi(selected.id) ? selected.id : "budget";
+      return `<section class="finance-sector-panel" aria-label="Молия, инвестиция ва экспорт KPI мониторинги">
+        <div class="finance-sector-grid">
+          <div class="finance-active-pane">${financeActiveCard(activeId)}</div>
+        </div>
+        <p class="finance-source">${financeSourceText(activeId)}</p>
+      </section>`;
+    }
+
     function kpiDashboardCard(def) {
-      const growthOnly = def.id === "grp" || macroComponentDefs.some(item => item.id === def.id);
+      const macroGrowthKpi = def.id === "grp" || macroComponentDefs.some(item => item.id === def.id);
+      const growthOnly = macroGrowthKpi;
       const districtRoute = dashboardDistrictRoute(def);
       const quarters = [
         ["I чорак", "q1"],
@@ -5523,24 +7446,24 @@
         const up = delta > 0;
         return { cls: lowerBetter ? (up ? "down" : "up") : (up ? "up" : "down") };
       };
-      return `<article class="kpi-monitor-card">
+      return `<article class="kpi-monitor-card ${macroGrowthKpi ? "macro-layout-card" : ""}">
         <div class="kpi-monitor-head">
           <div class="small-icon">${icon(def.icon)}</div>
           <div>
             <h3>${def.short}</h3>
             <p>${def.label}</p>
           </div>
-          ${districtRoute ? `<button class="mini-button primary kpi-head-district" type="button" data-open-districts="${districtRoute.kpiId}">${districtRoute.label}</button>` : ""}
+          ${districtRoute && def.id !== "grp" ? `<button class="mini-button primary kpi-head-district" type="button" data-open-districts="${districtRoute.kpiId}">${districtRoute.label}</button>` : ""}
           <div class="head-watermark" aria-hidden="true">${icon(def.icon)}</div>
         </div>
-        ${def.id === "inflation" ? "" : `<div class="quarter-matrix">
+        ${def.id === "inflation" ? "" : def.id === "budget_investment" ? renderBudgetInvestmentPanel() : macroGrowthKpi ? renderMacroGrowthPanel(def) : `<div class="quarter-matrix">
           ${quarters.map(([label, period], idx) => {
             const row = dashboardPeriodKpi(def.id, period);
             const stateInfo = periodState(def, period, row);
             const main = n(row.growth) !== null ? growthValue(row.growth) : n(row.execution) !== null ? `${fmt(row.execution, 1)}%` : primaryMetric(row);
             const fact = factValue(row);
             const plan = planValue(row);
-            const measureLabel = n(row.growth) !== null ? "Ўсиш" : n(row.execution) !== null ? "Ижро" : "Кўрсаткич";
+            const measureLabel = n(row.growth) !== null ? "Ўсиш" : executionLabel(def, row, period);
             const trend = idx > 0 ? trendFor(seriesValues[idx], seriesValues[idx - 1]) : null;
             const heroValue = trend
               ? `<span class="q-hero-value q-trend ${trend.cls}">${main}</span>`
@@ -5552,9 +7475,11 @@
             const planDisplay = growthOnly ? (stateInfo.cls === "actual" ? "—" : growthText) : plan;
             const factDisplay = growthOnly ? (stateInfo.cls === "actual" ? growthText : fact) : fact;
             const statusText = chipText || (stateInfo.cls === "actual" ? "Амалда бор" : "—");
+            const sourceKind = periodSourceKind(def, period, row);
+            const hidePlanRow = macroGrowthKpi || sourceKind === "target" || (def.id === "investment" && sourceKind === "expected");
             const auxRows = `<dl class="q-aux">
-              <div class="q-aux-row"><span>Режа</span><b class="num">${planDisplay}</b></div>
-              <div class="q-aux-row"><span>${factLabel(row, period)}</span><b class="num">${factDisplay}</b></div>
+              ${hidePlanRow ? "" : `<div class="q-aux-row"><span>${planLabel(def, row, period)}</span><b class="num">${planDisplay}</b></div>`}
+              <div class="q-aux-row"><span>${factLabel(def, row, period)}</span><b class="num">${factDisplay}</b></div>
               <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip ${chipClass || "grey"}">${statusText}</span></b></div>
             </dl>`;
             return `<div class="quarter-row ${stateInfo.cls}">
@@ -5570,9 +7495,10 @@
             </div>`;
           }).join("")}
         </div>`}
-        ${def.id === "industry" ? renderIndustryDrivers() : ""}
         ${def.id === "inflation" ? renderInflationDetails() : ""}
+        ${def.id === "unemployment" ? renderUnemploymentDetails() : ""}
         ${def.id === "poverty" ? renderPovertyDetails() : ""}
+        ${isFinanceKpi(def.id) ? `<p class="finance-source">${financeSourceText(def.id)}</p>` : ""}
       </article>`;
     }
 
@@ -5596,11 +7522,12 @@
         .slice(0, 4);
       return `<div class="drivers">
         <div class="lagging">
-          <div class="lagging-title"><strong>Инфляция KPI деталлари</strong></div>
+          <div class="lagging-title"><strong>Инфляция чегаралари</strong></div>
           <div class="driver-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-            <div class="driver-card"><span>II чорак инфляция чегараси</span><strong>≤2,9%</strong><small>белгиланган прогноз даражасидан оширмаслик</small></div>
-            <div class="driver-card"><span>Йиллик инфляция чегараси</span><strong>≤6,6%</strong><small>йил якуни бўйича асосий KPI</small></div>
+            <div class="driver-card"><span>II чорак</span><strong>≤2,9%</strong><small>амалдаги инфляцияга нисбатан</small></div>
+            <div class="driver-card"><span>Йил якуни</span><strong>≤6,6%</strong><small>йил якуни бўйича чегара</small></div>
           </div>
+          <p class="data-note">Амалдаги инфляция маълумоти киритилмаган.</p>
         </div>
         <div class="composition">
           <div class="lagging-title"><strong>Асосий озиқ-овқат нархлари</strong></div>
@@ -5635,6 +7562,52 @@
             <div class="driver-card"><span>Захира жамғармаси</span><strong>50 млрд сўм</strong><small>йиллик режа</small></div>
           </div>
         </div>
+        <p class="finance-source">Манба: 2.1-2.2-жадваллар ва кафолат хати II-бўлим.</p>
+      </div>`;
+    }
+
+    function renderUnemploymentDetails() {
+      const emp = DATA.regional.employment || {};
+      const stats = [
+        { id: "jobs",         icon: "briefcase", label: "Доимий ишга жойлаштириш",         h1: emp.jobs_h1,         year: emp.jobs_year,         unit: "минг", digits: 1 },
+        { id: "legalization", icon: "users",     label: "Норасмий бандларни легаллаштириш", h1: emp.legalization_h1, year: emp.legalization_year, unit: "минг", digits: 1 }
+      ];
+      return `<div class="drivers poverty-section employment-driver-section">
+        <div class="lagging">
+          <header class="poverty-head">
+            <div>
+              <strong>Ишсизликни пасайтириш драйверлари</strong>
+              <p>Ишсизлик KPI мақсадини бажариш учун бандлик бўйича асосий ўлчанадиган ишлар.</p>
+            </div>
+            <button class="mini-button primary" type="button" data-open-districts="unemployment" data-period="h1">Туманлар кесими →</button>
+          </header>
+          <div class="poverty-stats">
+          ${stats.map(s => {
+            const h1Num = n(s.h1);
+            const yearNum = n(s.year);
+            const pct = h1Num !== null && yearNum !== null && yearNum !== 0 ? Math.min(100, Math.max(0, (h1Num / yearNum) * 100)) : 0;
+            const h1Text = h1Num !== null ? fmt(s.h1, s.digits) : "—";
+            const yearText = yearNum !== null ? fmt(s.year, s.digits) : "—";
+            return `<article class="poverty-stat">
+              <div class="poverty-stat-icon" aria-hidden="true">${icon(s.icon)}</div>
+              <div class="poverty-stat-body">
+                <span class="poverty-stat-label">${s.label}</span>
+                <strong class="poverty-stat-value">${yearText}<em>${s.unit}</em></strong>
+                <div class="poverty-stat-meta">
+                  <span>II чорак <b>${h1Text}</b></span>
+                  <span class="poverty-stat-divider">·</span>
+                  <span>Йиллик мақсад</span>
+                </div>
+                <div class="poverty-progress" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100">
+                  <i style="width:${pct.toFixed(1)}%"></i>
+                </div>
+                <small class="poverty-progress-label">II чорак йиллик мақсаднинг ${pct.toFixed(0)}%</small>
+              </div>
+            </article>`;
+          }).join("")}
+          </div>
+        </div>
+        <p class="finance-source">Манба: 6-жадвал ва кафолат хати.</p>
       </div>`;
     }
 
@@ -5692,6 +7665,7 @@
           <p>Кафолат хатида камбағалликдан холи бўлиши кутилаётган маҳалла ва туманлар.</p>
           ${clearTerritories.length ? `<div class="poverty-territory-list">${clearTerritories.map(d => `<span class="poverty-territory-chip">${d.name}</span>`).join("")}</div>` : `<p class="poverty-territory-empty">Холи ҳудуд режасида ҳудуд белгиланмаган.</p>`}
         </article>
+        <p class="finance-source">Манба: 6-жадвал ва кафолат хати.</p>
       </div>`;
     }
 
@@ -5700,15 +7674,7 @@
       const h1Projects = districts.reduce((s, d) => s + (n(d.data?.localization_projects_h1) || 0), 0);
       const h1Electricity = districts.reduce((s, d) => s + (n(d.data?.energy_electricity_h1) || 0), 0);
       const h1Gas = districts.reduce((s, d) => s + (n(d.data?.energy_gas_h1) || 0), 0);
-      return `<div class="drivers">
-        <div class="lagging-title"><strong>Саноат драйверлари</strong></div>
-        <div class="driver-grid">
-          <button class="component-card" type="button" data-open-districts="industry" data-period="h1"><span>Ҳудудий саноат</span><strong>${growthValue(dashboardPeriodKpi("industry", "h1").growth)}</strong><small>II чорак ўсиш · туманлар бўйича ҳажм ва ўсиш</small></button>
-          <button class="component-card" type="button" data-open-districts="localization" data-period="h1"><span>Маҳаллийлаштириш</span><strong>${fmt(h1Projects, 0)} та</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_electricity" data-period="h1"><span>Электр тежаш</span><strong>${fmt(h1Electricity, 1)} млн кВт·с</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_gas" data-period="h1"><span>Газ тежаш</span><strong>${fmt(h1Gas, 1)} млн м³</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-        </div>
-      </div>`;
+      return renderIndustryDriversPanel();
     }
 
     function evidenceStorageKey(taskId) {
@@ -6594,25 +8560,36 @@
       return (DATA.kafolat_district_targets || []).filter(t => isSpecificTaskForKpi(t, kpiId));
     }
 
-    function districtTargetsForDistrict(d, kpiId = state.kpi) {
-      const targets = districtTargetsForKpi(kpiId);
+    function recordMentionsDistrict(record, d) {
+      if (!record || !d) return false;
       const districtStem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return targets.filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name)) || cleanTaskTitle(t.title).toLowerCase().includes(districtStem));
+      return (Array.isArray(record.districts) && record.districts.includes(d.name))
+        || cleanTaskTitle(record.title || "").toLowerCase().includes(districtStem);
+    }
+
+    function districtScopedTasks(d, kpiId = null) {
+      const records = kpiId ? tasksForKpi(kpiId) : (DATA.tasks || []);
+      return records.filter(t => recordMentionsDistrict(t, d));
+    }
+
+    function districtScopedTargets(d, kpiId = null) {
+      const records = kpiId ? districtTargetsForKpi(kpiId) : (DATA.kafolat_district_targets || []);
+      return records.filter(t => recordMentionsDistrict(t, d));
+    }
+
+    function districtTargetsForDistrict(d, kpiId = state.kpi) {
+      return districtScopedTargets(d, kpiId);
     }
 
     function districtTasksFor(d, kpiId = state.kpi) {
-      const all = tasksForKpi(kpiId);
-      const districtStem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      const related = all.filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name)) || cleanTaskTitle(t.title).toLowerCase().includes(districtStem));
-      return related.length ? related : all;
+      return districtScopedTasks(d, kpiId);
     }
 
     function taskDistrictFilterFor(kpiId, districtName) {
       if (!districtName || districtName === "all") return "all";
-      const districtStem = districtName.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
+      const district = (DATA.districts || []).find(item => item.name === districtName);
       const hasDistrictTasks = tasksForKpi(kpiId).some(t =>
-        (Array.isArray(t.districts) && t.districts.includes(districtName)) ||
-        cleanTaskTitle(t.title).toLowerCase().includes(districtStem)
+        district ? recordMentionsDistrict(t, district) : (Array.isArray(t.districts) && t.districts.includes(districtName))
       );
       return hasDistrictTasks ? districtName : "all";
     }
@@ -6883,18 +8860,21 @@
       const active = d.name === state.district ? "active-row" : "";
       const task = item.task || districtTaskSummary(d, kpi.id);
       const taskClass = task.total && task.unfinished ? "red" : task.total ? "green" : "grey";
+      const targets = districtScopedTargets(d, kpi.id);
+      const targetClass = targets.length ? "blue" : "grey";
       const report = latestAnyReportFor(kpi.id, cfg.primaryPeriod || state.period, d.name);
       return `<tr class="clickable ${active}" data-select-district="${d.name}">
         <td class="row-title"><strong>${d.name}</strong><span>${d.owner}</span></td>
         ${cfg.columns.map(col => districtCellHtml(d, col)).join("")}
         <td class="num"><span class="chip ${taskClass}">${task.unfinished}/${task.total}</span></td>
+        <td class="num"><span class="chip ${targetClass}">${targets.length}</span></td>
         <td>${report ? `<span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span><small>${h(reportImpactLabel(report))} · ${h(report.date || "")}</small>` : `<span class="chip grey">ҳисобот йўқ</span><small>амалдаги натижа киритилмаган</small>`}</td>
         <td><div class="action-row compact"><button class="mini-button profile" data-profile-district="${d.name}" title="Туман профили">Профил</button><button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Журнал</button></div></td>
       </tr>`;
     }
 
     function renderDistrictTable(rows, kpi, cfg) {
-      const head = `<tr><th>Туман/шаҳар</th>${cfg.columns.map(col => `<th>${col.label}</th>`).join("")}<th class="num">KPI топшириқ</th><th>Ҳисобот / таъсир</th><th>Амал</th></tr>`;
+      const head = `<tr><th>Туман/шаҳар</th>${cfg.columns.map(col => `<th>${col.label}</th>`).join("")}<th class="num">T-топшириқ</th><th class="num">D-мақсад</th><th>Ҳисобот / таъсир</th><th>Амал</th></tr>`;
       return `<div class="district-table-wrap"><table class="district-table"><thead>${head}</thead><tbody>${rows.map(row => districtTableRow(row, kpi, cfg)).join("")}</tbody></table></div>`;
     }
 
@@ -6905,10 +8885,11 @@
       const taskClass = summary.total && summary.unfinished ? "red" : summary.total ? "green" : "grey";
       const report = latestAnyReportFor(kpi.id, cfg.primaryPeriod || state.period, d.name);
       const districtTargets = districtTargetsForDistrict(d, kpi.id);
+      const targetClass = districtTargets.length ? "blue" : "grey";
       return `<article class="panel district-preview">
         <div class="panel-head">
           <div><h3>${d.name}</h3><p>${kpi.short} бўйича танланган ҳудуднинг қисқа KPI кўриниши.</p></div>
-          <span class="chip ${taskClass}">${summary.unfinished}/${summary.total}</span>
+          <div class="district-count-split"><span class="chip ${taskClass}">T: ${summary.unfinished}/${summary.total}</span><span class="chip ${targetClass}">D: ${districtTargets.length}</span></div>
         </div>
         <div class="panel-body">
           <div class="preview-score">
@@ -7034,13 +9015,10 @@
       </section>`;
       const row = districtKpi(d, kpi.id, period);
       const status = rowStatus(row);
-      const scopedTasks = districtScopedTasks(d);
-      const scopedTargets = districtScopedTargets(d);
-      const scopedTotal = scopedTasks.length + scopedTargets.length;
-      const scopedUnfinished = scopedTasks.filter(t => (t.status || "grey") !== "green").length
-        + scopedTargets.filter(t => (t.status || "grey") !== "green").length;
-      const taskClass = scopedTotal && scopedUnfinished ? "red" : scopedTotal ? "green" : "grey";
-      const taskChipText = scopedTotal ? `${scopedUnfinished}/${scopedTotal} очиқ` : "топшириқ йўқ";
+      const taskSummary = districtTaskSummary(d, kpi.id);
+      const scopedTargets = districtScopedTargets(d, kpi.id);
+      const taskClass = taskSummary.total && taskSummary.unfinished ? "red" : taskSummary.total ? "green" : "grey";
+      const targetClass = scopedTargets.length ? "blue" : "grey";
       const report = latestAnyReportFor(kpi.id, period, d.name);
       return `<section class="district-summary-card">
         <header class="district-summary-head">
@@ -7055,7 +9033,10 @@
             <strong>${districtPrimaryValue(row, kpi.id)}</strong>
             <span>${districtPrimaryLabel(kpi.id)} · ${kpi.short}</span>
           </div>
-          <span class="chip ${taskClass}">${taskChipText}</span>
+          <div class="district-count-split">
+            <span class="chip ${taskClass}">T: ${taskSummary.unfinished}/${taskSummary.total}</span>
+            <span class="chip ${targetClass}">D: ${scopedTargets.length}</span>
+          </div>
         </div>
         <div class="district-summary-metrics">
           ${cfg.columns.slice(0, 4).map(col => `<div class="district-summary-metric">
@@ -7101,20 +9082,6 @@
       </section>`;
     }
 
-    function districtScopedTasks(d) {
-      if (!d) return [];
-      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return (DATA.tasks || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
-        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
-    }
-
-    function districtScopedTargets(d) {
-      if (!d) return [];
-      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return (DATA.kafolat_district_targets || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
-        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
-    }
-
     function renderDistrictCrossKpi(d) {
       if (!d) return "";
       const tiles = [
@@ -7144,10 +9111,10 @@
       </section>`;
     }
 
-    function renderDistrictTasksPanels(d) {
+    function renderDistrictTasksPanels(d, kpiId = state.kpi) {
       if (!d) return "";
-      const tasks = districtScopedTasks(d);
-      const targets = districtScopedTargets(d);
+      const tasks = districtScopedTasks(d, kpiId);
+      const targets = districtScopedTargets(d, kpiId);
       const sortByStatus = arr => [...arr].sort((a, b) => {
         const order = { red: 0, amber: 1, grey: 2, green: 3 };
         return (order[a.status || "grey"] ?? 4) - (order[b.status || "grey"] ?? 4);
@@ -7182,17 +9149,17 @@
       return `<section class="dpc-tasks-grid">
         <div class="dpc-task-panel">
           <header class="dpc-task-head">
-            <strong>Тумандаги топшириқлар</strong>
+            <strong>T-топшириқлар</strong>
             <span class="chip ${tasks.length ? "blue" : "grey"}">${tasks.length} та</span>
           </header>
-          ${tasks.length ? `<ul class="dpc-task-list">${taskItems}</ul>${tasks.length > 12 ? `<p class="dpc-task-more">…ва яна ${tasks.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Бу ҳудудга бириктирилган T-топшириқ йўқ.</p>`}
+          ${tasks.length ? `<ul class="dpc-task-list">${taskItems}</ul>${tasks.length > 12 ? `<p class="dpc-task-more">…ва яна ${tasks.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Танланган KPI бўйича бу ҳудудга бириктирилган T-топшириқ йўқ.</p>`}
         </div>
         <div class="dpc-task-panel">
           <header class="dpc-task-head">
-            <strong>Туман мақсадлари</strong>
+            <strong>D-мақсадлар</strong>
             <span class="chip ${targets.length ? "blue" : "grey"}">${targets.length} та</span>
           </header>
-          ${targets.length ? `<ul class="dpc-task-list">${targetItems}</ul>${targets.length > 12 ? `<p class="dpc-task-more">…ва яна ${targets.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Кафолат хатида D-кўрсаткич ажратилмаган.</p>`}
+          ${targets.length ? `<ul class="dpc-task-list">${targetItems}</ul>${targets.length > 12 ? `<p class="dpc-task-more">…ва яна ${targets.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Танланган KPI бўйича кафолат хатида D-мақсад ажратилмаган.</p>`}
         </div>
       </section>`;
     }
@@ -7201,12 +9168,11 @@
       if (!d) return "";
       const row = districtKpi(d, kpi.id, period);
       const status = rowStatus(row);
-      const scopedTasks = districtScopedTasks(d);
-      const scopedTargets = districtScopedTargets(d);
-      const scopedTotal = scopedTasks.length + scopedTargets.length;
-      const scopedUnfinished = scopedTasks.filter(t => (t.status || "grey") !== "green").length
-        + scopedTargets.filter(t => (t.status || "grey") !== "green").length;
-      const taskClass = scopedTotal && scopedUnfinished ? "red" : scopedTotal ? "green" : "grey";
+      const scopedTasks = districtScopedTasks(d, kpi.id);
+      const scopedTargets = districtScopedTargets(d, kpi.id);
+      const unfinishedTasks = scopedTasks.filter(t => (t.status || "grey") !== "green").length;
+      const taskClass = scopedTasks.length && unfinishedTasks ? "red" : scopedTasks.length ? "green" : "grey";
+      const targetClass = scopedTargets.length ? "blue" : "grey";
       const report = latestAnyReportFor(kpi.id, period, d.name);
       return `<article class="district-profile-card">
         <header class="dpc-head">
@@ -7221,7 +9187,8 @@
           </div>
           <div class="dpc-head-chips">
             <span class="chip ${status}">${statusLabel(status)}</span>
-            <span class="chip ${taskClass}">${scopedUnfinished}/${scopedTotal} топшириқ</span>
+            <span class="chip ${taskClass}">T: ${unfinishedTasks}/${scopedTasks.length}</span>
+            <span class="chip ${targetClass}">D: ${scopedTargets.length}</span>
           </div>
         </header>
         <div class="dpc-metrics">
@@ -7232,7 +9199,7 @@
           </div>`).join("")}
         </div>
         ${renderDistrictCrossKpi(d)}
-        ${renderDistrictTasksPanels(d)}
+        ${renderDistrictTasksPanels(d, kpi.id)}
         <footer class="dpc-actions">
           <button class="mini-button primary" data-profile-district="${d.name}">Туман профили →</button>
           <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
@@ -7287,12 +9254,51 @@
       return districtSelectorDefs().filter(def => kpiHasAnyDistrictData(def.id));
     }
 
+    const districtKpiModuleMap = {
+      macro: ["grp", "industry", "agriculture", "services", "localization", "energy_electricity", "energy_gas"],
+      inflation: ["inflation"],
+      budget: ["budget"],
+      budget_investment: ["budget_investment"],
+      investment: ["investment"],
+      export: ["export"],
+      employment: ["unemployment", "poverty", "jobs", "legalization", "mfy_clear", "microprojects"]
+    };
+
+    function districtKpisForModule(moduleId) {
+      const available = districtSelectorDefsWithData();
+      const ids = districtKpiModuleMap[moduleId] || districtKpiModuleMap.macro;
+      return ids.map(id => available.find(def => def.id === id)).filter(Boolean);
+    }
+
+    function districtModulesWithData() {
+      return dashboardModules().filter(module => districtKpisForModule(module.id).length);
+    }
+
+    function districtKpiOption(def, cfg) {
+      const active = def.id === state.kpi ? "active" : "";
+      return `<button class="district-kpi-option ${active}" type="button" data-district-kpi="${def.id}" aria-label="${def.label}">
+        <span class="kpi-mini-icon" aria-hidden="true">${icon(def.icon)}</span>
+        <span>
+          <strong>${def.short}</strong>
+          <small>${cfg?.source || def.label}</small>
+        </span>
+      </button>`;
+    }
+
     function renderDistrictsPage() {
       const availableDefs = districtSelectorDefsWithData();
       if (!availableDefs.some(def => def.id === state.kpi)) state.kpi = availableDefs[0]?.id || "grp";
+      let activeModule = dashboardModuleForKpi(state.kpi);
+      let moduleDefs = districtKpisForModule(activeModule);
+      if (!moduleDefs.some(def => def.id === state.kpi)) {
+        state.kpi = moduleDefs[0]?.id || availableDefs[0]?.id || "grp";
+        activeModule = dashboardModuleForKpi(state.kpi);
+        moduleDefs = districtKpisForModule(activeModule);
+      }
       const kpi = currentKpiDef();
       const cfg = districtTableConfig(kpi);
       const period = cfg.primaryPeriod || state.period;
+      const selectedModule = moduleById(activeModule) || dashboardModules()[0];
       const ranked = districtRowsForKpi(kpi.id);
       const query = String(state.search || "").trim().toLowerCase();
       const filteredRanked = query
@@ -7310,13 +9316,21 @@
       const maxAbs = values.length ? Math.max(...values.map(Math.abs)) : 1;
       $("#districtsPage").innerHTML = `
         <header class="districts-head">
+          <div class="dashboard-module-tabs district-module-tabs">
+            ${districtModulesWithData().map(module => `<button class="module-tab ${module.id === activeModule ? "active" : ""}" data-district-module="${module.id}" type="button">
+              <span class="module-dot" aria-hidden="true"></span>
+              <strong>${module.label.replace(/^\d+\.\s*/, "")}</strong>
+            </button>`).join("")}
+          </div>
+          <div class="module-heading">
+            <div>
+              <h2>${selectedModule?.label || "Туманлар мониторинги"}</h2>
+              <p>${cfg.description}</p>
+            </div>
+          </div>
+          ${moduleDefs.length > 1 ? `<div class="district-kpi-selector">${moduleDefs.map(def => districtKpiOption(def, districtTableConfig(def))).join("")}</div>` : ""}
+          ${renderDistrictDataLayers(kpi, period)}
           <div class="districts-head-actions">
-            <label class="districts-control">
-              <span>KPI / маълумот</span>
-              <select id="districtKpiSelect">
-                ${availableDefs.map(def => `<option value="${def.id}" ${def.id === state.kpi ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
-              </select>
-            </label>
             <label class="districts-control">
               <span>Саралаш</span>
               <select id="districtSortSelect">
@@ -7339,11 +9353,27 @@
             ${renderSelectedDistrictSummaryCard(selectedDistrict, kpi, cfg, period)}
             ${renderDistrictLeaderboard(visibleRanked, kpi, period, selectedDistrict, maxAbs)}
           </aside>
-        </div>`;
-      $("#districtKpiSelect").addEventListener("change", event => {
-        state.kpi = event.target.value;
+        </div>
+        <section class="panel district-detail-table">
+          <div class="panel-head">
+            <div><h3>Батафсил жадвал</h3><p>${cfg.title}. ${cfg.description}</p></div>
+            <span class="chip grey">${cfg.source}</span>
+          </div>
+          ${renderDistrictTable(visibleRanked, kpi, cfg)}
+        </section>`;
+      $$("[data-district-module]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        const defs = districtKpisForModule(btn.dataset.districtModule);
+        state.kpi = defs[0]?.id || state.kpi;
+        state.dashboardModule = btn.dataset.districtModule;
+        state.search = "";
         render();
-      });
+      }));
+      $$("[data-district-kpi]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.kpi = btn.dataset.districtKpi;
+        state.dashboardModule = dashboardModuleForKpi(state.kpi);
+        state.search = "";
+        render();
+      }));
       $("#districtSortSelect").addEventListener("change", event => {
         state.districtSort = event.target.value;
         render();
