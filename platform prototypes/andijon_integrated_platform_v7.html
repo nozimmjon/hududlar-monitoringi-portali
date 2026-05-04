@@ -29,6 +29,14 @@
       --red-soft: #fee5e5;
       --grey: #71717a;
       --grey-soft: #f0f1f3;
+      --map-good: #8db9d7;
+      --map-good-stroke: #39769d;
+      --map-mid: #f0c66f;
+      --map-mid-stroke: #a76f1d;
+      --map-attn: #df8b92;
+      --map-attn-stroke: #a8444d;
+      --map-nodata: #d8dee8;
+      --map-nodata-stroke: #8792a0;
       --shadow: 0 14px 34px rgba(15, 42, 71, .09);
       --shadow-sm: 0 1px 2px rgba(15, 42, 71, .05), 0 5px 14px rgba(15, 42, 71, .06);
       --shadow-md: 0 6px 18px rgba(15, 42, 71, .08), 0 18px 44px rgba(15, 42, 71, .08);
@@ -2356,10 +2364,7 @@
     }
 
     .districts-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: end;
+      display: block;
       margin-bottom: 16px;
     }
 
@@ -2389,10 +2394,15 @@
     }
 
     .districts-head-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(170px, .34fr) minmax(190px, .38fr);
       gap: 10px;
       align-items: end;
-      flex-wrap: wrap;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
     }
 
     .districts-control {
@@ -2418,7 +2428,8 @@
       font: inherit;
       font-size: 12.5px;
       outline: none;
-      min-width: 170px;
+      width: 100%;
+      min-width: 0;
       transition: border-color var(--motion), box-shadow var(--motion);
     }
 
@@ -2428,22 +2439,31 @@
       box-shadow: 0 0 0 3px rgba(98, 148, 162, .15);
     }
 
-    .districts-control--search input { min-width: 190px; }
+    .districts-control--search input { min-width: 0; }
 
     .districts-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+      grid-template-columns: minmax(0, 1.42fr) minmax(330px, .68fr);
       gap: 14px;
       margin-bottom: 16px;
+      align-items: start;
+    }
+
+    .districts-side {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
     }
 
     .districts-map {
       position: relative;
-      background: linear-gradient(180deg, #ffffff 0%, #f7fbfc 100%);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, .9) inset;
-      padding: 18px 20px 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
       overflow: hidden;
+      min-width: 0;
     }
 
     .districts-map::before { display: none; }
@@ -2454,15 +2474,15 @@
       inset: -40% -10% auto auto;
       width: 320px;
       height: 320px;
-      background: radial-gradient(circle, rgba(27, 77, 90, .07), transparent 60%);
+      background: radial-gradient(circle, rgba(23, 105, 224, .06), transparent 60%);
       pointer-events: none;
     }
 
     .districts-map-head {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
       gap: 12px;
       position: relative;
       z-index: 1;
@@ -2482,39 +2502,34 @@
       margin-top: 2px;
       color: var(--muted);
       font-size: 11.5px;
+      line-height: 1.35;
       font-weight: 500;
+      max-width: 64ch;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: break-word;
     }
 
     .districts-map-canvas {
       position: relative;
       display: grid;
       place-items: center;
-      background:
-        radial-gradient(ellipse at 30% 20%, rgba(98, 148, 162, .12), transparent 55%),
-        radial-gradient(ellipse at 75% 80%, rgba(27, 77, 90, .06), transparent 55%),
-        linear-gradient(135deg, #f9fcfd 0%, #eef5f7 100%);
-      border: 1px solid rgba(27, 77, 90, .12);
+      background: linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+      border: 1px solid var(--line);
       border-radius: 16px;
       padding: 18px 12px;
+      min-height: 430px;
+      min-width: 0;
+      overflow: hidden;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, .8),
-        inset 0 -1px 0 rgba(27, 77, 90, .04),
-        0 1px 2px rgba(20, 30, 35, .03);
+        inset 0 -1px 0 rgba(23, 105, 224, .04),
+        0 1px 2px rgba(15, 42, 71, .03);
     }
 
     .districts-map-canvas::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(rgba(27, 77, 90, .06) 1px, transparent 1px);
-      background-size: 18px 18px;
-      background-position: 9px 9px;
-      border-radius: 16px;
-      pointer-events: none;
-      opacity: .55;
-      mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
-      -webkit-mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
+      display: none;
     }
 
     .andijan-map {
@@ -2522,16 +2537,17 @@
       max-width: 820px;
       height: auto;
       display: block;
+      min-width: 0;
       position: relative;
       z-index: 1;
-      filter: drop-shadow(0 6px 14px rgba(20, 30, 35, .08));
+      filter: none;
     }
 
     .map-cell { cursor: pointer; outline: none; }
 
     .map-cell .map-fill {
-      stroke: rgba(20, 30, 35, .35);
-      stroke-width: 1;
+      stroke: rgba(255, 255, 255, .92);
+      stroke-width: 1.2;
       stroke-linejoin: round;
       transition: fill var(--motion), stroke var(--motion), stroke-width var(--motion), transform var(--motion), filter var(--motion);
       transform-box: fill-box;
@@ -2566,10 +2582,10 @@
 
     .map-label.selected { fill: var(--blue); }
 
-    .map-cell.green .map-fill { fill: url(#mapGradGreen); stroke: #4f8c63; }
-    .map-cell.amber .map-fill { fill: url(#mapGradAmber); stroke: #ad7918; }
-    .map-cell.red   .map-fill { fill: url(#mapGradRed);   stroke: #9d2f2f; }
-    .map-cell.grey  .map-fill { fill: url(#mapGradGrey);  stroke: #8a8779; }
+    .map-cell.green .map-fill { fill: var(--map-good); stroke: var(--map-good-stroke); }
+    .map-cell.amber .map-fill { fill: var(--map-mid); stroke: var(--map-mid-stroke); }
+    .map-cell.red   .map-fill { fill: var(--map-attn); stroke: var(--map-attn-stroke); }
+    .map-cell.grey  .map-fill { fill: var(--map-nodata); stroke: var(--map-nodata-stroke); }
 
     .map-cell.is-city .map-fill {
       stroke-width: 1.8;
@@ -2578,14 +2594,14 @@
 
     .map-cell:hover .map-fill,
     .map-cell:focus .map-fill {
-      filter: brightness(1.05) saturate(1.08) drop-shadow(0 4px 10px rgba(20, 30, 35, .22));
-      transform: translateY(-1px);
+      filter: saturate(1.06);
+      transform: none;
     }
 
     .map-cell.selected .map-fill {
-      stroke: var(--blue);
-      stroke-width: 2.6;
-      filter: drop-shadow(0 6px 16px rgba(27, 77, 90, .42)) brightness(1.04);
+      stroke: var(--blue-2);
+      stroke-width: 3;
+      filter: drop-shadow(0 3px 8px rgba(11, 76, 122, .28));
     }
 
 
@@ -2605,7 +2621,7 @@
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
-      border: 1px solid rgba(20, 30, 35, .08);
+      border: 1px solid var(--line);
       background: #ffffff;
       color: var(--muted);
     }
@@ -2617,17 +2633,18 @@
       border-radius: 999px;
     }
 
-    .legend-chip.green::before { background: #5b9a72; }
-    .legend-chip.amber::before { background: #b8821f; }
-    .legend-chip.red::before   { background: #a93434; }
-    .legend-chip.grey::before  { background: #918f83; }
+    .legend-chip.green::before { background: var(--map-good); border: 1px solid var(--map-good-stroke); }
+    .legend-chip.amber::before { background: var(--map-mid); border: 1px solid var(--map-mid-stroke); }
+    .legend-chip.red::before   { background: var(--map-attn); border: 1px solid var(--map-attn-stroke); }
+    .legend-chip.grey::before  { background: var(--map-nodata); border: 1px solid var(--map-nodata-stroke); }
 
     .districts-leaderboard {
       position: relative;
       background: #ffffff;
-      border-radius: var(--r-lg);
+      border: 1px solid var(--line);
+      border-radius: 18px;
       box-shadow: var(--shadow-sm);
-      padding: 16px 16px 14px;
+      padding: 14px;
       overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr;
@@ -2663,7 +2680,7 @@
       list-style: none;
       display: grid;
       gap: 4px;
-      max-height: 480px;
+      max-height: 318px;
       overflow-y: auto;
     }
 
@@ -2676,17 +2693,17 @@
       padding: 9px 12px 10px;
       border-radius: 10px;
       border: 1px solid transparent;
-      background: rgba(98, 148, 162, .04);
+      background: #fbfdff;
       cursor: pointer;
       transition: background var(--motion), border-color var(--motion), box-shadow var(--motion);
       outline: none;
     }
 
-    .lb-row:hover { background: rgba(98, 148, 162, .1); }
+    .lb-row:hover { background: var(--blue-soft); }
 
     .lb-row.selected {
       background: #ffffff;
-      border-color: rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .50);
       box-shadow: var(--shadow-sm);
     }
 
@@ -2737,10 +2754,143 @@
       transition: width var(--motion-slow);
     }
 
-    .lb-row.green .lb-bar i { background: #5b9a72; }
-    .lb-row.amber .lb-bar i { background: #b8821f; }
-    .lb-row.red .lb-bar i   { background: #a93434; }
-    .lb-row.grey .lb-bar i  { background: #918f83; }
+    .lb-row.green .lb-bar i { background: var(--map-good-stroke); }
+    .lb-row.amber .lb-bar i { background: var(--map-mid-stroke); }
+    .lb-row.red .lb-bar i   { background: var(--map-attn-stroke); }
+    .lb-row.grey .lb-bar i  { background: var(--map-nodata-stroke); }
+
+    .lb-empty {
+      padding: 18px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      background: #fbfdff;
+    }
+
+    .district-summary-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .district-summary-card.empty {
+      min-height: 180px;
+      align-content: center;
+    }
+
+    .district-summary-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .district-summary-head span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .district-summary-head h3 {
+      margin: 4px 0 0;
+      font-size: 21px;
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+    }
+
+    .district-summary-value {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      padding: 14px;
+      border: 1px solid rgba(23, 105, 224, .18);
+      border-radius: 14px;
+      background: var(--blue-soft);
+    }
+
+    .district-summary-value strong {
+      display: block;
+      color: var(--blue);
+      font-size: clamp(30px, 3vw, 42px);
+      line-height: 1;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      letter-spacing: -0.025em;
+    }
+
+    .district-summary-value span,
+    .district-summary-value small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .district-summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .district-summary-metric {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfdff;
+      min-width: 0;
+    }
+
+    .district-summary-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      line-height: 1.2;
+    }
+
+    .district-summary-metric strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-summary-metric small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .district-summary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .district-summary-actions .mini-button {
+      min-height: 38px;
+      padding: 8px 10px;
+      text-align: center;
+    }
 
     .district-profile-card {
       position: relative;
@@ -3040,13 +3190,24 @@
     @media (max-width: 1080px) {
       .districts-grid { grid-template-columns: 1fr; }
       .dpc-head { grid-template-columns: 1fr 1fr; }
+      .districts-map-canvas { min-height: 360px; }
     }
 
     @media (max-width: 720px) {
       .districts-head { grid-template-columns: 1fr; }
-      .districts-head-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .districts-head-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
       .districts-control select, .districts-control input { min-width: 0; width: 100%; }
       .dpc-head { grid-template-columns: 1fr; }
+      .district-summary-metrics, .district-summary-actions { grid-template-columns: 1fr; }
+      .districts-grid, .districts-map, .districts-side, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }
+      .districts-map { padding: 14px; }
+      .districts-map-head { display: block; }
+      .districts-map-head strong { font-size: 15px; line-height: 1.18; }
+      .districts-map-head span { font-size: 11px; max-width: 100%; }
+      .districts-map-canvas { width: 100%; max-width: 100%; min-height: 270px; padding: 10px 6px; }
+      .andijan-map { width: 100%; max-width: 100%; transform: scale(.92); transform-origin: center; }
+      .districts-map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; overflow: visible; }
+      .legend-chip { justify-content: center; padding: 4px 6px; font-size: 10.5px; min-width: 0; white-space: normal; }
     }
 
     .small-stat {
@@ -3707,7 +3868,7 @@
       .side-title { display: none; }
       .nav-btn { min-width: 0; margin: 0; gap: 6px; padding: 8px 4px; }
       .nav-btn span { display: block; font-size: 10.5px; line-height: 1.1; white-space: normal; }
-      .main { padding: 14px; }
+      .main { padding: 14px; min-width: 0; max-width: 100vw; overflow-x: hidden; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
       .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
@@ -6256,6 +6417,7 @@
         <header class="districts-map-head">
           <div>
             <strong>${kpi.short} — ${kpi.label}</strong>
+            <span>Ранглар танланган KPI ҳолатини кўрсатади.</span>
           </div>
         </header>
         <div class="districts-map-canvas">
@@ -6281,10 +6443,68 @@
                 <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#1b4d5a" flood-opacity="0.18"/>
               </filter>
             </defs>
-            <g filter="url(#mapCellShadow)">${cellShapes}</g>
+            <g>${cellShapes}</g>
             <g class="map-labels">${cellLabels}</g>
           </svg>
         </div>
+        <div class="districts-map-legend">
+          <span class="legend-chip green">Яхши</span>
+          <span class="legend-chip amber">Ўртача</span>
+          <span class="legend-chip red">Эътибор</span>
+          <span class="legend-chip grey">Маълумот йўқ</span>
+        </div>
+      </section>`;
+    }
+
+    function renderSelectedDistrictSummaryCard(d, kpi, cfg, period) {
+      if (!d) return `<section class="district-summary-card empty">
+        <div class="district-summary-head">
+          <div>
+            <span>Танланган ҳудуд</span>
+            <h3>Туман танланмаган</h3>
+          </div>
+        </div>
+        <p class="muted">Харита ёки рейтингдан туман/шаҳарни танланг.</p>
+      </section>`;
+      const row = districtKpi(d, kpi.id, period);
+      const status = rowStatus(row);
+      const scopedTasks = districtScopedTasks(d);
+      const scopedTargets = districtScopedTargets(d);
+      const scopedTotal = scopedTasks.length + scopedTargets.length;
+      const scopedUnfinished = scopedTasks.filter(t => (t.status || "grey") !== "green").length
+        + scopedTargets.filter(t => (t.status || "grey") !== "green").length;
+      const taskClass = scopedTotal && scopedUnfinished ? "red" : scopedTotal ? "green" : "grey";
+      const taskChipText = scopedTotal ? `${scopedUnfinished}/${scopedTotal} очиқ` : "топшириқ йўқ";
+      const report = latestAnyReportFor(kpi.id, period, d.name);
+      return `<section class="district-summary-card">
+        <header class="district-summary-head">
+          <div>
+            <span>Танланган ҳудуд</span>
+            <h3>${d.name}</h3>
+          </div>
+          <span class="chip ${status}">${statusLabel(status)}</span>
+        </header>
+        <div class="district-summary-value">
+          <div>
+            <strong>${districtPrimaryValue(row, kpi.id)}</strong>
+            <span>${districtPrimaryLabel(kpi.id)} · ${kpi.short}</span>
+          </div>
+          <span class="chip ${taskClass}">${taskChipText}</span>
+        </div>
+        <div class="district-summary-metrics">
+          ${cfg.columns.slice(0, 4).map(col => `<div class="district-summary-metric">
+            <span>${col.label}</span>
+            <strong>${col.value(d)}</strong>
+            <small>${col.note ? col.note(d) : ""}</small>
+          </div>`).join("")}
+        </div>
+        <div class="district-summary-actions">
+          <button class="mini-button primary" data-profile-district="${d.name}">Туман профили</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
+          <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
+          <button class="mini-button" data-page-jump="tasks">Топшириқлар</button>
+        </div>
+        ${report ? `<span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)} · ${h(reportImpactLabel(report))}</span>` : `<span class="chip grey">ҳисобот йўқ</span>`}
       </section>`;
     }
 
@@ -6296,7 +6516,7 @@
           <span>${withData.length} та туманлар · ${kpi.short}</span>
         </header>
         <ol class="districts-lb-list">
-          ${withData.map((item, idx) => {
+          ${withData.length ? withData.map((item, idx) => {
             const d = item.d;
             const row = districtKpi(d, kpi.id, period);
             const status = rowStatus(row);
@@ -6310,7 +6530,7 @@
               <span class="lb-value">${value}</span>
               <span class="lb-bar"><i style="width:${barPct.toFixed(1)}%"></i></span>
             </li>`;
-          }).join("")}
+          }).join("") : `<li class="lb-empty">Қидирув бўйича туман топилмади. Қидирувни тозаланг ёки бошқа KPI танланг.</li>`}
         </ol>
       </section>`;
     }
@@ -6508,10 +6728,19 @@
       const cfg = districtTableConfig(kpi);
       const period = cfg.primaryPeriod || state.period;
       const ranked = districtRowsForKpi(kpi.id);
-      const districts = ranked.map(x => x.d);
-      const selectedDistrict = state.district ? districts.find(d => d.name === state.district) : null;
+      const query = String(state.search || "").trim().toLowerCase();
+      const filteredRanked = query
+        ? ranked.filter(item => item.d.name.toLowerCase().includes(query) || String(item.d.owner || "").toLowerCase().includes(query))
+        : ranked;
+      const visibleRanked = filteredRanked;
+      const districts = visibleRanked.map(x => x.d);
+      let selectedDistrict = state.district ? districts.find(d => d.name === state.district) : null;
+      if (!selectedDistrict) {
+        selectedDistrict = districts[0] || null;
+        if (selectedDistrict) state.district = selectedDistrict.name;
+      }
       const statusByDistrict = buildMapStatusByDistrict(kpi.id, period);
-      const values = ranked.map(r => districtRowValue(r, kpi.id)).filter(v => v !== null);
+      const values = visibleRanked.map(r => districtRowValue(r, kpi.id)).filter(v => v !== null);
       const maxAbs = values.length ? Math.max(...values.map(Math.abs)) : 1;
       $("#districtsPage").innerHTML = `
         <header class="districts-head">
@@ -6540,7 +6769,10 @@
         </header>
         <div class="districts-grid">
           ${renderAndijanHexMap(kpi, statusByDistrict, selectedDistrict)}
-          ${renderDistrictLeaderboard(ranked, kpi, period, selectedDistrict, maxAbs)}
+          <aside class="districts-side">
+            ${renderSelectedDistrictSummaryCard(selectedDistrict, kpi, cfg, period)}
+            ${renderDistrictLeaderboard(visibleRanked, kpi, period, selectedDistrict, maxAbs)}
+          </aside>
         </div>
         ${renderSelectedDistrictCard(selectedDistrict, kpi, cfg, period)}`;
       $("#districtKpiSelect").addEventListener("change", event => {
