@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -33,12 +34,7 @@ return new class extends Migration {
             $table->timestamp('statkom_published_at')->nullable();
             $table->timestamps();
 
-            $table->unique(
-                ['region_code', 'district_code', 'year', 'indicator_code', 'period'],
-                'uq_indicator_facts'
-            );
             $table->index(['region_code', 'year', 'indicator_code'], 'idx_facts_rgn_yr_ind');
-            $table->index(['region_code', 'district_code', 'year'], 'idx_facts_rgn_dist_yr');
             $table->index(['year', 'indicator_code', 'period'], 'idx_facts_yr_ind_per');
 
             $table->foreign('region_code')->references('code')->on('regions');
@@ -47,6 +43,21 @@ return new class extends Migration {
             $table->foreign('year')->references('year')->on('reporting_years');
             $table->foreign('indicator_code')->references('code')->on('indicators');
         });
+
+        // PostgreSQL treats NULL as distinct in multi-column unique indexes, so a single
+        // composite unique can't dedupe region-rollup rows (district_code IS NULL).
+        // Use two partial unique indexes to cover both cases.
+        DB::statement(<<<'SQL'
+            CREATE UNIQUE INDEX uq_indicator_facts_district
+                ON indicator_facts (region_code, district_code, year, indicator_code, period)
+                WHERE district_code IS NOT NULL
+        SQL);
+
+        DB::statement(<<<'SQL'
+            CREATE UNIQUE INDEX uq_indicator_facts_rollup
+                ON indicator_facts (region_code, year, indicator_code, period)
+                WHERE district_code IS NULL
+        SQL);
     }
 
     public function down(): void

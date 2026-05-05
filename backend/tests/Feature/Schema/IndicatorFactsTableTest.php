@@ -32,10 +32,43 @@ class IndicatorFactsTableTest extends TestCase
             'indicator_code' => 'grp', 'period' => 'h1',
             'plan_value' => 52100.8, 'unit' => 'млрд сўм', 'source_label' => 'test',
         ]);
+
+        try {
+            IndicatorFact::create([
+                'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                'indicator_code' => 'grp', 'period' => 'h1',
+                'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
+            ]);
+            $this->fail('expected QueryException for duplicate region-rollup row');
+        } catch (QueryException $e) {
+            // expected
+        }
+
+        $this->assertSame(
+            1,
+            IndicatorFact::where('region_code', 'andijan')
+                ->whereNull('district_code')
+                ->where('year', 2026)
+                ->where('indicator_code', 'grp')
+                ->where('period', 'h1')
+                ->count(),
+            'partial unique index must prevent duplicate region-rollup rows'
+        );
+    }
+
+    public function test_unique_constraint_blocks_district_row_duplicates(): void
+    {
+        $this->seed();
+        IndicatorFact::create([
+            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'indicator_code' => 'industry', 'period' => 'q1',
+            'plan_value' => 4600.9, 'unit' => 'млрд сўм', 'source_label' => 'test',
+        ]);
+
         $this->expectException(QueryException::class);
         IndicatorFact::create([
-            'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
-            'indicator_code' => 'grp', 'period' => 'h1',
+            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'indicator_code' => 'industry', 'period' => 'q1',
             'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
         ]);
     }
