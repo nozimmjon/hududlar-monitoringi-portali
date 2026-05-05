@@ -7206,7 +7206,7 @@ HTML = r"""<!doctype html>
       return {
         submitted: "Киритилди",
         approved: "Тасдиқланди",
-        review: "Қайта кўришда",
+        review: "Кўриб чиқилмоқда",
         rejected: "Қайтарилди"
       }[status] || "Киритилди";
     }
@@ -7218,6 +7218,24 @@ HTML = r"""<!doctype html>
         review: "amber",
         rejected: "red"
       }[status] || "blue";
+    }
+
+    function executionStatusClass(status) {
+      return {
+        "Бажарилди": "green",
+        "Қисман бажарилди": "amber",
+        "Бажарилмади": "red",
+        "Муддати кечикди": "red",
+        "Маълумот йўқ": "grey"
+      }[status] || "grey";
+    }
+
+    function evidenceStatusClass(status) {
+      return {
+        "Етарли": "green",
+        "Етарли эмас": "amber",
+        "Далил йўқ": "red"
+      }[status] || "grey";
     }
 
     function colorFor(status) {
@@ -9031,6 +9049,22 @@ HTML = r"""<!doctype html>
         .filter((def, idx, arr) => def && arr.findIndex(item => item.id === def.id) === idx);
     }
 
+    function reportEntryKpiOptions() {
+      return reportKpiOptions().filter(def => tasksForKpi(def.id).length);
+    }
+
+    function defaultReportKpiId(preferred = null) {
+      const options = reportEntryKpiOptions();
+      const candidates = [
+        preferred,
+        state.sector !== "all" ? state.sector : null,
+        state.kpi,
+        "industry",
+        ...options.map(def => def.id)
+      ].filter(Boolean);
+      return candidates.find(id => id !== "all" && tasksForKpi(id).length) || options[0]?.id || "industry";
+    }
+
     function defaultReportUnit(kpiId, period = state.period) {
       const row = baseDashboardPeriodKpi(kpiId, period);
       if (row?.unit?.includes("минг доллар")) return "млн $";
@@ -9097,7 +9131,7 @@ HTML = r"""<!doctype html>
       const index = reports.findIndex(report => report.id === id);
       if (index === -1) return;
       const now = new Date().toISOString();
-      const actor = meta.actor || "Вилоят ҳокимлиги";
+      const actor = meta.actor || "Платформа администратори";
       const reason = meta.reason || "";
       const next = {
         ...reports[index],
@@ -9125,13 +9159,13 @@ HTML = r"""<!doctype html>
       if (!report) return;
       const requiresReason = status === "review" || status === "rejected";
       const actionText = {
-        approved: "Тасдиқлаш ва KPIга ўтказиш",
-        review: "Қайта кўришга юбориш",
+        approved: "Платформага қабул қилиш ва KPIга ўтказиш",
+        review: "Қайта кўришга қолдириш",
         rejected: "Қайтариш"
       }[status] || "Сақлаш";
       const effectText = status === "approved"
-        ? "Бу ҳисобот KPI “амалда” қийматига қўшилади."
-        : "Бу ҳисобот KPI натижасига қўшилмайди.";
+        ? "Бу Ҳисоб палатаси қатори KPI “амалда” қийматига қўшилади."
+        : "Бу Ҳисоб палатаси қатори KPI натижасига қўшилмайди.";
       $("#reportModal").innerHTML = `
         <div class="modal-head">
           <div>
@@ -9146,7 +9180,7 @@ HTML = r"""<!doctype html>
             <div class="modal-field"><span>Жорий ҳолат</span><strong><span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span></strong></div>
             <div class="modal-field"><span>Янги ҳолат</span><strong><span class="chip ${reportStatusClass(status)}">${reportStatusLabel(status)}</span></strong></div>
           </div>
-          <label class="modal-field"><span>Текширувчи / тасдиқловчи</span><input id="statusActor" type="text" value="${h(report.checkedBy || "Вилоят ҳокимлиги")}" placeholder="масалан: Вилоят ҳокимлиги"></label>
+          <label class="modal-field"><span>Қабул қилувчи</span><input id="statusActor" type="text" value="${h(report.checkedBy || "Платформа администратори")}" placeholder="масалан: Платформа администратори"></label>
           <label class="modal-field"><span>${requiresReason ? "Сабаб / изоҳ (мажбурий)" : "Изоҳ"}</span><textarea id="statusReason" placeholder="${requiresReason ? "Қайтариш ёки қайта кўриш сабабини ёзинг" : "Қисқа изоҳ киритинг"}"></textarea><small class="field-error" id="statusReasonError">Сабаб киритилиши шарт.</small></label>
           <div class="action-row">
             <button class="mini-button primary" type="button" data-save-status="${id}:${status}">${actionText}</button>
@@ -9185,7 +9219,7 @@ HTML = r"""<!doctype html>
         const statusOk = state.reportStatus === "all" || report.status === state.reportStatus;
         const periodOk = state.reportPeriod === "all" || report.period === state.reportPeriod;
         const districtOk = state.reportDistrict === "all" || report.district === state.reportDistrict;
-        const qOk = !q || `${report.district} ${report.kpiLabel} ${report.taskTitle} ${report.comment} ${report.responsible} ${report.createdBy} ${report.checkedBy} ${latestStatusReason(report)}`.toLowerCase().includes(q);
+        const qOk = !q || `${report.district} ${report.kpiLabel} ${report.taskTitle} ${report.templateRowId} ${report.executionStatus} ${report.evidenceStatus} ${report.issueType} ${report.comment} ${report.responsible} ${report.createdBy} ${report.checkedBy} ${latestStatusReason(report)}`.toLowerCase().includes(q);
         return kpiOk && statusOk && periodOk && districtOk && qOk;
       });
     }
@@ -9256,7 +9290,7 @@ HTML = r"""<!doctype html>
             </div>
           </div>
           <div class="action-row">
-            <button class="mini-button primary" type="button" data-open-report-from-task="${task.id}">Шу топшириқ бўйича ҳисобот киритиш</button>
+            <button class="mini-button primary" type="button" data-open-report-from-task="${task.id}">Шу топшириқ бўйича текширув киритиш</button>
           </div>
         </div>`;
       $("#taskModalBg").classList.add("open");
@@ -9293,14 +9327,15 @@ HTML = r"""<!doctype html>
     function taskOptionsHtml(tasks, selectedTaskId = "") {
       return tasks.length
         ? tasks.map(t => `<option value="${t.id}" ${t.id === selectedTaskId ? "selected" : ""}>${h(`${t.id} · ${cleanTaskTitle(t.title)}`.slice(0, 145))}</option>`).join("")
-        : `<option value="">Топшириқ танланмаган</option>`;
+        : `<option value="" disabled>Бу KPI бўйича текширув топшириғи йўқ</option>`;
     }
 
     function openReportModal(options = {}) {
-      const selectedKpi = options.kpi || (state.sector !== "all" ? state.sector : state.kpi);
+      const selectedKpi = defaultReportKpiId(options.kpi || (state.sector !== "all" ? state.sector : state.kpi));
       const selectedDistrict = options.district || (state.reportDistrict !== "all" ? state.reportDistrict : state.district);
       const selectedPeriod = options.period || (state.reportPeriod !== "all" ? state.reportPeriod : state.period);
       const kpi = kpiById(selectedKpi);
+      const entryKpiOptions = reportEntryKpiOptions();
       const district = (DATA.districts || []).find(item => item.name === selectedDistrict) || currentDistrict();
       const tasks = tasksForReportContext(kpi.id, district.name);
       const taskId = tasks[0]?.id || defaultTaskForReport(kpi.id);
@@ -9308,8 +9343,8 @@ HTML = r"""<!doctype html>
       $("#reportModal").innerHTML = `
         <div class="modal-head">
           <div>
-            <div class="modal-title" id="reportModalTitle">Ҳисобот киритиш</div>
-            <div class="modal-sub">Амалдаги натижани киритинг. Ҳисобот аввал “Киритилди” бўлади, тасдиқланмагунча KPIга қўшилмайди.</div>
+            <div class="modal-title" id="reportModalTitle">Ҳисоб палатаси текширувини киритиш</div>
+            <div class="modal-sub">Ҳисоб палатаси текширув натижасини киритинг. Фақат “Тасдиқланди” ҳолатидаги қатор KPI “амалда” қийматига қўшилади.</div>
           </div>
           <button class="modal-close" type="button" data-close-report aria-label="Ёпиш">×</button>
         </div>
@@ -9317,7 +9352,7 @@ HTML = r"""<!doctype html>
           <div class="report-context">
             <div class="context-pill"><span>KPI</span><strong id="reportContextKpi">${h(kpi.short)}</strong></div>
             <div class="context-pill"><span>Туман/шаҳар</span><strong id="reportContextDistrict">${h(district.name)}</strong></div>
-            <div class="context-pill"><span>Ҳолат</span><strong><span class="chip blue">Киритилди</span></strong></div>
+            <div class="context-pill"><span>Манба</span><strong>Ҳисоб палатаси текшируви</strong></div>
           </div>
           <div class="modal-grid">
             <label class="modal-field"><span>Давр</span>
@@ -9328,7 +9363,7 @@ HTML = r"""<!doctype html>
             </label>
             <label class="modal-field"><span>KPI</span>
               <select id="reportKpi">
-                ${reportKpiOptions().map(def => `<option value="${def.id}" ${def.id === kpi.id ? "selected" : ""}>${def.short}</option>`).join("")}
+                ${entryKpiOptions.map(def => `<option value="${def.id}" ${def.id === kpi.id ? "selected" : ""}>${def.short}</option>`).join("")}
               </select>
             </label>
             <label class="modal-field"><span>Туман/шаҳар</span>
@@ -9338,17 +9373,60 @@ HTML = r"""<!doctype html>
             </label>
           </div>
           <div class="modal-grid">
+            <label class="modal-field"><span>Template ID</span><input id="reportTemplateRow" type="text" value="${h(taskId)}" placeholder="T-001 / M-001 / D-001"></label>
+            <label class="modal-field"><span>Ҳисобот ҳолати</span>
+              <select id="reportStatusInput">
+                <option value="submitted">Киритилди</option>
+                <option value="review">Кўриб чиқилмоқда</option>
+                <option value="approved">Тасдиқланди</option>
+                <option value="rejected">Қайтарилди / рад этилди</option>
+              </select>
+            </label>
+            <label class="modal-field"><span>Ижро ҳолати</span>
+              <select id="reportExecutionStatus">
+                <option value="Бажарилди">Бажарилди</option>
+                <option value="Қисман бажарилди">Қисман бажарилди</option>
+                <option value="Бажарилмади">Бажарилмади</option>
+                <option value="Муддати кечикди">Муддати кечикди</option>
+                <option value="Маълумот йўқ">Маълумот йўқ</option>
+              </select>
+            </label>
+          </div>
+          <div class="modal-grid">
+            <label class="modal-field"><span>Далил ҳолати</span>
+              <select id="reportEvidenceStatus">
+                <option value="Етарли">Етарли</option>
+                <option value="Етарли эмас">Етарли эмас</option>
+                <option value="Далил йўқ">Далил йўқ</option>
+              </select>
+            </label>
             <label class="modal-field"><span>Амалдаги натижа</span><input id="reportActual" type="text" required placeholder="масалан: 15,2"><small class="field-error" id="reportActualError">Рақам киритинг. Масалан: 15,2</small></label>
             <label class="modal-field"><span>Далил / файл / ҳавола</span><input id="reportEvidence" type="text" placeholder="файл номи ёки ҳавола"></label>
-            <label class="modal-field"><span>Киритувчи</span><input id="reportSubmitter" type="text" value="${h(district.owner || "Туман ҳокимлиги")}" placeholder="ҳисобот киритган масъул"></label>
           </div>
           <label class="modal-field"><span>Изоҳ</span><textarea id="reportComment" placeholder="Қисқа изоҳ киритинг"></textarea></label>
           <details class="advanced-report">
             <summary>Қўшимча маълумот</summary>
             <div class="modal-grid">
               <label class="modal-field"><span>Бирлик</span><input id="reportUnit" type="text" value="${h(unit)}" placeholder="млн $, %, млрд сўм"></label>
+              <label class="modal-field"><span>Муаммо тури</span>
+                <select id="reportIssueType">
+                  <option value="Муаммо йўқ">Муаммо йўқ</option>
+                  <option value="Молиялаштириш">Молиялаштириш</option>
+                  <option value="Харид жараёни">Харид жараёни</option>
+                  <option value="Муддат кечикиши">Муддат кечикиши</option>
+                  <option value="Далил етарсиз">Далил етарсиз</option>
+                  <option value="Маълумот номувофиқ">Маълумот номувофиқ</option>
+                  <option value="Ижрочи масъулияти">Ижрочи масъулияти</option>
+                  <option value="Ташқи омил">Ташқи омил</option>
+                  <option value="Бошқа">Бошқа</option>
+                </select>
+              </label>
+              <label class="modal-field"><span>Тузатиш муддати</span><input id="reportCorrectionDeadline" type="date"></label>
+            </div>
+            <div class="modal-grid">
               <label class="modal-field"><span>Масъул</span><input id="reportResponsible" type="text" value="${h(district.owner || "Туман ҳокимлиги")}"></label>
-              <label class="modal-field"><span>Сана</span><input id="reportDate" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+              <label class="modal-field"><span>Текширув санаси</span><input id="reportDate" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+              <label class="modal-field"><span>Текширувчи</span><input id="reportSubmitter" type="text" value="Ҳисоб палатаси" placeholder="Ҳисоб палатаси масъул ходими"></label>
             </div>
             <div style="padding: 0 12px 12px">
               <label class="modal-field"><span>Боғланган топшириқ</span>
@@ -9359,7 +9437,7 @@ HTML = r"""<!doctype html>
             </div>
           </details>
           <div class="action-row">
-            <button class="mini-button primary" type="button" data-save-report>Ҳисоботни киритиш</button>
+            <button class="mini-button primary" type="button" data-save-report>Текширувни киритиш</button>
             <button class="mini-button" type="button" data-close-report>Бекор қилиш</button>
           </div>
         </div>`;
@@ -9371,6 +9449,7 @@ HTML = r"""<!doctype html>
         const nextKpi = kpiById(event.target.value);
         $("#reportContextKpi").textContent = nextKpi.short;
         $("#reportTask").innerHTML = taskOptionsHtml(nextTasks);
+        $("#reportTemplateRow").value = $("#reportTask").value || "";
         $("#reportUnit").value = defaultReportUnit(event.target.value, $("#reportPeriod").value);
       });
       $("#reportPeriod").addEventListener("change", () => {
@@ -9380,8 +9459,11 @@ HTML = r"""<!doctype html>
         const nextDistrict = (DATA.districts || []).find(item => item.name === event.target.value);
         $("#reportContextDistrict").textContent = event.target.value;
         if (nextDistrict) $("#reportResponsible").value = nextDistrict.owner || "";
-        if (nextDistrict) $("#reportSubmitter").value = nextDistrict.owner || "";
         $("#reportTask").innerHTML = taskOptionsHtml(tasksForReportContext($("#reportKpi").value, event.target.value));
+        $("#reportTemplateRow").value = $("#reportTask").value || "";
+      });
+      $("#reportTask").addEventListener("change", event => {
+        $("#reportTemplateRow").value = event.target.value || "";
       });
     }
 
@@ -9401,8 +9483,22 @@ HTML = r"""<!doctype html>
       }
       const taskId = $("#reportTask").value;
       const task = DATA.tasks.find(t => t.id === taskId);
+      const templateRowId = $("#reportTemplateRow").value.trim() || taskId;
+      if (!taskId || !templateRowId || !task) {
+        $("#reportTask")?.focus();
+        return;
+      }
       const createdAt = new Date().toISOString();
-      const createdBy = $("#reportSubmitter").value.trim() || $("#reportResponsible").value.trim() || "Туман ҳокимлиги";
+      const createdBy = $("#reportSubmitter").value.trim() || "Ҳисоб палатаси";
+      const reportStatus = $("#reportStatusInput").value || "submitted";
+      const executionStatus = $("#reportExecutionStatus").value || "Маълумот йўқ";
+      const evidenceStatus = $("#reportEvidenceStatus").value || "Далил йўқ";
+      let issueType = $("#reportIssueType").value || "Муаммо йўқ";
+      const correctionDeadline = $("#reportCorrectionDeadline").value || "";
+      const requiresIssue = ["review", "rejected"].includes(reportStatus)
+        || ["Бажарилмади", "Муддати кечикди"].includes(executionStatus)
+        || evidenceStatus !== "Етарли";
+      if (requiresIssue && issueType === "Муаммо йўқ") issueType = evidenceStatus !== "Етарли" ? "Далил етарсиз" : executionStatus === "Муддати кечикди" ? "Муддат кечикиши" : "Бошқа";
       const item = {
         id: `report-${Date.now()}`,
         createdAt,
@@ -9414,21 +9510,33 @@ HTML = r"""<!doctype html>
         kpiLabel: kpi.short,
         district: $("#reportDistrict").value,
         taskId,
-        taskTitle: task ? cleanTaskTitle(task.title) : "Топшириқ танланмаган",
+        templateRowId,
+        reportSource: "Ҳисоб палатаси текшируви",
+        executionStatus,
+        evidenceStatus,
+        issueType,
+        correctionDeadline,
+        taskTitle: cleanTaskTitle(task.title),
         actualValue,
         unit: $("#reportUnit").value.trim(),
         comment: $("#reportComment").value.trim(),
         evidenceName: $("#reportEvidence").value.trim(),
         responsible: $("#reportResponsible").value.trim(),
         createdBy,
-        status: "submitted",
+        checkedBy: createdBy,
+        checkedAt: $("#reportDate").value || createdAt,
+        status: reportStatus,
         history: [{
-          status: "submitted",
+          status: reportStatus,
           actor: createdBy,
           reason: $("#reportComment").value.trim(),
           at: createdAt
         }]
       };
+      if (reportStatus === "approved") {
+        item.approvedBy = createdBy;
+        item.approvedAt = createdAt;
+      }
       const reports = getExecutionReports();
       reports.unshift(item);
       saveExecutionReports(reports);
@@ -9686,7 +9794,7 @@ HTML = r"""<!doctype html>
           <aside class="task-focus">
             <div class="eyebrow">Топшириқлар</div>
             <h3>KPI → топшириқ → ҳисобот</h3>
-            <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради. Карточкага босганда тўлиқ матн, далил ва ҳисобот киритиш ойнаси очилади.</p>
+            <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради. Карточкага босганда тўлиқ матн, далил ва Ҳисоб палатаси текширувини киритиш ойнаси очилади.</p>
             <div class="task-side-stack">
               <div class="task-side-row"><div><strong>Танланган йўналиш</strong><span>${cleanModuleLabel}</span></div><span class="chip blue">${moduleScopedTasks.length} та</span></div>
               <div class="task-side-row"><div><strong>Танланган KPI</strong><span>${allKpis ? "Барча KPI бўйича топшириқлар" : kpi.label}</span></div><span class="chip blue">${allKpis ? "ҳаммаси" : kpi.short}</span></div>
@@ -10146,7 +10254,7 @@ HTML = r"""<!doctype html>
           </div>
           <div class="action-row">
             <button class="mini-button primary" data-profile-district="${d.name}">Туман профили</button>
-            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
             <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Ижро журнали</button>
             <button class="mini-button" data-page-jump="tasks">Топшириқларни кўриш</button>
           </div>
@@ -10277,7 +10385,7 @@ HTML = r"""<!doctype html>
         </div>
         <div class="district-summary-actions">
           <button class="mini-button primary" data-profile-district="${d.name}">Туман профили</button>
-          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Текширув киритиш</button>
           <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
           <button class="mini-button" data-page-jump="tasks">Топшириқлар</button>
         </div>
@@ -10432,7 +10540,7 @@ HTML = r"""<!doctype html>
         ${renderDistrictTasksPanels(d, kpi.id)}
         <footer class="dpc-actions">
           <button class="mini-button primary" data-profile-district="${d.name}">Туман профили →</button>
-          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Текширув киритиш</button>
           <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
           <button class="mini-button" data-page-jump="tasks">Топшириқларни кўриш</button>
           ${report ? `<span class="chip ${reportStatusClass(report.status)}" style="margin-left:auto">${reportStatusLabel(report.status)} · ${h(report.date || "")}</span>` : ""}
@@ -10687,7 +10795,7 @@ HTML = r"""<!doctype html>
           </label>
           <div class="action-row" style="margin-top:0">
             <button class="mini-button" data-open-districts="${kpi.id}">Туманлар кесимига қайтиш</button>
-            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
             <button class="mini-button primary" data-page-jump="dashboard">KPI экрани</button>
           </div>
         </div>
@@ -10728,7 +10836,7 @@ HTML = r"""<!doctype html>
               <div class="profile-side-stat"><span>Туман мақсадлари</span><strong>${districtTargets.length}</strong></div>
               <div class="profile-side-stat"><span>Ҳисобот таъсири</span><strong>${latestReport ? reportImpactLabel(latestReport) : "ҳисобот йўқ"}</strong></div>
               <div class="profile-actions" style="margin-top:12px">
-                <button class="mini-button primary" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+                <button class="mini-button primary" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
                 <button class="mini-button" data-open-districts="${kpi.id}">Туманлар жадвали</button>
                 <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Ижро журнали</button>
               </div>
@@ -10824,6 +10932,7 @@ HTML = r"""<!doctype html>
       const rejectedReports = allReports.filter(r => r.status === "rejected");
       const queueReports = allReports.filter(r => r.status === "submitted" || r.status === "review").slice(0, 5);
       const visibleQueue = queueReports.length ? queueReports : allReports.slice(0, 5);
+      const problemReports = allReports.filter(r => ["Бажарилмади", "Муддати кечикди"].includes(r.executionStatus) || ["Етарли эмас", "Далил йўқ"].includes(r.evidenceStatus) || r.status === "rejected");
       const approved = approvedReports.length;
       const submitted = submittedReports.length;
       const review = reviewReports.length;
@@ -10843,18 +10952,21 @@ HTML = r"""<!doctype html>
         <header>
           <div>
             <strong>${h(report.district)} · ${h(report.kpiLabel)}</strong>
-            <p>${h(report.taskTitle || report.comment || "Топшириқ танланмаган")}</p>
+              <p>${h(report.taskTitle || report.comment || "Топшириқ ID кўрсатилмаган")}</p>
           </div>
           <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
         </header>
         <div class="execution-card-meta">
+          <span>қатор: ${h(report.templateRowId || report.taskId || "—")}</span>
           <span>${h(report.periodLabel || report.period || "давр йўқ")}</span>
-          <span>амалда: ${h(report.actualValue || "—")} ${h(report.unit || "")}</span>
+          <span>факт: ${h(report.actualValue || "—")} ${h(report.unit || "")}</span>
+          <span>ижро: ${h(report.executionStatus || "—")}</span>
+          <span>далил: ${h(report.evidenceStatus || "—")}</span>
           <span>${h(report.createdBy || report.responsible || "киритувчи йўқ")}</span>
         </div>
         <div class="action-row compact">
-          ${report.status !== "approved" ? `<button class="mini-button primary" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
-          ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Қайта кўриш</button>` : ""}
+          ${report.status !== "approved" ? `<button class="mini-button primary" data-report-status="${report.id}:approved">Қабул қилиш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
+          ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Кўриб чиқишда</button>` : ""}
           ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
         </div>
       </article>`;
@@ -10862,26 +10974,26 @@ HTML = r"""<!doctype html>
         <div class="execution-command">
           <div class="execution-command-copy">
             <span>Ижро мониторинги</span>
-            <strong>Ҳисоботдан KPI амалда қийматигача</strong>
-            <small>Ҳар бир ҳисобот аввал журналга тушади. Фақат тасдиқланган ҳисобот KPI “амалда” қийматига қўшилади.</small>
+            <strong>Ҳисоб палатаси текширувидан KPI амалда қийматигача</strong>
+            <small>Ҳисоб палатаси ҳар бир T/M/D қатор бўйича ижро ҳолати, далил ҳолати ва изоҳ беради. Фақат қабул қилинган қаторлар KPI “амалда” қийматига қўшилади.</small>
           </div>
           <div class="execution-status-grid">
             ${statusButton("all", "Жами", allReports.length)}
             ${statusButton("submitted", "Киритилди", submitted, "blue")}
-            ${statusButton("review", "Қайта кўришда", review, "amber")}
+            ${statusButton("review", "Кўриб чиқилмоқда", review, "amber")}
             ${statusButton("approved", "Тасдиқланди", approved, "green")}
             ${statusButton("rejected", "Қайтарилди", rejected, "red")}
           </div>
           <div class="execution-actions">
-            <button class="score-action primary" type="button" data-open-report-modal>Ҳисобот киритиш</button>
+            <button class="score-action primary" type="button" data-open-report-modal>Текширув киритиш</button>
             <button class="score-action" type="button" data-clear-report-filters>Фильтрни тозалаш</button>
           </div>
         </div>
         <div class="execution-flow">
-          <div class="execution-step"><span>1</span><strong>Ҳисобот киритилади</strong><small>Туман/шаҳар KPI, топшириқ, факт ва далилни киритади.</small></div>
-          <div class="execution-step"><span>2</span><strong>Журналга тушади</strong><small>Ҳолат автоматик равишда “Киритилди” бўлади.</small></div>
-          <div class="execution-step"><span>3</span><strong>Вилоят текширади</strong><small>Тасдиқлаш, қайта кўриш ёки қайтариш амалга оширилади.</small></div>
-          <div class="execution-step"><span>4</span><strong>KPIга қўшилади</strong><small>Фақат тасдиқланган ҳисобот “амалда” қийматга ўтади.</small></div>
+          <div class="execution-step"><span>1</span><strong>Template тўлдирилади</strong><small>Ҳисоб палатаси T-ID, M-ID ёки D-ID бўйича текширув натижасини беради.</small></div>
+          <div class="execution-step"><span>2</span><strong>Platform қабул қилади</strong><small>“Платформага қабул” тайёр бўлган қаторлар журналга тушади.</small></div>
+          <div class="execution-step"><span>3</span><strong>Ижро ҳолати кўринади</strong><small>Бажарилди, қисман, бажарилмади, кечикди ва далил сифати алоҳида юритилади.</small></div>
+          <div class="execution-step"><span>4</span><strong>KPIга қўшилади</strong><small>Фақат тасдиқланган/қабул қилинган қатор “амалда” қийматга ўтади.</small></div>
         </div>
         <div class="execution-workspace">
           <section class="execution-lane">
@@ -10890,17 +11002,18 @@ HTML = r"""<!doctype html>
               <span class="chip ${queueReports.length ? "blue" : "grey"}">${visibleQueue.length} та</span>
             </div>
             <div class="execution-card-list">
-              ${visibleQueue.length ? visibleQueue.map(reportCard).join("") : `<div class="execution-empty">Ҳали ҳисобот киритилмаган. Биринчи ҳисоботни “Ҳисобот киритиш” орқали киритинг.</div>`}
+              ${visibleQueue.length ? visibleQueue.map(reportCard).join("") : `<div class="execution-empty">Ҳали Ҳисоб палатаси текшируви киритилмаган. Биринчи текширувни “Текширув киритиш” орқали киритинг.</div>`}
             </div>
           </section>
           <aside class="task-focus">
             <div class="eyebrow">KPIга қўшилган ҳисоботлар</div>
             <h3>${approvedPct}% тасдиқланган</h3>
-            <p>Тасдиқланган ҳисоботлар KPI мониторингида амалдаги натижа сифатида ишлатилади. Қайта кўриш ва қайтарилган ҳисоботлар KPIга қўшилмайди.</p>
+            <p>Ҳисоб палатаси тасдиқлаган ва platform қабул қилган қаторлар KPI мониторингида амалдаги натижа сифатида ишлатилади. Қайта кўриш ва қайтарилган қаторлар KPIга қўшилмайди.</p>
             <div class="execution-impact">
               <div class="impact-row"><div><strong>Тасдиқланган</strong><span>KPI амалда қийматига қўшилган</span></div><span class="chip green">${approved}</span></div>
-              <div class="impact-row"><div><strong>Кутилаётган</strong><span>киритилган ёки қайта кўришда</span></div><span class="chip blue">${submitted + review}</span></div>
+              <div class="impact-row"><div><strong>Кутилаётган</strong><span>киритилган ёки кўриб чиқилмоқда</span></div><span class="chip blue">${submitted + review}</span></div>
               <div class="impact-row"><div><strong>Қайтарилган</strong><span>KPIга қўшилмайди</span></div><span class="chip red">${rejected}</span></div>
+              <div class="impact-row"><div><strong>Муаммоли</strong><span>кечиккан, бажарилмаган ёки далили етарсиз</span></div><span class="chip amber">${problemReports.length}</span></div>
               ${impactRows.length ? impactRows.map(row => `<div class="impact-row"><div><strong>${h(row.label)}</strong><span>${h(row.latest.district)} · ${h(row.latest.periodLabel || "")}</span></div><span class="chip green">${row.count}</span></div>`).join("") : `<div class="execution-empty">Тасдиқланган ҳисобот йўқ.</div>`}
             </div>
           </aside>
@@ -10917,7 +11030,7 @@ HTML = r"""<!doctype html>
               <option value="all" ${state.reportStatus === "all" ? "selected" : ""}>Барча ҳолатлар</option>
               <option value="submitted" ${state.reportStatus === "submitted" ? "selected" : ""}>Киритилди</option>
               <option value="approved" ${state.reportStatus === "approved" ? "selected" : ""}>Тасдиқланди</option>
-              <option value="review" ${state.reportStatus === "review" ? "selected" : ""}>Қайта кўришда</option>
+              <option value="review" ${state.reportStatus === "review" ? "selected" : ""}>Кўриб чиқилмоқда</option>
               <option value="rejected" ${state.reportStatus === "rejected" ? "selected" : ""}>Қайтарилди</option>
             </select>
           </label>
@@ -10943,37 +11056,42 @@ HTML = r"""<!doctype html>
         </div>
         <article class="panel">
           <div class="panel-head">
-            <div><h3>Батафсил журнал</h3><p>${reports.length} / ${allReports.length} та ҳисобот кўрсатилмоқда. Бу ерда ҳар бир ҳисоботнинг ҳолати, далили ва KPIга қўшилган-қўшилмагани кўринади.</p></div>
-            <span class="chip blue">ҳисоботлар журнали</span>
+            <div><h3>Батафсил журнал</h3><p>${reports.length} / ${allReports.length} та текширув кўрсатилмоқда. Бу ерда ҳар бир қаторнинг ижро ҳолати, далил ҳолати ва KPIга қўшилган-қўшилмагани кўринади.</p></div>
+            <span class="chip blue">Ҳисоб палатаси журнали</span>
           </div>
           <div class="panel-body">
             ${reports.length ? `<div class="table-scroll">
               <table>
-                <thead><tr><th>Сана</th><th>Давр</th><th>Туман</th><th>KPI</th><th>Топшириқ / изоҳ</th><th class="num">Амалда</th><th>Киритувчи / текширувчи</th><th>Ҳолат</th><th>Далил / сабаб</th><th>Амал</th></tr></thead>
+                <thead><tr><th>Қатор</th><th>Сана</th><th>Давр</th><th>Ҳудуд</th><th>KPI</th><th>Топшириқ / изоҳ</th><th class="num">Факт</th><th>Ижро / далил</th><th>Қабул ҳолати</th><th>Муаммо / тавсия</th><th>Амал</th></tr></thead>
                 <tbody>${reports.map(report => `<tr>
+                  <td><strong>${h(report.templateRowId || report.taskId || "—")}</strong><br><span class="muted">${h(report.reportSource || "Ҳисоб палатаси")}</span></td>
                   <td>${h(report.date)}</td>
                   <td>${h(report.periodLabel)}</td>
                   <td><strong>${h(report.district)}</strong><br><span class="muted">${h(report.responsible || "")}</span></td>
                   <td>${h(report.kpiLabel)}</td>
                   <td>${h((report.taskTitle || "").slice(0, 90))}${(report.taskTitle || "").length > 90 ? "…" : ""}<br><span class="muted">${h(report.comment || "")}</span></td>
                   <td class="num"><strong>${h(report.actualValue || "—")}</strong><br><span class="muted">${h(report.unit || "")}</span></td>
-                  <td><strong>${h(report.createdBy || report.responsible || "—")}</strong><br><span class="muted">${report.checkedBy ? `Текширди: ${h(report.checkedBy)}` : "текширув кутилмоқда"}</span></td>
+                  <td>
+                    <span class="chip ${executionStatusClass(report.executionStatus)}">${h(report.executionStatus || "Маълумот йўқ")}</span>
+                    <div style="margin-top:6px"><span class="chip ${evidenceStatusClass(report.evidenceStatus)}">${h(report.evidenceStatus || "Далил йўқ")}</span></div>
+                    <div class="history-list"><span>Текширувчи: ${h(report.checkedBy || report.createdBy || "—")}</span></div>
+                  </td>
                   <td>
                     <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
                     <div style="margin-top:6px"><span class="chip ${reportImpactClass(report)}">${report.status === "approved" ? "KPIга қўшилди" : "KPIга қўшилмади"}</span></div>
                     <div class="history-list">${reportHistory(report).slice(0, 3).map(item => `<span>${h(reportStatusLabel(item.status))} · ${h(item.actor || "—")} · ${h((item.at || "").slice(0, 10))}</span>`).join("")}</div>
                   </td>
-                  <td>${h(report.evidenceName || "—")}<br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span></td>
+                  <td><strong>${h(report.issueType || "Муаммо йўқ")}</strong><br><span class="muted">${h(report.evidenceName || "далил йўқ")}</span><br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span>${report.correctionDeadline ? `<br><span class="muted">тузатиш: ${h(report.correctionDeadline)}</span>` : ""}</td>
                   <td>
                     <div class="action-row compact">
-                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
-                      ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Қайта кўриш</button>` : ""}
+                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Қабул қилиш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
+                      ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Кўриб чиқишда</button>` : ""}
                       ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
                     </div>
                   </td>
                 </tr>`).join("")}</tbody>
               </table>
-            </div>` : `<div class="execution-empty"><b>Ҳисобот киритилмаган</b><br>“Ҳисобот киритиш” тугмаси орқали биринчи ижро ҳисоботини киритинг.</div>`}
+            </div>` : `<div class="execution-empty"><b>Текширув киритилмаган</b><br>“Текширув киритиш” тугмаси орқали биринчи Ҳисоб палатаси текширувини киритинг.</div>`}
           </div>
         </article>`;
       $("#reportKpiFilter").addEventListener("change", event => {
@@ -11021,7 +11139,7 @@ HTML = r"""<!doctype html>
         tasks: ["Топшириқлар", "Танланган KPIга боғланган бажарилмаган ишлар."],
         districts: ["Туманлар кесими", `${currentKpiDef().short} бўйича туман/шаҳарлар кесими: режа, амалда/кутилма, ижро ва топшириқлар.`],
         profile: ["Туман ҳолати", `${state.district}: ${currentKpiDef().short} бўйича режа, амалда ва топшириқлар.`],
-        execution: ["Ижро мониторинги", "Ҳокимликлар киритган ҳисоботлар, далиллар ва тасдиқ ҳолати."]
+        execution: ["Ижро мониторинги", "Ҳисоб палатаси текширувлари, ижро ҳолати, далил сифати ва platform қабул ҳолати."]
       };
       $("#pageTitle").textContent = meta[state.page][0];
       $("#pageSubtitle").textContent = meta[state.page][1];
