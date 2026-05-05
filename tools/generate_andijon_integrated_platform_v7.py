@@ -4,6 +4,7 @@ import json
 import re
 import zipfile
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 
 import openpyxl
@@ -14,6 +15,15 @@ DATA_JSON = ROOT / "platform prototypes" / "andijon_full_pilot_assets" / "andijo
 OUT_HTML = ROOT / "platform prototypes" / "andijon_integrated_platform_v7.html"
 MACRO_XLSX = ROOT / "data_source" / "Кафолат хатлар имзога" / "2. Андижон" / "1.1-1.5-жадваллар (макро).xlsx"
 KAFOLAT_TASK_DOCX = ROOT / "data_source" / "Кафолат хатлар имзога" / "2. Андижон" / "1. Кафолат хати (Андижон).docx"
+KAFOLAT_ACTION_PLAN_DOCX = (
+    ROOT
+    / "data_source"
+    / "Кафолат хатлар имзога"
+    / "2. Андижон"
+    / "0_Чора_тадбир_Андижон_кафолат_хати.docx"
+)
+ACTION_PLAN_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_action_plan_audit.json"
+KPI_COMPARE_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_kpi_source_compare_audit.json"
 
 
 SECTOR_BY_KPI = {
@@ -31,6 +41,7 @@ SECTOR_BY_KPI = {
     "investment": "Хорижий инвестиция",
     "export": "Экспорт",
     "unemployment": "Бандлик ва камбағаллик",
+    "small_business_share": "Бандлик ва камбағаллик",
     "jobs": "Бандлик ва камбағаллик",
     "legalization": "Бандлик ва камбағаллик",
     "mfy_clear": "Бандлик ва камбағаллик",
@@ -105,6 +116,7 @@ KPI_TO_MODULE = {
     "investment": "investment",
     "export": "export",
     "unemployment": "employment",
+    "small_business_share": "employment",
     "jobs": "employment",
     "legalization": "employment",
     "mfy_clear": "employment",
@@ -308,12 +320,69 @@ def docx_paragraphs(path: Path) -> list[str]:
     return paragraphs
 
 
+def clean_docx_text(text: str) -> str:
+    return " ".join(str(text or "").replace("\xa0", " ").split()).strip()
+
+
+def docx_table_rows(path: Path, table_index: int = 0) -> list[list[str]]:
+    """Read a DOCX table without requiring python-docx at runtime."""
+    if not path.exists():
+        return []
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    val_attr = f"{{{ns['w']}}}val"
+    with zipfile.ZipFile(path) as zf:
+        root = ET.fromstring(zf.read("word/document.xml"))
+    tables = root.findall(".//w:body/w:tbl", ns)
+    if table_index >= len(tables):
+        return []
+    rows: list[list[str]] = []
+    for tr in tables[table_index].findall("w:tr", ns):
+        cells: list[str] = []
+        for tc in tr.findall("w:tc", ns):
+            parts: list[str] = []
+            for para in tc.findall(".//w:p", ns):
+                text = "".join(t.text or "" for t in para.findall(".//w:t", ns))
+                text = clean_docx_text(text)
+                if text:
+                    parts.append(text)
+            cell_text = clean_docx_text(" ".join(parts))
+            grid_span = tc.find("./w:tcPr/w:gridSpan", ns)
+            span = 1
+            if grid_span is not None:
+                try:
+                    span = max(1, int(grid_span.attrib.get(val_attr, "1")))
+                except ValueError:
+                    span = 1
+            cells.extend([cell_text] * span)
+        if any(cells):
+            rows.append(cells)
+    return rows
+
+
+def action_plan_row_number(value: str) -> int | None:
+    match = re.fullmatch(r"\s*(\d+)\.?\s*", clean_docx_text(value))
+    return int(match.group(1)) if match else None
+
+
+def action_plan_is_section(cells: list[str]) -> bool:
+    first = clean_docx_text(cells[0] if cells else "")
+    if not first or first == "№":
+        return False
+    if action_plan_row_number(first) is not None:
+        return False
+    return True
+
+
 def deadline_to_period(deadline: str) -> str:
     text = deadline.casefold()
-    if "ii чорак" in text:
+    if "ii чорак" in text or "i ярим" in text or "январь-июнь" in text or "май" in text or "июн" in text:
         return "h1"
+    if "iii чорак" in text or "9 ой" in text:
+        return "m9"
     if "iv чорак" in text or "vi чорак" in text or "йил яку" in text or "давомида" in text:
         return "year"
+    if "i чорак" in text:
+        return "q1"
     return "year"
 
 
@@ -325,6 +394,20 @@ def section_count(section: str) -> int | None:
 def task_kpi_from_section(section: str, text: str) -> str:
     s = section.casefold()
     t = text.casefold()
+
+    if "бандлиг" in s or "ишсизлик" in s or "7.1" in s:
+        if (
+            ("кичик тадбиркорлик" in t and "улуш" in t)
+            or "кичик ва ўрта бизнес" in t
+            or "тадбиркорлик субъект" in t
+            or "субъектларининг фаолиятини тиклаш" in t
+        ):
+            return "small_business_share"
+        return "unemployment"
+    if "камбағаллик" in s or "7.2" in s:
+        if "холи бўлган маҳаллалар сони" in t:
+            return "mfy_clear"
+        return "poverty"
 
     if "бозор хизмат" in s:
         return "services"
@@ -342,18 +425,6 @@ def task_kpi_from_section(section: str, text: str) -> str:
         return "investment"
     if "экспорт" in s:
         return "export"
-    if "бандлигини" in s or "камбағаллик" in s:
-        if "ишсизлик" in t:
-            return "unemployment"
-        if "доимий ишга жойлаштириш" in t:
-            return "jobs"
-        if "легаллаштир" in t or "норасмий банд" in t:
-            return "legalization"
-        if "микролойиҳа" in t:
-            return "microprojects"
-        if "холи бўлган маҳалла" in t or "холи ҳудуд" in t:
-            return "mfy_clear"
-        return "poverty"
 
     # ЯҲМ is a final result KPI. Execution tasks from the macro section must
     # attach to the concrete driver that can be monitored.
@@ -365,8 +436,6 @@ def task_kpi_from_section(section: str, text: str) -> str:
         return "energy_gas"
     if "энергия" in s or "энергия" in t or "электр" in t or "квт" in t:
         return "energy_electricity"
-    if "млн долларлик" in t and "лойиҳа" in t:
-        return "investment"
     if "корхона" in t or "ишлаб чиқариш" in t or "саноат" in t:
         return "industry"
     if "энергия" in s:
@@ -424,6 +493,613 @@ def district_names_in_text(text: str, districts: list[dict]) -> list[str]:
     return sorted(set(found))
 
 
+def extract_kafolat_action_plan_rows(data: dict, path: Path = KAFOLAT_ACTION_PLAN_DOCX) -> list[dict]:
+    """Extract the cleaned action-plan table: KPI rows and execution rows.
+
+    This parser is intentionally separate from the legacy paragraph parser. It
+    preserves the user's two-layer model: KPI and амалга ошириладиган ишлар.
+    """
+    raw_rows = docx_table_rows(path)
+    if not raw_rows:
+        return []
+
+    records: list[dict] = []
+    section = "Кафолат хати чора-тадбирлари"
+    districts = data.get("districts", [])
+    for cells in raw_rows:
+        cells = [clean_docx_text(cell) for cell in cells]
+        if not cells:
+            continue
+        if action_plan_is_section(cells):
+            section = cells[0]
+            continue
+        if cells[0] == "№":
+            continue
+        row_no = action_plan_row_number(cells[0])
+        if row_no is None:
+            continue
+        padded = cells + [""] * max(0, 5 - len(cells))
+        title, deadline, owner, source_type = padded[1], padded[2], padded[3], padded[4]
+        kpi = task_kpi_from_section(section, title)
+        districts_from_title = district_names_in_text(title, districts)
+        districts_from_executor = district_names_in_text(owner, districts)
+        linked_districts = sorted(set(districts_from_title + districts_from_executor))
+        is_kpi = source_type == "KPI"
+        item = {
+            "id": f"action-plan-{row_no:03d}",
+            "sourceId": f"action-plan-{row_no:03d}",
+            "sourceNo": row_no,
+            "title": title,
+            "sector": SECTOR_BY_KPI.get(kpi, "Макро иқтисодиёт"),
+            "kpi": kpi,
+            "period": deadline,
+            "periodCode": deadline_to_period(deadline),
+            "deadline": deadline,
+            "owner": owner or "Андижон вилояти ҳокимлиги",
+            "status": "grey",
+            "source": path.name,
+            "section": section,
+            "sourceType": source_type,
+            "displayLayer": "KPI" if is_kpi else "Амалга ошириладиган иш",
+            "districts": linked_districts,
+            "districtsFromTitle": districts_from_title,
+            "districtsFromExecutor": districts_from_executor,
+            "scope": "туман" if linked_districts else "вилоят",
+            "group": "KPI" if is_kpi else "Амалга ошириладиган иш",
+            "monitoringRow": True,
+        }
+        records.append(item)
+    return records
+
+
+def module_metadata_for_kpi(kpi: str) -> dict:
+    module = MODULE_DEFS.get(KPI_TO_MODULE.get(str(kpi or ""), "macro"), MODULE_DEFS["macro"])
+    return {
+        "module": module["id"],
+        "moduleLabel": module["label"],
+        "moduleShort": module["short"],
+        "moduleSource": module["source"],
+        "moduleSheets": module["sheets"],
+    }
+
+
+def action_plan_aliases_for_district(name: str, all_districts: list[dict]) -> list[str]:
+    stem = re.sub(r"\s+(шаҳри|тумани)$", "", str(name or ""), flags=re.IGNORECASE).casefold()
+    stem_counts: dict[str, int] = {}
+    for district in all_districts:
+        district_stem = re.sub(
+            r"\s+(шаҳри|тумани)$",
+            "",
+            str(district.get("name") or ""),
+            flags=re.IGNORECASE,
+        ).casefold()
+        stem_counts[district_stem] = stem_counts.get(district_stem, 0) + 1
+    aliases = [str(name or "").casefold()]
+    if str(name or "").casefold().endswith("тумани"):
+        aliases += [f"{stem} тумани", f"{stem} тум.", f"{stem} тум"]
+    elif str(name or "").casefold().endswith("шаҳри"):
+        aliases += [f"{stem} шаҳри", f"{stem} шаҳар"]
+    if stem_counts.get(stem, 0) == 1:
+        aliases.append(stem)
+    return sorted(set(aliases), key=len, reverse=True)
+
+
+def parse_action_plan_int(value: str | None) -> int | None:
+    if not value:
+        return None
+    match = re.search(r"\d[\d\s]*", value)
+    if not match:
+        return None
+    return int(match.group(0).replace(" ", ""))
+
+
+def action_plan_district_breakdowns(task: dict, districts: list[dict]) -> list[dict]:
+    """Create internal district rows only where the source gives real district targets."""
+    if task.get("sourceNo") not in {73, 78}:
+        return []
+    title = str(task.get("title") or "")
+    low = title.casefold()
+    rows: list[dict] = []
+    for district in districts:
+        name = str(district.get("name") or "")
+        for alias in action_plan_aliases_for_district(name, districts):
+            pattern = (
+                rf"{re.escape(alias)}(?:да|даги)?\s*"
+                rf"(?:[–—-]\s*)?(\d[\d\s]*)\s*та"
+                rf"(?:\s*\((?:йил якуни билан\s*)?(\d[\d\s]*)\s*та\))?"
+            )
+            match = re.search(pattern, low)
+            if not match:
+                continue
+            h1_or_main = parse_action_plan_int(match.group(1))
+            year_value = parse_action_plan_int(match.group(2))
+            if h1_or_main is None:
+                break
+            if task.get("sourceNo") == 73:
+                rows.append({
+                    "title": f"Фаолияти тикланадиган субъектлар — {name}",
+                    "district": name,
+                    "value": h1_or_main,
+                    "yearValue": h1_or_main,
+                    "unit": "та субъект",
+                    "note": "800 та субъектлар фаолиятини тиклаш бўйича туман кесими.",
+                })
+            else:
+                rows.append({
+                    "title": f"Камбағаллик ва ишсизликдан холи ҳудудлар — {name}",
+                    "district": name,
+                    "value": h1_or_main,
+                    "yearValue": year_value,
+                    "unit": "та маҳалла",
+                    "note": "Оғир туманларда маҳаллаларни камбағаллик ва ишсизликдан холи ҳудудга айлантириш.",
+                })
+            break
+    return rows
+
+
+def assign_action_plan_platform_records(rows: list[dict], data: dict) -> dict[str, list[dict]]:
+    counters = {"KPI": 0, "Чора-тадбирлар": 0}
+    all_records: list[dict] = []
+    kpi_targets: list[dict] = []
+    execution_tasks: list[dict] = []
+
+    for row in rows:
+        source_type = str(row.get("sourceType") or "")
+        if source_type not in counters:
+            continue
+        counters[source_type] += 1
+        is_kpi = source_type == "KPI"
+        platform_id = f"KPI-{counters[source_type]:02d}" if is_kpi else f"T-{counters[source_type]:03d}"
+        item = {
+            **row,
+            "id": platform_id,
+            "sourceId": row.get("sourceId") or row.get("id"),
+            "platformId": platform_id,
+            "classification": "KPI мақсад" if is_kpi else "Чора-тадбир",
+            "platformSurface": "KPI мониторинги" if is_kpi else "Топшириқлар / Ижро мониторинги",
+            "classificationNote": (
+                "Платформа KPIси. Топшириқлар сонига қўшилмайди."
+                if is_kpi
+                else "KPIга эришиш учун амалга ошириладиган иш. Топшириқлар реестрига киради."
+            ),
+            "displayLayer": "KPI" if is_kpi else "Чора-тадбир",
+            "group": "KPI" if is_kpi else "Чора-тадбир",
+            "sourceReference": f"{row.get('source')} · {row.get('sourceNo')}-қатор",
+        }
+        item.update(module_metadata_for_kpi(str(item.get("kpi") or "")))
+        all_records.append(item)
+        if is_kpi:
+            kpi_targets.append(item)
+        else:
+            execution_tasks.append(item)
+
+    district_targets: list[dict] = []
+    district_counter = 0
+    districts = data.get("districts", [])
+    for task in execution_tasks:
+        for breakdown in action_plan_district_breakdowns(task, districts):
+            district_counter += 1
+            platform_id = f"D-{district_counter:02d}"
+            district_item = {
+                **task,
+                **breakdown,
+                "id": platform_id,
+                "platformId": platform_id,
+                "parentTaskId": task["id"],
+                "sourceId": task["sourceId"],
+                "classification": "Туман кесими",
+                "platformSurface": "Туманлар мониторинги",
+                "classificationNote": "Чора-тадбир ичидаги туман/шаҳар кесими. Топшириқлар сонига қўшилмайди.",
+                "displayLayer": "Туман кесими",
+                "districts": [breakdown["district"]],
+                "scope": "туман",
+                "status": "grey",
+            }
+            district_targets.append(district_item)
+
+    return {
+        "rows": all_records,
+        "kpi_targets": kpi_targets,
+        "execution_tasks": execution_tasks,
+        "district_targets": district_targets,
+        "info_rows": [],
+    }
+
+
+def action_plan_audit(data: dict, path: Path = KAFOLAT_ACTION_PLAN_DOCX) -> dict:
+    rows = extract_kafolat_action_plan_rows(data, path)
+    nums = [int(row["sourceNo"]) for row in rows]
+    type_counts: dict[str, int] = {}
+    section_counts: dict[str, dict[str, int]] = {}
+    for row in rows:
+        source_type = str(row.get("sourceType") or "")
+        type_counts[source_type] = type_counts.get(source_type, 0) + 1
+        section = str(row.get("section") or "")
+        section_counts.setdefault(section, {})
+        section_counts[section][source_type] = section_counts[section].get(source_type, 0) + 1
+    missing_numbers = [number for number in range(min(nums), max(nums) + 1) if number not in set(nums)] if nums else []
+    duplicate_numbers = sorted({number for number in nums if nums.count(number) > 1})
+    allowed_types = {"KPI", "Чора-тадбирлар"}
+
+    district_rows = [row for row in rows if row.get("districts")]
+    child_breakdown_rows = [
+        row for row in rows
+        if row.get("districtsFromTitle") and re.search(r"\d+[\d\s,.]*\s*(та|млрд|млн|минг|%)", str(row.get("title") or ""))
+    ]
+    executor_title_mismatches = []
+    for row in district_rows:
+        from_title = set(row.get("districtsFromTitle") or [])
+        from_executor = set(row.get("districtsFromExecutor") or [])
+        extra = sorted(from_title - from_executor)
+        if extra:
+            executor_title_mismatches.append({
+                "sourceNo": row["sourceNo"],
+                "extraInTitle": extra,
+                "districtsFromExecutor": row.get("districtsFromExecutor") or [],
+            })
+
+    long_task_rows = [
+        {"sourceNo": row["sourceNo"], "length": len(str(row.get("title") or ""))}
+        for row in rows
+        if row.get("sourceType") == "Чора-тадбирлар" and len(str(row.get("title") or "")) > 550
+    ]
+
+    return {
+        "sourceDoc": str(path),
+        "rowCount": len(rows),
+        "numberRange": [min(nums), max(nums)] if nums else [],
+        "missingNumbers": missing_numbers,
+        "duplicateNumbers": duplicate_numbers,
+        "unknownTypes": sorted({str(row.get("sourceType") or "") for row in rows} - allowed_types),
+        "emptyRequiredFields": [
+            {"sourceNo": row["sourceNo"], "field": field}
+            for row in rows
+            for field in ["title", "deadline", "owner", "sourceType"]
+            if not row.get(field)
+        ],
+        "typeCounts": type_counts,
+        "sectionCounts": section_counts,
+        "districtLinkedRows": [
+            {
+                "sourceNo": row["sourceNo"],
+                "sourceType": row["sourceType"],
+                "districts": row.get("districts") or [],
+                "districtsFromTitle": row.get("districtsFromTitle") or [],
+                "districtsFromExecutor": row.get("districtsFromExecutor") or [],
+            }
+            for row in district_rows
+        ],
+        "childBreakdownRows": [
+            {
+                "sourceNo": row["sourceNo"],
+                "sourceType": row["sourceType"],
+                "districtsFromTitle": row.get("districtsFromTitle") or [],
+            }
+            for row in child_breakdown_rows
+        ],
+        "executorTitleMismatches": executor_title_mismatches,
+        "longTaskRows": long_task_rows,
+    }
+
+
+def audit_action_plan_cli() -> None:
+    data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    audit = action_plan_audit(data)
+    ACTION_PLAN_AUDIT_JSON.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"source: {audit['sourceDoc']}")
+    print(f"rows: {audit['rowCount']}")
+    print(f"types: {audit['typeCounts']}")
+    print(f"missing numbers: {audit['missingNumbers']}")
+    print(f"duplicate numbers: {audit['duplicateNumbers']}")
+    print(f"unknown types: {audit['unknownTypes']}")
+    print(f"empty required fields: {len(audit['emptyRequiredFields'])}")
+    print(f"district-linked rows: {len(audit['districtLinkedRows'])}")
+    print(f"child breakdown rows: {len(audit['childBreakdownRows'])}")
+    print(f"audit json: {ACTION_PLAN_AUDIT_JSON}")
+
+
+def parse_decimal(value: str) -> float | None:
+    text = clean_docx_text(value).replace(",", ".")
+    text = text.replace(" ", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def parse_first_number(pattern: str, text: str) -> float | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    return parse_decimal(match.group(1)) if match else None
+
+
+def parse_uzs_bln(text: str) -> float | None:
+    low = text.casefold()
+    trln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*трлн", low)
+    bln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млрд", low)
+    mln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн\s+сўм", low)
+    if trln is not None:
+        return trln * 1000 + (bln or 0)
+    if bln is not None:
+        return bln
+    if mln is not None:
+        return mln / 1000
+    return None
+
+
+def parse_usd_mln(text: str) -> float | None:
+    low = text.casefold()
+    bln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млрд\s+доллар", low)
+    mln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн\s+доллар", low)
+    if bln is not None:
+        return bln * 1000
+    return mln
+
+
+def parse_percent_values(text: str) -> list[float]:
+    values: list[float] = []
+    for raw in re.findall(r"(\d[\d\s]*(?:[,.]\d+)?)\s*(?:фоиз|%)", text, flags=re.IGNORECASE):
+        value = parse_decimal(raw)
+        if value is not None:
+            values.append(value)
+    return values
+
+
+def growth_index_to_plus(value: float | None) -> float | None:
+    if value is None:
+        return None
+    return value - 100 if value > 80 else value
+
+
+def current_excel_kpi_values(data: dict) -> dict[str, dict[str, dict[str, object]]]:
+    enrich_industry_drivers(data)
+    regional = data.get("regional", {})
+    current: dict[str, dict[str, dict[str, object]]] = {}
+
+    macro_map = {
+        "grp": 0,
+        "industry": 1,
+        "agriculture": 2,
+        "construction": 3,
+        "services": 4,
+    }
+    macro_rows = regional.get("macro", [])
+    for kpi, index in macro_map.items():
+        if index >= len(macro_rows):
+            continue
+        row = macro_rows[index]
+        current[kpi] = {
+            "h1": {
+                "value_bln": row.get("h1_value"),
+                "growth_pct": growth_index_to_plus(num(row.get("h1_growth"))),
+                "unit": row.get("unit"),
+                "source": row.get("source"),
+            },
+            "year": {
+                "value_bln": row.get("year_value"),
+                "growth_pct": growth_index_to_plus(num(row.get("year_growth"))),
+                "unit": row.get("unit"),
+                "source": row.get("source"),
+            },
+        }
+
+    drivers = regional.get("industry_drivers", {})
+    current["energy_electricity"] = {
+        "h1": {"value": drivers.get("energy_electricity_h1"), "unit": "млн кВт·соат", "source": drivers.get("source")},
+        "year": {"value": drivers.get("energy_electricity_year"), "unit": "млн кВт·соат", "source": drivers.get("source")},
+    }
+    current["energy_gas"] = {
+        "h1": {"value": drivers.get("energy_gas_h1"), "unit": "млн м³", "source": drivers.get("source")},
+        "year": {"value": drivers.get("energy_gas_year"), "unit": "млн м³", "source": drivers.get("source")},
+    }
+    current["localization"] = {
+        "h1": {
+            "projects": drivers.get("localization_h1_projects"),
+            "value_mln": drivers.get("localization_h1_value_mln"),
+            "source": drivers.get("source"),
+        },
+        "year": {
+            "projects": drivers.get("localization_year_projects"),
+            "value_mln": drivers.get("localization_year_value_mln"),
+            "source": drivers.get("source"),
+        },
+    }
+
+    current["inflation"] = {
+        "h1": {"percent_limit": 2.9, "unit": "%", "source": "Кафолат хати + инфляция UI қоидаси"},
+        "year": {"percent_limit": 6.6, "unit": "%", "source": "Кафолат хати + инфляция UI қоидаси"},
+    }
+
+    budget = regional.get("budget", {})
+    current["budget"] = {
+        "q2": {"value_bln": budget.get("q2_plan"), "kind": "режа", "unit": budget.get("unit"), "source": budget.get("source")},
+        "h1": {"value_bln": budget.get("h1_plan"), "expected_bln": budget.get("h1_expected"), "unit": budget.get("unit"), "source": budget.get("source")},
+        "year": {"value_bln": budget.get("year_plan"), "expected_bln": budget.get("year_expected"), "unit": budget.get("unit"), "source": budget.get("source")},
+    }
+
+    budget_inv = regional.get("budget_investment", {})
+    current["budget_investment"] = {
+        "h1": {
+            "value_bln": (budget_inv.get("h1_absorption") or 0) / 1000,
+            "pct": budget_inv.get("h1_pct"),
+            "unit": "млрд сўм",
+            "source": budget_inv.get("source"),
+        },
+        "year": {
+            "value_bln": (budget_inv.get("year_absorption") or 0) / 1000,
+            "pct": budget_inv.get("year_pct"),
+            "unit": "млрд сўм",
+            "source": budget_inv.get("source"),
+        },
+    }
+
+    inv = regional.get("foreign_investment", {})
+    current["investment"] = {
+        "h1": {"value_mln_usd": inv.get("h1_expected"), "plan_mln_usd": inv.get("h1_plan"), "source": inv.get("source")},
+        "year": {"value_mln_usd": inv.get("year_expected"), "plan_mln_usd": inv.get("year_forecast"), "source": inv.get("source")},
+    }
+
+    exp = regional.get("export", {})
+    current["export"] = {
+        "h1": {
+            "value_mln_usd": (exp.get("h1_expected") or 0) / 1000,
+            "growth_pct": growth_index_to_plus(num(exp.get("h1_growth"))),
+            "source": exp.get("source"),
+        },
+        "year": {
+            "value_mln_usd": (exp.get("year_expected") or 0) / 1000,
+            "growth_pct": growth_index_to_plus(num(exp.get("year_growth"))),
+            "source": exp.get("source"),
+        },
+    }
+
+    emp = regional.get("employment", {})
+    current["unemployment"] = {
+        "h1": {"percent_limit": emp.get("unemployment_h1"), "unit": "%", "source": emp.get("source")},
+        "year": {"percent_limit": emp.get("unemployment_year"), "unit": "%", "source": emp.get("source")},
+    }
+    current["poverty"] = {
+        "h1": {"percent_limit": emp.get("poverty_h1"), "unit": "%", "source": emp.get("source")},
+        "year": {"percent_limit": emp.get("poverty_year"), "unit": "%", "source": emp.get("source")},
+    }
+    current["mfy_clear"] = {
+        "h1": {"count": emp.get("mfy_h1"), "unit": "та", "source": emp.get("source")},
+        "year": {"count": emp.get("mfy_year"), "unit": "та", "source": emp.get("source")},
+    }
+    current["jobs"] = {
+        "h1": {"value_thousand": emp.get("jobs_h1"), "unit": "минг", "source": emp.get("source")},
+        "year": {"value_thousand": emp.get("jobs_year"), "unit": "минг", "source": emp.get("source")},
+    }
+    current["legalization"] = {
+        "h1": {"value_thousand": emp.get("legalization_h1"), "unit": "минг", "source": emp.get("source")},
+        "year": {"value_thousand": emp.get("legalization_year"), "unit": "минг", "source": emp.get("source")},
+    }
+    current["microprojects"] = {
+        "h1": {"count": emp.get("microprojects_h1"), "unit": "та", "source": emp.get("source")},
+        "year": {"count": emp.get("microprojects_year"), "unit": "та", "source": emp.get("source")},
+    }
+    return current
+
+
+def compare_number(word_value: float | None, current_value: float | None, tolerance: float) -> dict[str, object]:
+    if word_value is None or current_value is None:
+        return {"status": "missing", "word": word_value, "current": current_value, "diff": None}
+    diff = word_value - current_value
+    status = "match" if abs(diff) <= tolerance else "mismatch"
+    return {"status": status, "word": word_value, "current": current_value, "diff": diff}
+
+
+def action_plan_kpi_compare(data: dict) -> dict[str, object]:
+    rows = [row for row in extract_kafolat_action_plan_rows(data) if row.get("sourceType") == "KPI"]
+    current = current_excel_kpi_values(data)
+    comparisons: list[dict[str, object]] = []
+    word_kpis = {str(row.get("kpi")) for row in rows}
+
+    for row in rows:
+        title = str(row.get("title") or "")
+        kpi = str(row.get("kpi") or "")
+        period = str(row.get("periodCode") or "")
+        compare_period = "q2" if kpi == "budget" and "2-чорак" in title.casefold() else period
+        current_row = current.get(kpi, {}).get(compare_period)
+        checks: dict[str, object] = {}
+
+        if current_row is None:
+            comparisons.append({
+                "sourceNo": row["sourceNo"],
+                "kpi": kpi,
+                "period": compare_period,
+                "status": "no-current-source",
+                "title": title,
+                "checks": checks,
+            })
+            continue
+
+        percentages = parse_percent_values(title)
+        if kpi in {"grp", "industry", "agriculture", "construction", "services"}:
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 60)
+            word_growth = percentages[0] if percentages else None
+            checks["growth_pct"] = compare_number(word_growth, num(current_row.get("growth_pct")), 0.25)
+        elif kpi == "inflation":
+            checks["percent_limit"] = compare_number(percentages[0] if percentages else None, num(current_row.get("percent_limit")), 0.05)
+        elif kpi == "budget":
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 1)
+        elif kpi == "budget_investment":
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 1)
+            if percentages:
+                checks["pct"] = compare_number(percentages[-1], num(current_row.get("pct")), 0.6)
+        elif kpi == "investment":
+            checks["value_mln_usd"] = compare_number(parse_usd_mln(title), num(current_row.get("value_mln_usd")), 15)
+        elif kpi == "export":
+            checks["value_mln_usd"] = compare_number(parse_usd_mln(title), num(current_row.get("value_mln_usd")), 2)
+            if percentages:
+                checks["growth_pct"] = compare_number(percentages[-1], num(current_row.get("growth_pct")), 0.6)
+        elif kpi in {"unemployment", "poverty"}:
+            checks["percent_limit"] = compare_number(percentages[0] if percentages else None, num(current_row.get("percent_limit")), 0.06)
+        elif kpi == "mfy_clear":
+            checks["count"] = compare_number(parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*та", title), num(current_row.get("count")), 0)
+        elif kpi in {"energy_electricity", "energy_gas"}:
+            checks["value"] = compare_number(parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн", title), num(current_row.get("value")), 0.2)
+        else:
+            comparisons.append({
+                "sourceNo": row["sourceNo"],
+                "kpi": kpi,
+                "period": compare_period,
+                "status": "no-comparison-rule",
+                "title": title,
+                "checks": checks,
+                "current": current_row,
+            })
+            continue
+
+        statuses = [str(item.get("status")) for item in checks.values() if isinstance(item, dict)]
+        if not statuses:
+            status = "no-checks"
+        elif "mismatch" in statuses:
+            status = "mismatch"
+        elif "missing" in statuses:
+            status = "partial"
+        else:
+            status = "match"
+        comparisons.append({
+            "sourceNo": row["sourceNo"],
+            "kpi": kpi,
+            "period": compare_period,
+            "status": status,
+            "title": title,
+            "checks": checks,
+            "current": current_row,
+        })
+
+    current_only = sorted(set(current) - word_kpis - {"small_business_share"})
+    word_only = sorted(word_kpis - set(current))
+    return {
+        "sourceDoc": str(KAFOLAT_ACTION_PLAN_DOCX),
+        "wordKpiCount": len(rows),
+        "currentKpiSourceCount": len(current),
+        "summary": dict(sorted(Counter(item["status"] for item in comparisons).items())),
+        "comparisons": comparisons,
+        "wordOnlyKpis": word_only,
+        "currentOnlyKpis": current_only,
+        "notes": [
+            "Ўсиш кўрсаткичлари Wordда +7,2%, Excelда 107,2 индекси бўлса, қиёслашда 107,2 -> 7,2 қилиб нормаллаштирилди.",
+            "Триллион/миллиард/миллион бирликлари қиёслаш учун ягона шкалага ўтказилди.",
+            "currentOnlyKpis ҳозирги платформанинг детал/драйвер KPIлари бўлиб, янги Word жадвалида KPI эмас, чора-тадбир сифатида қолиши мумкин.",
+        ],
+    }
+
+
+def audit_kpi_compare_cli() -> None:
+    data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    normalize_source_data(data)
+    report = action_plan_kpi_compare(data)
+    KPI_COMPARE_AUDIT_JSON.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"word KPI rows: {report['wordKpiCount']}")
+    print(f"current KPI sources: {report['currentKpiSourceCount']}")
+    print(f"summary: {report['summary']}")
+    print(f"word-only KPIs: {report['wordOnlyKpis']}")
+    print(f"current-only KPIs: {report['currentOnlyKpis']}")
+    print(f"audit json: {KPI_COMPARE_AUDIT_JSON}")
+
+
 def task_group_from_text(text: str, kpi: str) -> str:
     return "Ижро топшириғи"
 
@@ -478,25 +1154,53 @@ def extract_kafolat_rows(data: dict) -> list[dict]:
 
 
 def extract_kafolat_tasks(data: dict) -> list[dict]:
-    rows = assign_kafolat_platform_ids(extract_kafolat_rows(data))
-    kpi_targets = [row for row in rows if row["classification"] == "KPI мақсад"]
-    district_targets = [row for row in rows if row["classification"] == "Туман мақсадли кўрсаткичи"]
-    execution_tasks = [row for row in rows if row["classification"] == "Ижро топшириғи"]
-    info_rows = [row for row in rows if row["classification"] == "Маълумот/асос"]
-    data["kafolat_rows"] = rows
+    action_rows = extract_kafolat_action_plan_rows(data)
+    if not action_rows:
+        rows = assign_kafolat_platform_ids(extract_kafolat_rows(data))
+        kpi_targets = [row for row in rows if row["classification"] == "KPI мақсад"]
+        district_targets = [row for row in rows if row["classification"] == "Туман мақсадли кўрсаткичи"]
+        execution_tasks = [row for row in rows if row["classification"] == "Ижро топшириғи"]
+        info_rows = [row for row in rows if row["classification"] == "Маълумот/асос"]
+        data["kafolat_rows"] = rows
+        data["kafolat_kpi_targets"] = kpi_targets
+        data["kafolat_district_targets"] = district_targets
+        data["kafolat_info_rows"] = info_rows
+        data["task_modules"] = list(MODULE_DEFS.values())
+        data["task_meta"] = {
+            "source_doc": str(KAFOLAT_TASK_DOCX.name),
+            "declared_total": len(execution_tasks),
+            "monitoring_rows": len(rows),
+            "kpi_targets": len(kpi_targets),
+            "district_targets": len(district_targets),
+            "execution_tasks": len(execution_tasks),
+            "info_rows": len(info_rows),
+            "note": "Эски кафолат хати parser fallback сифатида ишлади; 0_Чора-тадбир жадвали топилмади.",
+        }
+        return execution_tasks or data.get("tasks", [])
+
+    assigned = assign_action_plan_platform_records(action_rows, data)
+    kpi_targets = assigned["kpi_targets"]
+    district_targets = assigned["district_targets"]
+    execution_tasks = assigned["execution_tasks"]
+    info_rows = assigned["info_rows"]
+    district_linked = [row for row in execution_tasks if row.get("districts")]
+    data["kafolat_rows"] = assigned["rows"]
     data["kafolat_kpi_targets"] = kpi_targets
     data["kafolat_district_targets"] = district_targets
     data["kafolat_info_rows"] = info_rows
     data["task_modules"] = list(MODULE_DEFS.values())
     data["task_meta"] = {
-        "source_doc": str(KAFOLAT_TASK_DOCX.name),
-        "declared_total": 114,
-        "monitoring_rows": len(rows),
+        "source_doc": str(KAFOLAT_ACTION_PLAN_DOCX.name),
+        "declared_total": len(execution_tasks),
+        "source_table_rows": len(action_rows),
+        "monitoring_rows": len(action_rows),
         "kpi_targets": len(kpi_targets),
         "district_targets": len(district_targets),
         "execution_tasks": len(execution_tasks),
+        "district_linked_actions": len(district_linked),
+        "district_linked_source_rows": [row.get("sourceNo") for row in district_linked],
         "info_rows": len(info_rows),
-        "note": "Топшириқлар сонига фақат T-001... кўринишидаги ҳақиқий ижро топшириқлари киритилди. KPI мақсадлар ва туман мақсадли кўрсаткичлари алоҳида юритилади.",
+        "note": "0_Чора-тадбир жадвали икки қатламга ажратилди: 30 та KPI топшириқлар сонига қўшилмайди, 52 та чора-тадбир эса T-001...T-052 реестрига киритилди.",
     }
     return execution_tasks or data.get("tasks", [])
 
@@ -6388,7 +7092,8 @@ HTML = r"""<!doctype html>
       { id: "investment", label: "Хорижий инвестициялар", short: "Инвестиция", sector: "Хорижий инвестиция", icon: "rocket" },
       { id: "export", label: "Экспорт ҳажми", short: "Экспорт", sector: "Экспорт", icon: "globe" },
       { id: "unemployment", label: "Ишсизлик даражаси", short: "Ишсизлик", sector: "Бандлик ва камбағаллик", icon: "users" },
-      { id: "poverty", label: "Камбағаллик даражаси", short: "Камбағаллик", sector: "Бандлик ва камбағаллик", icon: "users" }
+      { id: "poverty", label: "Камбағаллик даражаси", short: "Камбағаллик", sector: "Бандлик ва камбағаллик", icon: "users" },
+      { id: "small_business_share", label: "Кичик тадбиркорликнинг ЯҲМдаги улуши", short: "Кичик бизнес улуши", sector: "Бандлик ва камбағаллик", icon: "briefcase" }
     ];
 
     const macroComponentDefs = [
@@ -6424,6 +7129,7 @@ HTML = r"""<!doctype html>
       export: { layer: "excel", source: "5.1-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: экспорт ҳажми, ўсиш ва экспортчилар." },
       unemployment: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: ишсизлик даражаси чегараси." },
       poverty: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик даражаси чегараси." },
+      small_business_share: { layer: "guarantee-target", source: "0_Чора-тадбир · 74-қатор", periods: ["year"], note: "Кафолат хати KPI: вилоят даражасидаги кичик тадбиркорлик улуши." },
       jobs: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: доимий ишга жойлаштириш." },
       legalization: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: норасмий бандларни легаллаштириш." },
       mfy_clear: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик ва ишсизликдан холи МФЙлар." },
@@ -6506,7 +7212,7 @@ HTML = r"""<!doctype html>
       if (row?.reportStatus === "approved") return "actual";
       if (period === "q1" && (n(row?.fact) !== null || n(row?.growth) !== null)) return "actual";
       if (["budget", "budget_investment", "investment", "export"].includes(id) && period !== "q1" && (n(row?.fact) !== null || n(row?.execution) !== null)) return "expected";
-      if (["inflation", "unemployment", "poverty"].includes(id)) return "target";
+      if (["inflation", "unemployment", "poverty", "small_business_share"].includes(id)) return "target";
       return hasPeriodValue(row) ? "plan" : "empty";
     }
 
@@ -6747,6 +7453,16 @@ HTML = r"""<!doctype html>
       };
     }
 
+    function kafolatPercentTarget(kpiId, period) {
+      const rows = DATA.kafolat_kpi_targets || [];
+      const row = rows.find(item => item.kpi === kpiId && item.periodCode === period)
+        || rows.find(item => item.kpi === kpiId && item.periodCode === "year")
+        || rows.find(item => item.kpi === kpiId);
+      const match = (row?.title || "").match(/(\d+(?:[,.]\d+)?)\s*(?:фоиз|%)/i);
+      if (!match) return null;
+      return Number(match[1].replace(",", "."));
+    }
+
     function baseRegionalKpi(id, period = state.period) {
       if (id === "grp") return macroByIndex(0, period);
       if (id === "industry") return macroByIndex(1, period);
@@ -6796,6 +7512,10 @@ HTML = r"""<!doctype html>
         const emp = DATA.regional.employment;
         const target = period === "year" ? emp.poverty_year : period === "h1" ? emp.poverty_h1 : null;
         return { label: "Камбағаллик даражаси", fact: null, plan: target, unit: "%", growth: null, execution: null, main: target ? `${fmt(target, 1)}%` : "—", status: "grey", note: `${fmt(emp.mfy_h1, 0)} та МФЙ H1, ${fmt(emp.mfy_year, 0)} та йиллик` };
+      }
+      if (id === "small_business_share") {
+        const target = period === "year" ? kafolatPercentTarget(id, period) : null;
+        return { label: "Кичик тадбиркорлик улуши", fact: null, plan: target, unit: "%", growth: null, execution: null, main: target ? `${fmt(target, 1)}%` : "—", status: "grey", note: "0_Чора-тадбир · 74-қатор" };
       }
       return baseRegionalKpi("export", period);
     }
@@ -6902,6 +7622,10 @@ HTML = r"""<!doctype html>
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan, "lower");
         return { fact, plan, unit: "%", growth: null, execution, status: statusFor(execution) };
+      }
+      if (id === "small_business_share") {
+        const plan = period === "year" ? kafolatPercentTarget(id, period) : null;
+        return { fact: null, plan, unit: "%", growth: null, execution: null, status: "grey", main: plan ? `${fmt(plan, 1)}%` : "—" };
       }
       return baseDashboardPeriodKpi("export", period);
     }
@@ -7065,7 +7789,7 @@ HTML = r"""<!doctype html>
       budget_investment: ["budget_investment"],
       investment: ["investment"],
       export: ["export"],
-      employment: ["unemployment", "poverty"]
+      employment: ["unemployment", "poverty", "small_business_share"]
     };
 
     function kpiDefById(id) {
@@ -7086,7 +7810,7 @@ HTML = r"""<!doctype html>
       const direct = Object.entries(dashboardKpiMap).find(([, ids]) => ids.includes(kpiId));
       if (direct) return direct[0];
       if (["localization", "energy_electricity", "energy_gas"].includes(kpiId)) return "macro";
-      if (["jobs", "legalization", "mfy_clear", "microprojects"].includes(kpiId)) return "employment";
+      if (["jobs", "legalization", "mfy_clear", "microprojects", "small_business_share"].includes(kpiId)) return "employment";
       return "macro";
     }
 
@@ -7104,7 +7828,7 @@ HTML = r"""<!doctype html>
         budget_investment: "Бюджет инвестициялари ўзлаштирилиши.",
         investment: "Хорижий инвестициялар ҳажми, режа ва ижро.",
         export: "Экспорт ҳажми ва ўсиш кўрсаткичлари.",
-        employment: "Ишсизлик ва камбағаллик бўйича асосий KPIлар."
+        employment: "Ишсизлик, камбағаллик ва кичик тадбиркорлик бўйича асосий KPIлар."
       };
       return text[moduleId] || "";
     }
@@ -7132,7 +7856,8 @@ HTML = r"""<!doctype html>
         composition: "Excel таркибий KPI",
         excel: "Excel туман KPI",
         "excel-proxy": "Excel ёрдамчи KPI",
-        "excel-target": "Excel мақсад KPI"
+        "excel-target": "Excel мақсад KPI",
+        "guarantee-target": "Кафолат хати KPI"
       };
       return labels[meta.layer] || "Excel туман KPI";
     }
@@ -7329,6 +8054,9 @@ HTML = r"""<!doctype html>
       if (kpiId === "legalization") {
         return /легаллаш|норасмий|банд/i.test(title);
       }
+      if (kpiId === "small_business_share") {
+        return /кичик ва ўрта бизнес|кичик тадбиркор|тадбиркорлик субъект|субъектларининг фаолияти|кредитлар ажратиш/i.test(title);
+      }
       if (kpiId === "budget_investment") {
         return /бюджет|инвест|объект|ўзлаштир|қурилиш/i.test(title);
       }
@@ -7412,10 +8140,13 @@ HTML = r"""<!doctype html>
     function dashboardScorelineTasks(selected, moduleId) {
       if (moduleId === "employment") {
         if (selected.id === "unemployment") {
-          return uniqueTasks(["unemployment", "jobs", "legalization"].flatMap(tasksForKpi));
+          return uniqueTasks(["unemployment", "jobs", "legalization", "small_business_share"].flatMap(tasksForKpi));
         }
         if (selected.id === "poverty") {
           return uniqueTasks(["poverty", "mfy_clear", "microprojects"].flatMap(tasksForKpi));
+        }
+        if (selected.id === "small_business_share") {
+          return uniqueTasks(["small_business_share", "jobs", "legalization"].flatMap(tasksForKpi));
         }
       }
       if (moduleId !== "macro") return DATA.tasks.filter(t => t.module === moduleId);
@@ -9141,10 +9872,11 @@ HTML = r"""<!doctype html>
         localization: ["industry", "localization", "energy_electricity", "energy_gas"],
         energy_electricity: ["industry", "localization", "energy_electricity", "energy_gas"],
         energy_gas: ["industry", "localization", "energy_electricity", "energy_gas"],
-        poverty: ["poverty", "unemployment", "jobs", "legalization", "mfy_clear", "microprojects"],
-        unemployment: ["unemployment", "poverty", "jobs", "legalization", "mfy_clear", "microprojects"],
-        jobs: ["jobs", "unemployment", "poverty", "legalization", "mfy_clear", "microprojects"],
-        legalization: ["legalization", "jobs", "unemployment", "poverty", "mfy_clear", "microprojects"],
+        poverty: ["poverty", "unemployment", "small_business_share", "jobs", "legalization", "mfy_clear", "microprojects"],
+        unemployment: ["unemployment", "poverty", "small_business_share", "jobs", "legalization", "mfy_clear", "microprojects"],
+        small_business_share: ["small_business_share", "unemployment", "jobs", "legalization"],
+        jobs: ["jobs", "unemployment", "poverty", "small_business_share", "legalization", "mfy_clear", "microprojects"],
+        legalization: ["legalization", "jobs", "unemployment", "poverty", "small_business_share", "mfy_clear", "microprojects"],
         mfy_clear: ["mfy_clear", "poverty", "unemployment", "jobs", "microprojects"],
         microprojects: ["microprojects", "poverty", "jobs", "legalization"],
         inflation: ["inflation"],
@@ -10511,4 +11243,11 @@ HTML = r"""<!doctype html>
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--audit-action-plan" in sys.argv:
+        audit_action_plan_cli()
+    elif "--audit-kpi-compare" in sys.argv:
+        audit_kpi_compare_cli()
+    else:
+        main()
