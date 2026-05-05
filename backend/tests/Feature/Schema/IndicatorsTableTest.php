@@ -52,6 +52,7 @@ class IndicatorsTableTest extends TestCase
     public function test_construction_is_region_scope(): void
     {
         $this->seed();
-        $this->assertSame('region', Indicator::where('code', 'construction')->value('scope'));
+        $indicator = Indicator::where('code', 'construction')->firstOrFail();
+        $this->assertSame(\App\Enums\IndicatorScope::Region, $indicator->scope);
     }
 }

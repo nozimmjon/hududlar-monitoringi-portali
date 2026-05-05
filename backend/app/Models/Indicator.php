@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Indicator extends Model
 {
-    protected $primaryKey = 'id';
-
     protected $fillable = [
         'code', 'label_full', 'label_short', 'sector', 'module_code', 'scope',
         'default_unit', 'lower_is_better', 'supported_periods',
