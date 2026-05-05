@@ -54,6 +54,9 @@ class DistrictSeeder extends Seeder
 
         // Chunk to keep the upsert payload manageable
         foreach (array_chunk($rows, 100) as $chunk) {
+            // Conflict key (region_code, code) is also part of the row identity, so
+            // re-seeding after a CODE_MAP correction will insert new rows rather than
+            // update existing ones. Manual cleanup of stale rows is required in that case.
             DB::table('districts')->upsert(
                 $chunk,
                 ['region_code', 'code'],

@@ -29,9 +29,15 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('districts', function (Blueprint $table) {
-            $table->dropUnique('uq_districts_region_code_code');
-            $table->dropIndex('idx_districts_region_code');
-            $table->dropColumn('region_code');
+            if (Schema::hasIndex('districts', 'uq_districts_region_code_code')) {
+                $table->dropUnique('uq_districts_region_code_code');
+            }
+            if (Schema::hasIndex('districts', 'idx_districts_region_code')) {
+                $table->dropIndex('idx_districts_region_code');
+            }
+            if (Schema::hasColumn('districts', 'region_code')) {
+                $table->dropColumn('region_code');
+            }
         });
     }
 };
