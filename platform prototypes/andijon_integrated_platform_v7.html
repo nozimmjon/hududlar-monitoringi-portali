@@ -719,7 +719,7 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi {
-      min-height: 138px;
+      min-height: 92px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent {
@@ -748,10 +748,10 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       background: #fff;
-      min-height: 126px;
-      padding: 16px;
+      min-height: 88px;
+      padding: 14px;
       display: grid;
-      grid-template-columns: 50px minmax(0, 1fr);
+      grid-template-columns: 44px minmax(0, 1fr);
       gap: 12px;
       align-items: center;
       text-align: left;
@@ -773,10 +773,8 @@
       z-index: 1;
     }
     .front-kpi.active h3 { color: var(--ink); }
-    .front-kpi.active .big { color: var(--blue); }
-    .front-kpi.active .big-note { color: var(--muted); }
-    .front-kpi.active .mini-row { color: var(--muted); }
-    .front-kpi.active .mini-row b { color: var(--ink); }
+    .front-kpi.active .front-kpi-meta { color: var(--blue); }
+    .front-kpi.active .front-kpi-dot { background: var(--blue); box-shadow: 0 0 0 3px rgba(23, 105, 224, .12); }
     .front-kpi.active .kpi-icon {
       background: var(--blue-soft);
       color: var(--blue);
@@ -852,9 +850,9 @@
     }
 
     .kpi-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
       color: var(--blue);
@@ -865,7 +863,7 @@
 
     .front-kpi:hover .kpi-icon { transform: scale(1.03); }
 
-    .kpi-icon svg { width: 25px; height: 25px; stroke-width: 2.2; }
+    .kpi-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
     .front-kpi h3 {
       color: #4d6172;
       font-size: 15px;
@@ -875,61 +873,38 @@
       text-transform: uppercase;
     }
 
-    .front-kpi .big-row {
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 3px;
-    }
-
-    .front-kpi .big {
-      color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
-      font-size: clamp(26px, 2.2vw, 38px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -0.022em;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum", "ss01";
-    }
-
-    .front-kpi .big-note {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1.25;
-    }
-
-    .mini-row {
-      margin-top: 9px;
-      display: grid;
-      gap: 3px;
-      color: var(--muted);
-      font-size: 10.5px;
-      line-height: 1.2;
-      font-weight: 500;
-    }
-
-    .mini-row span {
+    .front-kpi-copy {
       min-width: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
       gap: 5px;
-      align-items: baseline;
     }
 
-    .mini-row b {
-      display: block;
-      color: var(--ink);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.005em;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum", "ss01";
+    .front-kpi-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .front-kpi-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .front-kpi-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #9aa8b5;
+      flex: 0 0 auto;
     }
 
     .grid-3 {
@@ -2192,21 +2167,24 @@
 
     .macro-hero-card {
       position: relative;
-      min-height: 170px;
+      min-height: 150px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 210px;
+      grid-template-columns: 1fr;
       align-items: center;
-      gap: 22px;
-      padding: 28px 34px;
+      padding: 26px 34px;
       border: 1px solid rgba(19, 126, 61, .18);
       border-radius: 12px;
-      background: linear-gradient(180deg, #f5fbf7 0%, #eff8f3 100%);
+      background:
+        linear-gradient(180deg, #f5fbf7 0%, #eff8f3 100%),
+        repeating-linear-gradient(90deg, transparent 0 56px, rgba(15, 135, 58, .035) 56px 57px);
       overflow: hidden;
     }
 
     .macro-hero-copy {
+      min-width: 0;
       display: grid;
       gap: 6px;
+      align-content: center;
       text-align: center;
       justify-items: center;
     }
@@ -2231,82 +2209,6 @@
       font-size: 15px;
       font-weight: 700;
     }
-
-    .macro-target-visual {
-      position: relative;
-      height: 150px;
-      display: grid;
-      place-items: center;
-    }
-
-    .macro-target-visual::before,
-    .macro-target-visual::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      border: 11px solid rgba(15, 135, 58, .62);
-    }
-
-    .macro-target-visual::before {
-      width: 112px;
-      height: 112px;
-    }
-
-    .macro-target-visual::after {
-      width: 63px;
-      height: 63px;
-      border-width: 10px;
-    }
-
-    .macro-target-dot {
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #0f873a;
-      z-index: 2;
-    }
-
-    .macro-target-arrow {
-      position: absolute;
-      width: 82px;
-      height: 10px;
-      border-radius: 999px;
-      background: #0f873a;
-      transform: rotate(-42deg) translate(34px, -20px);
-      transform-origin: center;
-      z-index: 3;
-    }
-
-    .macro-target-arrow::after {
-      content: "";
-      position: absolute;
-      right: -12px;
-      top: -8px;
-      border-left: 18px solid #0f873a;
-      border-top: 13px solid transparent;
-      border-bottom: 13px solid transparent;
-    }
-
-    .macro-target-bars {
-      position: absolute;
-      left: 10px;
-      bottom: 22px;
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      opacity: .14;
-    }
-
-    .macro-target-bars i {
-      display: block;
-      width: 18px;
-      background: #0f873a;
-    }
-
-    .macro-target-bars i:nth-child(1) { height: 30px; }
-    .macro-target-bars i:nth-child(2) { height: 48px; }
-    .macro-target-bars i:nth-child(3) { height: 66px; }
 
     .macro-layout-card .macro-growth-overview {
       display: grid;
@@ -5678,7 +5580,7 @@
       .budget-invest-body,
       .budget-periods-grid { grid-template-columns: 1fr; }
       .macro-hero-card { grid-template-columns: 1fr; text-align: center; }
-      .macro-target-visual { display: none; }
+      .macro-hero-copy { text-align: center; justify-items: center; }
       .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
       .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
       .industry-driver-arrow { display: none; }
@@ -5928,15 +5830,6 @@
       if (n(row.growth) !== null) return growthValue(row.growth);
       if (n(row.execution) !== null) return `${fmt(row.execution, 1)}%`;
       return planValue(row);
-    }
-
-    function q1ActualText(id) {
-      const row = dashboardPeriodKpi(id, "q1");
-      const growthOnly = id === "grp" || macroComponentDefs.some(item => item.id === id) || n(row.growth) !== null;
-      if (!row) return "I чорак: —";
-      if (growthOnly && n(row.growth) !== null) return `I чорак: ${growthValue(row.growth)}`;
-      if (n(row.fact) !== null) return `I чорак: ${growthOnly ? "—" : displayValue(row.fact, row.unit)}`;
-      return "I чорак: —";
     }
 
     function hasPeriodValue(row) {
@@ -6764,21 +6657,15 @@
     }
 
     function kpiCard(def) {
-      const row = annualPlanKpi(def.id);
-      const q1Text = q1ActualText(def.id);
       const active = def.id === state.kpi ? "active" : "";
       const parent = def.id === "grp" && state.dashboardModule === "macro" ? "parent" : "";
+      const meta = active ? "Танланган KPI" : "Кўрсаткични очиш";
       return `<button class="front-kpi ${active} ${parent}" data-kpi="${def.id}" aria-label="${def.label}">
         <div class="kpi-icon">${icon(def.icon)}</div>
-        <div>
+        <div class="front-kpi-copy">
           <h3>${def.short}</h3>
-          <div class="big-row">
-            <span class="big">${primaryMetric(row)}</span>
-            <span class="big-note">2026 йил режа</span>
-          </div>
-          <div class="mini-row">
-            <span><b>${q1Text}</b></span>
-          </div>
+          <p>${def.label}</p>
+          <span class="front-kpi-meta"><i class="front-kpi-dot" aria-hidden="true"></i>${meta}</span>
         </div>
       </button>`;
     }
@@ -6838,13 +6725,12 @@
 
     function dashboardScorelineLabel(selected, moduleId) {
       if (moduleId !== "macro") {
-        const module = moduleById(moduleId);
-        return `${module?.label?.replace(/^\d+\.\s*/, "") || "Йўналиш"} бўйича топшириқлар ҳолати. KPI мониторинги юқорида, топшириқлар назорати шу ерда қисқа кўрсатилади.`;
+        return `${selected.short} бўйича чора-тадбирлар ҳолати. Бу ерда умумий 52 та реестр эмас, фақат танланган KPI/йўналишга тегишли ишлар кўрсатилади.`;
       }
       if (selected.id === "grp") {
-        return "Макроиқтисодиёт бўйича топшириқлар ҳолати. ЯҲМ якуний натижа бўлгани учун унга олиб борувчи таркибий топшириқлар умумий кўрсатилади.";
+        return "ЯҲМга оид макроиқтисодий чора-тадбирлар ҳолати. ЯҲМ якуний KPI бўлгани учун бу ерда унга олиб борувчи макро ишлар кўрсатилади.";
       }
-      return `${selected.short} бўйича боғланган топшириқлар ҳолати.`;
+      return `${selected.short}га оид чора-тадбирлар ҳолати.`;
     }
 
     function dashboardScorelineRouteKpi(selected, moduleId) {
@@ -6867,10 +6753,10 @@
       const moduleDone = moduleTasks.filter(t => t.status === "green").length;
       const moduleOpen = moduleTotal - moduleDone;
       const modulePct = moduleTotal > 0 ? Math.round(moduleDone / moduleTotal * 100) : 0;
-      const taskScope = `${selected.short}га оид топшириқлар`;
+      const taskScope = selected.id === "grp" ? "ЯҲМга оид чора-тадбирлар" : `${selected.short}га оид чора-тадбирлар`;
       const scorelineHtml = `<div class="scoreline execution-strip">
           <div class="scoreline-copy">
-            <span>Ижро ҳолати</span>
+            <span>Чора-тадбирлар ижроси</span>
             <strong>${taskScope}</strong>
             <small>${dashboardScorelineLabel(selected, state.dashboardModule)}</small>
           </div>
@@ -6893,7 +6779,7 @@
             <small>бажарилиш</small>
           </div>
           <div class="score-actions">
-            <button class="score-action primary" type="button" data-scoreline-status="all">Топшириқларни кўриш</button>
+            <button class="score-action primary" type="button" data-scoreline-status="all">Чора-тадбирларни кўриш</button>
             <button class="score-action" type="button" data-open-execution data-exec-kpi="${selected.id}">Ижро журнали</button>
           </div>
         </div>`;
@@ -7141,7 +7027,7 @@
       const periods = macroGrowthPeriods();
       const values = periods.map(item => dashboardPeriodKpi(def.id, item.period).growth);
       const showComposition = def.id === "grp";
-      const showIndustryDrivers = def.id === "grp" || def.id === "industry";
+      const showIndustryDrivers = def.id === "industry";
       return `<section class="macro-growth-panel ${showIndustryDrivers ? "with-side" : "solo"}" aria-label="${def.label} ўсиш мониторинги">
         <div class="macro-main-panel">
           <div class="macro-section-title"><strong>${def.short} ўсиши</strong><span>(солиштирма нархларда)</span></div>
@@ -7150,11 +7036,6 @@
               <span>Йиллик ўсиш (мақсад)</span>
               <strong>${growthValue(year.growth)}</strong>
               <small>2026 йил</small>
-            </div>
-            <div class="macro-target-visual" aria-hidden="true">
-              <span class="macro-target-dot"></span>
-              <span class="macro-target-arrow"></span>
-              <span class="macro-target-bars"><i></i><i></i><i></i></span>
             </div>
           </div>
           <div class="macro-period-grid">
