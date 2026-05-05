@@ -35,7 +35,7 @@ return new class extends Migration {
             $table->index('import_run_id', 'idx_dqi_run');
 
             $table->foreign('region_code')->references('code')->on('regions');
-            $table->foreign('indicator_code')->references('code')->on('indicators')->nullOnDelete();
+            $table->foreign('indicator_code')->references('code')->on('indicators')->onDelete('set null');
         });
     }
 
