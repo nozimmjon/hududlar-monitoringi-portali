@@ -46,7 +46,7 @@
                         <span class="product-body">
                             <span class="product-name">{{ $row->product }}</span>
                             <strong class="product-value">{{ number_format(((float) $row->local_supply_ratio) * 100, 1) }}%</strong>
-                            <small class="product-note">маҳаллий таъминланиш · ресурс {{ number_format((float) $row->resource_total, 1) }} минг т · импорт {{ $row->import !== null ? number_format((float) $row->import, 1) : '—' }} минг т</small>
+                            <small class="product-note">маҳаллий таъминланиш · ресурс {{ number_format((float) $row->resource_total, 1) }} минг т · импорт {{ $row->import_volume !== null ? number_format((float) $row->import_volume, 1) : '—' }} минг т</small>
                         </span>
                     </button>
                 @endforeach
