@@ -30,11 +30,14 @@ class DistrictSeeder extends Seeder
 
             foreach ($region['districts'] as $district) {
                 $code = $this->makeCode($region['id'], $district);
-                $altLabels = array_filter([
-                    $district['name_short'] ?? null,
-                    $district['name_full'] ?? null,
-                    $district['name_latin'] ?? null,
-                ]);
+                $altLabels = array_filter(array_merge(
+                    [
+                        $district['name_short'] ?? null,
+                        $district['name_full'] ?? null,
+                        $district['name_latin'] ?? null,
+                    ],
+                    $district['alt_labels'] ?? [],
+                ));
 
                 $rows[] = [
                     'region_id'   => $regionId,

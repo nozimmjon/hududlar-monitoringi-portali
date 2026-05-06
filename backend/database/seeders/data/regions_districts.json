@@ -1,0 +1,1590 @@
+[
+    {
+        "id": 1,
+        "folder_name": "1. Қорақалпоғистон Республикаси",
+        "name_short": "Қорақалпоғистон",
+        "name_full": "Қорақалпоғистон Республикаси",
+        "name_latin": "Karakalpakstan",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Нукус шаҳри",
+                "name_full": "Нукус шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Амударё тумани",
+                "name_full": "Амударё тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Беруний тумани",
+                "name_full": "Беруний тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Бўзатов тумани",
+                "name_full": "Бўзатов тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Кегейли тумани",
+                "name_full": "Кегейли тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Қонликўл тумани",
+                "name_full": "Қонликўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Қораўзак тумани",
+                "name_full": "Қораўзак тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Қўнғирот тумани",
+                "name_full": "Қўнғирот тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Мўйноқ тумани",
+                "name_full": "Мўйноқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Нукус тумани",
+                "name_full": "Нукус тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Тахиатош тумани",
+                "name_full": "Тахиатош тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Тахтакўпир тумани",
+                "name_full": "Тахтакўпир тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Тўрткўл тумани",
+                "name_full": "Тўрткўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Хўжайли тумани",
+                "name_full": "Хўжайли тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Чимбой тумани",
+                "name_full": "Чимбой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Шуманай тумани",
+                "name_full": "Шуманай тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 17,
+                "name_short": "Элликқалъа тумани",
+                "name_full": "Элликқалъа тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "folder_name": "2. Андижон",
+        "name_short": "Андижон",
+        "name_full": "Андижон вилояти",
+        "name_latin": "Andijan",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Андижон шаҳри",
+                "name_full": "Андижон шаҳри",
+                "name_latin": null,
+                "kind": "city",
+                "alt_labels": [
+                    "Андижон шаҳар"
+                ]
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Хонобод шаҳри",
+                "name_full": "Хонобод шаҳри",
+                "name_latin": null,
+                "kind": "city",
+                "alt_labels": [
+                    "Хонобод шаҳар"
+                ]
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Андижон тумани",
+                "name_full": "Андижон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Асака тумани",
+                "name_full": "Асака тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Балиқчи тумани",
+                "name_full": "Балиқчи тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Булоқбоши тумани",
+                "name_full": "Булоқбоши тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Бўстон тумани",
+                "name_full": "Бўстон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Жалақудуқ тумани",
+                "name_full": "Жалақудуқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Избоскан тумани",
+                "name_full": "Избоскан тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Қўрғонтепа тумани",
+                "name_full": "Қўрғонтепа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Марҳамат тумани",
+                "name_full": "Марҳамат тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Олтинкўл тумани",
+                "name_full": "Олтинкўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Пахтаобод тумани",
+                "name_full": "Пахтаобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Улуғнор тумани",
+                "name_full": "Улуғнор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Хўжаобод тумани",
+                "name_full": "Хўжаобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Шаҳрихон тумани",
+                "name_full": "Шаҳрихон тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "folder_name": "3. Бухоро",
+        "name_short": "Бухоро",
+        "name_full": "Бухоро вилояти",
+        "name_latin": "Bukhara",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Бухоро шаҳри",
+                "name_full": "Бухоро шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Когон шаҳри",
+                "name_full": "Когон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Бухоро тумани",
+                "name_full": "Бухоро тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Вобкент тумани",
+                "name_full": "Вобкент тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Ғиждувон тумани",
+                "name_full": "Ғиждувон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Жондор тумани",
+                "name_full": "Жондор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Когон тумани",
+                "name_full": "Когон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Қоракўл тумани",
+                "name_full": "Қоракўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Қоровулбозор тумани",
+                "name_full": "Қоровулбозор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Олот тумани",
+                "name_full": "Олот тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Пешку тумани",
+                "name_full": "Пешку тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Ромитан тумани",
+                "name_full": "Ромитан тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Шофиркон тумани",
+                "name_full": "Шофиркон тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "folder_name": "4. Жиззах",
+        "name_short": "Жиззах",
+        "name_full": "Жиззах вилояти",
+        "name_latin": "Jizzakh",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Жиззах шаҳри",
+                "name_full": "Жиззах шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Арнасой тумани",
+                "name_full": "Арнасой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Бахмал тумани",
+                "name_full": "Бахмал тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Ғаллаорол тумани",
+                "name_full": "Ғаллаорол тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Дўстлик тумани",
+                "name_full": "Дўстлик тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Зарбдор тумани",
+                "name_full": "Зарбдор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Зафаробод тумани",
+                "name_full": "Зафаробод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Зомин тумани",
+                "name_full": "Зомин тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Мирзачўл тумани",
+                "name_full": "Мирзачўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Пахтакор тумани",
+                "name_full": "Пахтакор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Фориш тумани",
+                "name_full": "Фориш тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Шароф Рашидов тумани",
+                "name_full": "Шароф Рашидов тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Янгиобод тумани",
+                "name_full": "Янгиобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "folder_name": "5. Қашқадарё",
+        "name_short": "Қашқадарё",
+        "name_full": "Қашқадарё вилояти",
+        "name_latin": "Kashkadarya",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Қарши шаҳри",
+                "name_full": "Қарши шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Шаҳрисабз шаҳри",
+                "name_full": "Шаҳрисабз шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Ғузор тумани",
+                "name_full": "Ғузор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Деҳқонобод тумани",
+                "name_full": "Деҳқонобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Касби тумани",
+                "name_full": "Касби тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Китоб тумани",
+                "name_full": "Китоб тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Косон тумани",
+                "name_full": "Косон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Кўкдала тумани",
+                "name_full": "Кўкдала тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Қамаши тумани",
+                "name_full": "Қамаши тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Қарши тумани",
+                "name_full": "Қарши тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Миришкор тумани",
+                "name_full": "Миришкор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Муборак тумани",
+                "name_full": "Муборак тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Нишон тумани",
+                "name_full": "Нишон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Чироқчи тумани",
+                "name_full": "Чироқчи тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Шаҳрисабз тумани",
+                "name_full": "Шаҳрисабз тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Яккабоғ тумани",
+                "name_full": "Яккабоғ тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "folder_name": "6. Навоий",
+        "name_short": "Навоий",
+        "name_full": "Навоий вилояти",
+        "name_latin": "Navoiy",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Навоий шаҳри",
+                "name_full": "Навоий шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Ғозғон шаҳри",
+                "name_full": "Ғозғон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Зарафшон шаҳри",
+                "name_full": "Зарафшон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Кармана тумани",
+                "name_full": "Кармана тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Конимех тумани",
+                "name_full": "Конимех тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Қизилтепа тумани",
+                "name_full": "Қизилтепа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Навбаҳор тумани",
+                "name_full": "Навбаҳор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Нурота тумани",
+                "name_full": "Нурота тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Томди тумани",
+                "name_full": "Томди тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Учқудуқ тумани",
+                "name_full": "Учқудуқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Хатирчи тумани",
+                "name_full": "Хатирчи тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "folder_name": "7. Наманган",
+        "name_short": "Наманган",
+        "name_full": "Наманган вилояти",
+        "name_latin": "Namangan",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Наманган шаҳри",
+                "name_full": "Наманган шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Давлатобод тумани",
+                "name_full": "Давлатобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Косонсой тумани",
+                "name_full": "Косонсой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Мингбулоқ тумани",
+                "name_full": "Мингбулоқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Наманган тумани",
+                "name_full": "Наманган тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Норин тумани",
+                "name_full": "Норин тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Поп тумани",
+                "name_full": "Поп тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Тўрақўрғон тумани",
+                "name_full": "Тўрақўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Уйчи тумани",
+                "name_full": "Уйчи тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Учқўрғон тумани",
+                "name_full": "Учқўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Чортоқ тумани",
+                "name_full": "Чортоқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Чуст тумани",
+                "name_full": "Чуст тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Янги Наманган тумани",
+                "name_full": "Янги Наманган тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Янгиқўрғон тумани",
+                "name_full": "Янгиқўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "folder_name": "8. Самарқанд",
+        "name_short": "Самарқанд",
+        "name_full": "Самарқанд вилояти",
+        "name_latin": "Samarkand",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Самарқанд шаҳри",
+                "name_full": "Самарқанд шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Каттақўрғон шаҳри",
+                "name_full": "Каттақўрғон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Булунғур тумани",
+                "name_full": "Булунғур тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Жомбой тумани",
+                "name_full": "Жомбой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Иштихон тумани",
+                "name_full": "Иштихон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Каттақўрғон тумани",
+                "name_full": "Каттақўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Қўшработ тумани",
+                "name_full": "Қўшработ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Нарпай тумани",
+                "name_full": "Нарпай тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Нуробод тумани",
+                "name_full": "Нуробод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Оқдарё тумани",
+                "name_full": "Оқдарё тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Пайариқ тумани",
+                "name_full": "Пайариқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Пастдарғом тумани",
+                "name_full": "Пастдарғом тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Пахтачи тумани",
+                "name_full": "Пахтачи тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Самарқанд тумани",
+                "name_full": "Самарқанд тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Тойлоқ тумани",
+                "name_full": "Тойлоқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Ургут тумани",
+                "name_full": "Ургут тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "folder_name": "9. Сурхондарё",
+        "name_short": "Сурхондарё",
+        "name_full": "Сурхондарё вилояти",
+        "name_latin": "Surkhandarya",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Термиз шаҳри",
+                "name_full": "Термиз шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Ангор тумани",
+                "name_full": "Ангор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Бандихон тумани",
+                "name_full": "Бандихон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Бойсун тумани",
+                "name_full": "Бойсун тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Денов тумани",
+                "name_full": "Денов тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Жарқўрғон тумани",
+                "name_full": "Жарқўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Қизириқ тумани",
+                "name_full": "Қизириқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Қумқўрғон тумани",
+                "name_full": "Қумқўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Музработ тумани",
+                "name_full": "Музработ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Олтинсой тумани",
+                "name_full": "Олтинсой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Сариосиё тумани",
+                "name_full": "Сариосиё тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Термиз тумани",
+                "name_full": "Термиз тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Узун тумани",
+                "name_full": "Узун тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Шеробод тумани",
+                "name_full": "Шеробод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Шўрчи тумани",
+                "name_full": "Шўрчи тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 10,
+        "folder_name": "10. Сирдарё",
+        "name_short": "Сирдарё",
+        "name_full": "Сирдарё вилояти",
+        "name_latin": "Syrdarya",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Гулистон шаҳри",
+                "name_full": "Гулистон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Ширин шаҳри",
+                "name_full": "Ширин шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Янгиер шаҳри",
+                "name_full": "Янгиер шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Боёвут тумани",
+                "name_full": "Боёвут тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Гулистон тумани",
+                "name_full": "Гулистон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Мирзаобод тумани",
+                "name_full": "Мирзаобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Оқолтин тумани",
+                "name_full": "Оқолтин тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Сайхунобод тумани",
+                "name_full": "Сайхунобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Сардоба тумани",
+                "name_full": "Сардоба тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Сирдарё тумани",
+                "name_full": "Сирдарё тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Ховос тумани",
+                "name_full": "Ховос тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 11,
+        "folder_name": "11. Тошкент вил",
+        "name_short": "Тошкент вилояти",
+        "name_full": "Тошкент вилояти",
+        "name_latin": "Tashkent Region",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Нурафшон шаҳри",
+                "name_full": "Нурафшон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Ангрен шаҳри",
+                "name_full": "Ангрен шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Бекобод шаҳри",
+                "name_full": "Бекобод шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Олмалиқ шаҳри",
+                "name_full": "Олмалиқ шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Оҳангарон шаҳри",
+                "name_full": "Оҳангарон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Чирчиқ шаҳри",
+                "name_full": "Чирчиқ шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Янгийўл шаҳри",
+                "name_full": "Янгийўл шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Бекобод тумани",
+                "name_full": "Бекобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Бўка тумани",
+                "name_full": "Бўка тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Бўстонлиқ тумани",
+                "name_full": "Бўстонлиқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Зангиота тумани",
+                "name_full": "Зангиота тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Қибрай тумани",
+                "name_full": "Қибрай тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Қуйичирчиқ тумани",
+                "name_full": "Қуйичирчиқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Оққўрғон тумани",
+                "name_full": "Оққўрғон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Оҳангарон тумани",
+                "name_full": "Оҳангарон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Паркент тумани",
+                "name_full": "Паркент тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 17,
+                "name_short": "Пискент тумани",
+                "name_full": "Пискент тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 18,
+                "name_short": "Тошкент тумани",
+                "name_full": "Тошкент тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 19,
+                "name_short": "Ўртачирчиқ тумани",
+                "name_full": "Ўртачирчиқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 20,
+                "name_short": "Чиноз тумани",
+                "name_full": "Чиноз тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 21,
+                "name_short": "Юқоричирчиқ тумани",
+                "name_full": "Юқоричирчиқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 22,
+                "name_short": "Янгийўл тумани",
+                "name_full": "Янгийўл тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 12,
+        "folder_name": "12. Фарғона",
+        "name_short": "Фарғона",
+        "name_full": "Фарғона вилояти",
+        "name_latin": "Fergana",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Фарғона шаҳри",
+                "name_full": "Фарғона шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Қўқон шаҳри",
+                "name_full": "Қўқон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Марғилон шаҳри",
+                "name_full": "Марғилон шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Бешариқ тумани",
+                "name_full": "Бешариқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Боғдод тумани",
+                "name_full": "Боғдод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Бувайда тумани",
+                "name_full": "Бувайда тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Данғара тумани",
+                "name_full": "Данғара тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Ёзёвон тумани",
+                "name_full": "Ёзёвон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Қува тумани",
+                "name_full": "Қува тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Қувасой шаҳри",
+                "name_full": "Қувасой шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Қўштепа тумани",
+                "name_full": "Қўштепа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Олтиариқ тумани",
+                "name_full": "Олтиариқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Риштон тумани",
+                "name_full": "Риштон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 14,
+                "name_short": "Сўх тумани",
+                "name_full": "Сўх тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 15,
+                "name_short": "Тошлоқ тумани",
+                "name_full": "Тошлоқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 16,
+                "name_short": "Ўзбекистон тумани",
+                "name_full": "Ўзбекистон тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 17,
+                "name_short": "Учкўприк тумани",
+                "name_full": "Учкўприк тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 18,
+                "name_short": "Фарғона тумани",
+                "name_full": "Фарғона тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 19,
+                "name_short": "Фурқат тумани",
+                "name_full": "Фурқат тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 13,
+        "folder_name": "13. Хоразм",
+        "name_short": "Хоразм",
+        "name_full": "Хоразм вилояти",
+        "name_latin": "Khorezm",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Урганч шаҳри",
+                "name_full": "Урганч шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Хива шаҳри",
+                "name_full": "Хива шаҳри",
+                "name_latin": null,
+                "kind": "city"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Боғот тумани",
+                "name_full": "Боғот тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Гурлан тумани",
+                "name_full": "Гурлан тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Қўшкўпир тумани",
+                "name_full": "Қўшкўпир тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Тупроққалъа тумани",
+                "name_full": "Тупроққалъа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Урганч тумани",
+                "name_full": "Урганч тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Хива тумани",
+                "name_full": "Хива тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Хонқа тумани",
+                "name_full": "Хонқа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Ҳазорасп тумани",
+                "name_full": "Ҳазорасп тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Шовот тумани",
+                "name_full": "Шовот тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Янгиариқ тумани",
+                "name_full": "Янгиариқ тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 13,
+                "name_short": "Янгибозор тумани",
+                "name_full": "Янгибозор тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    },
+    {
+        "id": 14,
+        "folder_name": "14. Тошкент ш",
+        "name_short": "Тошкент шаҳри",
+        "name_full": "Тошкент шаҳри",
+        "name_latin": "Tashkent City",
+        "districts": [
+            {
+                "sort_order": 1,
+                "name_short": "Бектемир тумани",
+                "name_full": "Бектемир тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 2,
+                "name_short": "Мирзо Улуғбек тумани",
+                "name_full": "Мирзо Улуғбек тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 3,
+                "name_short": "Миробод тумани",
+                "name_full": "Миробод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 4,
+                "name_short": "Олмазор тумани",
+                "name_full": "Олмазор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 5,
+                "name_short": "Сергели тумани",
+                "name_full": "Сергели тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 6,
+                "name_short": "Учтепа тумани",
+                "name_full": "Учтепа тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 7,
+                "name_short": "Чилонзор тумани",
+                "name_full": "Чилонзор тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 8,
+                "name_short": "Шайхонтоҳур тумани",
+                "name_full": "Шайхонтоҳур тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 9,
+                "name_short": "Юнусобод тумани",
+                "name_full": "Юнусобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 10,
+                "name_short": "Яккасарой тумани",
+                "name_full": "Яккасарой тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 11,
+                "name_short": "Янгиҳаёт тумани",
+                "name_full": "Янгиҳаёт тумани",
+                "name_latin": null,
+                "kind": "district"
+            },
+            {
+                "sort_order": 12,
+                "name_short": "Яшнобод тумани",
+                "name_full": "Яшнобод тумани",
+                "name_latin": null,
+                "kind": "district"
+            }
+        ]
+    }
+]
