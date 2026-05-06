@@ -215,7 +215,10 @@
                 "name_short": "Марҳамат тумани",
                 "name_full": "Марҳамат тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Мархамат тумани"
+                ]
             },
             {
                 "sort_order": 12,
@@ -250,7 +253,10 @@
                 "name_short": "Шаҳрихон тумани",
                 "name_full": "Шаҳрихон тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Шахрихон тумани"
+                ]
             }
         ]
     },
