@@ -10,6 +10,7 @@ use App\Services\Import\DistrictResolver;
 use App\Services\Import\HeaderDetector;
 use App\Services\Import\ImportContext;
 use App\Services\Import\IssueCollector;
+use App\Services\Import\Modules\BudgetModuleParser;
 use App\Services\Import\Modules\InflationModuleParser;
 use App\Services\Import\Modules\MacroModuleParser;
 use App\Services\Import\SheetResolver;
@@ -66,6 +67,7 @@ class ImportRegionCommand extends Command
         $parsers = [
             'macro'     => new MacroModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
             'inflation' => new InflationModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'budget'    => new BudgetModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
         ];
 
         $this->info("Importing region '$regionCode' year $year (modules: " . implode(', ', array_keys($files)) . ")…");
