@@ -8080,7 +8080,8 @@ HTML = r"""<!doctype html>
 
     function dashboardScorelineLabel(selected, moduleId) {
       if (moduleId !== "macro") {
-        return `${selected.short} бўйича чора-тадбирлар ҳолати. Бу ерда умумий 52 та реестр эмас, фақат танланган KPI/йўналишга тегишли ишлар кўрсатилади.`;
+        const totalTasks = DATA.task_meta?.declared_total || DATA.tasks.length;
+        return `${selected.short} бўйича чора-тадбирлар ҳолати. Бу ерда умумий ${totalTasks} та реестр эмас, фақат танланган KPI/йўналишга тегишли ишлар кўрсатилади.`;
       }
       if (selected.id === "grp") {
         return "ЯҲМга оид макроиқтисодий чора-тадбирлар ҳолати. ЯҲМ якуний KPI бўлгани учун бу ерда унга олиб борувчи макро ишлар кўрсатилади.";
