@@ -14,7 +14,7 @@
         </div>
     @else
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-            @foreach(['budget', 'budget_investment', 'investment', 'export'] as $code)
+            @foreach($executionIndicators as $code)
                 @php
                     $fact = $facts->get($code);
                     $ind  = $indicators->get($code);

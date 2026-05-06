@@ -36,8 +36,9 @@ class ExecutionPage extends Component
             ->keyBy('code');
 
         return view('livewire.execution-page', [
-            'facts'      => $facts,
-            'indicators' => $indicators,
+            'facts'               => $facts,
+            'indicators'          => $indicators,
+            'executionIndicators' => $this->executionIndicators,
         ]);
     }
 }
