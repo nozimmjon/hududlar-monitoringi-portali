@@ -32,6 +32,7 @@ class ImportRunsTableTest extends TestCase
             'started_at' => now(),
         ]);
         $this->assertNotNull($run->id);
+        $run->refresh();    // pull DB defaults back into the model
         $this->assertSame(0, $run->files_processed);
     }
 }

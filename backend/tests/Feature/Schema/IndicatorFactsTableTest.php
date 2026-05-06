@@ -5,6 +5,7 @@ namespace Tests\Feature\Schema;
 use App\Models\IndicatorFact;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -33,12 +34,17 @@ class IndicatorFactsTableTest extends TestCase
             'plan_value' => 52100.8, 'unit' => 'млрд сўм', 'source_label' => 'test',
         ]);
 
+        // Wrap the failing INSERT in a savepoint (DB::transaction creates one when nested)
+        // so the outer RefreshDatabase transaction stays alive after Postgres aborts
+        // the inner transaction on the unique-violation.
         try {
-            IndicatorFact::create([
-                'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
-                'indicator_code' => 'grp', 'period' => 'h1',
-                'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
-            ]);
+            DB::transaction(function () {
+                IndicatorFact::create([
+                    'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                    'indicator_code' => 'grp', 'period' => 'h1',
+                    'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
+                ]);
+            });
             $this->fail('expected QueryException for duplicate region-rollup row');
         } catch (QueryException $e) {
             // expected

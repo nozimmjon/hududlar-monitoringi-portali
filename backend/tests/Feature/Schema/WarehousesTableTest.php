@@ -5,6 +5,7 @@ namespace Tests\Feature\Schema;
 use App\Models\Warehouse;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -43,11 +44,15 @@ class WarehousesTableTest extends TestCase
             'reserve_warehouses' => 89, 'source_label' => 'test',
         ]);
 
+        // Wrap the failing INSERT in a savepoint so the outer RefreshDatabase
+        // transaction stays alive after Postgres aborts the inner transaction.
         try {
-            Warehouse::create([
-                'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
-                'reserve_warehouses' => 99, 'source_label' => 'dup',
-            ]);
+            DB::transaction(function () {
+                Warehouse::create([
+                    'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                    'reserve_warehouses' => 99, 'source_label' => 'dup',
+                ]);
+            });
             $this->fail('expected QueryException for duplicate region-rollup row');
         } catch (QueryException $e) {
             // expected
