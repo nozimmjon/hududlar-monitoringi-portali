@@ -30,6 +30,21 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
+expect()->extend('toBeNumericallyClose', function (float|int|string $expected, float $tolerance = 1e-6) {
+    $actual = is_numeric($this->value) ? (float) $this->value : null;
+    $expectedFloat = is_numeric($expected) ? (float) $expected : null;
+
+    if ($actual === null || $expectedFloat === null) {
+        return $this->toBe($expected);   // fall through to standard equality if types are wrong
+    }
+
+    return expect(abs($actual - $expectedFloat))
+        ->toBeLessThanOrEqual(
+            $tolerance,
+            sprintf('Expected %s ± %s, got %s', $expected, $tolerance, $this->value)
+        );
+});
+
 /*
 |--------------------------------------------------------------------------
 | Functions
