@@ -11,10 +11,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class SheetResolver
 {
     private const SIGNATURES = [
-        'rollup'               => ['ЯҲМ', 'асосий иқтисодий кўрсаткич'],
-        'district_industry'    => ['Саноат маҳсулотларини ишлаб чиқариш'],
-        'district_agriculture' => ['Қишлоқ хўжалиги маҳсулотларини'],
-        'district_services'    => ['Бозор хизматлари'],
+        'rollup'                    => ['ЯҲМ', 'асосий иқтисодий кўрсаткич'],
+        'district_industry'         => ['Саноат маҳсулотларини ишлаб чиқариш'],
+        'district_agriculture'      => ['Қишлоқ хўжалиги маҳсулотларини'],
+        'district_services'         => ['Бозор хизматлари'],
+        'food_balance'              => ['Балансини асос', 'Маҳсулот номи', 'Ресурс'],
+        'warehouses_district_table' => ['Захира омборлари', 'совутгичли омборлар'],
     ];
 
     public function __construct(private IssueCollector $issues) {}
