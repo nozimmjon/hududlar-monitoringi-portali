@@ -17,6 +17,7 @@ tmp_*.py
 *.bak
 ~$*
 handoff/
+platform prototypes/*_ui_pass_*.png
 
 # External/reference prototype with its own nested git metadata
 platform prototypes/claude/v2/

@@ -4,6 +4,7 @@ import json
 import re
 import zipfile
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 
 import openpyxl
@@ -14,6 +15,15 @@ DATA_JSON = ROOT / "platform prototypes" / "andijon_full_pilot_assets" / "andijo
 OUT_HTML = ROOT / "platform prototypes" / "andijon_integrated_platform_v7.html"
 MACRO_XLSX = ROOT / "data_source" / "Кафолат хатлар имзога" / "2. Андижон" / "1.1-1.5-жадваллар (макро).xlsx"
 KAFOLAT_TASK_DOCX = ROOT / "data_source" / "Кафолат хатлар имзога" / "2. Андижон" / "1. Кафолат хати (Андижон).docx"
+KAFOLAT_ACTION_PLAN_DOCX = (
+    ROOT
+    / "data_source"
+    / "Кафолат хатлар имзога"
+    / "2. Андижон"
+    / "00_Чора_тадбир_Андижон.docx"
+)
+ACTION_PLAN_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_action_plan_audit.json"
+KPI_COMPARE_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_kpi_source_compare_audit.json"
 
 
 SECTOR_BY_KPI = {
@@ -31,6 +41,7 @@ SECTOR_BY_KPI = {
     "investment": "Хорижий инвестиция",
     "export": "Экспорт",
     "unemployment": "Бандлик ва камбағаллик",
+    "small_business_share": "Бандлик ва камбағаллик",
     "jobs": "Бандлик ва камбағаллик",
     "legalization": "Бандлик ва камбағаллик",
     "mfy_clear": "Бандлик ва камбағаллик",
@@ -105,6 +116,7 @@ KPI_TO_MODULE = {
     "investment": "investment",
     "export": "export",
     "unemployment": "employment",
+    "small_business_share": "employment",
     "jobs": "employment",
     "legalization": "employment",
     "mfy_clear": "employment",
@@ -123,6 +135,7 @@ def has_action_word(text: str) -> bool:
     action_words = [
         "ишга тушир",
         "ташкил эт",
+        "ташкиллаштир",
         "қайта тиклаш",
         "қайта йўлга қўйиш",
         "кўмаклашиш",
@@ -132,8 +145,18 @@ def has_action_word(text: str) -> bool:
         "ўқит",
         "легаллаштир",
         "ўтказ",
+        "олиб келиш",
+        "етказиб бериш",
+        "экиш",
         "ишлаб чиқ",
         "амалга ошир",
+        "чоралар кўриш",
+        "сақлаб",
+        "сақлаш",
+        "оширмаслик",
+        "пасайтириш",
+        "қайта кўриб чиқиш",
+        "эришиш",
         "назорат",
         "мониторинг",
         "кредит",
@@ -148,7 +171,7 @@ def has_action_word(text: str) -> bool:
 def is_platform_kpi_target(task: dict) -> bool:
     text = str(task.get("title") or "")
     low = text.casefold()
-    if "ялпи ҳудудий маҳсулот" in low:
+    if "ялпи ҳудудий маҳсулот" in low and "кичик тадбиркорлик" not in low:
         return True
     if "саноат маҳсулот" in low and "ўсиш суръат" in low:
         return True
@@ -297,12 +320,69 @@ def docx_paragraphs(path: Path) -> list[str]:
     return paragraphs
 
 
+def clean_docx_text(text: str) -> str:
+    return " ".join(str(text or "").replace("\xa0", " ").split()).strip()
+
+
+def docx_table_rows(path: Path, table_index: int = 0) -> list[list[str]]:
+    """Read a DOCX table without requiring python-docx at runtime."""
+    if not path.exists():
+        return []
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    val_attr = f"{{{ns['w']}}}val"
+    with zipfile.ZipFile(path) as zf:
+        root = ET.fromstring(zf.read("word/document.xml"))
+    tables = root.findall(".//w:body/w:tbl", ns)
+    if table_index >= len(tables):
+        return []
+    rows: list[list[str]] = []
+    for tr in tables[table_index].findall("w:tr", ns):
+        cells: list[str] = []
+        for tc in tr.findall("w:tc", ns):
+            parts: list[str] = []
+            for para in tc.findall(".//w:p", ns):
+                text = "".join(t.text or "" for t in para.findall(".//w:t", ns))
+                text = clean_docx_text(text)
+                if text:
+                    parts.append(text)
+            cell_text = clean_docx_text(" ".join(parts))
+            grid_span = tc.find("./w:tcPr/w:gridSpan", ns)
+            span = 1
+            if grid_span is not None:
+                try:
+                    span = max(1, int(grid_span.attrib.get(val_attr, "1")))
+                except ValueError:
+                    span = 1
+            cells.extend([cell_text] * span)
+        if any(cells):
+            rows.append(cells)
+    return rows
+
+
+def action_plan_row_number(value: str) -> int | None:
+    match = re.fullmatch(r"\s*(\d+)\.?\s*", clean_docx_text(value))
+    return int(match.group(1)) if match else None
+
+
+def action_plan_is_section(cells: list[str]) -> bool:
+    first = clean_docx_text(cells[0] if cells else "")
+    if not first or first == "№":
+        return False
+    if action_plan_row_number(first) is not None:
+        return False
+    return True
+
+
 def deadline_to_period(deadline: str) -> str:
     text = deadline.casefold()
-    if "ii чорак" in text:
+    if "ii чорак" in text or "i ярим" in text or "январь-июнь" in text or "май" in text or "июн" in text:
         return "h1"
+    if "iii чорак" in text or "9 ой" in text:
+        return "m9"
     if "iv чорак" in text or "vi чорак" in text or "йил яку" in text or "давомида" in text:
         return "year"
+    if "i чорак" in text:
+        return "q1"
     return "year"
 
 
@@ -314,6 +394,20 @@ def section_count(section: str) -> int | None:
 def task_kpi_from_section(section: str, text: str) -> str:
     s = section.casefold()
     t = text.casefold()
+
+    if "бандлиг" in s or "ишсизлик" in s or "7.1" in s:
+        if (
+            ("кичик тадбиркорлик" in t and "улуш" in t)
+            or "кичик ва ўрта бизнес" in t
+            or "тадбиркорлик субъект" in t
+            or "субъектларининг фаолиятини тиклаш" in t
+        ):
+            return "small_business_share"
+        return "unemployment"
+    if "камбағаллик" in s or "7.2" in s:
+        if "холи бўлган маҳаллалар сони" in t:
+            return "mfy_clear"
+        return "poverty"
 
     if "бозор хизмат" in s:
         return "services"
@@ -331,18 +425,6 @@ def task_kpi_from_section(section: str, text: str) -> str:
         return "investment"
     if "экспорт" in s:
         return "export"
-    if "бандлигини" in s or "камбағаллик" in s:
-        if "ишсизлик" in t:
-            return "unemployment"
-        if "доимий ишга жойлаштириш" in t:
-            return "jobs"
-        if "легаллаштир" in t or "норасмий банд" in t:
-            return "legalization"
-        if "микролойиҳа" in t:
-            return "microprojects"
-        if "холи бўлган маҳалла" in t or "холи ҳудуд" in t:
-            return "mfy_clear"
-        return "poverty"
 
     # ЯҲМ is a final result KPI. Execution tasks from the macro section must
     # attach to the concrete driver that can be monitored.
@@ -354,8 +436,6 @@ def task_kpi_from_section(section: str, text: str) -> str:
         return "energy_gas"
     if "энергия" in s or "энергия" in t or "электр" in t or "квт" in t:
         return "energy_electricity"
-    if "млн долларлик" in t and "лойиҳа" in t:
-        return "investment"
     if "корхона" in t or "ишлаб чиқариш" in t or "саноат" in t:
         return "industry"
     if "энергия" in s:
@@ -368,25 +448,668 @@ def task_kpi_from_section(section: str, text: str) -> str:
 def district_names_in_text(text: str, districts: list[dict]) -> list[str]:
     low = text.casefold()
     found: list[str] = []
+    stems: dict[str, int] = {}
+    for district in districts:
+        stem = re.sub(r"\s+(шаҳри|тумани)$", "", str(district.get("name") or ""), flags=re.IGNORECASE).casefold()
+        stems[stem] = stems.get(stem, 0) + 1
     aliases = {
         "Андижон шаҳри": ["андижон шаҳар", "андижон шаҳри", "андижон шаҳарда"],
+        "Андижон тумани": ["андижон тум.", "андижон тумани", "андижон туманида", "андижон тум"],
         "Хонобод шаҳри": ["хонобод шаҳар", "хонабод шаҳар", "хонобод шаҳри", "хонабод шаҳри", "хонобод шаҳарда", "хонабод шаҳарларида"],
     }
     for district in districts:
         name = str(district.get("name") or "")
         stem = re.sub(r"\s+(шаҳри|тумани)$", "", name, flags=re.IGNORECASE)
-        variants = aliases.get(name, [])
-        variants += [
-            name.casefold(),
-            stem.casefold() + " тум",
-            stem.casefold() + " тумани",
-            stem.casefold() + "да",
-            stem.casefold() + "даги",
-        ]
+        stem_key = stem.casefold()
+        ambiguous = stems.get(stem_key, 0) > 1
+        variants = aliases.get(name, []) + [name.casefold()]
+        if name.casefold().endswith("тумани"):
+            variants += [
+                stem_key + " тум",
+                stem_key + " тум.",
+                stem_key + " тумани",
+                stem_key + " туманида",
+            ]
+        elif name.casefold().endswith("шаҳри"):
+            variants += [
+                stem_key + " шаҳар",
+                stem_key + " шаҳарда",
+                stem_key + " шаҳри",
+                stem_key + " шаҳрида",
+            ]
+        if not ambiguous:
+            variants += [
+                stem_key + "да",
+                stem_key + "даги",
+            ]
         stem_pattern = rf"(^|[\s,;:()–-]){re.escape(stem.casefold())}($|[\s,.;:()–-]|да|даги|нинг|ни|га)"
-        if any(v and v in low for v in variants) or re.search(stem_pattern, low):
+        if any(v and v in low for v in variants):
+            found.append(name)
+            continue
+        if ambiguous:
+            continue
+        if re.search(stem_pattern, low):
             found.append(name)
     return sorted(set(found))
+
+
+def extract_kafolat_action_plan_rows(data: dict, path: Path = KAFOLAT_ACTION_PLAN_DOCX) -> list[dict]:
+    """Extract the cleaned action-plan table: KPI rows and execution rows.
+
+    This parser is intentionally separate from the legacy paragraph parser. It
+    preserves the user's two-layer model: KPI and амалга ошириладиган ишлар.
+    """
+    raw_rows = docx_table_rows(path)
+    if not raw_rows:
+        return []
+
+    records: list[dict] = []
+    section = "Кафолат хати чора-тадбирлари"
+    districts = data.get("districts", [])
+    for cells in raw_rows:
+        cells = [clean_docx_text(cell) for cell in cells]
+        if not cells:
+            continue
+        if action_plan_is_section(cells):
+            section = cells[0]
+            continue
+        if cells[0] == "№":
+            continue
+        row_no = action_plan_row_number(cells[0])
+        if row_no is None:
+            continue
+        padded = cells + [""] * max(0, 5 - len(cells))
+        title, deadline, owner, source_type = padded[1], padded[2], padded[3], padded[4]
+        kpi = task_kpi_from_section(section, title)
+        districts_from_title = district_names_in_text(title, districts)
+        districts_from_executor = district_names_in_text(owner, districts)
+        linked_districts = sorted(set(districts_from_title + districts_from_executor))
+        is_kpi = source_type == "KPI"
+        item = {
+            "id": f"action-plan-{row_no:03d}",
+            "sourceId": f"action-plan-{row_no:03d}",
+            "sourceNo": row_no,
+            "title": title,
+            "sector": SECTOR_BY_KPI.get(kpi, "Макро иқтисодиёт"),
+            "kpi": kpi,
+            "period": deadline,
+            "periodCode": deadline_to_period(deadline),
+            "deadline": deadline,
+            "owner": owner or "Андижон вилояти ҳокимлиги",
+            "status": "grey",
+            "source": path.name,
+            "section": section,
+            "sourceType": source_type,
+            "displayLayer": "KPI" if is_kpi else "Амалга ошириладиган иш",
+            "districts": linked_districts,
+            "districtsFromTitle": districts_from_title,
+            "districtsFromExecutor": districts_from_executor,
+            "scope": "туман" if linked_districts else "вилоят",
+            "group": "KPI" if is_kpi else "Амалга ошириладиган иш",
+            "monitoringRow": True,
+        }
+        records.append(item)
+    return records
+
+
+def module_metadata_for_kpi(kpi: str) -> dict:
+    module = MODULE_DEFS.get(KPI_TO_MODULE.get(str(kpi or ""), "macro"), MODULE_DEFS["macro"])
+    return {
+        "module": module["id"],
+        "moduleLabel": module["label"],
+        "moduleShort": module["short"],
+        "moduleSource": module["source"],
+        "moduleSheets": module["sheets"],
+    }
+
+
+def action_plan_aliases_for_district(name: str, all_districts: list[dict]) -> list[str]:
+    stem = re.sub(r"\s+(шаҳри|тумани)$", "", str(name or ""), flags=re.IGNORECASE).casefold()
+    stem_counts: dict[str, int] = {}
+    for district in all_districts:
+        district_stem = re.sub(
+            r"\s+(шаҳри|тумани)$",
+            "",
+            str(district.get("name") or ""),
+            flags=re.IGNORECASE,
+        ).casefold()
+        stem_counts[district_stem] = stem_counts.get(district_stem, 0) + 1
+    aliases = [str(name or "").casefold()]
+    if str(name or "").casefold().endswith("тумани"):
+        aliases += [f"{stem} тумани", f"{stem} тум.", f"{stem} тум"]
+    elif str(name or "").casefold().endswith("шаҳри"):
+        aliases += [f"{stem} шаҳри", f"{stem} шаҳар"]
+    if stem_counts.get(stem, 0) == 1:
+        aliases.append(stem)
+    return sorted(set(aliases), key=len, reverse=True)
+
+
+def parse_action_plan_int(value: str | None) -> int | None:
+    if not value:
+        return None
+    match = re.search(r"\d[\d\s]*", value)
+    if not match:
+        return None
+    return int(match.group(0).replace(" ", ""))
+
+
+def action_plan_breakdown_kind(task: dict) -> str | None:
+    title = str(task.get("title") or "").casefold()
+    if "субъект" in title and "фаолиятини тиклаш" in title:
+        return "restored_subjects"
+    if "камбағаллик ва ишсизликдан холи ҳудуд" in title:
+        return "poverty_free_mfy"
+    return None
+
+
+def action_plan_district_breakdowns(task: dict, districts: list[dict]) -> list[dict]:
+    """Create internal district rows only where the source gives real district targets."""
+    kind = action_plan_breakdown_kind(task)
+    if not kind:
+        return []
+    title = str(task.get("title") or "")
+    low = title.casefold()
+    rows: list[dict] = []
+    for district in districts:
+        name = str(district.get("name") or "")
+        for alias in action_plan_aliases_for_district(name, districts):
+            pattern = (
+                rf"{re.escape(alias)}(?:да|даги)?\s*"
+                rf"(?:[–—-]\s*)?(\d[\d\s]*)\s*та"
+                rf"(?:\s*\((?:йил якуни билан\s*)?(\d[\d\s]*)\s*та\))?"
+            )
+            match = re.search(pattern, low)
+            if not match:
+                continue
+            h1_or_main = parse_action_plan_int(match.group(1))
+            year_value = parse_action_plan_int(match.group(2))
+            if h1_or_main is None:
+                break
+            if kind == "restored_subjects":
+                rows.append({
+                    "title": f"Фаолияти тикланадиган субъектлар — {name}",
+                    "district": name,
+                    "value": h1_or_main,
+                    "yearValue": h1_or_main,
+                    "unit": "та субъект",
+                    "note": "800 та субъектлар фаолиятини тиклаш бўйича туман кесими.",
+                })
+            else:
+                if year_value is None and task.get("periodCode") == "year":
+                    year_value = h1_or_main
+                rows.append({
+                    "title": f"Камбағаллик ва ишсизликдан холи ҳудудлар — {name}",
+                    "district": name,
+                    "value": h1_or_main,
+                    "yearValue": year_value,
+                    "unit": "та маҳалла",
+                    "note": "Оғир туманларда маҳаллаларни камбағаллик ва ишсизликдан холи ҳудудга айлантириш.",
+                })
+            break
+    return rows
+
+
+def assign_action_plan_platform_records(rows: list[dict], data: dict) -> dict[str, list[dict]]:
+    counters = {"KPI": 0, "Чора-тадбирлар": 0}
+    all_records: list[dict] = []
+    kpi_targets: list[dict] = []
+    execution_tasks: list[dict] = []
+
+    for row in rows:
+        source_type = str(row.get("sourceType") or "")
+        if source_type not in counters:
+            continue
+        counters[source_type] += 1
+        is_kpi = source_type == "KPI"
+        platform_id = f"KPI-{counters[source_type]:02d}" if is_kpi else f"T-{counters[source_type]:03d}"
+        item = {
+            **row,
+            "id": platform_id,
+            "sourceId": row.get("sourceId") or row.get("id"),
+            "platformId": platform_id,
+            "classification": "KPI мақсад" if is_kpi else "Чора-тадбир",
+            "platformSurface": "KPI мониторинги" if is_kpi else "Топшириқлар / Ижро мониторинги",
+            "classificationNote": (
+                "Платформа KPIси. Топшириқлар сонига қўшилмайди."
+                if is_kpi
+                else "KPIга эришиш учун амалга ошириладиган иш. Топшириқлар реестрига киради."
+            ),
+            "displayLayer": "KPI" if is_kpi else "Чора-тадбир",
+            "group": "KPI" if is_kpi else "Чора-тадбир",
+            "sourceReference": f"{row.get('source')} · {row.get('sourceNo')}-қатор",
+        }
+        item.update(module_metadata_for_kpi(str(item.get("kpi") or "")))
+        all_records.append(item)
+        if is_kpi:
+            kpi_targets.append(item)
+        else:
+            execution_tasks.append(item)
+
+    district_targets: list[dict] = []
+    district_counter = 0
+    districts = data.get("districts", [])
+    for task in execution_tasks:
+        for breakdown in action_plan_district_breakdowns(task, districts):
+            district_counter += 1
+            platform_id = f"D-{district_counter:02d}"
+            district_item = {
+                **task,
+                **breakdown,
+                "id": platform_id,
+                "platformId": platform_id,
+                "parentTaskId": task["id"],
+                "sourceId": task["sourceId"],
+                "classification": "Туман кесими",
+                "platformSurface": "Туманлар мониторинги",
+                "classificationNote": "Чора-тадбир ичидаги туман/шаҳар кесими. Топшириқлар сонига қўшилмайди.",
+                "displayLayer": "Туман кесими",
+                "districts": [breakdown["district"]],
+                "scope": "туман",
+                "status": "grey",
+            }
+            district_targets.append(district_item)
+
+    return {
+        "rows": all_records,
+        "kpi_targets": kpi_targets,
+        "execution_tasks": execution_tasks,
+        "district_targets": district_targets,
+        "info_rows": [],
+    }
+
+
+def action_plan_audit(data: dict, path: Path = KAFOLAT_ACTION_PLAN_DOCX) -> dict:
+    rows = extract_kafolat_action_plan_rows(data, path)
+    nums = [int(row["sourceNo"]) for row in rows]
+    type_counts: dict[str, int] = {}
+    section_counts: dict[str, dict[str, int]] = {}
+    for row in rows:
+        source_type = str(row.get("sourceType") or "")
+        type_counts[source_type] = type_counts.get(source_type, 0) + 1
+        section = str(row.get("section") or "")
+        section_counts.setdefault(section, {})
+        section_counts[section][source_type] = section_counts[section].get(source_type, 0) + 1
+    missing_numbers = [number for number in range(min(nums), max(nums) + 1) if number not in set(nums)] if nums else []
+    duplicate_numbers = sorted({number for number in nums if nums.count(number) > 1})
+    allowed_types = {"KPI", "Чора-тадбирлар"}
+
+    district_rows = [row for row in rows if row.get("districts")]
+    child_breakdown_rows = [
+        row for row in rows
+        if row.get("districtsFromTitle") and re.search(r"\d+[\d\s,.]*\s*(та|млрд|млн|минг|%)", str(row.get("title") or ""))
+    ]
+    executor_title_mismatches = []
+    for row in district_rows:
+        from_title = set(row.get("districtsFromTitle") or [])
+        from_executor = set(row.get("districtsFromExecutor") or [])
+        extra = sorted(from_title - from_executor)
+        if extra:
+            executor_title_mismatches.append({
+                "sourceNo": row["sourceNo"],
+                "extraInTitle": extra,
+                "districtsFromExecutor": row.get("districtsFromExecutor") or [],
+            })
+
+    long_task_rows = [
+        {"sourceNo": row["sourceNo"], "length": len(str(row.get("title") or ""))}
+        for row in rows
+        if row.get("sourceType") == "Чора-тадбирлар" and len(str(row.get("title") or "")) > 550
+    ]
+
+    return {
+        "sourceDoc": str(path),
+        "rowCount": len(rows),
+        "numberRange": [min(nums), max(nums)] if nums else [],
+        "missingNumbers": missing_numbers,
+        "duplicateNumbers": duplicate_numbers,
+        "unknownTypes": sorted({str(row.get("sourceType") or "") for row in rows} - allowed_types),
+        "emptyRequiredFields": [
+            {"sourceNo": row["sourceNo"], "field": field}
+            for row in rows
+            for field in ["title", "deadline", "owner", "sourceType"]
+            if not row.get(field)
+        ],
+        "typeCounts": type_counts,
+        "sectionCounts": section_counts,
+        "districtLinkedRows": [
+            {
+                "sourceNo": row["sourceNo"],
+                "sourceType": row["sourceType"],
+                "districts": row.get("districts") or [],
+                "districtsFromTitle": row.get("districtsFromTitle") or [],
+                "districtsFromExecutor": row.get("districtsFromExecutor") or [],
+            }
+            for row in district_rows
+        ],
+        "childBreakdownRows": [
+            {
+                "sourceNo": row["sourceNo"],
+                "sourceType": row["sourceType"],
+                "districtsFromTitle": row.get("districtsFromTitle") or [],
+            }
+            for row in child_breakdown_rows
+        ],
+        "executorTitleMismatches": executor_title_mismatches,
+        "longTaskRows": long_task_rows,
+    }
+
+
+def audit_action_plan_cli() -> None:
+    data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    audit = action_plan_audit(data)
+    ACTION_PLAN_AUDIT_JSON.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"source: {audit['sourceDoc']}")
+    print(f"rows: {audit['rowCount']}")
+    print(f"types: {audit['typeCounts']}")
+    print(f"missing numbers: {audit['missingNumbers']}")
+    print(f"duplicate numbers: {audit['duplicateNumbers']}")
+    print(f"unknown types: {audit['unknownTypes']}")
+    print(f"empty required fields: {len(audit['emptyRequiredFields'])}")
+    print(f"district-linked rows: {len(audit['districtLinkedRows'])}")
+    print(f"child breakdown rows: {len(audit['childBreakdownRows'])}")
+    print(f"audit json: {ACTION_PLAN_AUDIT_JSON}")
+
+
+def parse_decimal(value: str) -> float | None:
+    text = clean_docx_text(value).replace(",", ".")
+    text = text.replace(" ", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def parse_first_number(pattern: str, text: str) -> float | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    return parse_decimal(match.group(1)) if match else None
+
+
+def parse_uzs_bln(text: str) -> float | None:
+    low = text.casefold()
+    trln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*трлн", low)
+    bln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млрд", low)
+    mln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн\s+сўм", low)
+    if trln is not None:
+        return trln * 1000 + (bln or 0)
+    if bln is not None:
+        return bln
+    if mln is not None:
+        return mln / 1000
+    return None
+
+
+def parse_usd_mln(text: str) -> float | None:
+    low = text.casefold()
+    bln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млрд\s+доллар", low)
+    mln = parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн\s+доллар", low)
+    if bln is not None:
+        return bln * 1000
+    return mln
+
+
+def parse_percent_values(text: str) -> list[float]:
+    values: list[float] = []
+    for raw in re.findall(r"(\d[\d\s]*(?:[,.]\d+)?)\s*(?:фоиз|%)", text, flags=re.IGNORECASE):
+        value = parse_decimal(raw)
+        if value is not None:
+            values.append(value)
+    return values
+
+
+def growth_index_to_plus(value: float | None) -> float | None:
+    if value is None:
+        return None
+    return value - 100 if value > 80 else value
+
+
+def current_excel_kpi_values(data: dict) -> dict[str, dict[str, dict[str, object]]]:
+    enrich_industry_drivers(data)
+    regional = data.get("regional", {})
+    current: dict[str, dict[str, dict[str, object]]] = {}
+
+    macro_map = {
+        "grp": 0,
+        "industry": 1,
+        "agriculture": 2,
+        "construction": 3,
+        "services": 4,
+    }
+    macro_rows = regional.get("macro", [])
+    for kpi, index in macro_map.items():
+        if index >= len(macro_rows):
+            continue
+        row = macro_rows[index]
+        current[kpi] = {
+            "h1": {
+                "value_bln": row.get("h1_value"),
+                "growth_pct": growth_index_to_plus(num(row.get("h1_growth"))),
+                "unit": row.get("unit"),
+                "source": row.get("source"),
+            },
+            "year": {
+                "value_bln": row.get("year_value"),
+                "growth_pct": growth_index_to_plus(num(row.get("year_growth"))),
+                "unit": row.get("unit"),
+                "source": row.get("source"),
+            },
+        }
+
+    drivers = regional.get("industry_drivers", {})
+    current["energy_electricity"] = {
+        "h1": {"value": drivers.get("energy_electricity_h1"), "unit": "млн кВт·соат", "source": drivers.get("source")},
+        "year": {"value": drivers.get("energy_electricity_year"), "unit": "млн кВт·соат", "source": drivers.get("source")},
+    }
+    current["energy_gas"] = {
+        "h1": {"value": drivers.get("energy_gas_h1"), "unit": "млн м³", "source": drivers.get("source")},
+        "year": {"value": drivers.get("energy_gas_year"), "unit": "млн м³", "source": drivers.get("source")},
+    }
+    current["localization"] = {
+        "h1": {
+            "projects": drivers.get("localization_h1_projects"),
+            "value_mln": drivers.get("localization_h1_value_mln"),
+            "source": drivers.get("source"),
+        },
+        "year": {
+            "projects": drivers.get("localization_year_projects"),
+            "value_mln": drivers.get("localization_year_value_mln"),
+            "source": drivers.get("source"),
+        },
+    }
+
+    current["inflation"] = {
+        "h1": {"percent_limit": 2.9, "unit": "%", "source": "Кафолат хати + инфляция UI қоидаси"},
+        "year": {"percent_limit": 6.6, "unit": "%", "source": "Кафолат хати + инфляция UI қоидаси"},
+    }
+
+    budget = regional.get("budget", {})
+    current["budget"] = {
+        "q2": {"value_bln": budget.get("q2_plan"), "kind": "режа", "unit": budget.get("unit"), "source": budget.get("source")},
+        "h1": {"value_bln": budget.get("h1_plan"), "expected_bln": budget.get("h1_expected"), "unit": budget.get("unit"), "source": budget.get("source")},
+        "year": {"value_bln": budget.get("year_plan"), "expected_bln": budget.get("year_expected"), "unit": budget.get("unit"), "source": budget.get("source")},
+    }
+
+    budget_inv = regional.get("budget_investment", {})
+    current["budget_investment"] = {
+        "h1": {
+            "value_bln": (budget_inv.get("h1_absorption") or 0) / 1000,
+            "pct": budget_inv.get("h1_pct"),
+            "unit": "млрд сўм",
+            "source": budget_inv.get("source"),
+        },
+        "year": {
+            "value_bln": (budget_inv.get("year_absorption") or 0) / 1000,
+            "pct": budget_inv.get("year_pct"),
+            "unit": "млрд сўм",
+            "source": budget_inv.get("source"),
+        },
+    }
+
+    inv = regional.get("foreign_investment", {})
+    current["investment"] = {
+        "h1": {"value_mln_usd": inv.get("h1_expected"), "plan_mln_usd": inv.get("h1_plan"), "source": inv.get("source")},
+        "year": {"value_mln_usd": inv.get("year_expected"), "plan_mln_usd": inv.get("year_forecast"), "source": inv.get("source")},
+    }
+
+    exp = regional.get("export", {})
+    current["export"] = {
+        "h1": {
+            "value_mln_usd": (exp.get("h1_expected") or 0) / 1000,
+            "growth_pct": growth_index_to_plus(num(exp.get("h1_growth"))),
+            "source": exp.get("source"),
+        },
+        "year": {
+            "value_mln_usd": (exp.get("year_expected") or 0) / 1000,
+            "growth_pct": growth_index_to_plus(num(exp.get("year_growth"))),
+            "source": exp.get("source"),
+        },
+    }
+
+    emp = regional.get("employment", {})
+    current["unemployment"] = {
+        "h1": {"percent_limit": emp.get("unemployment_h1"), "unit": "%", "source": emp.get("source")},
+        "year": {"percent_limit": emp.get("unemployment_year"), "unit": "%", "source": emp.get("source")},
+    }
+    current["poverty"] = {
+        "h1": {"percent_limit": emp.get("poverty_h1"), "unit": "%", "source": emp.get("source")},
+        "year": {"percent_limit": emp.get("poverty_year"), "unit": "%", "source": emp.get("source")},
+    }
+    current["mfy_clear"] = {
+        "h1": {"count": emp.get("mfy_h1"), "unit": "та", "source": emp.get("source")},
+        "year": {"count": emp.get("mfy_year"), "unit": "та", "source": emp.get("source")},
+    }
+    current["jobs"] = {
+        "h1": {"value_thousand": emp.get("jobs_h1"), "unit": "минг", "source": emp.get("source")},
+        "year": {"value_thousand": emp.get("jobs_year"), "unit": "минг", "source": emp.get("source")},
+    }
+    current["legalization"] = {
+        "h1": {"value_thousand": emp.get("legalization_h1"), "unit": "минг", "source": emp.get("source")},
+        "year": {"value_thousand": emp.get("legalization_year"), "unit": "минг", "source": emp.get("source")},
+    }
+    current["microprojects"] = {
+        "h1": {"count": emp.get("microprojects_h1"), "unit": "та", "source": emp.get("source")},
+        "year": {"count": emp.get("microprojects_year"), "unit": "та", "source": emp.get("source")},
+    }
+    return current
+
+
+def compare_number(word_value: float | None, current_value: float | None, tolerance: float) -> dict[str, object]:
+    if word_value is None or current_value is None:
+        return {"status": "missing", "word": word_value, "current": current_value, "diff": None}
+    diff = word_value - current_value
+    status = "match" if abs(diff) <= tolerance else "mismatch"
+    return {"status": status, "word": word_value, "current": current_value, "diff": diff}
+
+
+def action_plan_kpi_compare(data: dict) -> dict[str, object]:
+    rows = [row for row in extract_kafolat_action_plan_rows(data) if row.get("sourceType") == "KPI"]
+    current = current_excel_kpi_values(data)
+    comparisons: list[dict[str, object]] = []
+    word_kpis = {str(row.get("kpi")) for row in rows}
+
+    for row in rows:
+        title = str(row.get("title") or "")
+        kpi = str(row.get("kpi") or "")
+        period = str(row.get("periodCode") or "")
+        compare_period = "q2" if kpi == "budget" and "2-чорак" in title.casefold() else period
+        current_row = current.get(kpi, {}).get(compare_period)
+        checks: dict[str, object] = {}
+
+        if current_row is None:
+            comparisons.append({
+                "sourceNo": row["sourceNo"],
+                "kpi": kpi,
+                "period": compare_period,
+                "status": "no-current-source",
+                "title": title,
+                "checks": checks,
+            })
+            continue
+
+        percentages = parse_percent_values(title)
+        if kpi in {"grp", "industry", "agriculture", "construction", "services"}:
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 60)
+            word_growth = percentages[0] if percentages else None
+            checks["growth_pct"] = compare_number(word_growth, num(current_row.get("growth_pct")), 0.25)
+        elif kpi == "inflation":
+            checks["percent_limit"] = compare_number(percentages[0] if percentages else None, num(current_row.get("percent_limit")), 0.05)
+        elif kpi == "budget":
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 1)
+        elif kpi == "budget_investment":
+            checks["value_bln"] = compare_number(parse_uzs_bln(title), num(current_row.get("value_bln")), 1)
+            if percentages:
+                checks["pct"] = compare_number(percentages[-1], num(current_row.get("pct")), 0.6)
+        elif kpi == "investment":
+            checks["value_mln_usd"] = compare_number(parse_usd_mln(title), num(current_row.get("value_mln_usd")), 15)
+        elif kpi == "export":
+            checks["value_mln_usd"] = compare_number(parse_usd_mln(title), num(current_row.get("value_mln_usd")), 2)
+            if percentages:
+                checks["growth_pct"] = compare_number(percentages[-1], num(current_row.get("growth_pct")), 0.6)
+        elif kpi in {"unemployment", "poverty"}:
+            checks["percent_limit"] = compare_number(percentages[0] if percentages else None, num(current_row.get("percent_limit")), 0.06)
+        elif kpi == "mfy_clear":
+            checks["count"] = compare_number(parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*та", title), num(current_row.get("count")), 0)
+        elif kpi in {"energy_electricity", "energy_gas"}:
+            checks["value"] = compare_number(parse_first_number(r"(\d[\d\s]*(?:[,.]\d+)?)\s*млн", title), num(current_row.get("value")), 0.2)
+        else:
+            comparisons.append({
+                "sourceNo": row["sourceNo"],
+                "kpi": kpi,
+                "period": compare_period,
+                "status": "no-comparison-rule",
+                "title": title,
+                "checks": checks,
+                "current": current_row,
+            })
+            continue
+
+        statuses = [str(item.get("status")) for item in checks.values() if isinstance(item, dict)]
+        if not statuses:
+            status = "no-checks"
+        elif "mismatch" in statuses:
+            status = "mismatch"
+        elif "missing" in statuses:
+            status = "partial"
+        else:
+            status = "match"
+        comparisons.append({
+            "sourceNo": row["sourceNo"],
+            "kpi": kpi,
+            "period": compare_period,
+            "status": status,
+            "title": title,
+            "checks": checks,
+            "current": current_row,
+        })
+
+    current_only = sorted(set(current) - word_kpis - {"small_business_share"})
+    word_only = sorted(word_kpis - set(current))
+    return {
+        "sourceDoc": str(KAFOLAT_ACTION_PLAN_DOCX),
+        "wordKpiCount": len(rows),
+        "currentKpiSourceCount": len(current),
+        "summary": dict(sorted(Counter(item["status"] for item in comparisons).items())),
+        "comparisons": comparisons,
+        "wordOnlyKpis": word_only,
+        "currentOnlyKpis": current_only,
+        "notes": [
+            "Ўсиш кўрсаткичлари Wordда +7,2%, Excelда 107,2 индекси бўлса, қиёслашда 107,2 -> 7,2 қилиб нормаллаштирилди.",
+            "Триллион/миллиард/миллион бирликлари қиёслаш учун ягона шкалага ўтказилди.",
+            "currentOnlyKpis ҳозирги платформанинг детал/драйвер KPIлари бўлиб, янги Word жадвалида KPI эмас, чора-тадбир сифатида қолиши мумкин.",
+        ],
+    }
+
+
+def audit_kpi_compare_cli() -> None:
+    data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    normalize_source_data(data)
+    report = action_plan_kpi_compare(data)
+    KPI_COMPARE_AUDIT_JSON.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"word KPI rows: {report['wordKpiCount']}")
+    print(f"current KPI sources: {report['currentKpiSourceCount']}")
+    print(f"summary: {report['summary']}")
+    print(f"word-only KPIs: {report['wordOnlyKpis']}")
+    print(f"current-only KPIs: {report['currentOnlyKpis']}")
+    print(f"audit json: {KPI_COMPARE_AUDIT_JSON}")
 
 
 def task_group_from_text(text: str, kpi: str) -> str:
@@ -443,25 +1166,57 @@ def extract_kafolat_rows(data: dict) -> list[dict]:
 
 
 def extract_kafolat_tasks(data: dict) -> list[dict]:
-    rows = assign_kafolat_platform_ids(extract_kafolat_rows(data))
-    kpi_targets = [row for row in rows if row["classification"] == "KPI мақсад"]
-    district_targets = [row for row in rows if row["classification"] == "Туман мақсадли кўрсаткичи"]
-    execution_tasks = [row for row in rows if row["classification"] == "Ижро топшириғи"]
-    info_rows = [row for row in rows if row["classification"] == "Маълумот/асос"]
-    data["kafolat_rows"] = rows
+    action_rows = extract_kafolat_action_plan_rows(data)
+    if not action_rows:
+        rows = assign_kafolat_platform_ids(extract_kafolat_rows(data))
+        kpi_targets = [row for row in rows if row["classification"] == "KPI мақсад"]
+        district_targets = [row for row in rows if row["classification"] == "Туман мақсадли кўрсаткичи"]
+        execution_tasks = [row for row in rows if row["classification"] == "Ижро топшириғи"]
+        info_rows = [row for row in rows if row["classification"] == "Маълумот/асос"]
+        data["kafolat_rows"] = rows
+        data["kafolat_kpi_targets"] = kpi_targets
+        data["kafolat_district_targets"] = district_targets
+        data["kafolat_info_rows"] = info_rows
+        data["task_modules"] = list(MODULE_DEFS.values())
+        data["task_meta"] = {
+            "source_doc": str(KAFOLAT_TASK_DOCX.name),
+            "declared_total": len(execution_tasks),
+            "monitoring_rows": len(rows),
+            "kpi_targets": len(kpi_targets),
+            "district_targets": len(district_targets),
+            "execution_tasks": len(execution_tasks),
+            "info_rows": len(info_rows),
+            "note": "Эски кафолат хати parser fallback сифатида ишлади; 0_Чора-тадбир жадвали топилмади.",
+        }
+        return execution_tasks or data.get("tasks", [])
+
+    assigned = assign_action_plan_platform_records(action_rows, data)
+    kpi_targets = assigned["kpi_targets"]
+    district_targets = assigned["district_targets"]
+    execution_tasks = assigned["execution_tasks"]
+    info_rows = assigned["info_rows"]
+    district_linked = [row for row in execution_tasks if row.get("districts")]
+    data["kafolat_rows"] = assigned["rows"]
     data["kafolat_kpi_targets"] = kpi_targets
     data["kafolat_district_targets"] = district_targets
     data["kafolat_info_rows"] = info_rows
     data["task_modules"] = list(MODULE_DEFS.values())
     data["task_meta"] = {
-        "source_doc": str(KAFOLAT_TASK_DOCX.name),
-        "declared_total": 114,
-        "monitoring_rows": len(rows),
+        "source_doc": str(KAFOLAT_ACTION_PLAN_DOCX.name),
+        "declared_total": len(execution_tasks),
+        "source_table_rows": len(action_rows),
+        "monitoring_rows": len(action_rows),
         "kpi_targets": len(kpi_targets),
         "district_targets": len(district_targets),
         "execution_tasks": len(execution_tasks),
+        "district_linked_actions": len(district_linked),
+        "district_linked_source_rows": [row.get("sourceNo") for row in district_linked],
         "info_rows": len(info_rows),
-        "note": "Топшириқлар сонига фақат T-001... кўринишидаги ҳақиқий ижро топшириқлари киритилди. KPI мақсадлар ва туман мақсадли кўрсаткичлари алоҳида юритилади.",
+        "note": (
+            f"{KAFOLAT_ACTION_PLAN_DOCX.name} икки қатламга ажратилди: "
+            f"{len(kpi_targets)} та KPI топшириқлар сонига қўшилмайди, "
+            f"{len(execution_tasks)} та чора-тадбир эса T-001...T-{len(execution_tasks):03d} реестрига киритилди."
+        ),
     }
     return execution_tasks or data.get("tasks", [])
 
@@ -537,8 +1292,42 @@ def enrich_industry_drivers(data: dict) -> None:
     }
 
 
+def normalize_source_data(data: dict) -> None:
+    """Remove non-indicator helper rows and attach a compact audit summary."""
+    regional = data.setdefault("regional", {})
+    regional["food_balance"] = [
+        row for row in regional.get("food_balance", [])
+        if row.get("product") and any(row.get(key) is not None for key in [
+            "resource_total",
+            "production",
+            "import",
+            "use_total",
+            "local_supply_ratio",
+            "year_end_stock",
+        ])
+    ]
+    data["source_audit"] = {
+        "kpi_sources_checked": 7,
+        "andijon_workbooks": [
+            "1.1-1.5-жадваллар (макро).xlsx",
+            "2.1-2.2-жадваллар (инфляция).xlsx",
+            "3-жадвал (бюджет).xlsx",
+            "4.1-жадвал (бюджет инвестка).xlsx",
+            "4.2-жадвал (инвестициялар).xlsx",
+            "5.1-5.2-жадваллар (экспорт).xlsx",
+            "6-жадвал (бандлик ва камбағаллик даражаси).xlsx",
+        ],
+        "notes": [
+            "ЯҲМ туман кесимида берилмаган, шунинг учун туманлар экранида ЯҲМ таркибий кўрсаткичлари орқали очилади.",
+            "Бюджет ва инвестиция жадвалларида келгуси даврлар учун 'кутилиш' қиймати режага нисбатан ижро сифатида кўрсатилади.",
+            "Кафолат хатидаги платформа KPIлари топшириқлар сонидан чиқарилди, амалий чоралар эса топшириқ сифатида қолдирилди.",
+        ],
+    }
+
+
 def main() -> None:
     data = json.loads(DATA_JSON.read_text(encoding="utf-8"))
+    normalize_source_data(data)
     enrich_industry_drivers(data)
     data["tasks"] = extract_kafolat_tasks(data)
     html = HTML.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</", "<\\/"))
@@ -557,33 +1346,41 @@ HTML = r"""<!doctype html>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
   <style>
     :root {
-      --bg: #f7f5f0;
+      --bg: #f4f7fb;
       --paper: #ffffff;
-      --surface: #fbfaf6;
-      --ink: #1a1a1a;
-      --muted: #66645e;
-      --line: #e0ddd3;
-      --line-strong: #c9c4b8;
-      --nav: #183f4a;
-      --nav-2: #0f313a;
-      --blue: #1b4d5a;
-      --blue-2: #284f59;
-      --blue-soft: #dce8ea;
+      --surface: #fbfdff;
+      --ink: #102033;
+      --muted: #657386;
+      --line: #dfe7f0;
+      --line-strong: #c5d2e0;
+      --nav: #062844;
+      --nav-2: #08395d;
+      --blue: #1769e0;
+      --blue-2: #0b4c7a;
+      --blue-soft: #eef6ff;
       --green: #15803d;
-      --green-soft: #e2f4e8;
+      --green-soft: #e7f7ed;
       --amber: #b45309;
-      --amber-soft: #fff1cc;
+      --amber-soft: #fff3d6;
       --red: #b91c1c;
-      --red-soft: #fde3df;
+      --red-soft: #fee5e5;
       --grey: #71717a;
-      --grey-soft: #eceae3;
-      --shadow: 0 16px 40px rgba(35, 45, 48, .10);
-      --shadow-sm: 0 1px 2px rgba(20, 30, 35, .06), 0 4px 12px rgba(20, 30, 35, .05);
-      --shadow-md: 0 4px 12px rgba(20, 30, 35, .08), 0 16px 40px rgba(20, 30, 35, .10);
-      --shadow-lg: 0 12px 24px rgba(20, 30, 35, .12), 0 24px 60px rgba(20, 30, 35, .14);
-      --ring-blue: 0 0 0 1px rgba(27, 77, 90, .12);
-      --accent-grad: linear-gradient(135deg, #1b4d5a 0%, #2a6f7e 100%);
-      --accent-grad-soft: linear-gradient(135deg, rgba(27, 77, 90, .08) 0%, rgba(42, 111, 126, .12) 100%);
+      --grey-soft: #f0f1f3;
+      --map-good: #8db9d7;
+      --map-good-stroke: #39769d;
+      --map-mid: #f0c66f;
+      --map-mid-stroke: #a76f1d;
+      --map-attn: #df8b92;
+      --map-attn-stroke: #a8444d;
+      --map-nodata: #d8dee8;
+      --map-nodata-stroke: #8792a0;
+      --shadow: 0 14px 34px rgba(15, 42, 71, .09);
+      --shadow-sm: 0 1px 2px rgba(15, 42, 71, .05), 0 5px 14px rgba(15, 42, 71, .06);
+      --shadow-md: 0 6px 18px rgba(15, 42, 71, .08), 0 18px 44px rgba(15, 42, 71, .08);
+      --shadow-lg: 0 12px 26px rgba(15, 42, 71, .10), 0 24px 60px rgba(15, 42, 71, .12);
+      --ring-blue: 0 0 0 1px rgba(23, 105, 224, .20), 0 0 0 4px rgba(23, 105, 224, .08);
+      --accent-grad: linear-gradient(135deg, #1769e0 0%, #0b4c7a 100%);
+      --accent-grad-soft: linear-gradient(135deg, rgba(23, 105, 224, .08) 0%, rgba(11, 76, 122, .10) 100%);
       --motion: 180ms cubic-bezier(.2, .7, .2, 1);
       --motion-slow: 280ms cubic-bezier(.2, .7, .2, 1);
       --nav-w: 232px;
@@ -616,8 +1413,8 @@ HTML = r"""<!doctype html>
       margin: 0;
       color: var(--ink);
       background:
-        radial-gradient(circle at 100% 0, rgba(27, 77, 90, .08), transparent 34%),
-        linear-gradient(180deg, #fbfaf6 0%, var(--bg) 42%, #f0eee7 100%);
+        radial-gradient(circle at 92% 0, rgba(23, 105, 224, .10), transparent 30%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 45%, #eef3f8 100%);
       overflow-x: hidden;
     }
 
@@ -636,8 +1433,8 @@ HTML = r"""<!doctype html>
       color: #f7fbff;
       background:
         radial-gradient(circle at 78% 0, rgba(255,255,255,.12), transparent 30%),
-        linear-gradient(135deg, #163a45, #235965);
-      box-shadow: 0 12px 28px rgba(21, 42, 45, .18);
+        linear-gradient(135deg, #082c49, #0b4c7a);
+      box-shadow: 0 12px 28px rgba(7, 36, 61, .20);
     }
 
     .mast {
@@ -780,7 +1577,8 @@ HTML = r"""<!doctype html>
     .nav-btn.active,
     .nav-btn:hover {
       color: #fff;
-      background: rgba(255,255,255,.12);
+      background: var(--blue);
+      box-shadow: 0 10px 24px rgba(23, 105, 224, .28);
     }
 
     .main {
@@ -794,6 +1592,11 @@ HTML = r"""<!doctype html>
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
     }
 
     .eyebrow {
@@ -857,11 +1660,12 @@ HTML = r"""<!doctype html>
       position: relative;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      background: #fff;
-      border: 1px solid rgba(20, 30, 35, .07);
-      box-shadow: var(--shadow-md);
-      border-radius: var(--r-lg);
-      overflow: hidden;
+      gap: 10px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
       margin-bottom: 16px;
     }
 
@@ -871,34 +1675,24 @@ HTML = r"""<!doctype html>
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .module-tab {
       position: relative;
       border: 1px solid var(--line);
       border-radius: var(--r-md);
-      background: rgba(255, 255, 255, .85);
+      background: #fff;
       color: var(--muted);
-      padding: 12px 12px 12px 26px;
+      padding: 12px;
       text-align: left;
       cursor: pointer;
-      min-height: 62px;
+      min-height: 54px;
       transition: transform var(--motion), background var(--motion), border-color var(--motion), box-shadow var(--motion), color var(--motion);
-      backdrop-filter: saturate(140%) blur(6px);
     }
 
     .module-tab .module-dot {
-      position: absolute;
-      left: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--module-color, var(--blue));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--module-color, var(--blue)) 18%, transparent);
-      transition: transform var(--motion), box-shadow var(--motion);
+      display: none;
     }
 
     .module-tab strong {
@@ -912,7 +1706,7 @@ HTML = r"""<!doctype html>
     }
 
     .module-tab span {
-      display: block;
+      display: none;
       font-size: 11px;
       font-weight: 600;
       color: #718199;
@@ -923,32 +1717,25 @@ HTML = r"""<!doctype html>
     .module-tab:hover {
       transform: translateY(-1px);
       background: #fff;
-      border-color: rgba(27, 77, 90, .25);
+      border-color: rgba(23, 105, 224, .30);
       box-shadow: var(--shadow-sm);
       color: var(--ink);
     }
 
     .module-tab.active {
       background: #fff;
-      border-color: transparent;
-      box-shadow: var(--ring-blue), var(--shadow-sm), inset 0 0 0 1px rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .50);
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
       color: var(--blue);
     }
 
     .module-tab.active .module-dot {
-      animation: pulse-dot 1.6s ease-in-out infinite;
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--module-color, var(--blue)) 22%, transparent);
+      animation: none;
     }
 
     .module-tab.active strong { color: var(--ink); font-weight: 800; }
 
-    .module-tab[data-dashboard-module="macro"] { --module-color: #1b4d5a; }
-    .module-tab[data-dashboard-module="inflation"] { --module-color: #b45309; }
-    .module-tab[data-dashboard-module="budget"] { --module-color: #15803d; }
-    .module-tab[data-dashboard-module="budget_investment"] { --module-color: #0e7490; }
-    .module-tab[data-dashboard-module="investment"] { --module-color: #6d28d9; }
-    .module-tab[data-dashboard-module="export"] { --module-color: #1d4ed8; }
-    .module-tab[data-dashboard-module="employment"] { --module-color: #b91c1c; }
+    .module-tab[data-dashboard-module] { --module-color: var(--blue); }
 
     .module-heading {
       display: grid;
@@ -1012,27 +1799,151 @@ HTML = r"""<!doctype html>
 
     .scoreline {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: minmax(180px, .9fr) minmax(180px, 1.15fr) repeat(2, minmax(130px, .72fr)) minmax(190px, .86fr);
+      gap: 10px;
+      align-items: stretch;
       margin: 16px 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .scoreline.execution-strip {
+      grid-template-columns: minmax(240px, 1fr) minmax(330px, .9fr) minmax(120px, .32fr) minmax(170px, .42fr);
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .execution-strip .score-actions {
+      align-content: stretch;
+    }
+
+    .exec-status-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .exec-status-pill {
+      min-width: 0;
+      min-height: 64px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+      padding: 10px 12px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      color: var(--ink);
+      transition: border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+    }
+
+    .exec-status-pill:hover {
+      border-color: rgba(23, 105, 224, .35);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    .exec-status-pill span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .035em;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .exec-status-pill strong {
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 950;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .exec-status-pill.green strong { color: #16a34a; }
+    .exec-status-pill.red strong { color: #ef4444; }
+
+    .exec-progress-box {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+    }
+
+    .exec-donut {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 56%, transparent 57%),
+        conic-gradient(#16a34a calc(var(--pct) * 1%), #eef2f6 0);
+      border: 1px solid var(--line);
+    }
+
+    .exec-donut strong {
+      font-size: 14px;
+      font-weight: 950;
+      color: var(--ink);
+    }
+
+    .exec-progress-box small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .scoreline-copy {
+      min-width: 0;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .scoreline-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .scoreline-copy strong {
+      font-size: 18px;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .scoreline-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
     }
 
     .score {
       min-width: 0;
-      padding: 16px 22px;
-      background: #fff;
-      border: 1px solid #dde3ec;
-      border-radius: 10px;
+      padding: 13px;
+      background: #fbfdff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       cursor: pointer;
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
     }
 
     .score:hover {
       transform: translateY(-1px);
-      border-color: rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .38);
       box-shadow: var(--shadow-sm);
     }
 
@@ -1043,20 +1954,22 @@ HTML = r"""<!doctype html>
     }
 
     .score-label {
-      font-size: 20px;
+      font-size: 12px;
       font-weight: 800;
-      color: var(--ink);
+      color: var(--muted);
       white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .035em;
     }
 
     .score-chart-wrap {
       position: relative;
-      width: 70px;
-      height: 70px;
+      width: 64px;
+      height: 64px;
       flex-shrink: 0;
     }
 
-    .score-chart-wrap svg { width: 70px; height: 70px; }
+    .score-chart-wrap svg { width: 64px; height: 64px; }
 
     .score-pct {
       position: absolute;
@@ -1064,23 +1977,21 @@ HTML = r"""<!doctype html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: var(--ink);
     }
 
     .score-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      display: none;
     }
 
     .score-leg-item {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      color: #555;
+      font-size: 12px;
+      color: var(--muted);
       font-weight: 600;
       white-space: nowrap;
     }
@@ -1093,59 +2004,95 @@ HTML = r"""<!doctype html>
     }
 
     .score-num {
-      font-size: 42px;
+      font-size: 34px;
       font-weight: 900;
       line-height: 1;
       margin-left: auto;
     }
 
+    .score-actions {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .score-action {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      text-decoration: none;
+      min-height: 38px;
+      border: 1px solid rgba(23, 105, 224, .36);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: left;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion), background var(--motion);
+    }
+
+    .score-action.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .score-action:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .score-action:focus-visible {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: var(--ring-blue);
+    }
+
     .front-kpis.module-kpis.macro-layout {
-      grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .front-kpis.module-kpis.employment-layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi {
-      min-height: 138px;
+      min-height: 92px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent {
-      background:
-        radial-gradient(circle at 0% 100%, rgba(27, 77, 90, .12), transparent 55%),
-        linear-gradient(180deg, #ffffff, #f3f8fa);
-      box-shadow: inset -1px 0 0 rgba(27, 77, 90, .12);
+      background: #fff;
+      box-shadow: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
-      background: linear-gradient(145deg, #4a7280, #6294a2);
-      box-shadow:
-        0 14px 28px rgba(98, 148, 162, .35),
-        0 0 0 5px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .25);
+      background: var(--blue-soft);
+      box-shadow: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent.active {
-      background:
-        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
-        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
-      box-shadow:
-        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
-        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+      background: #fff;
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent.active .kpi-icon {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      background: var(--blue-soft);
+      color: var(--blue);
+      box-shadow: none;
     }
 
     .front-kpi {
       position: relative;
-      border: 0;
-      border-right: 1px solid var(--line);
-      background: transparent;
-      min-height: 158px;
-      padding: 16px clamp(10px, 1.35vw, 18px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      min-height: 88px;
+      padding: 14px;
       display: grid;
-      grid-template-columns: 50px minmax(0, 1fr);
+      grid-template-columns: 44px minmax(0, 1fr);
       gap: 12px;
       align-items: center;
       text-align: left;
@@ -1155,29 +2102,24 @@ HTML = r"""<!doctype html>
 
     .front-kpi::after { display: none; }
 
-    .front-kpi:nth-child(4n) { border-right: 0; }
-    .front-kpi:last-child { border-right: 0; }
-    .front-kpi:nth-child(n+5) { border-top: 1px solid var(--line); }
+    .front-kpi:nth-child(4n),
+    .front-kpi:last-child,
+    .front-kpi:nth-child(n+5) { border: 1px solid var(--line); }
     .front-kpi:hover { background: var(--surface); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
     .front-kpi.active {
-      background:
-        radial-gradient(circle at 110% -10%, color-mix(in srgb, #ffffff 35%, transparent) 0%, transparent 55%),
-        linear-gradient(140deg, #1b4d5a 0%, #2a7d8c 60%, #3aa0b3 100%);
-      transform: translateY(-3px) scale(1.015);
-      box-shadow:
-        0 18px 40px -10px color-mix(in srgb, var(--blue) 65%, transparent),
-        0 6px 16px -6px rgba(20, 30, 35, 0.18);
+      background: #fff;
+      border-color: rgba(23, 105, 224, .62);
+      transform: none;
+      box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
       z-index: 1;
     }
-    .front-kpi.active h3 { color: rgba(255, 255, 255, 0.82); }
-    .front-kpi.active .big { color: #ffffff; }
-    .front-kpi.active .big-note { color: rgba(255, 255, 255, 0.7); }
-    .front-kpi.active .mini-row { color: rgba(255, 255, 255, 0.7); }
-    .front-kpi.active .mini-row b { color: #ffffff; }
+    .front-kpi.active h3 { color: var(--ink); }
+    .front-kpi.active .front-kpi-meta { color: var(--blue); }
+    .front-kpi.active .front-kpi-dot { background: var(--blue); box-shadow: 0 0 0 3px rgba(23, 105, 224, .12); }
     .front-kpi.active .kpi-icon {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      background: var(--blue-soft);
+      color: var(--blue);
+      box-shadow: none;
     }
 
     .yhm-focus-bar {
@@ -1249,23 +2191,20 @@ HTML = r"""<!doctype html>
     }
 
     .kpi-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      color: #fff;
-      background: linear-gradient(145deg, #557e8a, #6294a2);
-      box-shadow:
-        0 10px 22px rgba(98, 148, 162, .28),
-        0 0 0 4px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .2);
+      color: var(--blue);
+      background: var(--blue-soft);
+      box-shadow: none;
       transition: transform var(--motion);
     }
 
-    .front-kpi:hover .kpi-icon { transform: rotate(-3deg) scale(1.04); }
+    .front-kpi:hover .kpi-icon { transform: scale(1.03); }
 
-    .kpi-icon svg { width: 25px; height: 25px; stroke-width: 2.2; }
+    .kpi-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
     .front-kpi h3 {
       color: #4d6172;
       font-size: 15px;
@@ -1275,61 +2214,38 @@ HTML = r"""<!doctype html>
       text-transform: uppercase;
     }
 
-    .front-kpi .big-row {
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 3px;
-    }
-
-    .front-kpi .big {
-      color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
-      font-size: clamp(26px, 2.2vw, 38px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -0.022em;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum", "ss01";
-    }
-
-    .front-kpi .big-note {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1.25;
-    }
-
-    .mini-row {
-      margin-top: 9px;
-      display: grid;
-      gap: 3px;
-      color: var(--muted);
-      font-size: 10.5px;
-      line-height: 1.2;
-      font-weight: 500;
-    }
-
-    .mini-row span {
+    .front-kpi-copy {
       min-width: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
       gap: 5px;
-      align-items: baseline;
     }
 
-    .mini-row b {
-      display: block;
-      color: var(--ink);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.005em;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum", "ss01";
+    .front-kpi-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .front-kpi-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .front-kpi-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #9aa8b5;
+      flex: 0 0 auto;
     }
 
     .grid-3 {
@@ -1547,6 +2463,10 @@ HTML = r"""<!doctype html>
 
     .district-table-wrap {
       overflow-x: auto;
+    }
+
+    .district-detail-table {
+      margin-top: 16px;
     }
 
     .district-table {
@@ -1964,9 +2884,9 @@ HTML = r"""<!doctype html>
     .kpi-monitor-card {
       position: relative;
       background: #fff;
-      border: 1px solid rgba(20, 30, 35, .07);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-md);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
       overflow: hidden;
       min-width: 0;
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
@@ -1975,34 +2895,34 @@ HTML = r"""<!doctype html>
     .kpi-monitor-card::before { display: none; }
 
     .kpi-monitor-card:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-lg);
-      border-color: rgba(27, 77, 90, .18);
+      transform: none;
+      box-shadow: var(--shadow);
+      border-color: var(--line);
     }
 
     .kpi-monitor-head {
       position: relative;
-      min-height: 92px;
+      min-height: 84px;
       display: grid;
       grid-template-columns: 52px minmax(0, 1fr) auto;
       gap: 14px;
       align-items: center;
-      padding: 18px 20px 16px;
-      border-bottom: 1px solid rgba(20, 30, 35, .06);
-      background:
-        linear-gradient(90deg, #fbfdff 0%, #f4f8fa 100%);
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
       overflow: hidden;
     }
 
+    .kpi-head-district {
+      position: relative;
+      z-index: 1;
+      min-height: 36px;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
     .kpi-monitor-head .head-watermark {
-      position: absolute;
-      right: -18px;
-      bottom: -34px;
-      width: 140px;
-      height: 140px;
-      color: #6294a2;
-      opacity: 0.05;
-      pointer-events: none;
+      display: none;
     }
 
     .kpi-monitor-head .head-watermark svg {
@@ -2033,16 +2953,13 @@ HTML = r"""<!doctype html>
       border-radius: 14px;
       display: grid;
       place-items: center;
-      color: #fff;
-      background: linear-gradient(145deg, #557e8a, #6294a2);
-      box-shadow:
-        0 10px 22px rgba(98, 148, 162, .28),
-        0 0 0 4px rgba(98, 148, 162, .08),
-        inset 0 1px 0 rgba(255, 255, 255, .25);
+      color: var(--blue);
+      background: var(--blue-soft);
+      box-shadow: none;
       transition: transform var(--motion);
     }
 
-    .kpi-monitor-card:hover .small-icon { transform: rotate(-3deg) scale(1.04); }
+    .kpi-monitor-card:hover .small-icon { transform: scale(1.02); }
 
     .small-icon svg {
       width: 24px;
@@ -2071,23 +2988,21 @@ HTML = r"""<!doctype html>
     }
 
     .quarter-matrix {
-      padding: 14px 18px 16px;
+      padding: 18px 20px 20px;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 12px;
     }
 
     .quarter-row {
       position: relative;
       display: grid;
-      gap: 10px;
+      gap: 12px;
       align-content: start;
-      padding: 14px 14px 14px;
-      border: 1px solid rgba(20, 30, 35, .07);
-      border-radius: 12px;
-      background:
-        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--row-accent, var(--blue)) 8%, transparent), transparent 55%),
-        #ffffff;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
       font-size: 12px;
       overflow: hidden;
       transition: border-color var(--motion), background var(--motion), transform var(--motion), box-shadow var(--motion);
@@ -2096,8 +3011,8 @@ HTML = r"""<!doctype html>
     .quarter-row::before { display: none; }
 
     .quarter-row:hover {
-      border-color: rgba(27, 77, 90, .22);
-      transform: translateY(-1px);
+      border-color: rgba(23, 105, 224, .24);
+      transform: none;
       box-shadow: var(--shadow-sm);
     }
     .quarter-row:hover::before { opacity: 1; }
@@ -2119,9 +3034,9 @@ HTML = r"""<!doctype html>
       align-items: center;
       gap: 6px;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0;
       text-transform: uppercase;
     }
 
@@ -2153,7 +3068,7 @@ HTML = r"""<!doctype html>
     .quarter-row .q-hero-value {
       color: var(--ink);
       font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
-      font-size: clamp(22px, 2vw, 30px);
+      font-size: clamp(25px, 2.15vw, 34px);
       line-height: 1;
       font-weight: 800;
       letter-spacing: -0.022em;
@@ -2165,7 +3080,7 @@ HTML = r"""<!doctype html>
     .quarter-row .q-hero .q-trend.up,
     .quarter-row .q-hero .q-trend.down,
     .quarter-row .q-hero .q-trend.flat {
-      font-size: clamp(22px, 2vw, 30px);
+      font-size: clamp(25px, 2.15vw, 34px);
       font-weight: 800;
       letter-spacing: -0.022em;
       color: var(--ink);
@@ -2193,8 +3108,8 @@ HTML = r"""<!doctype html>
       margin: 0;
       display: grid;
       gap: 4px;
-      padding-top: 8px;
-      border-top: 1px dashed rgba(20, 30, 35, .09);
+      padding-top: 10px;
+      border-top: 1px solid rgba(223, 231, 240, .95);
     }
 
     .quarter-row .q-aux-row {
@@ -2205,6 +3120,16 @@ HTML = r"""<!doctype html>
       color: var(--muted);
       font-size: 11.5px;
       font-weight: 500;
+    }
+
+    .quarter-row .q-aux-row.status b {
+      justify-self: end;
+    }
+
+    .quarter-row .q-aux-row.status .chip {
+      font-size: 11px;
+      text-transform: none;
+      letter-spacing: 0;
     }
 
     .quarter-row .q-aux-row b {
@@ -2277,6 +3202,1052 @@ HTML = r"""<!doctype html>
       font-size: 12px;
       line-height: 1.25;
       min-height: 16px;
+    }
+
+    .macro-growth-panel {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .macro-growth-overview {
+      display: grid;
+      grid-template-columns: minmax(220px, .7fr) minmax(0, 1.7fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .macro-annual-card,
+    .macro-period-card,
+    .macro-composition-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      min-width: 0;
+    }
+
+    .macro-annual-card {
+      padding: 18px 18px 16px;
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .macro-annual-card span,
+    .macro-period-card span,
+    .macro-composition-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .macro-annual-card strong {
+      color: var(--blue);
+      font-size: clamp(38px, 4vw, 58px);
+      line-height: .95;
+      letter-spacing: -0.04em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-annual-card small,
+    .macro-period-card small,
+    .macro-composition-card small {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+
+    .macro-period-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .macro-period-card {
+      padding: 14px;
+      display: grid;
+      gap: 9px;
+      align-content: start;
+    }
+
+    .macro-period-card.actual { border-color: rgba(23, 105, 224, .24); }
+    .macro-period-card.planned { border-color: rgba(100, 116, 139, .18); }
+
+    .macro-period-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .macro-period-head b {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .macro-period-card strong {
+      color: var(--ink);
+      font-size: clamp(24px, 2.4vw, 36px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-mini-bar {
+      display: block;
+      height: 6px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .macro-mini-bar i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .macro-composition-panel {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .macro-composition-panel > summary {
+      list-style: none;
+    }
+
+    .macro-composition-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .macro-composition-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .macro-composition-head strong {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-composition-head small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .macro-dropdown-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .macro-dropdown-caret {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--blue);
+      transition: transform var(--motion), border-color var(--motion), background var(--motion);
+    }
+
+    .macro-composition-panel[open] .macro-dropdown-caret {
+      transform: rotate(180deg);
+      border-color: rgba(30, 86, 168, .28);
+      background: var(--blue-soft);
+    }
+
+    .macro-composition-body {
+      display: grid;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .macro-composition-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .macro-composition-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .macro-composition-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      gap: 8px;
+      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .macro-composition-card:hover,
+    .macro-composition-card.active {
+      border-color: rgba(23, 105, 224, .26);
+      background: #f7fbff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .macro-composition-card strong {
+      color: var(--blue);
+      font-size: clamp(24px, 2.2vw, 34px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-composition-bar {
+      display: block;
+      height: 7px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .macro-composition-bar i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .kpi-monitor-card.macro-layout-card {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .kpi-monitor-card.macro-layout-card .kpi-monitor-head {
+      display: none;
+    }
+
+    .kpi-monitor-card.macro-layout-card:hover {
+      box-shadow: none;
+    }
+
+    .macro-layout-card .macro-growth-panel {
+      padding: 0;
+      border-top: 0;
+      background: transparent;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 16px;
+    }
+
+    .macro-layout-card .macro-growth-panel.with-side {
+      grid-template-columns: minmax(0, 1.04fr) minmax(340px, .7fr);
+    }
+
+    .macro-main-panel,
+    .industry-driver-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+
+    .macro-main-panel {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .macro-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .macro-section-title strong {
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-section-title span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .macro-hero-card {
+      position: relative;
+      min-height: 150px;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      padding: 26px 34px;
+      border: 1px solid rgba(19, 126, 61, .18);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, #f5fbf7 0%, #eff8f3 100%),
+        repeating-linear-gradient(90deg, transparent 0 56px, rgba(15, 135, 58, .035) 56px 57px);
+      overflow: hidden;
+    }
+
+    .macro-hero-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+      align-content: center;
+      text-align: center;
+      justify-items: center;
+    }
+
+    .macro-hero-copy span {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .macro-hero-copy strong {
+      color: #08742d;
+      font-size: clamp(48px, 5vw, 72px);
+      line-height: .9;
+      letter-spacing: -0.055em;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .macro-hero-copy small {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .macro-layout-card .macro-growth-overview {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .macro-layout-card .macro-period-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .macro-layout-card .macro-period-card {
+      min-height: 128px;
+      justify-items: center;
+      text-align: center;
+      background: #f9fbfd;
+    }
+
+    .macro-layout-card .macro-period-card.actual {
+      background: #f2fbf5;
+      border-color: rgba(15, 135, 58, .18);
+    }
+
+    .macro-layout-card .macro-period-card strong {
+      color: var(--blue);
+      font-size: clamp(28px, 2.5vw, 38px);
+    }
+
+    .macro-layout-card .macro-period-card.actual strong {
+      color: #08742d;
+    }
+
+    .macro-layout-card .macro-period-head {
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+    }
+
+    .macro-layout-card .macro-mini-bar {
+      display: none;
+    }
+
+    .macro-layout-card .macro-composition-panel {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: none;
+      background: #f9fbfd;
+    }
+
+    .macro-layout-card .macro-composition-head {
+      align-items: center;
+    }
+
+    .macro-layout-card .macro-composition-body {
+      margin-top: 12px;
+    }
+
+    .macro-layout-card .macro-composition-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .macro-layout-card .macro-composition-card {
+      grid-template-columns: 40px minmax(150px, .5fr) minmax(180px, 1fr) 78px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .macro-layout-card .macro-composition-card:hover,
+    .macro-layout-card .macro-composition-card.active {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .macro-comp-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .macro-comp-icon svg {
+      width: 21px;
+      height: 21px;
+      stroke-width: 1.8;
+    }
+
+    .macro-comp-name {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .macro-layout-card .macro-composition-card strong.macro-comp-value {
+      color: #08742d;
+      font-size: 20px;
+      text-align: right;
+      letter-spacing: -0.012em;
+    }
+
+    .macro-layout-card .macro-composition-bar {
+      height: 14px;
+      background: #eef3f7;
+    }
+
+    .macro-layout-card .macro-composition-bar i {
+      background: var(--macro-color, var(--blue));
+    }
+
+    .industry-driver-panel {
+      padding: 24px 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .industry-driver-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .industry-driver-head strong {
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.012em;
+    }
+
+    .industry-driver-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .industry-driver-card {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) 18px;
+      gap: 14px;
+      align-items: start;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .industry-driver-card:hover {
+      border-color: rgba(23, 105, 224, .25);
+      background: #f9fbfd;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .driver-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+    }
+
+    .driver-icon svg {
+      width: 30px;
+      height: 30px;
+      stroke-width: 2;
+    }
+
+    .driver-icon.green { color: #08742d; background: #eef9f1; }
+    .driver-icon.blue { color: var(--blue); background: #eef5ff; }
+    .driver-icon.orange { color: #d35a0f; background: #fff3ea; }
+
+    .industry-driver-arrow {
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1;
+      padding-top: 5px;
+    }
+
+    .industry-driver-body {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .industry-driver-title strong {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .industry-driver-title span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.3;
+    }
+
+    .industry-driver-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .industry-driver-divider {
+      width: 1px;
+      height: 48px;
+      background: var(--line);
+      align-self: center;
+    }
+
+    .industry-driver-metric {
+      display: grid;
+      gap: 4px;
+    }
+
+    .industry-driver-metric span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .industry-driver-metric strong {
+      color: var(--blue);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.012em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .industry-driver-metric small {
+      color: var(--muted);
+      font-size: 10.8px;
+      line-height: 1.25;
+    }
+
+    .industry-driver-card.green .industry-driver-metric strong { color: #08742d; }
+    .industry-driver-card.orange .industry-driver-metric strong { color: #d35a0f; }
+
+    .industry-driver-panel .mini-button {
+      width: 100%;
+      justify-content: center;
+      min-height: 38px;
+      color: var(--blue-dark);
+      border-color: var(--blue);
+      background: #fff;
+    }
+
+    .budget-invest-panel {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 16px;
+      background: linear-gradient(180deg, #fbfdff 0%, #fff 45%);
+      border-top: 1px solid var(--line);
+    }
+
+    .budget-invest-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .budget-invest-summary > div {
+      min-width: 0;
+      padding: 14px 16px;
+      border-right: 1px solid var(--line);
+    }
+
+    .budget-invest-summary > div:last-child { border-right: 0; }
+
+    .budget-invest-summary span,
+    .budget-period-card span,
+    .budget-dynamics-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .budget-invest-summary strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: clamp(21px, 2vw, 31px);
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -0.018em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-invest-summary small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .budget-invest-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .budget-periods-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .budget-period-card,
+    .budget-dynamics-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .budget-period-card {
+      display: grid;
+      gap: 11px;
+      align-content: start;
+    }
+
+    .budget-period-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .budget-period-top b {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .budget-period-card strong {
+      color: var(--ink);
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-period-card.actual { border-color: rgba(23, 105, 224, .24); }
+    .budget-period-card.expected { border-color: rgba(100, 116, 139, .22); }
+    .budget-period-card.missing {
+      background: #f8fafc;
+      border-style: dashed;
+    }
+
+    .budget-period-card.missing strong,
+    .budget-period-card.missing .budget-period-meta b {
+      color: var(--muted);
+    }
+
+    .budget-period-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .budget-period-meta b {
+      color: var(--ink);
+      font-size: 19px;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-progress {
+      height: 8px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .budget-progress i {
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c, var(--blue));
+    }
+
+    .budget-period-note {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.25;
+    }
+
+    .budget-dynamics-card {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      background: #fcfdff;
+    }
+
+    .budget-dynamics-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .budget-dynamics-head strong {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .budget-dynamics-svg {
+      width: 100%;
+      height: 116px;
+      display: block;
+    }
+
+    .budget-dynamics-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .budget-dynamics-list div {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .budget-dynamics-list i {
+      height: 5px;
+      border-radius: 999px;
+      background: #e8eef6;
+      overflow: hidden;
+    }
+
+    .budget-dynamics-list i::before {
+      content: "";
+      display: block;
+      width: min(var(--w), 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c, var(--blue));
+    }
+
+    .budget-dynamics-list b {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-sector-panel {
+      display: grid;
+      gap: 16px;
+    }
+
+    .finance-sector-grid {
+      display: block;
+    }
+
+    .finance-active-pane {
+      min-width: 0;
+    }
+
+    .finance-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .finance-card.active {
+      border-color: rgba(30, 86, 168, .28);
+      box-shadow: 0 18px 42px rgba(15, 43, 77, .1);
+    }
+
+    .finance-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 92px;
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .finance-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+      flex: 0 0 auto;
+    }
+
+    .finance-icon.purple {
+      color: #6d45c4;
+      background: #f0ecff;
+    }
+
+    .finance-icon.green {
+      color: #0b8a65;
+      background: #eaf8f3;
+    }
+
+    .finance-icon.gold {
+      color: #b67805;
+      background: #fff5df;
+    }
+
+    .finance-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.9;
+    }
+
+    .finance-card-head strong {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.012em;
+      line-height: 1.18;
+    }
+
+    .finance-card-body {
+      display: grid;
+      gap: 18px;
+      padding: 20px 18px;
+      align-content: start;
+    }
+
+    .finance-card-body.two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .finance-section-title {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .finance-metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .finance-metric-row.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .finance-metric {
+      min-width: 0;
+    }
+
+    .finance-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .finance-metric strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: clamp(20px, 1.8vw, 28px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-metric.accent strong { color: var(--blue); }
+    .finance-metric.gold strong { color: #b67805; }
+
+    .finance-metric small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .finance-divider {
+      height: 1px;
+      background: var(--line);
+    }
+
+    .finance-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .finance-summary-tile,
+    .finance-quarter-cell {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfdff;
+      padding: 13px 14px;
+      min-width: 0;
+    }
+
+    .finance-summary-tile span,
+    .finance-quarter-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .finance-summary-tile strong,
+    .finance-quarter-cell strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: clamp(18px, 1.7vw, 24px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.018em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .finance-summary-tile.accent strong,
+    .finance-quarter-cell.accent strong { color: var(--blue); }
+
+    .finance-summary-tile.purple strong,
+    .finance-quarter-cell.purple strong { color: #6d45c4; }
+
+    .finance-summary-tile.gold strong,
+    .finance-quarter-cell.gold strong { color: #b67805; }
+
+    .finance-summary-tile small,
+    .finance-quarter-cell small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .finance-quarter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .finance-source {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f7fbff;
+      color: var(--blue);
+      font-size: 11.5px;
+      line-height: 1.3;
+    }
+
+    .kpi-monitor-card > .finance-source {
+      margin: 14px 16px 16px;
+    }
+
+    .finance-action {
+      justify-self: stretch;
+      margin-top: 4px;
     }
 
     .kpi-signal {
@@ -2423,6 +4394,10 @@ HTML = r"""<!doctype html>
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
+    }
+
+    .industry-driver-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .inflation-grid {
@@ -2610,6 +4585,13 @@ HTML = r"""<!doctype html>
       padding: 14px 16px 16px;
     }
 
+    .data-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     .poverty-section {
       padding: 18px 20px 22px;
       display: grid;
@@ -2647,6 +4629,10 @@ HTML = r"""<!doctype html>
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .employment-driver-section .poverty-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .poverty-stat {
@@ -2853,19 +4839,18 @@ HTML = r"""<!doctype html>
 
     @media (max-width: 1080px) {
       .poverty-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .employment-driver-section .poverty-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 640px) {
       .poverty-section { padding: 14px 14px 18px; }
       .poverty-stats { grid-template-columns: 1fr; }
+      .employment-driver-section .poverty-stats { grid-template-columns: 1fr; }
       .poverty-section .poverty-head { grid-template-columns: 1fr; }
     }
 
     .districts-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: end;
+      display: block;
       margin-bottom: 16px;
     }
 
@@ -2895,10 +4880,162 @@ HTML = r"""<!doctype html>
     }
 
     .districts-head-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(170px, .45fr) minmax(240px, .65fr);
       gap: 10px;
       align-items: end;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .district-module-tabs {
+      margin-bottom: 12px;
+    }
+
+    .district-kpi-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .district-kpi-option {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 11px 12px;
+      text-align: left;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
+    }
+
+    .district-kpi-option:hover,
+    .district-kpi-option.active {
+      border-color: rgba(23, 105, 224, .44);
+      background: #f7fbff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .district-kpi-option.active {
+      box-shadow: inset 0 -3px 0 var(--blue), var(--shadow-sm);
+    }
+
+    .district-kpi-option .kpi-mini-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .district-kpi-option svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.9;
+    }
+
+    .district-kpi-option strong,
+    .district-kpi-option small {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-kpi-option strong {
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 850;
+      line-height: 1.18;
+      white-space: nowrap;
+    }
+
+    .district-kpi-option small {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .district-data-layers {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .district-data-layer {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .district-data-layer span,
+    .district-layer-note span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .district-data-layer strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-data-layer small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.3;
+    }
+
+    .district-layer-note {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 12px;
+      grid-column: 1 / -1;
+    }
+
+    .district-layer-note strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .district-count-split {
+      display: flex;
       flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
     }
 
     .districts-control {
@@ -2924,7 +5061,8 @@ HTML = r"""<!doctype html>
       font: inherit;
       font-size: 12.5px;
       outline: none;
-      min-width: 170px;
+      width: 100%;
+      min-width: 0;
       transition: border-color var(--motion), box-shadow var(--motion);
     }
 
@@ -2934,22 +5072,31 @@ HTML = r"""<!doctype html>
       box-shadow: 0 0 0 3px rgba(98, 148, 162, .15);
     }
 
-    .districts-control--search input { min-width: 190px; }
+    .districts-control--search input { min-width: 0; }
 
     .districts-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+      grid-template-columns: minmax(0, 1.42fr) minmax(330px, .68fr);
       gap: 14px;
       margin-bottom: 16px;
+      align-items: start;
+    }
+
+    .districts-side {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
     }
 
     .districts-map {
       position: relative;
-      background: linear-gradient(180deg, #ffffff 0%, #f7fbfc 100%);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, .9) inset;
-      padding: 18px 20px 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
       overflow: hidden;
+      min-width: 0;
     }
 
     .districts-map::before { display: none; }
@@ -2960,15 +5107,15 @@ HTML = r"""<!doctype html>
       inset: -40% -10% auto auto;
       width: 320px;
       height: 320px;
-      background: radial-gradient(circle, rgba(27, 77, 90, .07), transparent 60%);
+      background: radial-gradient(circle, rgba(23, 105, 224, .06), transparent 60%);
       pointer-events: none;
     }
 
     .districts-map-head {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
       gap: 12px;
       position: relative;
       z-index: 1;
@@ -2988,39 +5135,34 @@ HTML = r"""<!doctype html>
       margin-top: 2px;
       color: var(--muted);
       font-size: 11.5px;
+      line-height: 1.35;
       font-weight: 500;
+      max-width: 64ch;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: break-word;
     }
 
     .districts-map-canvas {
       position: relative;
       display: grid;
       place-items: center;
-      background:
-        radial-gradient(ellipse at 30% 20%, rgba(98, 148, 162, .12), transparent 55%),
-        radial-gradient(ellipse at 75% 80%, rgba(27, 77, 90, .06), transparent 55%),
-        linear-gradient(135deg, #f9fcfd 0%, #eef5f7 100%);
-      border: 1px solid rgba(27, 77, 90, .12);
+      background: linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+      border: 1px solid var(--line);
       border-radius: 16px;
       padding: 18px 12px;
+      min-height: 430px;
+      min-width: 0;
+      overflow: hidden;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, .8),
-        inset 0 -1px 0 rgba(27, 77, 90, .04),
-        0 1px 2px rgba(20, 30, 35, .03);
+        inset 0 -1px 0 rgba(23, 105, 224, .04),
+        0 1px 2px rgba(15, 42, 71, .03);
     }
 
     .districts-map-canvas::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(rgba(27, 77, 90, .06) 1px, transparent 1px);
-      background-size: 18px 18px;
-      background-position: 9px 9px;
-      border-radius: 16px;
-      pointer-events: none;
-      opacity: .55;
-      mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
-      -webkit-mask-image: radial-gradient(ellipse at center, #000 50%, transparent 85%);
+      display: none;
     }
 
     .andijan-map {
@@ -3028,16 +5170,17 @@ HTML = r"""<!doctype html>
       max-width: 820px;
       height: auto;
       display: block;
+      min-width: 0;
       position: relative;
       z-index: 1;
-      filter: drop-shadow(0 6px 14px rgba(20, 30, 35, .08));
+      filter: none;
     }
 
     .map-cell { cursor: pointer; outline: none; }
 
     .map-cell .map-fill {
-      stroke: rgba(20, 30, 35, .35);
-      stroke-width: 1;
+      stroke: rgba(255, 255, 255, .92);
+      stroke-width: 1.2;
       stroke-linejoin: round;
       transition: fill var(--motion), stroke var(--motion), stroke-width var(--motion), transform var(--motion), filter var(--motion);
       transform-box: fill-box;
@@ -3072,10 +5215,10 @@ HTML = r"""<!doctype html>
 
     .map-label.selected { fill: var(--blue); }
 
-    .map-cell.green .map-fill { fill: url(#mapGradGreen); stroke: #4f8c63; }
-    .map-cell.amber .map-fill { fill: url(#mapGradAmber); stroke: #ad7918; }
-    .map-cell.red   .map-fill { fill: url(#mapGradRed);   stroke: #9d2f2f; }
-    .map-cell.grey  .map-fill { fill: url(#mapGradGrey);  stroke: #8a8779; }
+    .map-cell.green .map-fill { fill: var(--map-good); stroke: var(--map-good-stroke); }
+    .map-cell.amber .map-fill { fill: var(--map-mid); stroke: var(--map-mid-stroke); }
+    .map-cell.red   .map-fill { fill: var(--map-attn); stroke: var(--map-attn-stroke); }
+    .map-cell.grey  .map-fill { fill: var(--map-nodata); stroke: var(--map-nodata-stroke); }
 
     .map-cell.is-city .map-fill {
       stroke-width: 1.8;
@@ -3084,14 +5227,14 @@ HTML = r"""<!doctype html>
 
     .map-cell:hover .map-fill,
     .map-cell:focus .map-fill {
-      filter: brightness(1.05) saturate(1.08) drop-shadow(0 4px 10px rgba(20, 30, 35, .22));
-      transform: translateY(-1px);
+      filter: saturate(1.06);
+      transform: none;
     }
 
     .map-cell.selected .map-fill {
-      stroke: var(--blue);
-      stroke-width: 2.6;
-      filter: drop-shadow(0 6px 16px rgba(27, 77, 90, .42)) brightness(1.04);
+      stroke: var(--blue-2);
+      stroke-width: 3;
+      filter: drop-shadow(0 3px 8px rgba(11, 76, 122, .28));
     }
 
 
@@ -3111,7 +5254,7 @@ HTML = r"""<!doctype html>
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
-      border: 1px solid rgba(20, 30, 35, .08);
+      border: 1px solid var(--line);
       background: #ffffff;
       color: var(--muted);
     }
@@ -3123,17 +5266,18 @@ HTML = r"""<!doctype html>
       border-radius: 999px;
     }
 
-    .legend-chip.green::before { background: #5b9a72; }
-    .legend-chip.amber::before { background: #b8821f; }
-    .legend-chip.red::before   { background: #a93434; }
-    .legend-chip.grey::before  { background: #918f83; }
+    .legend-chip.green::before { background: var(--map-good); border: 1px solid var(--map-good-stroke); }
+    .legend-chip.amber::before { background: var(--map-mid); border: 1px solid var(--map-mid-stroke); }
+    .legend-chip.red::before   { background: var(--map-attn); border: 1px solid var(--map-attn-stroke); }
+    .legend-chip.grey::before  { background: var(--map-nodata); border: 1px solid var(--map-nodata-stroke); }
 
     .districts-leaderboard {
       position: relative;
       background: #ffffff;
-      border-radius: var(--r-lg);
+      border: 1px solid var(--line);
+      border-radius: 18px;
       box-shadow: var(--shadow-sm);
-      padding: 16px 16px 14px;
+      padding: 14px;
       overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr;
@@ -3169,7 +5313,7 @@ HTML = r"""<!doctype html>
       list-style: none;
       display: grid;
       gap: 4px;
-      max-height: 480px;
+      max-height: 318px;
       overflow-y: auto;
     }
 
@@ -3182,17 +5326,17 @@ HTML = r"""<!doctype html>
       padding: 9px 12px 10px;
       border-radius: 10px;
       border: 1px solid transparent;
-      background: rgba(98, 148, 162, .04);
+      background: #fbfdff;
       cursor: pointer;
       transition: background var(--motion), border-color var(--motion), box-shadow var(--motion);
       outline: none;
     }
 
-    .lb-row:hover { background: rgba(98, 148, 162, .1); }
+    .lb-row:hover { background: var(--blue-soft); }
 
     .lb-row.selected {
       background: #ffffff;
-      border-color: rgba(27, 77, 90, .35);
+      border-color: rgba(23, 105, 224, .50);
       box-shadow: var(--shadow-sm);
     }
 
@@ -3243,10 +5387,143 @@ HTML = r"""<!doctype html>
       transition: width var(--motion-slow);
     }
 
-    .lb-row.green .lb-bar i { background: #5b9a72; }
-    .lb-row.amber .lb-bar i { background: #b8821f; }
-    .lb-row.red .lb-bar i   { background: #a93434; }
-    .lb-row.grey .lb-bar i  { background: #918f83; }
+    .lb-row.green .lb-bar i { background: var(--map-good-stroke); }
+    .lb-row.amber .lb-bar i { background: var(--map-mid-stroke); }
+    .lb-row.red .lb-bar i   { background: var(--map-attn-stroke); }
+    .lb-row.grey .lb-bar i  { background: var(--map-nodata-stroke); }
+
+    .lb-empty {
+      padding: 18px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      background: #fbfdff;
+    }
+
+    .district-summary-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .district-summary-card.empty {
+      min-height: 180px;
+      align-content: center;
+    }
+
+    .district-summary-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .district-summary-head span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .district-summary-head h3 {
+      margin: 4px 0 0;
+      font-size: 21px;
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+    }
+
+    .district-summary-value {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      padding: 14px;
+      border: 1px solid rgba(23, 105, 224, .18);
+      border-radius: 14px;
+      background: var(--blue-soft);
+    }
+
+    .district-summary-value strong {
+      display: block;
+      color: var(--blue);
+      font-size: clamp(30px, 3vw, 42px);
+      line-height: 1;
+      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      letter-spacing: -0.025em;
+    }
+
+    .district-summary-value span,
+    .district-summary-value small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .district-summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .district-summary-metric {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfdff;
+      min-width: 0;
+    }
+
+    .district-summary-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      line-height: 1.2;
+    }
+
+    .district-summary-metric strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .district-summary-metric small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .district-summary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .district-summary-actions .mini-button {
+      min-height: 38px;
+      padding: 8px 10px;
+      text-align: center;
+    }
 
     .district-profile-card {
       position: relative;
@@ -3546,13 +5823,25 @@ HTML = r"""<!doctype html>
     @media (max-width: 1080px) {
       .districts-grid { grid-template-columns: 1fr; }
       .dpc-head { grid-template-columns: 1fr 1fr; }
+      .districts-map-canvas { min-height: 360px; }
     }
 
     @media (max-width: 720px) {
       .districts-head { grid-template-columns: 1fr; }
-      .districts-head-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .districts-head-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
       .districts-control select, .districts-control input { min-width: 0; width: 100%; }
       .dpc-head { grid-template-columns: 1fr; }
+      .district-data-layers { grid-template-columns: 1fr; }
+      .district-summary-metrics, .district-summary-actions { grid-template-columns: 1fr; }
+      .districts-grid, .districts-map, .districts-side, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }
+      .districts-map { padding: 14px; }
+      .districts-map-head { display: block; }
+      .districts-map-head strong { font-size: 15px; line-height: 1.18; }
+      .districts-map-head span { font-size: 11px; max-width: 100%; }
+      .districts-map-canvas { width: 100%; max-width: 100%; min-height: 270px; padding: 10px 6px; }
+      .andijan-map { width: 100%; max-width: 100%; transform: scale(.92); transform-origin: center; }
+      .districts-map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; overflow: visible; }
+      .legend-chip { justify-content: center; padding: 4px 6px; font-size: 10.5px; min-width: 0; white-space: normal; }
     }
 
     .small-stat {
@@ -3627,7 +5916,11 @@ HTML = r"""<!doctype html>
     }
 
     .task-filter.report-filter {
-      grid-template-columns: repeat(5, minmax(145px, 1fr)) auto;
+      grid-template-columns: minmax(220px, .9fr) minmax(240px, 1fr) minmax(150px, .55fr) minmax(220px, .85fr);
+    }
+
+    .task-filter.report-filter.execution-filter {
+      grid-template-columns: repeat(5, minmax(135px, 1fr)) auto;
     }
 
     .task-summary-strip {
@@ -3635,6 +5928,94 @@ HTML = r"""<!doctype html>
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 16px;
+    }
+
+    .task-summary-strip.execution-overview {
+      grid-template-columns: minmax(220px, .8fr) minmax(460px, 1.25fr) minmax(110px, .28fr) minmax(170px, .42fr);
+      align-items: center;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .task-summary-strip.execution-overview .exec-status-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .task-summary-copy {
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .task-summary-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .task-summary-copy strong {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .task-summary-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .task-summary-strip .exec-status-pill.active {
+      border-color: rgba(23, 105, 224, .42);
+      background: #eef6ff;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, .12);
+    }
+
+    .exec-status-pill.blue strong { color: var(--blue); }
+
+    .task-advanced-filters {
+      margin: -4px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.78);
+      overflow: hidden;
+    }
+
+    .task-advanced-filters summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+      list-style-position: inside;
+    }
+
+    .task-advanced-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 0 12px 12px;
+    }
+
+    .task-advanced-grid label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .task-advanced-grid select {
+      width: 100%;
+      min-width: 0;
     }
 
     .task-focus {
@@ -3655,6 +6036,41 @@ HTML = r"""<!doctype html>
       color: var(--muted);
       font-size: 13px;
       line-height: 1.4;
+    }
+
+    .task-side-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .task-side-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .task-side-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .task-side-row strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .task-side-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
     }
 
     .task-groups {
@@ -4127,6 +6543,261 @@ HTML = r"""<!doctype html>
       line-height: 1.35;
     }
 
+    .execution-command {
+      display: grid;
+      grid-template-columns: minmax(260px, .85fr) minmax(420px, 1.2fr) minmax(190px, .45fr);
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .execution-command-copy {
+      display: grid;
+      align-content: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .execution-command-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .execution-command-copy strong {
+      color: var(--ink);
+      font-size: 19px;
+      line-height: 1.16;
+    }
+
+    .execution-command-copy small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-status-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .execution-status-btn {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+      padding: 10px 11px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      color: var(--ink);
+      transition: border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+    }
+
+    .execution-status-btn:hover {
+      border-color: rgba(23, 105, 224, .35);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    .execution-status-btn.active {
+      border-color: rgba(23, 105, 224, .42);
+      background: #eef6ff;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, .12);
+    }
+
+    .execution-status-btn span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .025em;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .execution-status-btn strong {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 950;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .execution-status-btn.green strong { color: #16a34a; }
+    .execution-status-btn.amber strong { color: #d97706; }
+    .execution-status-btn.red strong { color: #ef4444; }
+    .execution-status-btn.blue strong { color: var(--blue); }
+
+    .execution-actions {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .execution-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .execution-step {
+      display: grid;
+      gap: 5px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.84);
+    }
+
+    .execution-step span {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .execution-step strong {
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .execution-step small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .42fr);
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .execution-lane {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 14px 28px rgba(16, 48, 82, .07);
+    }
+
+    .execution-lane-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .execution-lane-head h3 {
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .execution-card-list {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .execution-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .execution-card header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .execution-card strong {
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .execution-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .execution-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .execution-impact {
+      display: grid;
+      gap: 10px;
+    }
+
+    .impact-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .impact-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .impact-row strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .impact-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .execution-empty {
+      padding: 18px;
+      border: 1px dashed #cbd8e8;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .history-list {
       display: grid;
       gap: 6px;
@@ -4174,6 +6845,8 @@ HTML = r"""<!doctype html>
       .profile-filter { align-items: stretch; flex-direction: column; }
       .district-workspace, .district-context { grid-template-columns: 1fr; }
       .task-workspace, .task-filter, .task-filter.report-filter, .task-summary-strip, .workflow-strip { grid-template-columns: 1fr; }
+      .execution-command, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
+      .execution-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .modal-grid, .report-context { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid { grid-template-columns: 1fr; }
       .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -4182,8 +6855,13 @@ HTML = r"""<!doctype html>
       .district-preview { position: static; }
       .dashboard-module-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .scoreline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scoreline.execution-strip { grid-template-columns: 1fr; }
+      .scoreline-copy, .score-actions { grid-column: 1 / -1; }
+      .exec-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .task-summary-strip.execution-overview .exec-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .front-kpis.module-kpis.employment-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
       .front-kpi:nth-child(n+4) { border-top: 1px solid var(--line); }
       .district-card { grid-template-columns: minmax(150px, .8fr) repeat(2, minmax(110px, 1fr)); }
@@ -4203,18 +6881,21 @@ HTML = r"""<!doctype html>
       .sidebar {
         position: static;
         height: auto;
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
-        overflow-x: auto;
+        overflow: visible;
         padding: 10px;
       }
       .side-title { display: none; }
-      .nav-btn { min-width: 96px; margin: 0; gap: 6px; }
-      .nav-btn span { display: block; font-size: 11px; line-height: 1.1; }
-      .main { padding: 14px; }
+      .nav-btn { min-width: 0; margin: 0; gap: 6px; padding: 8px 4px; }
+      .nav-btn span { display: block; font-size: 10.5px; line-height: 1.1; white-space: normal; }
+      .main { padding: 14px; min-width: 0; max-width: 100vw; overflow-x: hidden; }
       .page-head { display: grid; }
       .toolbar { justify-content: flex-start; }
-      .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .front-kpis.module-kpis.employment-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
+      .execution-command, .execution-status-grid, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
+      .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
@@ -4222,9 +6903,32 @@ HTML = r"""<!doctype html>
       .kpi-monitor-grid { grid-template-columns: 1fr; }
       .kpi-monitor-head { grid-template-columns: 46px minmax(0, 1fr); }
       .kpi-monitor-head .mini-button { grid-column: 1 / -1; justify-self: start; }
+      .exec-status-grid { grid-template-columns: 1fr; }
       .annual-plan { grid-column: 1 / -1; text-align: left; }
       .quarter-matrix { grid-template-columns: 1fr; }
       .quarter-row { min-height: 0; }
+      .macro-layout-card .macro-growth-panel,
+      .finance-sector-grid,
+      .finance-card-body.two-col,
+      .finance-metric-row,
+      .finance-metric-row.two,
+      .finance-summary-grid,
+      .finance-quarter-grid,
+      .macro-growth-overview,
+      .macro-period-grid,
+      .macro-composition-grid,
+      .budget-invest-summary,
+      .budget-invest-body,
+      .budget-periods-grid { grid-template-columns: 1fr; }
+      .macro-hero-card { grid-template-columns: 1fr; text-align: center; }
+      .macro-hero-copy { text-align: center; justify-items: center; }
+      .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
+      .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
+      .industry-driver-arrow { display: none; }
+      .industry-driver-metrics { grid-template-columns: 1fr; gap: 10px; }
+      .industry-driver-divider { display: none; }
+      .budget-invest-summary > div { border-right: 0; border-bottom: 1px solid var(--line); }
+      .budget-invest-summary > div:last-child { border-bottom: 0; }
       .composition-grid, .driver-grid { grid-template-columns: 1fr; }
       .front-kpi { border-right: 0; border-bottom: 1px solid var(--line); }
       .district-card { grid-template-columns: 1fr; }
@@ -4310,7 +7014,8 @@ HTML = r"""<!doctype html>
       { id: "investment", label: "Хорижий инвестициялар", short: "Инвестиция", sector: "Хорижий инвестиция", icon: "rocket" },
       { id: "export", label: "Экспорт ҳажми", short: "Экспорт", sector: "Экспорт", icon: "globe" },
       { id: "unemployment", label: "Ишсизлик даражаси", short: "Ишсизлик", sector: "Бандлик ва камбағаллик", icon: "users" },
-      { id: "poverty", label: "Камбағаллик даражаси", short: "Камбағаллик", sector: "Бандлик ва камбағаллик", icon: "users" }
+      { id: "poverty", label: "Камбағаллик даражаси", short: "Камбағаллик", sector: "Бандлик ва камбағаллик", icon: "users" },
+      { id: "small_business_share", label: "Кичик тадбиркорликнинг ЯҲМдаги улуши", short: "Кичик бизнес улуши", sector: "Бандлик ва камбағаллик", icon: "briefcase" }
     ];
 
     const macroComponentDefs = [
@@ -4330,6 +7035,28 @@ HTML = r"""<!doctype html>
       { id: "mfy_clear", label: "Камбағаллик ва ишсизликдан холи МФЙлар", short: "Камбағалликдан холи МФЙлар", sector: "Бандлик ва камбағаллик", icon: "users" },
       { id: "microprojects", label: "Микролойиҳалар", short: "Микролойиҳа", sector: "Бандлик ва камбағаллик", icon: "users" }
     ];
+
+    const districtKpiRegistry = {
+      grp: { layer: "composition", source: "1.2, 1.4, 1.5-жадваллар", periods: ["q1", "h1", "m9", "year"], note: "ЯҲМ туман кесимида берилмаган; саноат, қишлоқ хўжалиги ва хизматлар орқали кўрилади." },
+      industry: { layer: "excel", source: "1.2-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      agriculture: { layer: "excel", source: "1.4-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      services: { layer: "excel", source: "1.5-жадвал", periods: ["q1", "h1", "m9", "year"], note: "Excel туман KPI: ҳажм ва ўсиш суръати." },
+      localization: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: лойиҳа сони ва қиймати." },
+      energy_electricity: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: тежаладиган электр энергияси." },
+      energy_gas: { layer: "excel", source: "1.3-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: тежаладиган табиий газ." },
+      inflation: { layer: "excel-proxy", source: "2.2-жадвал", periods: ["year"], note: "Туман инфляция фоизи эмас; нарх барқарорлиги учун омбор инфратузилмаси." },
+      budget: { layer: "excel", source: "3-жадвал", periods: ["q2", "h1", "year"], note: "Excel туман KPI: режа, кутилиш/амалда ва ижро." },
+      budget_investment: { layer: "excel", source: "4.1-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: лимит, объектлар ва ўзлаштириш." },
+      investment: { layer: "excel", source: "4.2-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: режа/прогноз, кутилиш, лойиҳа ва иш ўрни." },
+      export: { layer: "excel", source: "5.1-жадвал", periods: ["q1", "h1", "year"], note: "Excel туман KPI: экспорт ҳажми, ўсиш ва экспортчилар." },
+      unemployment: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: ишсизлик даражаси чегараси." },
+      poverty: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик даражаси чегараси." },
+      small_business_share: { layer: "guarantee-target", source: "0_Чора-тадбир · 74-қатор", periods: ["year"], note: "Кафолат хати KPI: вилоят даражасидаги кичик тадбиркорлик улуши." },
+      jobs: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: доимий ишга жойлаштириш." },
+      legalization: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: норасмий бандларни легаллаштириш." },
+      mfy_clear: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: камбағаллик ва ишсизликдан холи МФЙлар." },
+      microprojects: { layer: "excel-target", source: "6-жадвал", periods: ["h1", "year"], note: "Excel туман мақсади: микролойиҳалар." }
+    };
 
     const state = {
       page: "dashboard",
@@ -4402,6 +7129,23 @@ HTML = r"""<!doctype html>
       return displayValue(row.fact, row.unit, compact);
     }
 
+    function periodSourceKind(def, period, row) {
+      const id = typeof def === "string" ? def : def?.id;
+      if (row?.reportStatus === "approved") return "actual";
+      if (period === "q1" && (n(row?.fact) !== null || n(row?.growth) !== null)) return "actual";
+      if (["budget", "budget_investment", "investment", "export"].includes(id) && period !== "q1" && (n(row?.fact) !== null || n(row?.execution) !== null)) return "expected";
+      if (["inflation", "unemployment", "poverty", "small_business_share"].includes(id)) return "target";
+      return hasPeriodValue(row) ? "plan" : "empty";
+    }
+
+    function planLabel(def, row, period) {
+      return periodSourceKind(def, period, row) === "target" ? "Режа (мақсад)" : "Режа";
+    }
+
+    function factLabel(def, row, period) {
+      return periodSourceKind(def, period, row) === "expected" ? "Кутилиш" : "Амалда";
+    }
+
     function tinyValue(value, unit = "") {
       const num = n(value);
       if (num === null) return "—";
@@ -4429,15 +7173,6 @@ HTML = r"""<!doctype html>
       return planValue(row);
     }
 
-    function q1ActualText(id) {
-      const row = dashboardPeriodKpi(id, "q1");
-      const growthOnly = id === "grp" || macroComponentDefs.some(item => item.id === id) || n(row.growth) !== null;
-      if (!row) return "I чорак: —";
-      if (growthOnly && n(row.growth) !== null) return `I чорак: ${growthValue(row.growth)}`;
-      if (n(row.fact) !== null) return `I чорак: ${growthOnly ? "—" : displayValue(row.fact, row.unit)}`;
-      return "I чорак: —";
-    }
-
     function hasPeriodValue(row) {
       return n(row.fact) !== null || n(row.plan) !== null || n(row.growth) !== null || n(row.execution) !== null || row.planText;
     }
@@ -4447,8 +7182,19 @@ HTML = r"""<!doctype html>
       if (row?.reportStatusLabel) return { cls: "planned", chip: reportStatusClass(row.reportStatus), label: row.reportStatusLabel };
       if (period === "q1" && (n(row.fact) !== null || n(row.growth) !== null)) return { cls: "actual", chip: "", label: "" };
       if (period === "q1") return { cls: "empty", chip: "grey", label: "I чорак белгиланмаган" };
-      if (hasPeriodValue(row)) return { cls: "planned", chip: "grey", label: "Режа" };
+      const kind = periodSourceKind(def, period, row);
+      if (kind === "expected") return { cls: "planned", chip: "grey", label: "Кутилиш" };
+      if (kind === "target") return { cls: "planned", chip: "grey", label: "Маълумот кутилмоқда" };
+      if (kind === "plan") return { cls: "planned", chip: "grey", label: "Режа" };
       return { cls: "empty", chip: "grey", label: "Давр белгиланмаган" };
+    }
+
+    function executionLabel(def, row, period) {
+      const kind = periodSourceKind(def, period, row);
+      if (kind === "target") return "Мақсад";
+      if (n(row?.execution) === null) return "Кўрсаткич";
+      if (row?.reportStatus === "approved" || period === "q1") return "Ижро";
+      return "Кутилган ижро";
     }
 
     function pct(actual, target, direction = "higher") {
@@ -4480,7 +7226,7 @@ HTML = r"""<!doctype html>
       return {
         submitted: "Киритилди",
         approved: "Тасдиқланди",
-        review: "Қайта кўришда",
+        review: "Кўриб чиқилмоқда",
         rejected: "Қайтарилди"
       }[status] || "Киритилди";
     }
@@ -4492,6 +7238,24 @@ HTML = r"""<!doctype html>
         review: "amber",
         rejected: "red"
       }[status] || "blue";
+    }
+
+    function executionStatusClass(status) {
+      return {
+        "Бажарилди": "green",
+        "Қисман бажарилди": "amber",
+        "Бажарилмади": "red",
+        "Муддати кечикди": "red",
+        "Маълумот йўқ": "grey"
+      }[status] || "grey";
+    }
+
+    function evidenceStatusClass(status) {
+      return {
+        "Етарли": "green",
+        "Етарли эмас": "amber",
+        "Далил йўқ": "red"
+      }[status] || "grey";
     }
 
     function colorFor(status) {
@@ -4506,6 +7270,7 @@ HTML = r"""<!doctype html>
         price: '<path d="M12 3v18"/><path d="M17 7.5C16.2 6 14.7 5 12.3 5H11a3 3 0 0 0 0 6h2a3 3 0 0 1 0 6h-1.3C9.3 17 7.8 16 7 14.5"/>',
         rocket: '<path d="M12 15l-3-3c1-5 4-8 10-9-1 6-4 9-9 10Z"/><path d="M9 12l-4 1-2 4 4-2 1-4M12 15l-1 4-4 2 2-4 4-1"/><circle cx="15" cy="8" r="1.5"/>',
         globe: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2 3 5 3 8s-1 6-3 8M12 4c-2 2-3 5-3 8s1 6 3 8"/>',
+        briefcase: '<path d="M10 6V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v1"/><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 12h16M10 12v2h4v-2"/>',
         users: '<path d="M16 19v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3"/><path d="M20 19v-2a3 3 0 0 0-2-2.8M16 4.2a3 3 0 0 1 0 5.6"/>'
       };
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${icons[name] || icons.trend}</svg>`;
@@ -4619,6 +7384,16 @@ HTML = r"""<!doctype html>
       };
     }
 
+    function kafolatPercentTarget(kpiId, period) {
+      const rows = DATA.kafolat_kpi_targets || [];
+      const row = rows.find(item => item.kpi === kpiId && item.periodCode === period)
+        || rows.find(item => item.kpi === kpiId && item.periodCode === "year")
+        || rows.find(item => item.kpi === kpiId);
+      const match = (row?.title || "").match(/(\d+(?:[,.]\d+)?)\s*(?:фоиз|%)/i);
+      if (!match) return null;
+      return Number(match[1].replace(",", "."));
+    }
+
     function baseRegionalKpi(id, period = state.period) {
       if (id === "grp") return macroByIndex(0, period);
       if (id === "industry") return macroByIndex(1, period);
@@ -4629,19 +7404,19 @@ HTML = r"""<!doctype html>
       if (id === "budget") {
         const b = DATA.regional.budget;
         const map = {
-          year: [null, b.year_expected],
-          h1: [null, b.h1_expected],
+          year: [b.year_expected, b.year_plan],
+          h1: [b.h1_expected, b.h1_plan],
           m9: [null, null]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
-        return { label: "Бюджет тушумлари", fact, plan, unit: b.unit, growth: null, execution, main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, b.unit), status: statusFor(execution), note: "режа" };
+        return { label: "Бюджет тушумлари", fact, plan, unit: b.unit, growth: null, execution, main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, b.unit), status: statusFor(execution), note: "кутилиш / режа" };
       }
       if (id === "investment") {
         const x = DATA.regional.foreign_investment;
         const map = {
-          year: [null, x.year_expected],
-          h1: [null, x.h1_expected],
+          year: [x.year_expected, x.year_forecast],
+          h1: [x.h1_expected, x.h1_plan],
           m9: [null, null]
         };
         const [fact, plan] = map[period] || map.year;
@@ -4651,8 +7426,8 @@ HTML = r"""<!doctype html>
       if (id === "export") {
         const e = DATA.regional.export;
         const map = {
-          year: [null, e.year_expected, e.year_growth],
-          h1: [null, e.h1_expected, e.h1_growth],
+          year: [e.year_expected, e.year_forecast, e.year_growth],
+          h1: [e.h1_expected, e.h1_expected, e.h1_growth],
           m9: [null, null, null]
         };
         const [fact, plan, growth] = map[period] || map.year;
@@ -4668,6 +7443,10 @@ HTML = r"""<!doctype html>
         const emp = DATA.regional.employment;
         const target = period === "year" ? emp.poverty_year : period === "h1" ? emp.poverty_h1 : null;
         return { label: "Камбағаллик даражаси", fact: null, plan: target, unit: "%", growth: null, execution: null, main: target ? `${fmt(target, 1)}%` : "—", status: "grey", note: `${fmt(emp.mfy_h1, 0)} та МФЙ H1, ${fmt(emp.mfy_year, 0)} та йиллик` };
+      }
+      if (id === "small_business_share") {
+        const target = period === "year" ? kafolatPercentTarget(id, period) : null;
+        return { label: "Кичик тадбиркорлик улуши", fact: null, plan: target, unit: "%", growth: null, execution: null, main: target ? `${fmt(target, 1)}%` : "—", status: "grey", note: "0_Чора-тадбир · 74-қатор" };
       }
       return baseRegionalKpi("export", period);
     }
@@ -4694,13 +7473,34 @@ HTML = r"""<!doctype html>
         };
       }
       if (id === "inflation") return inflationPeriodKpi(period);
+      if (id === "budget_investment") {
+        const row = DATA.regional.budget_investment || {};
+        const map = {
+          q1: [row.q1_absorption, row.limit, row.q1_pct],
+          h1: [row.h1_absorption, row.limit, row.h1_pct],
+          m9: [null, null, null],
+          year: [row.year_absorption, row.limit, row.year_pct]
+        };
+        const [fact, plan, executionFromSource] = map[period] || map.year;
+        const execution = n(executionFromSource) ?? pct(fact, plan);
+        return {
+          fact,
+          plan,
+          unit: row.unit || "млн сўм",
+          growth: null,
+          execution,
+          status: statusFor(execution),
+          main: execution ? `${fmt(execution, 1)}%` : displayValue(fact ?? plan, row.unit || "млн сўм"),
+          note: `${fmt(row.objects, 0)} та объект · 4.1-жадвал Жами қатори`
+        };
+      }
       if (id === "budget") {
         const b = DATA.regional.budget;
         const map = {
           q1: [null, null],
-          h1: [null, b.h1_expected],
+          h1: [b.h1_expected, b.h1_plan],
           m9: [null, null],
-          year: [null, b.year_expected]
+          year: [b.year_expected, b.year_plan]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
@@ -4710,9 +7510,9 @@ HTML = r"""<!doctype html>
         const x = DATA.regional.foreign_investment;
         const map = {
           q1: [x.q1_actual, x.q1_plan],
-          h1: [null, x.h1_expected],
+          h1: [x.h1_expected, x.h1_plan],
           m9: [null, null],
-          year: [null, x.year_expected]
+          year: [x.year_expected, x.year_forecast]
         };
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan);
@@ -4722,9 +7522,9 @@ HTML = r"""<!doctype html>
         const e = DATA.regional.export;
         const map = {
           q1: [e.q1_value, null, e.q1_growth],
-          h1: [null, e.h1_expected, e.h1_growth],
+          h1: [e.h1_expected, e.h1_expected, e.h1_growth],
           m9: [null, null, null],
-          year: [null, e.year_expected, e.year_growth]
+          year: [e.year_expected, e.year_forecast, e.year_growth]
         };
         const [fact, plan, growth] = map[period] || map.year;
         const execution = pct(fact, plan);
@@ -4753,6 +7553,10 @@ HTML = r"""<!doctype html>
         const [fact, plan] = map[period] || map.year;
         const execution = pct(fact, plan, "lower");
         return { fact, plan, unit: "%", growth: null, execution, status: statusFor(execution) };
+      }
+      if (id === "small_business_share") {
+        const plan = period === "year" ? kafolatPercentTarget(id, period) : null;
+        return { fact: null, plan, unit: "%", growth: null, execution: null, status: "grey", main: plan ? `${fmt(plan, 1)}%` : "—" };
       }
       return baseDashboardPeriodKpi("export", period);
     }
@@ -4916,7 +7720,7 @@ HTML = r"""<!doctype html>
       budget_investment: ["budget_investment"],
       investment: ["investment"],
       export: ["export"],
-      employment: ["unemployment", "poverty"]
+      employment: ["unemployment", "poverty", "small_business_share"]
     };
 
     function kpiDefById(id) {
@@ -4937,8 +7741,14 @@ HTML = r"""<!doctype html>
       const direct = Object.entries(dashboardKpiMap).find(([, ids]) => ids.includes(kpiId));
       if (direct) return direct[0];
       if (["localization", "energy_electricity", "energy_gas"].includes(kpiId)) return "macro";
-      if (["jobs", "legalization", "mfy_clear", "microprojects"].includes(kpiId)) return "employment";
+      if (["jobs", "legalization", "mfy_clear", "microprojects", "small_business_share"].includes(kpiId)) return "employment";
       return "macro";
+    }
+
+    const financeKpiIds = ["budget", "budget_investment", "investment", "export"];
+
+    function isFinanceKpi(kpiId) {
+      return financeKpiIds.includes(kpiId);
     }
 
     function dashboardModuleIntro(moduleId) {
@@ -4949,7 +7759,7 @@ HTML = r"""<!doctype html>
         budget_investment: "Бюджет инвестициялари ўзлаштирилиши.",
         investment: "Хорижий инвестициялар ҳажми, режа ва ижро.",
         export: "Экспорт ҳажми ва ўсиш кўрсаткичлари.",
-        employment: "Ишсизлик ва камбағаллик бўйича асосий KPIлар."
+        employment: "Ишсизлик, камбағаллик ва кичик тадбиркорлик бўйича асосий KPIлар."
       };
       return text[moduleId] || "";
     }
@@ -4966,6 +7776,71 @@ HTML = r"""<!doctype html>
         kpiDefs.find(k => k.id === "poverty"),
         ...districtOnlyDefs
       ].filter(Boolean);
+    }
+
+    function districtKpiMeta(kpiId) {
+      return districtKpiRegistry[kpiId] || { layer: "excel", source: "Excel жадвал", periods: [state.period], note: "Excel туман KPI." };
+    }
+
+    function districtLayerTitle(meta) {
+      const labels = {
+        composition: "Excel таркибий KPI",
+        excel: "Excel туман KPI",
+        "excel-proxy": "Excel ёрдамчи KPI",
+        "excel-target": "Excel мақсад KPI",
+        "guarantee-target": "Кафолат хати KPI"
+      };
+      return labels[meta.layer] || "Excel туман KPI";
+    }
+
+    function districtKpiCoverage(kpiId, period = null) {
+      const meta = districtKpiMeta(kpiId);
+      const def = districtSelectorDefs().find(item => item.id === kpiId) || currentKpiDef();
+      const cfg = districtTableConfig(def);
+      const usePeriod = period || cfg.primaryPeriod || state.period;
+      const districts = DATA.districts || [];
+      const available = districts.filter(d => hasPeriodValue(districtKpi(d, kpiId, usePeriod))).length;
+      return {
+        total: districts.length,
+        available,
+        period: usePeriod,
+        periods: meta.periods || [],
+        label: `${available}/${districts.length}`
+      };
+    }
+
+    function periodNameById(periodId) {
+      if (periodId === "q2") return "II чорак";
+      return periods.find(item => item.id === periodId)?.label || periodId;
+    }
+
+    function renderDistrictDataLayers(kpi, period) {
+      const meta = districtKpiMeta(kpi.id);
+      const coverage = districtKpiCoverage(kpi.id, period);
+      const targetCount = districtTargetsForKpi(kpi.id).length;
+      const taskCount = tasksForKpi(kpi.id).length;
+      const periodList = coverage.periods.length ? coverage.periods.map(periodNameById).join(", ") : "давр белгиланмаган";
+      return `<div class="district-data-layers">
+        <div class="district-data-layer">
+          <span>${districtLayerTitle(meta)}</span>
+          <strong>${coverage.label} ҳудуд</strong>
+          <small>${meta.source} · ${periodList}</small>
+        </div>
+        <div class="district-data-layer">
+          <span>D-мақсад</span>
+          <strong>${targetCount} та</strong>
+          <small>Кафолат хатидан ажратилган туман/шаҳар мажбурияти.</small>
+        </div>
+        <div class="district-data-layer">
+          <span>T-топшириқ</span>
+          <strong>${taskCount} та</strong>
+          <small>Ижро назоратидаги амалий топшириқлар; D-мақсадлар бунга қўшилмайди.</small>
+        </div>
+        <div class="district-layer-note">
+          <span>Мантиқ</span>
+          <strong>${meta.note}</strong>
+        </div>
+      </div>`;
     }
 
     function currentDistrict() {
@@ -5074,7 +7949,10 @@ HTML = r"""<!doctype html>
     }
 
     function isSpecificTaskForKpi(task, kpiId) {
-      if (task.kpi) return task.kpi === kpiId;
+      if (task.kpi) {
+        if (kpiId === "industry") return ["industry", "localization", "energy_electricity", "energy_gas"].includes(task.kpi);
+        return task.kpi === kpiId;
+      }
       const title = cleanTaskTitle(task.title);
       const lower = title.toLowerCase();
       if (lower.includes("ялпи ҳудудий маҳсулотнинг 7,2") || title === "1. Саноат маҳсулотларини ишлаб чиқариш.") {
@@ -5107,6 +7985,9 @@ HTML = r"""<!doctype html>
       if (kpiId === "legalization") {
         return /легаллаш|норасмий|банд/i.test(title);
       }
+      if (kpiId === "small_business_share") {
+        return /кичик ва ўрта бизнес|кичик тадбиркор|тадбиркорлик субъект|субъектларининг фаолияти|кредитлар ажратиш/i.test(title);
+      }
       if (kpiId === "budget_investment") {
         return /бюджет|инвест|объект|ўзлаштир|қурилиш/i.test(title);
       }
@@ -5135,21 +8016,15 @@ HTML = r"""<!doctype html>
     }
 
     function kpiCard(def) {
-      const row = annualPlanKpi(def.id);
-      const q1Text = q1ActualText(def.id);
       const active = def.id === state.kpi ? "active" : "";
       const parent = def.id === "grp" && state.dashboardModule === "macro" ? "parent" : "";
+      const meta = active ? "Танланган KPI" : "Кўрсаткични очиш";
       return `<button class="front-kpi ${active} ${parent}" data-kpi="${def.id}" aria-label="${def.label}">
         <div class="kpi-icon">${icon(def.icon)}</div>
-        <div>
+        <div class="front-kpi-copy">
           <h3>${def.short}</h3>
-          <div class="big-row">
-            <span class="big">${primaryMetric(row)}</span>
-            <span class="big-note">2026 йил режа</span>
-          </div>
-          <div class="mini-row">
-            <span><b>${q1Text}</b></span>
-          </div>
+          <p>${def.label}</p>
+          <span class="front-kpi-meta"><i class="front-kpi-dot" aria-hidden="true"></i>${meta}</span>
         </div>
       </button>`;
     }
@@ -5177,6 +8052,53 @@ HTML = r"""<!doctype html>
       </div>`;
     }
 
+    function uniqueTasks(tasks) {
+      const seen = new Set();
+      return tasks.filter(task => {
+        const key = task.id || `${task.kpi || ""}:${task.title || ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function dashboardScorelineTasks(selected, moduleId) {
+      if (moduleId === "employment") {
+        if (selected.id === "unemployment") {
+          return uniqueTasks(["unemployment", "jobs", "legalization", "small_business_share"].flatMap(tasksForKpi));
+        }
+        if (selected.id === "poverty") {
+          return uniqueTasks(["poverty", "mfy_clear", "microprojects"].flatMap(tasksForKpi));
+        }
+        if (selected.id === "small_business_share") {
+          return uniqueTasks(["small_business_share", "jobs", "legalization"].flatMap(tasksForKpi));
+        }
+      }
+      if (moduleId !== "macro") return DATA.tasks.filter(t => t.module === moduleId);
+      if (selected.id === "grp") return DATA.tasks.filter(t => t.module === "macro");
+      if (selected.id === "industry") {
+        return uniqueTasks(["industry", "localization", "energy_electricity", "energy_gas"].flatMap(tasksForKpi));
+      }
+      return uniqueTasks(tasksForKpi(selected.id).filter(t => t.module === "macro"));
+    }
+
+    function dashboardScorelineLabel(selected, moduleId) {
+      if (moduleId !== "macro") {
+        const totalTasks = DATA.task_meta?.declared_total || DATA.tasks.length;
+        return `${selected.short} бўйича чора-тадбирлар ҳолати. Бу ерда умумий ${totalTasks} та реестр эмас, фақат танланган KPI/йўналишга тегишли ишлар кўрсатилади.`;
+      }
+      if (selected.id === "grp") {
+        return "ЯҲМга оид макроиқтисодий чора-тадбирлар ҳолати. ЯҲМ якуний KPI бўлгани учун бу ерда унга олиб борувчи макро ишлар кўрсатилади.";
+      }
+      return `${selected.short}га оид чора-тадбирлар ҳолати.`;
+    }
+
+    function dashboardScorelineRouteKpi(selected, moduleId) {
+      if (moduleId !== "macro") return "all";
+      if (selected.id === "grp") return "all";
+      return selected.id;
+    }
+
     function renderDashboard() {
       if (state.page === "dashboard") {
         state.dashboardModule = dashboardModuleForKpi(state.kpi || "grp");
@@ -5184,49 +8106,47 @@ HTML = r"""<!doctype html>
         if (!allowed.some(def => def.id === state.kpi)) state.kpi = allowed[0]?.id || "grp";
       }
       const selected = currentKpiDef();
-      const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
       const moduleKpis = dashboardKpisForModule(state.dashboardModule);
-      const moduleTasks = DATA.tasks.filter(t => t.module === state.dashboardModule);
+      const selectedModule = moduleById(state.dashboardModule) || dashboardModules()[0];
+      const moduleTasks = dashboardScorelineTasks(selected, state.dashboardModule);
       const moduleTotal = moduleTasks.length;
       const moduleDone = moduleTasks.filter(t => t.status === "green").length;
-      const moduleLeft = moduleTotal - moduleDone;
+      const moduleOpen = moduleTotal - moduleDone;
       const modulePct = moduleTotal > 0 ? Math.round(moduleDone / moduleTotal * 100) : 0;
-      const scoreR = 26, scoreCx = 35, scoreCy = 35;
-      const scoreCirc = 2 * Math.PI * scoreR;
-      const scoreGreen = scoreCirc * (modulePct / 100);
-      const scoreRed = scoreCirc * ((100 - modulePct) / 100);
-      const scoreRedStart = -90 + (modulePct / 100) * 360;
-      const scorelineHtml = `<div class="scoreline">
-          <div class="score" role="button" tabindex="0" data-scoreline-status="all">
-            <div class="score-label">Жами топшириқлар:</div>
-            <div class="score-chart-wrap">
-              <svg viewBox="0 0 70 70" fill="none">
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#eaeaea" stroke-width="6"/>
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#22c55e" stroke-width="6"
-                  stroke-dasharray="${scoreGreen} ${scoreCirc}" stroke-linecap="butt"
-                  transform="rotate(-90 ${scoreCx} ${scoreCy})"/>
-                <circle cx="${scoreCx}" cy="${scoreCy}" r="${scoreR}" stroke="#ef4444" stroke-width="6"
-                  stroke-dasharray="${scoreRed} ${scoreCirc}" stroke-linecap="butt"
-                  transform="rotate(${scoreRedStart} ${scoreCx} ${scoreCy})"/>
-              </svg>
-              <div class="score-pct">${modulePct}%</div>
-            </div>
-            <div class="score-legend">
-              <div class="score-leg-item"><div class="score-leg-dot" style="background:#22c55e"></div>Бажарилди</div>
-              <div class="score-leg-item"><div class="score-leg-dot" style="background:#ef4444"></div>Бажарилмади</div>
-            </div>
-            <div class="score-num">${moduleTotal}</div>
+      const taskScope = selected.id === "grp" ? "ЯҲМга оид чора-тадбирлар" : `${selected.short}га оид чора-тадбирлар`;
+      const scorelineHtml = `<div class="scoreline execution-strip">
+          <div class="scoreline-copy">
+            <span>Чора-тадбирлар ижроси</span>
+            <strong>${taskScope}</strong>
+            <small>${dashboardScorelineLabel(selected, state.dashboardModule)}</small>
           </div>
-          <div class="score" role="button" tabindex="0" data-scoreline-status="done">
-            <div class="score-label">Бажарилди:</div>
-            <div class="score-num" style="color:#22c55e">${moduleDone}</div>
+          <div class="exec-status-grid">
+            <button class="exec-status-pill" type="button" data-scoreline-status="all">
+              <span>Жами</span>
+              <strong>${moduleTotal}</strong>
+            </button>
+            <button class="exec-status-pill green" type="button" data-scoreline-status="done">
+              <span>Бажарилди</span>
+              <strong>${moduleDone}</strong>
+            </button>
+            <button class="exec-status-pill red" type="button" data-scoreline-status="open">
+              <span>Бажарилмади</span>
+              <strong>${moduleOpen}</strong>
+            </button>
           </div>
-          <div class="score" role="button" tabindex="0" data-scoreline-status="open">
-            <div class="score-label">Бажарилмади:</div>
-            <div class="score-num" style="color:#ef4444">${moduleLeft}</div>
+          <div class="exec-progress-box">
+            <div class="exec-donut" style="--pct:${modulePct}"><strong>${modulePct}%</strong></div>
+            <small>бажарилиш</small>
+          </div>
+          <div class="score-actions">
+            <button class="score-action primary" type="button" data-scoreline-status="all">Чора-тадбирларни кўриш</button>
+            <button class="score-action" type="button" data-open-execution data-exec-kpi="${selected.id}">Ижро журнали</button>
           </div>
         </div>`;
       const isMacro = state.dashboardModule === "macro";
+      const showModuleKpis = isMacro || state.dashboardModule === "employment";
+      const moduleKpiLayout = isMacro ? "macro-layout" : state.dashboardModule === "employment" ? "employment-layout" : "";
+      const kpiWorkspaceHtml = `<div class="kpi-monitor-grid single">${kpiDashboardCard(selected)}</div>`;
       $("#dashboardPage").innerHTML = `
         <div class="dashboard-module-tabs">
           ${dashboardModules().map(module => `<button class="module-tab ${module.id === state.dashboardModule ? "active" : ""}" data-dashboard-module="${module.id}" type="button">
@@ -5240,8 +8160,8 @@ HTML = r"""<!doctype html>
             <p>${dashboardModuleIntro(state.dashboardModule)}</p>
           </div>
         </div>
-        ${isMacro ? `<div class="front-kpis module-kpis macro-layout">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
-        <div class="kpi-monitor-grid single">${state.dashboardModule === "employment" ? moduleKpis.map(kpiDashboardCard).join("") : kpiDashboardCard(selected)}</div>
+        ${showModuleKpis ? `<div class="front-kpis module-kpis ${moduleKpiLayout}">${moduleKpis.map(kpiCard).join("")}</div>` : ""}
+        ${kpiWorkspaceHtml}
         ${scorelineHtml}`;
       bindKpiCards($("#dashboardPage"));
       $$("[data-dashboard-module]", $("#dashboardPage")).forEach(btn => btn.addEventListener("click", () => {
@@ -5276,7 +8196,7 @@ HTML = r"""<!doctype html>
       const goToScorelineTasks = status => {
         state.taskModule = state.dashboardModule;
         state.taskStatus = status;
-        state.kpi = "all";
+        state.kpi = dashboardScorelineRouteKpi(selected, state.dashboardModule);
         state.taskDistrict = "all";
         state.taskPeriod = "all";
         state.page = "tasks";
@@ -5310,7 +8230,7 @@ HTML = r"""<!doctype html>
         if (def.id === "inflation") return "Йил якунида инфляция белгиланган чегарадан ошмаслиги керак.";
         if (def.id === "poverty") return "Камбағаллик даражаси туманлар кесимида кузатилади.";
         if (def.id === "unemployment") return "Ишсизлик даражаси режага нисбатан баҳоланади.";
-        if (["budget", "investment"].includes(def.id)) return "Амалдаги натижа режага нисбатан баҳоланади.";
+        if (["budget", "investment"].includes(def.id)) return "Кутилиш ёки тасдиқланган амалдаги натижа режага нисбатан баҳоланади.";
         if (growthOnly) return "Асосий кўрсаткич ўсиш суръати.";
         return "Режа, амалдаги натижа ва ижро бир жойда.";
       })();
@@ -5338,8 +8258,440 @@ HTML = r"""<!doctype html>
       </div>`;
     }
 
+    function dashboardDistrictRoute(def) {
+      const moduleKpis = dashboardKpisForModule(dashboardModuleForKpi(def.id));
+      const kpiId = kpiHasAnyDistrictData(def.id)
+        ? def.id
+        : moduleKpis.find(item => kpiHasAnyDistrictData(item.id))?.id || null;
+      if (!kpiId) return null;
+      return {
+        kpiId,
+        label: def.id === kpiId ? "Туманлар кесими" : "Таркибий KPIлар кесими"
+      };
+    }
+
+    function macroGrowthPeriods() {
+      return [
+        { label: "I чорак", period: "q1", state: "Амалда", cls: "actual" },
+        { label: "II чорак", period: "h1", state: "Режа", cls: "planned" },
+        { label: "III чорак", period: "m9", state: "Режа", cls: "planned" },
+        { label: "Йиллик", period: "year", state: "Режа", cls: "planned" }
+      ];
+    }
+
+    function macroGrowthWidth(value, values) {
+      const delta = Math.max(0, Math.abs((n(value) || 100) - 100));
+      const maxDelta = Math.max(1, ...values.map(v => Math.max(0, Math.abs((n(v) || 100) - 100))));
+      return Math.max(8, Math.min(100, (delta / maxDelta) * 100));
+    }
+
+    function renderMacroComposition() {
+      const yearValues = macroComponentDefs.map(def => dashboardPeriodKpi(def.id, "year").growth);
+      return `<details class="macro-composition-panel macro-composition-dropdown" aria-label="ЯҲМ таркиби">
+        <summary class="macro-composition-head">
+          <div>
+            <strong>ЯҲМ таркибий мақсадлари</strong>
+            <small>Саноат, қишлоқ хўжалиги, қурилиш ва хизматлар ўсиш суръати</small>
+          </div>
+          <span class="macro-dropdown-meta">
+            <span>${macroComponentDefs.length} та мақсад</span>
+            <span class="macro-dropdown-caret" aria-hidden="true">⌄</span>
+          </span>
+        </summary>
+        <div class="macro-composition-body">
+          <div class="macro-composition-grid">
+            ${macroComponentDefs.map((item, idx) => {
+              const year = dashboardPeriodKpi(item.id, "year");
+              const width = macroGrowthWidth(year.growth, yearValues);
+              const colors = ["#08742d", "#43a95d", "#24959a", "var(--blue)"];
+              return `<button class="macro-composition-card ${state.kpi === item.id ? "active" : ""}" type="button" data-component="${item.id}">
+                <span class="macro-comp-icon">${icon(item.icon)}</span>
+                <span class="macro-comp-name">${item.short}</span>
+                <i class="macro-composition-bar" aria-hidden="true"><i style="--w:${width}%;--macro-color:${colors[idx]}"></i></i>
+                <strong class="macro-comp-value">${growthValue(year.growth)}</strong>
+              </button>`;
+            }).join("")}
+          </div>
+          <div class="macro-composition-actions">
+            <button class="mini-button primary" type="button" data-open-districts="industry" data-period="h1">Туманлар кесимига ўтиш</button>
+          </div>
+        </div>
+      </details>`;
+    }
+
+    function renderIndustryDriversPanel() {
+      const src = DATA.regional.industry_drivers || {};
+      const drivers = [
+        {
+          id: "localization",
+          cls: "green",
+          icon: "factory",
+          title: "Маҳаллийлаштириш",
+          desc: "Лойиҳалар сони ва қиймати",
+          h1: `${fmt(src.localization_h1_projects, 0)} та`,
+          h1Note: displayValue(src.localization_h1_value_mln, "млн сўм"),
+          year: `${fmt(src.localization_year_projects, 0)} та`,
+          yearNote: displayValue(src.localization_year_value_mln, "млн сўм")
+        },
+        {
+          id: "energy_electricity",
+          cls: "blue",
+          icon: "trend",
+          title: "Электр тежаш",
+          desc: "Тежаладиган электр энергияси",
+          h1: `${fmt(src.energy_electricity_h1, 1)} млн кВт·соат`,
+          h1Note: "",
+          year: `${fmt(src.energy_electricity_year, 1)} млн кВт·соат`,
+          yearNote: ""
+        },
+        {
+          id: "energy_gas",
+          cls: "orange",
+          icon: "rocket",
+          title: "Газ тежаш",
+          desc: "Тежаладиган табиий газ",
+          h1: `${fmt(src.energy_gas_h1, 1)} млн м³`,
+          h1Note: "",
+          year: `${fmt(src.energy_gas_year, 1)} млн м³`,
+          yearNote: ""
+        }
+      ];
+      return `<aside class="industry-driver-panel" aria-label="Саноат драйверлари">
+        <div class="industry-driver-head">
+          <strong>Саноат драйверлари</strong>
+          <span class="info-dot" title="Саноатга боғланган туманлар кесимидаги драйверлар">i</span>
+        </div>
+        <div class="industry-driver-list">
+          ${drivers.map(item => `<button class="industry-driver-card ${item.cls}" type="button" data-open-districts="${item.id}" data-period="h1">
+            <span class="driver-icon ${item.cls}">${icon(item.icon)}</span>
+            <span class="industry-driver-body">
+              <span class="industry-driver-title">
+                <strong>${item.title}</strong>
+                <span>${item.desc}</span>
+              </span>
+              <span class="industry-driver-metrics">
+                <span class="industry-driver-metric"><span>I ярим йиллик</span><strong>${item.h1}</strong>${item.h1Note ? `<small>${item.h1Note}</small>` : ""}</span>
+                <span class="industry-driver-divider" aria-hidden="true"></span>
+                <span class="industry-driver-metric"><span>Йиллик кутилиш</span><strong>${item.year}</strong>${item.yearNote ? `<small>${item.yearNote}</small>` : ""}</span>
+              </span>
+            </span>
+            <span class="industry-driver-arrow" aria-hidden="true">›</span>
+          </button>`).join("")}
+        </div>
+        <button class="mini-button" type="button" data-open-districts="industry" data-period="h1">Саноат деталларига ўтиш ›</button>
+      </aside>`;
+    }
+
+    function renderMacroGrowthPanel(def) {
+      const year = dashboardPeriodKpi(def.id, "year");
+      const periods = macroGrowthPeriods();
+      const values = periods.map(item => dashboardPeriodKpi(def.id, item.period).growth);
+      const showComposition = def.id === "grp";
+      const showIndustryDrivers = def.id === "industry";
+      return `<section class="macro-growth-panel ${showIndustryDrivers ? "with-side" : "solo"}" aria-label="${def.label} ўсиш мониторинги">
+        <div class="macro-main-panel">
+          <div class="macro-section-title"><strong>${def.short} ўсиши</strong><span>(солиштирма нархларда)</span></div>
+          <div class="macro-hero-card">
+            <div class="macro-hero-copy">
+              <span>Йиллик ўсиш (мақсад)</span>
+              <strong>${growthValue(year.growth)}</strong>
+              <small>2026 йил</small>
+            </div>
+          </div>
+          <div class="macro-period-grid">
+            ${periods.map(item => {
+              const row = dashboardPeriodKpi(def.id, item.period);
+              const width = macroGrowthWidth(row.growth, values);
+              return `<div class="macro-period-card ${item.cls}">
+                <div class="macro-period-head">
+                  <b>${item.label}</b>
+                  <span class="chip ${item.cls === "actual" ? "blue" : "grey"}">${item.state}</span>
+                </div>
+                <strong>${growthValue(row.growth)}</strong>
+                <small>ўсиш суръати</small>
+                <i class="macro-mini-bar" aria-hidden="true"><i style="--w:${width}%"></i></i>
+              </div>`;
+            }).join("")}
+          </div>
+          ${showComposition ? renderMacroComposition() : ""}
+        </div>
+        ${showIndustryDrivers ? renderIndustryDriversPanel() : ""}
+      </section>`;
+    }
+
+    function budgetInvestmentPeriods() {
+      return [
+        { label: "I чорак", period: "q1", kind: "actual", chip: "blue", state: "Амалда", note: "амалдаги ўзлаштириш" },
+        { label: "II чорак", period: "h1", kind: "expected", chip: "grey", state: "Кутилиш", note: "тезкор кутилиш" },
+        { label: "III чорак", period: "m9", kind: "missing", chip: "grey", state: "Маълумот йўқ", note: "9 ой учун алоҳида маълумот йўқ" },
+        { label: "Йиллик", period: "year", kind: "expected", chip: "grey", state: "Кутилиш", note: "йил якуни бўйича кутилиш" }
+      ];
+    }
+
+    function budgetInvestmentCard(item) {
+      const row = dashboardPeriodKpi("budget_investment", item.period);
+      const value = item.kind === "missing" ? "—" : factValue(row);
+      const execution = n(row.execution);
+      const pctText = execution === null ? "—" : `${fmt(execution, 1)}%`;
+      const progress = execution === null ? 0 : Math.max(0, Math.min(execution, 108));
+      const accent = item.kind === "missing" ? "var(--grey)" : "var(--blue)";
+      return `<div class="budget-period-card ${item.kind}">
+        <div class="budget-period-top">
+          <b>${item.label}</b>
+          <span class="chip ${item.chip}">${item.state}</span>
+        </div>
+        <strong>${value}</strong>
+        <div class="budget-period-meta">
+          <span>йиллик лимитга нисбатан</span>
+          <b>${pctText}</b>
+        </div>
+        <div class="budget-progress" aria-hidden="true"><i style="--w:${progress}%;--c:${accent}"></i></div>
+        <div class="budget-period-note">${item.note}</div>
+      </div>`;
+    }
+
+    function renderBudgetInvestmentDynamics(items) {
+      const points = items
+        .map((item, index) => {
+          const row = dashboardPeriodKpi("budget_investment", item.period);
+          const value = n(row.execution);
+          if (value === null) return null;
+          const x = [24, 96, 168, 240][index];
+          const y = 100 - (Math.min(Math.max(value, 0), 110) / 110) * 78;
+          return { ...item, x, y, value };
+        })
+        .filter(Boolean);
+      const path = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+      return `<div class="budget-dynamics-card">
+        <div class="budget-dynamics-head">
+          <strong>Ўзлаштириш динамикаси</strong>
+          <span>йиллик лимитга нисбатан</span>
+        </div>
+        <svg class="budget-dynamics-svg" viewBox="0 0 264 116" role="img" aria-label="Бюджет инвестициялари ўзлаштириш динамикаси">
+          <line x1="16" y1="100" x2="250" y2="100" stroke="#dce6f0" stroke-width="1"/>
+          <line x1="16" y1="61" x2="250" y2="61" stroke="#edf2f7" stroke-width="1"/>
+          <line x1="16" y1="22" x2="250" y2="22" stroke="#edf2f7" stroke-width="1"/>
+          <path d="${path}" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          ${points.map(point => `<circle cx="${point.x}" cy="${point.y}" r="4.5" fill="#fff" stroke="var(--blue)" stroke-width="3"><title>${point.label}: ${fmt(point.value, 1)}%</title></circle>`).join("")}
+        </svg>
+        <div class="budget-dynamics-list">
+          ${items.map(item => {
+            const row = dashboardPeriodKpi("budget_investment", item.period);
+            const value = n(row.execution);
+            const pctText = value === null ? "—" : `${fmt(value, 1)}%`;
+            const width = value === null ? 0 : Math.max(0, Math.min(value, 100));
+            return `<div><span>${item.label}</span><i style="--w:${width}%;--c:${item.kind === "missing" ? "var(--grey)" : "var(--blue)"}"></i><b>${pctText}</b></div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
+
+    function renderBudgetInvestmentPanel() {
+      const source = DATA.regional.budget_investment || {};
+      const annual = dashboardPeriodKpi("budget_investment", "year");
+      const items = budgetInvestmentPeriods();
+      return `<section class="budget-invest-panel" aria-label="Бюджет инвестициялари ўзлаштирилиши">
+        <div class="budget-invest-summary">
+          <div><span>Йиллик лимит</span><strong>${displayValue(source.limit, source.unit || "млн сўм")}</strong><small>2026 йил прогноз лимити</small></div>
+          <div><span>Объектлар</span><strong>${fmt(source.objects, 0)} та</strong><small>жами объектлар</small></div>
+          <div><span>Йиллик кутилиш</span><strong>${factValue(annual)}</strong><small>йил якуни бўйича тезкор кутилиш</small></div>
+          <div><span>Йиллик ижро</span><strong>${n(annual.execution) === null ? "—" : `${fmt(annual.execution, 1)}%`}</strong><small>йиллик лимитга нисбатан</small></div>
+        </div>
+        <div class="budget-invest-body">
+          <div class="budget-periods-grid">
+            ${items.map(budgetInvestmentCard).join("")}
+          </div>
+          ${renderBudgetInvestmentDynamics(items)}
+        </div>
+      </section>`;
+    }
+
+    function financeMetric(label, value, note = "", tone = "") {
+      return `<div class="finance-metric ${tone}">
+        <span>${label}</span>
+        <strong>${value}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeSummaryTile(label, value, note = "", tone = "") {
+      return `<div class="finance-summary-tile ${tone}">
+        <span>${label}</span>
+        <strong>${value}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeIconTone(kpiId) {
+      return kpiId === "budget_investment" ? "purple" : kpiId === "investment" ? "green" : kpiId === "export" ? "gold" : "";
+    }
+
+    function financeDisplayLabel(def) {
+      return def.short === "Бюджет инвест" ? "Бюджет инвестициялари" : def.label;
+    }
+
+    function financeCardHead(def) {
+      return `<header class="finance-card-head">
+        <span class="finance-icon ${financeIconTone(def.id)}" aria-hidden="true">${icon(def.icon)}</span>
+        <strong>${financeDisplayLabel(def)}</strong>
+      </header>`;
+    }
+
+    function financeQuarterCell(label, row, options = {}) {
+      const main = options.main || (n(row.growth) !== null ? growthValue(row.growth) : n(row.execution) !== null ? `${fmt(row.execution, 1)}%` : factValue(row));
+      const note = options.note || "";
+      return `<div class="finance-quarter-cell ${options.tone || ""}">
+        <span>${label}</span>
+        <strong>${main}</strong>
+        ${note ? `<small>${note}</small>` : ""}
+      </div>`;
+    }
+
+    function financeBudgetCard(activeId) {
+      const def = kpiDefById("budget");
+      const h1 = dashboardPeriodKpi("budget", "h1");
+      const year = dashboardPeriodKpi("budget", "year");
+      return `<article class="finance-card ${activeId === "budget" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div>
+            <div class="finance-section-title">I ярим йиллик</div>
+            <div class="finance-metric-row">
+              ${financeMetric("Режа", planValue(h1))}
+              ${financeMetric("Кутилиш", factValue(h1))}
+              ${financeMetric("Кутилган ижро", n(h1.execution) === null ? "—" : `${fmt(h1.execution, 1)}%`, "", "accent")}
+            </div>
+          </div>
+          <div class="finance-divider"></div>
+          <div>
+            <div class="finance-section-title">Йиллик</div>
+            <div class="finance-metric-row two">
+              ${financeMetric("Режа", planValue(year))}
+              ${financeMetric("Кутилиш", factValue(year))}
+            </div>
+          </div>
+          <button class="mini-button primary finance-action" type="button" data-open-districts="budget" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeBudgetInvestmentCell(item) {
+      const row = dashboardPeriodKpi("budget_investment", item.period);
+      const value = item.kind === "missing" ? "—" : factValue(row);
+      const execution = n(row.execution);
+      const tone = item.kind === "actual" ? "accent" : item.kind === "missing" ? "" : "purple";
+      const note = execution === null ? item.note : `${fmt(execution, 1)}% · ${item.note}`;
+      return `<div class="finance-quarter-cell ${tone}">
+        <span>${item.label} · ${item.state}</span>
+        <strong>${value}</strong>
+        <small>${note}</small>
+      </div>`;
+    }
+
+    function financeBudgetInvestmentCard(activeId) {
+      const def = kpiDefById("budget_investment");
+      const source = DATA.regional.budget_investment || {};
+      const annual = dashboardPeriodKpi("budget_investment", "year");
+      const items = budgetInvestmentPeriods();
+      return `<article class="finance-card finance-card-wide ${activeId === "budget_investment" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-summary-grid">
+            ${financeSummaryTile("Йиллик лимит", displayValue(source.limit, source.unit || "млн сўм"))}
+            ${financeSummaryTile("Объектлар", `${fmt(source.objects, 0)} та`)}
+            ${financeSummaryTile("Йиллик кутилиш", factValue(annual), "", "purple")}
+            ${financeSummaryTile("Йиллик ижро", n(annual.execution) === null ? "—" : `${fmt(annual.execution, 1)}%`, "лимитга нисбатан", "purple")}
+          </div>
+          <div class="finance-quarter-grid">
+            ${items.map(financeBudgetInvestmentCell).join("")}
+          </div>
+          ${renderBudgetInvestmentDynamics(items)}
+          <button class="mini-button primary finance-action" type="button" data-open-districts="budget_investment" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeInvestmentCard(activeId) {
+      const def = kpiDefById("investment");
+      const x = DATA.regional.foreign_investment || {};
+      const year = dashboardPeriodKpi("investment", "year");
+      const h1 = dashboardPeriodKpi("investment", "h1");
+      return `<article class="finance-card ${activeId === "investment" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-metric-row two">
+            ${financeMetric("Йиллик прогноз", planValue(year))}
+            ${financeMetric("Кутилиш", factValue(year))}
+          </div>
+          <div class="finance-divider"></div>
+          <div class="finance-metric-row two">
+            ${financeMetric("Лойиҳалар", `${fmt(x.h1_projects, 0)} та`, "I ярим йиллик")}
+            ${financeMetric("Иш ўринлари", `${fmt(x.h1_jobs, 0)} та`, "I ярим йиллик")}
+          </div>
+          ${financeQuarterCell("II чорак кутилиш", h1, { main: factValue(h1), note: n(h1.execution) === null ? "" : `${fmt(h1.execution, 1)}% ижро`, tone: "accent" })}
+          <button class="mini-button primary finance-action" type="button" data-open-districts="investment" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeExportCard(activeId) {
+      const def = kpiDefById("export");
+      const e = DATA.regional.export || {};
+      const q1 = dashboardPeriodKpi("export", "q1");
+      const h1 = dashboardPeriodKpi("export", "h1");
+      const year = dashboardPeriodKpi("export", "year");
+      return `<article class="finance-card ${activeId === "export" ? "active" : ""}">
+        ${financeCardHead(def)}
+        <div class="finance-card-body">
+          <div class="finance-metric-row two">
+            ${financeMetric("Йиллик ўсиш", growthValue(year.growth), "", "gold")}
+            ${financeMetric("Йиллик кутилиш", factValue(year))}
+          </div>
+          <div class="finance-divider"></div>
+          ${financeMetric("Экспортёрлар", `${fmt(e.year_exporters, 0)} та`, "йиллик режа")}
+          <div class="finance-quarter-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            ${financeQuarterCell("I чорак амалда", q1, { main: growthValue(q1.growth), note: factValue(q1), tone: "accent" })}
+            ${financeQuarterCell("II чорак кутилиш", h1, { main: growthValue(h1.growth), note: factValue(h1), tone: "gold" })}
+          </div>
+          <button class="mini-button primary finance-action" type="button" data-open-districts="export" data-period="h1">Туманлар кесимига ўтиш</button>
+        </div>
+      </article>`;
+    }
+
+    function financeActiveCard(activeId) {
+      const renderers = {
+        budget: financeBudgetCard,
+        budget_investment: financeBudgetInvestmentCard,
+        investment: financeInvestmentCard,
+        export: financeExportCard
+      };
+      return (renderers[activeId] || financeBudgetCard)(activeId);
+    }
+
+    function financeSourceText(kpiId) {
+      const map = {
+        budget: "Манба: 3-жадвал (бюджет тушумлари).",
+        budget_investment: "Манба: 4.1-жадвал (бюджет инвестициялари).",
+        investment: "Манба: 4.2-жадвал (хорижий инвестициялар).",
+        export: "Манба: 5.1-5.2-жадваллар (экспорт)."
+      };
+      return map[kpiId] || "Манба: тегишли жадвал маълумотлари.";
+    }
+
+    function renderFinanceSectorPanel(selected) {
+      const activeId = isFinanceKpi(selected.id) ? selected.id : "budget";
+      return `<section class="finance-sector-panel" aria-label="Молия, инвестиция ва экспорт KPI мониторинги">
+        <div class="finance-sector-grid">
+          <div class="finance-active-pane">${financeActiveCard(activeId)}</div>
+        </div>
+        <p class="finance-source">${financeSourceText(activeId)}</p>
+      </section>`;
+    }
+
     function kpiDashboardCard(def) {
-      const growthOnly = def.id === "grp" || macroComponentDefs.some(item => item.id === def.id);
+      const macroGrowthKpi = def.id === "grp" || macroComponentDefs.some(item => item.id === def.id);
+      const growthOnly = macroGrowthKpi;
+      const districtRoute = dashboardDistrictRoute(def);
       const quarters = [
         ["I чорак", "q1"],
         ["II чорак", "h1"],
@@ -5362,38 +8714,45 @@ HTML = r"""<!doctype html>
         const up = delta > 0;
         return { cls: lowerBetter ? (up ? "down" : "up") : (up ? "up" : "down") };
       };
-      return `<article class="kpi-monitor-card">
+      return `<article class="kpi-monitor-card ${macroGrowthKpi ? "macro-layout-card" : ""}">
         <div class="kpi-monitor-head">
           <div class="small-icon">${icon(def.icon)}</div>
           <div>
             <h3>${def.short}</h3>
             <p>${def.label}</p>
           </div>
+          ${districtRoute && def.id !== "grp" ? `<button class="mini-button primary kpi-head-district" type="button" data-open-districts="${districtRoute.kpiId}">${districtRoute.label}</button>` : ""}
           <div class="head-watermark" aria-hidden="true">${icon(def.icon)}</div>
         </div>
-        ${def.id === "inflation" ? "" : `<div class="quarter-matrix">
+        ${def.id === "inflation" ? "" : def.id === "budget_investment" ? renderBudgetInvestmentPanel() : macroGrowthKpi ? renderMacroGrowthPanel(def) : `<div class="quarter-matrix">
           ${quarters.map(([label, period], idx) => {
             const row = dashboardPeriodKpi(def.id, period);
             const stateInfo = periodState(def, period, row);
             const main = n(row.growth) !== null ? growthValue(row.growth) : n(row.execution) !== null ? `${fmt(row.execution, 1)}%` : primaryMetric(row);
             const fact = factValue(row);
             const plan = planValue(row);
-            const measureLabel = n(row.growth) !== null ? "Ўсиш" : n(row.execution) !== null ? "Ижро" : "Кўрсаткич";
+            const measureLabel = n(row.growth) !== null ? "Ўсиш" : executionLabel(def, row, period);
             const trend = idx > 0 ? trendFor(seriesValues[idx], seriesValues[idx - 1]) : null;
             const heroValue = trend
               ? `<span class="q-hero-value q-trend ${trend.cls}">${main}</span>`
               : `<span class="q-hero-value">${main}</span>`;
-            const auxRows = growthOnly ? "" : `<dl class="q-aux">
-              <div class="q-aux-row"><span>Режа</span><b class="num">${plan}</b></div>
-              <div class="q-aux-row"><span>Амалда</span><b class="num">${fact}</b></div>
-            </dl>`;
-            const reportFooter = row.reportStatusLabel ? `<div class="q-report"><span>Таъсир</span><b>${row.reportImpact || "KPIга ўтмади"}</b></div>` : "";
+            const reportFooter = row.reportStatusLabel ? `<div class="q-report"><span>Таъсир</span><b>${row.reportImpact || "KPIга қўшилмади"}</b></div>` : "";
             const chipClass = row.reportStatus ? reportStatusClass(row.reportStatus) : stateInfo.chip;
             const chipText = row.reportStatusLabel || stateInfo.label;
+            const growthText = n(row.growth) !== null ? growthValue(row.growth) : "—";
+            const planDisplay = growthOnly ? (stateInfo.cls === "actual" ? "—" : growthText) : plan;
+            const factDisplay = growthOnly ? (stateInfo.cls === "actual" ? growthText : fact) : fact;
+            const statusText = chipText || (stateInfo.cls === "actual" ? "Амалда бор" : "—");
+            const sourceKind = periodSourceKind(def, period, row);
+            const hidePlanRow = macroGrowthKpi || sourceKind === "target" || (def.id === "investment" && sourceKind === "expected");
+            const auxRows = `<dl class="q-aux">
+              ${hidePlanRow ? "" : `<div class="q-aux-row"><span>${planLabel(def, row, period)}</span><b class="num">${planDisplay}</b></div>`}
+              <div class="q-aux-row"><span>${factLabel(def, row, period)}</span><b class="num">${factDisplay}</b></div>
+              <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip ${chipClass || "grey"}">${statusText}</span></b></div>
+            </dl>`;
             return `<div class="quarter-row ${stateInfo.cls}">
               <div class="q-head">
                 <span class="q-period">${label}</span>
-                ${chipText ? `<span class="chip ${chipClass}">${chipText}</span>` : ""}
               </div>
               <div class="q-hero">
                 ${heroValue}
@@ -5404,9 +8763,10 @@ HTML = r"""<!doctype html>
             </div>`;
           }).join("")}
         </div>`}
-        ${def.id === "industry" ? renderIndustryDrivers() : ""}
         ${def.id === "inflation" ? renderInflationDetails() : ""}
+        ${def.id === "unemployment" ? renderUnemploymentDetails() : ""}
         ${def.id === "poverty" ? renderPovertyDetails() : ""}
+        ${isFinanceKpi(def.id) ? `<p class="finance-source">${financeSourceText(def.id)}</p>` : ""}
       </article>`;
     }
 
@@ -5430,11 +8790,12 @@ HTML = r"""<!doctype html>
         .slice(0, 4);
       return `<div class="drivers">
         <div class="lagging">
-          <div class="lagging-title"><strong>Инфляция KPI деталлари</strong></div>
+          <div class="lagging-title"><strong>Инфляция чегаралари</strong></div>
           <div class="driver-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-            <div class="driver-card"><span>II чорак инфляция чегараси</span><strong>≤2,9%</strong><small>белгиланган прогноз даражасидан оширмаслик</small></div>
-            <div class="driver-card"><span>Йиллик инфляция чегараси</span><strong>≤6,6%</strong><small>йил якуни бўйича асосий KPI</small></div>
+            <div class="driver-card"><span>II чорак</span><strong>≤2,9%</strong><small>амалдаги инфляцияга нисбатан</small></div>
+            <div class="driver-card"><span>Йил якуни</span><strong>≤6,6%</strong><small>йил якуни бўйича чегара</small></div>
           </div>
+          <p class="data-note">Амалдаги инфляция маълумоти киритилмаган.</p>
         </div>
         <div class="composition">
           <div class="lagging-title"><strong>Асосий озиқ-овқат нархлари</strong></div>
@@ -5469,6 +8830,52 @@ HTML = r"""<!doctype html>
             <div class="driver-card"><span>Захира жамғармаси</span><strong>50 млрд сўм</strong><small>йиллик режа</small></div>
           </div>
         </div>
+        <p class="finance-source">Манба: 2.1-2.2-жадваллар ва кафолат хати II-бўлим.</p>
+      </div>`;
+    }
+
+    function renderUnemploymentDetails() {
+      const emp = DATA.regional.employment || {};
+      const stats = [
+        { id: "jobs",         icon: "briefcase", label: "Доимий ишга жойлаштириш",         h1: emp.jobs_h1,         year: emp.jobs_year,         unit: "минг", digits: 1 },
+        { id: "legalization", icon: "users",     label: "Норасмий бандларни легаллаштириш", h1: emp.legalization_h1, year: emp.legalization_year, unit: "минг", digits: 1 }
+      ];
+      return `<div class="drivers poverty-section employment-driver-section">
+        <div class="lagging">
+          <header class="poverty-head">
+            <div>
+              <strong>Ишсизликни пасайтириш драйверлари</strong>
+              <p>Ишсизлик KPI мақсадини бажариш учун бандлик бўйича асосий ўлчанадиган ишлар.</p>
+            </div>
+            <button class="mini-button primary" type="button" data-open-districts="unemployment" data-period="h1">Туманлар кесими →</button>
+          </header>
+          <div class="poverty-stats">
+          ${stats.map(s => {
+            const h1Num = n(s.h1);
+            const yearNum = n(s.year);
+            const pct = h1Num !== null && yearNum !== null && yearNum !== 0 ? Math.min(100, Math.max(0, (h1Num / yearNum) * 100)) : 0;
+            const h1Text = h1Num !== null ? fmt(s.h1, s.digits) : "—";
+            const yearText = yearNum !== null ? fmt(s.year, s.digits) : "—";
+            return `<article class="poverty-stat">
+              <div class="poverty-stat-icon" aria-hidden="true">${icon(s.icon)}</div>
+              <div class="poverty-stat-body">
+                <span class="poverty-stat-label">${s.label}</span>
+                <strong class="poverty-stat-value">${yearText}<em>${s.unit}</em></strong>
+                <div class="poverty-stat-meta">
+                  <span>II чорак <b>${h1Text}</b></span>
+                  <span class="poverty-stat-divider">·</span>
+                  <span>Йиллик мақсад</span>
+                </div>
+                <div class="poverty-progress" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100">
+                  <i style="width:${pct.toFixed(1)}%"></i>
+                </div>
+                <small class="poverty-progress-label">II чорак йиллик мақсаднинг ${pct.toFixed(0)}%</small>
+              </div>
+            </article>`;
+          }).join("")}
+          </div>
+        </div>
+        <p class="finance-source">Манба: 6-жадвал ва кафолат хати.</p>
       </div>`;
     }
 
@@ -5526,6 +8933,7 @@ HTML = r"""<!doctype html>
           <p>Кафолат хатида камбағалликдан холи бўлиши кутилаётган маҳалла ва туманлар.</p>
           ${clearTerritories.length ? `<div class="poverty-territory-list">${clearTerritories.map(d => `<span class="poverty-territory-chip">${d.name}</span>`).join("")}</div>` : `<p class="poverty-territory-empty">Холи ҳудуд режасида ҳудуд белгиланмаган.</p>`}
         </article>
+        <p class="finance-source">Манба: 6-жадвал ва кафолат хати.</p>
       </div>`;
     }
 
@@ -5534,15 +8942,7 @@ HTML = r"""<!doctype html>
       const h1Projects = districts.reduce((s, d) => s + (n(d.data?.localization_projects_h1) || 0), 0);
       const h1Electricity = districts.reduce((s, d) => s + (n(d.data?.energy_electricity_h1) || 0), 0);
       const h1Gas = districts.reduce((s, d) => s + (n(d.data?.energy_gas_h1) || 0), 0);
-      return `<div class="drivers">
-        <div class="lagging-title"><strong>Саноат драйверлари</strong></div>
-        <div class="driver-grid">
-          <button class="component-card" type="button" data-open-districts="industry" data-period="h1"><span>Ҳудудий саноат</span><strong>${growthValue(dashboardPeriodKpi("industry", "h1").growth)}</strong><small>II чорак ўсиш · туманлар бўйича ҳажм ва ўсиш</small></button>
-          <button class="component-card" type="button" data-open-districts="localization" data-period="h1"><span>Маҳаллийлаштириш</span><strong>${fmt(h1Projects, 0)} та</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_electricity" data-period="h1"><span>Электр тежаш</span><strong>${fmt(h1Electricity, 1)} млн кВт·с</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-          <button class="component-card" type="button" data-open-districts="energy_gas" data-period="h1"><span>Газ тежаш</span><strong>${fmt(h1Gas, 1)} млн м³</strong><small>II чорак · 16 туман йиғиндиси</small></button>
-        </div>
-      </div>`;
+      return renderIndustryDriversPanel();
     }
 
     function evidenceStorageKey(taskId) {
@@ -5670,8 +9070,24 @@ HTML = r"""<!doctype html>
         .filter((def, idx, arr) => def && arr.findIndex(item => item.id === def.id) === idx);
     }
 
-    function defaultReportUnit(kpiId) {
-      const row = baseDashboardPeriodKpi(kpiId, state.period);
+    function reportEntryKpiOptions() {
+      return reportKpiOptions().filter(def => tasksForKpi(def.id).length);
+    }
+
+    function defaultReportKpiId(preferred = null) {
+      const options = reportEntryKpiOptions();
+      const candidates = [
+        preferred,
+        state.sector !== "all" ? state.sector : null,
+        state.kpi,
+        "industry",
+        ...options.map(def => def.id)
+      ].filter(Boolean);
+      return candidates.find(id => id !== "all" && tasksForKpi(id).length) || options[0]?.id || "industry";
+    }
+
+    function defaultReportUnit(kpiId, period = state.period) {
+      const row = baseDashboardPeriodKpi(kpiId, period);
       if (row?.unit?.includes("минг доллар")) return "млн $";
       if (row?.unit?.includes("млн доллар")) return "млн $";
       if (row?.unit?.includes("млрд сўм")) return "млрд сўм";
@@ -5715,8 +9131,8 @@ HTML = r"""<!doctype html>
     }
 
     function reportImpactLabel(report) {
-      if (report.status === "approved") return "KPIга ўтди";
-      return "KPIга ўтмади";
+      if (report.status === "approved") return "KPIга қўшилди";
+      return "KPIга қўшилмади";
     }
 
     function reportImpactClass(report) {
@@ -5736,7 +9152,7 @@ HTML = r"""<!doctype html>
       const index = reports.findIndex(report => report.id === id);
       if (index === -1) return;
       const now = new Date().toISOString();
-      const actor = meta.actor || "Вилоят ҳокимлиги";
+      const actor = meta.actor || "Платформа администратори";
       const reason = meta.reason || "";
       const next = {
         ...reports[index],
@@ -5764,13 +9180,13 @@ HTML = r"""<!doctype html>
       if (!report) return;
       const requiresReason = status === "review" || status === "rejected";
       const actionText = {
-        approved: "Тасдиқлаш ва KPIга ўтказиш",
-        review: "Қайта кўришга юбориш",
+        approved: "Платформага қабул қилиш ва KPIга ўтказиш",
+        review: "Қайта кўришга қолдириш",
         rejected: "Қайтариш"
       }[status] || "Сақлаш";
       const effectText = status === "approved"
-        ? "Бу ҳисобот KPI “амалда” қийматига қўшилади."
-        : "Бу ҳисобот KPI натижасига қўшилмайди.";
+        ? "Бу Ҳисоб палатаси қатори KPI “амалда” қийматига қўшилади."
+        : "Бу Ҳисоб палатаси қатори KPI натижасига қўшилмайди.";
       $("#reportModal").innerHTML = `
         <div class="modal-head">
           <div>
@@ -5785,7 +9201,7 @@ HTML = r"""<!doctype html>
             <div class="modal-field"><span>Жорий ҳолат</span><strong><span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span></strong></div>
             <div class="modal-field"><span>Янги ҳолат</span><strong><span class="chip ${reportStatusClass(status)}">${reportStatusLabel(status)}</span></strong></div>
           </div>
-          <label class="modal-field"><span>Текширувчи / тасдиқловчи</span><input id="statusActor" type="text" value="${h(report.checkedBy || "Вилоят ҳокимлиги")}" placeholder="масалан: Вилоят ҳокимлиги"></label>
+          <label class="modal-field"><span>Қабул қилувчи</span><input id="statusActor" type="text" value="${h(report.checkedBy || "Платформа администратори")}" placeholder="масалан: Платформа администратори"></label>
           <label class="modal-field"><span>${requiresReason ? "Сабаб / изоҳ (мажбурий)" : "Изоҳ"}</span><textarea id="statusReason" placeholder="${requiresReason ? "Қайтариш ёки қайта кўриш сабабини ёзинг" : "Қисқа изоҳ киритинг"}"></textarea><small class="field-error" id="statusReasonError">Сабаб киритилиши шарт.</small></label>
           <div class="action-row">
             <button class="mini-button primary" type="button" data-save-status="${id}:${status}">${actionText}</button>
@@ -5824,7 +9240,7 @@ HTML = r"""<!doctype html>
         const statusOk = state.reportStatus === "all" || report.status === state.reportStatus;
         const periodOk = state.reportPeriod === "all" || report.period === state.reportPeriod;
         const districtOk = state.reportDistrict === "all" || report.district === state.reportDistrict;
-        const qOk = !q || `${report.district} ${report.kpiLabel} ${report.taskTitle} ${report.comment} ${report.responsible} ${report.createdBy} ${report.checkedBy} ${latestStatusReason(report)}`.toLowerCase().includes(q);
+        const qOk = !q || `${report.district} ${report.kpiLabel} ${report.taskTitle} ${report.templateRowId} ${report.executionStatus} ${report.evidenceStatus} ${report.issueType} ${report.comment} ${report.responsible} ${report.createdBy} ${report.checkedBy} ${latestStatusReason(report)}`.toLowerCase().includes(q);
         return kpiOk && statusOk && periodOk && districtOk && qOk;
       });
     }
@@ -5859,7 +9275,7 @@ HTML = r"""<!doctype html>
         <div class="modal-head">
           <div>
             <div class="modal-title" id="taskModalTitle">${h(task.id)} · ${h(cleanTaskTitle(task.title))}</div>
-            <div class="modal-sub">${h(task.section || task.sector)} · ${h(task.deadline || task.period)} · ${h(task.owner)} · манба: ${h(task.sourceId || task.id)}</div>
+            <div class="modal-sub">${h(task.section || task.sector)} · ${h(task.deadline || task.period)} · ${h(task.owner)}</div>
           </div>
           <button class="modal-close" type="button" data-close-modal aria-label="Ёпиш">×</button>
         </div>
@@ -5872,9 +9288,9 @@ HTML = r"""<!doctype html>
           <div class="modal-grid">
             <div class="modal-field"><span>Ҳудуд</span><strong>${h(districtText)}</strong></div>
             <div class="modal-field"><span>Гуруҳ</span><strong>${h(task.group || taskGroupLabel(task, kpi.id))}</strong></div>
-            <div class="modal-field"><span>Манба</span><strong>${h(task.source || "—")}</strong></div>
+            <div class="modal-field"><span>Йўналиш</span><strong>${h(task.moduleLabel || task.sector || "—")}</strong></div>
           </div>
-          <div class="callout-note">Бу қатор классификациядан кейин ҳақиқий ижро топшириғи сифатида қолдирилган. KPI мақсадлар ва туман мақсадлари ҳисобот топшириғи сифатида танланмайди.</div>
+          <div class="callout-note">Бу топшириқ KPIга эришиш учун бажариладиган амалий иш сифатида юритилади. Ҳисобот киритилса, унинг ҳолати ижро журналида кўринади.</div>
           <div>
             <div class="eyebrow">Далил / изоҳ</div>
             <textarea id="taskEvidenceText" placeholder="Қисқа изоҳ, файл номи ёки далил ҳаволасини киритинг"></textarea>
@@ -5895,7 +9311,7 @@ HTML = r"""<!doctype html>
             </div>
           </div>
           <div class="action-row">
-            <button class="mini-button primary" type="button" data-open-report-from-task="${task.id}">Шу топшириқ бўйича ҳисобот киритиш</button>
+            <button class="mini-button primary" type="button" data-open-report-from-task="${task.id}">Шу топшириқ бўйича текширув киритиш</button>
           </div>
         </div>`;
       $("#taskModalBg").classList.add("open");
@@ -5932,23 +9348,24 @@ HTML = r"""<!doctype html>
     function taskOptionsHtml(tasks, selectedTaskId = "") {
       return tasks.length
         ? tasks.map(t => `<option value="${t.id}" ${t.id === selectedTaskId ? "selected" : ""}>${h(`${t.id} · ${cleanTaskTitle(t.title)}`.slice(0, 145))}</option>`).join("")
-        : `<option value="">Топшириқ танланмаган</option>`;
+        : `<option value="" disabled>Бу KPI бўйича текширув топшириғи йўқ</option>`;
     }
 
     function openReportModal(options = {}) {
-      const selectedKpi = options.kpi || (state.sector !== "all" ? state.sector : state.kpi);
+      const selectedKpi = defaultReportKpiId(options.kpi || (state.sector !== "all" ? state.sector : state.kpi));
       const selectedDistrict = options.district || (state.reportDistrict !== "all" ? state.reportDistrict : state.district);
       const selectedPeriod = options.period || (state.reportPeriod !== "all" ? state.reportPeriod : state.period);
       const kpi = kpiById(selectedKpi);
+      const entryKpiOptions = reportEntryKpiOptions();
       const district = (DATA.districts || []).find(item => item.name === selectedDistrict) || currentDistrict();
       const tasks = tasksForReportContext(kpi.id, district.name);
       const taskId = tasks[0]?.id || defaultTaskForReport(kpi.id);
-      const unit = defaultReportUnit(kpi.id);
+      const unit = defaultReportUnit(kpi.id, selectedPeriod);
       $("#reportModal").innerHTML = `
         <div class="modal-head">
           <div>
-            <div class="modal-title" id="reportModalTitle">Ҳисобот киритиш</div>
-            <div class="modal-sub">Амалдаги натижани киритинг. Ҳисобот аввал “Киритилди” бўлади, тасдиқланмагунча KPIга қўшилмайди.</div>
+            <div class="modal-title" id="reportModalTitle">Ҳисоб палатаси текширувини киритиш</div>
+            <div class="modal-sub">Ҳисоб палатаси текширув натижасини киритинг. Фақат “Тасдиқланди” ҳолатидаги қатор KPI “амалда” қийматига қўшилади.</div>
           </div>
           <button class="modal-close" type="button" data-close-report aria-label="Ёпиш">×</button>
         </div>
@@ -5956,7 +9373,7 @@ HTML = r"""<!doctype html>
           <div class="report-context">
             <div class="context-pill"><span>KPI</span><strong id="reportContextKpi">${h(kpi.short)}</strong></div>
             <div class="context-pill"><span>Туман/шаҳар</span><strong id="reportContextDistrict">${h(district.name)}</strong></div>
-            <div class="context-pill"><span>Ҳолат</span><strong><span class="chip blue">Киритилди</span></strong></div>
+            <div class="context-pill"><span>Манба</span><strong>Ҳисоб палатаси текшируви</strong></div>
           </div>
           <div class="modal-grid">
             <label class="modal-field"><span>Давр</span>
@@ -5967,7 +9384,7 @@ HTML = r"""<!doctype html>
             </label>
             <label class="modal-field"><span>KPI</span>
               <select id="reportKpi">
-                ${reportKpiOptions().map(def => `<option value="${def.id}" ${def.id === kpi.id ? "selected" : ""}>${def.short}</option>`).join("")}
+                ${entryKpiOptions.map(def => `<option value="${def.id}" ${def.id === kpi.id ? "selected" : ""}>${def.short}</option>`).join("")}
               </select>
             </label>
             <label class="modal-field"><span>Туман/шаҳар</span>
@@ -5977,17 +9394,60 @@ HTML = r"""<!doctype html>
             </label>
           </div>
           <div class="modal-grid">
+            <label class="modal-field"><span>Template ID</span><input id="reportTemplateRow" type="text" value="${h(taskId)}" placeholder="T-001 / D-01"></label>
+            <label class="modal-field"><span>Ҳисобот ҳолати</span>
+              <select id="reportStatusInput">
+                <option value="submitted">Киритилди</option>
+                <option value="review">Кўриб чиқилмоқда</option>
+                <option value="approved">Тасдиқланди</option>
+                <option value="rejected">Қайтарилди / рад этилди</option>
+              </select>
+            </label>
+            <label class="modal-field"><span>Ижро ҳолати</span>
+              <select id="reportExecutionStatus">
+                <option value="Бажарилди">Бажарилди</option>
+                <option value="Қисман бажарилди">Қисман бажарилди</option>
+                <option value="Бажарилмади">Бажарилмади</option>
+                <option value="Муддати кечикди">Муддати кечикди</option>
+                <option value="Маълумот йўқ">Маълумот йўқ</option>
+              </select>
+            </label>
+          </div>
+          <div class="modal-grid">
+            <label class="modal-field"><span>Далил ҳолати</span>
+              <select id="reportEvidenceStatus">
+                <option value="Етарли">Етарли</option>
+                <option value="Етарли эмас">Етарли эмас</option>
+                <option value="Далил йўқ">Далил йўқ</option>
+              </select>
+            </label>
             <label class="modal-field"><span>Амалдаги натижа</span><input id="reportActual" type="text" required placeholder="масалан: 15,2"><small class="field-error" id="reportActualError">Рақам киритинг. Масалан: 15,2</small></label>
             <label class="modal-field"><span>Далил / файл / ҳавола</span><input id="reportEvidence" type="text" placeholder="файл номи ёки ҳавола"></label>
-            <label class="modal-field"><span>Киритувчи</span><input id="reportSubmitter" type="text" value="${h(district.owner || "Туман ҳокимлиги")}" placeholder="ҳисобот киритган масъул"></label>
           </div>
           <label class="modal-field"><span>Изоҳ</span><textarea id="reportComment" placeholder="Қисқа изоҳ киритинг"></textarea></label>
           <details class="advanced-report">
             <summary>Қўшимча маълумот</summary>
             <div class="modal-grid">
               <label class="modal-field"><span>Бирлик</span><input id="reportUnit" type="text" value="${h(unit)}" placeholder="млн $, %, млрд сўм"></label>
+              <label class="modal-field"><span>Муаммо тури</span>
+                <select id="reportIssueType">
+                  <option value="Муаммо йўқ">Муаммо йўқ</option>
+                  <option value="Молиялаштириш">Молиялаштириш</option>
+                  <option value="Харид жараёни">Харид жараёни</option>
+                  <option value="Муддат кечикиши">Муддат кечикиши</option>
+                  <option value="Далил етарсиз">Далил етарсиз</option>
+                  <option value="Маълумот номувофиқ">Маълумот номувофиқ</option>
+                  <option value="Ижрочи масъулияти">Ижрочи масъулияти</option>
+                  <option value="Ташқи омил">Ташқи омил</option>
+                  <option value="Бошқа">Бошқа</option>
+                </select>
+              </label>
+              <label class="modal-field"><span>Тузатиш муддати</span><input id="reportCorrectionDeadline" type="date"></label>
+            </div>
+            <div class="modal-grid">
               <label class="modal-field"><span>Масъул</span><input id="reportResponsible" type="text" value="${h(district.owner || "Туман ҳокимлиги")}"></label>
-              <label class="modal-field"><span>Сана</span><input id="reportDate" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+              <label class="modal-field"><span>Текширув санаси</span><input id="reportDate" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+              <label class="modal-field"><span>Текширувчи</span><input id="reportSubmitter" type="text" value="Ҳисоб палатаси" placeholder="Ҳисоб палатаси масъул ходими"></label>
             </div>
             <div style="padding: 0 12px 12px">
               <label class="modal-field"><span>Боғланган топшириқ</span>
@@ -5998,7 +9458,7 @@ HTML = r"""<!doctype html>
             </div>
           </details>
           <div class="action-row">
-            <button class="mini-button primary" type="button" data-save-report>Ҳисоботни киритиш</button>
+            <button class="mini-button primary" type="button" data-save-report>Текширувни киритиш</button>
             <button class="mini-button" type="button" data-close-report>Бекор қилиш</button>
           </div>
         </div>`;
@@ -6010,14 +9470,21 @@ HTML = r"""<!doctype html>
         const nextKpi = kpiById(event.target.value);
         $("#reportContextKpi").textContent = nextKpi.short;
         $("#reportTask").innerHTML = taskOptionsHtml(nextTasks);
-        $("#reportUnit").value = defaultReportUnit(event.target.value);
+        $("#reportTemplateRow").value = $("#reportTask").value || "";
+        $("#reportUnit").value = defaultReportUnit(event.target.value, $("#reportPeriod").value);
+      });
+      $("#reportPeriod").addEventListener("change", () => {
+        $("#reportUnit").value = defaultReportUnit($("#reportKpi").value, $("#reportPeriod").value);
       });
       $("#reportDistrict").addEventListener("change", event => {
         const nextDistrict = (DATA.districts || []).find(item => item.name === event.target.value);
         $("#reportContextDistrict").textContent = event.target.value;
         if (nextDistrict) $("#reportResponsible").value = nextDistrict.owner || "";
-        if (nextDistrict) $("#reportSubmitter").value = nextDistrict.owner || "";
         $("#reportTask").innerHTML = taskOptionsHtml(tasksForReportContext($("#reportKpi").value, event.target.value));
+        $("#reportTemplateRow").value = $("#reportTask").value || "";
+      });
+      $("#reportTask").addEventListener("change", event => {
+        $("#reportTemplateRow").value = event.target.value || "";
       });
     }
 
@@ -6037,8 +9504,22 @@ HTML = r"""<!doctype html>
       }
       const taskId = $("#reportTask").value;
       const task = DATA.tasks.find(t => t.id === taskId);
+      const templateRowId = $("#reportTemplateRow").value.trim() || taskId;
+      if (!taskId || !templateRowId || !task) {
+        $("#reportTask")?.focus();
+        return;
+      }
       const createdAt = new Date().toISOString();
-      const createdBy = $("#reportSubmitter").value.trim() || $("#reportResponsible").value.trim() || "Туман ҳокимлиги";
+      const createdBy = $("#reportSubmitter").value.trim() || "Ҳисоб палатаси";
+      const reportStatus = $("#reportStatusInput").value || "submitted";
+      const executionStatus = $("#reportExecutionStatus").value || "Маълумот йўқ";
+      const evidenceStatus = $("#reportEvidenceStatus").value || "Далил йўқ";
+      let issueType = $("#reportIssueType").value || "Муаммо йўқ";
+      const correctionDeadline = $("#reportCorrectionDeadline").value || "";
+      const requiresIssue = ["review", "rejected"].includes(reportStatus)
+        || ["Бажарилмади", "Муддати кечикди"].includes(executionStatus)
+        || evidenceStatus !== "Етарли";
+      if (requiresIssue && issueType === "Муаммо йўқ") issueType = evidenceStatus !== "Етарли" ? "Далил етарсиз" : executionStatus === "Муддати кечикди" ? "Муддат кечикиши" : "Бошқа";
       const item = {
         id: `report-${Date.now()}`,
         createdAt,
@@ -6050,21 +9531,33 @@ HTML = r"""<!doctype html>
         kpiLabel: kpi.short,
         district: $("#reportDistrict").value,
         taskId,
-        taskTitle: task ? cleanTaskTitle(task.title) : "Топшириқ танланмаган",
+        templateRowId,
+        reportSource: "Ҳисоб палатаси текшируви",
+        executionStatus,
+        evidenceStatus,
+        issueType,
+        correctionDeadline,
+        taskTitle: cleanTaskTitle(task.title),
         actualValue,
         unit: $("#reportUnit").value.trim(),
         comment: $("#reportComment").value.trim(),
         evidenceName: $("#reportEvidence").value.trim(),
         responsible: $("#reportResponsible").value.trim(),
         createdBy,
-        status: "submitted",
+        checkedBy: createdBy,
+        checkedAt: $("#reportDate").value || createdAt,
+        status: reportStatus,
         history: [{
-          status: "submitted",
+          status: reportStatus,
           actor: createdBy,
           reason: $("#reportComment").value.trim(),
           at: createdAt
         }]
       };
+      if (reportStatus === "approved") {
+        item.approvedBy = createdBy;
+        item.approvedAt = createdAt;
+      }
       const reports = getExecutionReports();
       reports.unshift(item);
       saveExecutionReports(reports);
@@ -6083,7 +9576,7 @@ HTML = r"""<!doctype html>
       return `<article class="task-card" data-task-id="${t.id}">
         <span class="task-code">${t.id}</span>
         <header><strong>${cleanTaskTitle(t.title)}</strong><span class="chip ${status}">${statusLabel(status)}</span></header>
-        <div class="task-meta"><span>${t.sector}</span><span>${t.period}</span><span>${t.owner}</span><span>манба: ${t.sourceId || t.platformId || t.id}</span></div>
+        <div class="task-meta"><span>${t.sector}</span><span>${t.period}</span><span>${t.owner}</span></div>
       </article>`;
     }
 
@@ -6132,7 +9625,7 @@ HTML = r"""<!doctype html>
         <header>
           <span class="task-code">${t.id}</span>
           <strong>${cleanTaskTitle(t.title)}</strong>
-          <div class="task-meta"><span>${t.deadline || t.period}</span><span>${districtText}</span><span>${t.moduleShort || t.sector}</span><span>манба: ${t.sourceId || t.id}</span></div>
+          <div class="task-meta"><span>${t.deadline || t.period}</span><span>${districtText}</span><span>${t.owner || t.moduleShort || t.sector}</span></div>
         </header>
         <div class="task-actions">
           <span class="chip ${status}">${statusLabel(status)}</span>
@@ -6213,8 +9706,7 @@ HTML = r"""<!doctype html>
       const q = state.search.trim().toLowerCase();
       const selectedModule = moduleById(state.taskModule);
       const moduleLabel = selectedModule ? selectedModule.label : "Барча 7 йўналиш";
-      const moduleSource = selectedModule ? selectedModule.source : "Кафолат хати ва 7 та жадвал";
-      const moduleSheets = selectedModule ? selectedModule.sheets.join(" · ") : taskModules().map(module => module.short).join(" · ");
+      const cleanModuleLabel = moduleLabel.replace(/^\d+\.\s*/, "");
       const moduleScopedTasks = DATA.tasks.filter(t => state.taskModule === "all" || t.module === state.taskModule);
       const allByKpi = tasksForKpi(state.kpi).filter(t => state.taskModule === "all" || t.module === state.taskModule);
       const allTasks = allByKpi.filter(t => {
@@ -6227,10 +9719,16 @@ HTML = r"""<!doctype html>
       const done = allTasks.filter(t => t.status === "green");
       const visibleTasks = state.taskStatus === "all" ? allTasks : state.taskStatus === "done" ? done : notDone;
       const districtReady = districtSelectorDefs().some(def => def.id === kpi.id);
-      const annual = annualPlanKpi(kpi.id);
-      const meta = DATA.task_meta || {};
       const kpiDistricts = [...new Set(allByKpi.flatMap(t => Array.isArray(t.districts) ? t.districts : []))].sort((a, b) => a.localeCompare(b, "uz-Cyrl-UZ"));
       const reportLinked = allTasks.filter(t => getExecutionReports().some(report => report.taskId === t.id)).length;
+      const donePct = allTasks.length > 0 ? Math.round(done.length / allTasks.length * 100) : 0;
+      const taskScopeTitle = allKpis ? `${cleanModuleLabel} топшириқлари` : `${kpi.short}га оид топшириқлар`;
+      const shownScope = state.taskStatus === "done" ? "Бажарилган" : state.taskStatus === "open" ? "Бажарилмаган" : "Барчаси";
+      const contextBits = [
+        cleanModuleLabel,
+        state.taskDistrict !== "all" ? state.taskDistrict : "",
+        state.taskPeriod !== "all" ? (state.taskPeriod === "h1" ? "II чорак / I ярим йиллик" : "Йил якуни / давомида") : ""
+      ].filter(Boolean);
       $("#tasksPage").innerHTML = `
         <div class="task-filter report-filter">
           <label>Йўналиш / жадвал
@@ -6245,19 +9743,6 @@ HTML = r"""<!doctype html>
               ${kpiOptions.map(def => `<option value="${def.id}" ${!allKpis && def.id === kpi.id ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
             </select>
           </label>
-          <label>Муддат
-            <select id="taskPeriodSelect">
-              <option value="all" ${state.taskPeriod === "all" ? "selected" : ""}>Барча муддатлар</option>
-              <option value="h1" ${state.taskPeriod === "h1" ? "selected" : ""}>II чорак / I ярим йиллик</option>
-              <option value="year" ${state.taskPeriod === "year" ? "selected" : ""}>Йил якуни / давомида</option>
-            </select>
-          </label>
-          <label>Туман/шаҳар
-            <select id="taskDistrictSelect">
-              <option value="all" ${state.taskDistrict === "all" ? "selected" : ""}>Барча ҳудудлар</option>
-              ${kpiDistricts.map(name => `<option value="${h(name)}" ${state.taskDistrict === name ? "selected" : ""}>${h(name)}</option>`).join("")}
-            </select>
-          </label>
           <label>Ҳолат
             <select id="taskStatusSelect">
               <option value="open" ${state.taskStatus === "open" ? "selected" : ""}>Бажарилмаган</option>
@@ -6265,33 +9750,77 @@ HTML = r"""<!doctype html>
               <option value="done" ${state.taskStatus === "done" ? "selected" : ""}>Бажарилган</option>
             </select>
           </label>
-          <div class="action-row" style="margin-top:0">
-            <button class="mini-button" data-task-page="dashboard">KPI экрани</button>
-            ${!allKpis && districtReady ? `<button class="mini-button primary" data-open-districts="${kpi.id}">Туманлар кесими</button>` : ""}
-          </div>
+          <label>Қидириш
+            <input id="taskSearchBox" value="${h(state.search)}" placeholder="Топшириқ, масъул ёки ҳудуд">
+          </label>
         </div>
-        <div class="task-summary-strip">
-          <div class="small-stat"><span>Йўналиш</span><strong>${moduleLabel}</strong><small>${moduleSource}</small></div>
-          <div class="small-stat"><span>KPI</span><strong>${allKpis ? "Барча KPI" : kpi.short}</strong><small>${allKpis ? "барча йўналишлар бўйича топшириқлар" : kpi.label}</small></div>
-          <div class="small-stat"><span>Кафолат хати</span><strong>${meta.execution_tasks || DATA.tasks.length}</strong><small>ҳақиқий ижро топшириғи · ${meta.kpi_targets || 0} KPI мақсад чиқарилди</small></div>
-          <div class="small-stat"><span>Топшириқлар</span><strong>${notDone.length}/${allTasks.length}</strong><small>бажарилмаган / танланган кесим</small></div>
+        <details class="task-advanced-filters" ${state.taskPeriod !== "all" || state.taskDistrict !== "all" ? "open" : ""}>
+          <summary>Қўшимча фильтрлар</summary>
+          <div class="task-advanced-grid">
+            <label>Муддат
+              <select id="taskPeriodSelect">
+                <option value="all" ${state.taskPeriod === "all" ? "selected" : ""}>Барча муддатлар</option>
+                <option value="h1" ${state.taskPeriod === "h1" ? "selected" : ""}>II чорак / I ярим йиллик</option>
+                <option value="year" ${state.taskPeriod === "year" ? "selected" : ""}>Йил якуни / давомида</option>
+              </select>
+            </label>
+            <label>Туман/шаҳар
+              <select id="taskDistrictSelect">
+                <option value="all" ${state.taskDistrict === "all" ? "selected" : ""}>Барча ҳудудлар</option>
+                ${kpiDistricts.map(name => `<option value="${h(name)}" ${state.taskDistrict === name ? "selected" : ""}>${h(name)}</option>`).join("")}
+              </select>
+            </label>
+          </div>
+        </details>
+        <div class="task-summary-strip execution-overview">
+          <div class="task-summary-copy">
+            <span>Ижро ҳолати</span>
+            <strong>${taskScopeTitle}</strong>
+            <small>${contextBits.join(" · ")} бўйича ${shownScope.toLowerCase()} топшириқлар кўрсатилмоқда.</small>
+          </div>
+          <div class="exec-status-grid">
+            <button class="exec-status-pill ${state.taskStatus === "all" ? "active" : ""}" type="button" data-task-status-jump="all">
+              <span>Жами</span>
+              <strong>${allTasks.length}</strong>
+            </button>
+            <button class="exec-status-pill green ${state.taskStatus === "done" ? "active" : ""}" type="button" data-task-status-jump="done">
+              <span>Бажарилди</span>
+              <strong>${done.length}</strong>
+            </button>
+            <button class="exec-status-pill red ${state.taskStatus === "open" ? "active" : ""}" type="button" data-task-status-jump="open">
+              <span>Бажарилмади</span>
+              <strong>${notDone.length}</strong>
+            </button>
+            <button class="exec-status-pill blue" type="button" data-task-execution>
+              <span>Ҳисобот киритилган</span>
+              <strong>${reportLinked}</strong>
+            </button>
+          </div>
+          <div class="exec-progress-box">
+            <div class="exec-donut" style="--pct:${donePct}"><strong>${donePct}%</strong></div>
+            <small>бажарилиш</small>
+          </div>
+          <div class="score-actions">
+            <button class="score-action primary" type="button" data-task-page="dashboard">KPI экрани</button>
+            <button class="score-action" type="button" data-task-execution>Ижро журнали</button>
+          </div>
         </div>
         <div class="task-workspace">
           <div class="task-groups">
             <section class="task-group">
-              <div class="task-group-head"><h3>Ижро топшириқлари</h3><span class="chip grey">${visibleTasks.length} та</span></div>
+              <div class="task-group-head"><h3>${shownScope} топшириқлар</h3><span class="chip grey">${visibleTasks.length} та</span></div>
               <div class="task-list">${visibleTasks.map(task => compactTaskCard(task, kpi.id)).join("") || `<p class="muted">Бу KPI бўйича топшириқ топилмади.</p>`}</div>
             </section>
           </div>
           <aside class="task-focus">
             <div class="eyebrow">Топшириқлар</div>
-            <h3>${moduleLabel}: кафолат хатидан келган ишлар</h3>
-            <p>Топшириқлар 7 та манба жадвалига мос йўналишларда юритилади. KPI шу йўналиш ичидаги мониторинг кесими, T-топшириқ эса KPIга эришиш учун бажариладиган амалий иш.</p>
-            <div class="task-list" style="margin-top:14px">
-              <article class="task-card"><header><strong>Манба жадвал</strong><span class="chip blue">${moduleScopedTasks.length} T-топшириқ</span></header><div class="task-meta"><span>${moduleSource}</span><span>${moduleSheets}</span></div></article>
-              <article class="task-card"><header><strong>KPI мақсади</strong><span class="chip blue">${primaryMetric(annual)}</span></header><div class="task-meta"><span>KPI экрани</span></div></article>
-              <article class="task-card"><header><strong>Ижро ҳолати</strong><span class="chip ${notDone.length ? "red" : "green"}">${notDone.length}/${allTasks.length}</span></header><div class="task-meta"><span>бажарилмаган / жами T-топшириқ</span></div></article>
-              <article class="task-card"><header><strong>Ҳисобот боғланиши</strong><span class="chip ${reportLinked ? "green" : "grey"}">${reportLinked}/${allTasks.length}</span></header><div class="task-meta"><span>ижро журнали</span></div></article>
+            <h3>KPI → топшириқ → ҳисобот</h3>
+            <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради. Карточкага босганда тўлиқ матн, далил ва Ҳисоб палатаси текширувини киритиш ойнаси очилади.</p>
+            <div class="task-side-stack">
+              <div class="task-side-row"><div><strong>Танланган йўналиш</strong><span>${cleanModuleLabel}</span></div><span class="chip blue">${moduleScopedTasks.length} та</span></div>
+              <div class="task-side-row"><div><strong>Танланган KPI</strong><span>${allKpis ? "Барча KPI бўйича топшириқлар" : kpi.label}</span></div><span class="chip blue">${allKpis ? "ҳаммаси" : kpi.short}</span></div>
+              <div class="task-side-row"><div><strong>Ҳисобот киритилган</strong><span>Киритилган ҳисоботлар ижро журналида текширилади.</span></div><span class="chip ${reportLinked ? "green" : "grey"}">${reportLinked}/${allTasks.length}</span></div>
+              ${!allKpis && districtReady ? `<div class="task-side-row"><div><strong>Туманлар кесими</strong><span>Шу KPI бўйича ҳудудлар ҳолатини очиш.</span></div><button class="mini-button primary" data-open-districts="${kpi.id}" type="button">Очиш</button></div>` : ""}
             </div>
           </aside>
         </div>`;
@@ -6321,6 +9850,17 @@ HTML = r"""<!doctype html>
         state.taskStatus = event.target.value;
         render();
       });
+      $("#taskSearchBox").addEventListener("input", event => {
+        state.search = event.target.value;
+        render();
+      });
+      $$("[data-task-status-jump]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.taskStatus = btn.dataset.taskStatusJump;
+        render();
+      }));
+      $$("[data-task-execution]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
+        openExecutionJournal(allKpis ? "all" : kpi.id, state.taskDistrict === "all" ? null : state.taskDistrict, state.taskPeriod === "all" ? null : state.taskPeriod);
+      }));
       $$("[data-task-page]", $("#tasksPage")).forEach(btn => btn.addEventListener("click", () => {
         state.page = btn.dataset.taskPage;
         render();
@@ -6342,10 +9882,11 @@ HTML = r"""<!doctype html>
         localization: ["industry", "localization", "energy_electricity", "energy_gas"],
         energy_electricity: ["industry", "localization", "energy_electricity", "energy_gas"],
         energy_gas: ["industry", "localization", "energy_electricity", "energy_gas"],
-        poverty: ["poverty", "unemployment", "jobs", "legalization", "mfy_clear", "microprojects"],
-        unemployment: ["unemployment", "poverty", "jobs", "legalization", "mfy_clear", "microprojects"],
-        jobs: ["jobs", "unemployment", "poverty", "legalization", "mfy_clear", "microprojects"],
-        legalization: ["legalization", "jobs", "unemployment", "poverty", "mfy_clear", "microprojects"],
+        poverty: ["poverty", "unemployment", "small_business_share", "jobs", "legalization", "mfy_clear", "microprojects"],
+        unemployment: ["unemployment", "poverty", "small_business_share", "jobs", "legalization", "mfy_clear", "microprojects"],
+        small_business_share: ["small_business_share", "unemployment", "jobs", "legalization"],
+        jobs: ["jobs", "unemployment", "poverty", "small_business_share", "legalization", "mfy_clear", "microprojects"],
+        legalization: ["legalization", "jobs", "unemployment", "poverty", "small_business_share", "mfy_clear", "microprojects"],
         mfy_clear: ["mfy_clear", "poverty", "unemployment", "jobs", "microprojects"],
         microprojects: ["microprojects", "poverty", "jobs", "legalization"],
         inflation: ["inflation"],
@@ -6378,17 +9919,50 @@ HTML = r"""<!doctype html>
       return (DATA.kafolat_district_targets || []).filter(t => isSpecificTaskForKpi(t, kpiId));
     }
 
-    function districtTargetsForDistrict(d, kpiId = state.kpi) {
-      const targets = districtTargetsForKpi(kpiId);
+    function recordMentionsDistrict(record, d) {
+      if (!record || !d) return false;
       const districtStem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return targets.filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name)) || cleanTaskTitle(t.title).toLowerCase().includes(districtStem));
+      return (Array.isArray(record.districts) && record.districts.includes(d.name))
+        || cleanTaskTitle(record.title || "").toLowerCase().includes(districtStem);
+    }
+
+    function districtScopedTasks(d, kpiId = null) {
+      const records = kpiId ? tasksForKpi(kpiId) : (DATA.tasks || []);
+      return records.filter(t => recordMentionsDistrict(t, d));
+    }
+
+    function districtScopedTargets(d, kpiId = null) {
+      const records = kpiId ? districtTargetsForKpi(kpiId) : (DATA.kafolat_district_targets || []);
+      return records.filter(t => recordMentionsDistrict(t, d));
+    }
+
+    function districtTargetsForDistrict(d, kpiId = state.kpi) {
+      return districtScopedTargets(d, kpiId);
     }
 
     function districtTasksFor(d, kpiId = state.kpi) {
-      const all = tasksForKpi(kpiId);
-      const districtStem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      const related = all.filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name)) || cleanTaskTitle(t.title).toLowerCase().includes(districtStem));
-      return related.length ? related : all;
+      return districtScopedTasks(d, kpiId);
+    }
+
+    function taskDistrictFilterFor(kpiId, districtName) {
+      if (!districtName || districtName === "all") return "all";
+      const district = (DATA.districts || []).find(item => item.name === districtName);
+      const hasDistrictTasks = tasksForKpi(kpiId).some(t =>
+        district ? recordMentionsDistrict(t, district) : (Array.isArray(t.districts) && t.districts.includes(districtName))
+      );
+      return hasDistrictTasks ? districtName : "all";
+    }
+
+    function openTasksForContext(kpiId = state.kpi, districtName = null, period = null, status = "open") {
+      const targetKpi = kpiId || "all";
+      state.page = "tasks";
+      state.kpi = targetKpi;
+      state.taskModule = targetKpi === "all" ? "all" : dashboardModuleForKpi(targetKpi);
+      state.taskStatus = status || "open";
+      state.taskDistrict = taskDistrictFilterFor(targetKpi, districtName || state.district);
+      state.taskPeriod = period || "all";
+      state.search = "";
+      render();
     }
 
     function districtTaskSummary(d, kpiId = state.kpi) {
@@ -6645,18 +10219,21 @@ HTML = r"""<!doctype html>
       const active = d.name === state.district ? "active-row" : "";
       const task = item.task || districtTaskSummary(d, kpi.id);
       const taskClass = task.total && task.unfinished ? "red" : task.total ? "green" : "grey";
+      const targets = districtScopedTargets(d, kpi.id);
+      const targetClass = targets.length ? "blue" : "grey";
       const report = latestAnyReportFor(kpi.id, cfg.primaryPeriod || state.period, d.name);
       return `<tr class="clickable ${active}" data-select-district="${d.name}">
         <td class="row-title"><strong>${d.name}</strong><span>${d.owner}</span></td>
         ${cfg.columns.map(col => districtCellHtml(d, col)).join("")}
         <td class="num"><span class="chip ${taskClass}">${task.unfinished}/${task.total}</span></td>
+        <td class="num"><span class="chip ${targetClass}">${targets.length}</span></td>
         <td>${report ? `<span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span><small>${h(reportImpactLabel(report))} · ${h(report.date || "")}</small>` : `<span class="chip grey">ҳисобот йўқ</span><small>амалдаги натижа киритилмаган</small>`}</td>
         <td><div class="action-row compact"><button class="mini-button profile" data-profile-district="${d.name}" title="Туман профили">Профил</button><button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Журнал</button></div></td>
       </tr>`;
     }
 
     function renderDistrictTable(rows, kpi, cfg) {
-      const head = `<tr><th>Туман/шаҳар</th>${cfg.columns.map(col => `<th>${col.label}</th>`).join("")}<th class="num">KPI топшириқ</th><th>Ҳисобот / таъсир</th><th>Амал</th></tr>`;
+      const head = `<tr><th>Туман/шаҳар</th>${cfg.columns.map(col => `<th>${col.label}</th>`).join("")}<th class="num">T-топшириқ</th><th class="num">D-мақсад</th><th>Ҳисобот / таъсир</th><th>Амал</th></tr>`;
       return `<div class="district-table-wrap"><table class="district-table"><thead>${head}</thead><tbody>${rows.map(row => districtTableRow(row, kpi, cfg)).join("")}</tbody></table></div>`;
     }
 
@@ -6667,10 +10244,11 @@ HTML = r"""<!doctype html>
       const taskClass = summary.total && summary.unfinished ? "red" : summary.total ? "green" : "grey";
       const report = latestAnyReportFor(kpi.id, cfg.primaryPeriod || state.period, d.name);
       const districtTargets = districtTargetsForDistrict(d, kpi.id);
+      const targetClass = districtTargets.length ? "blue" : "grey";
       return `<article class="panel district-preview">
         <div class="panel-head">
           <div><h3>${d.name}</h3><p>${kpi.short} бўйича танланган ҳудуднинг қисқа KPI кўриниши.</p></div>
-          <span class="chip ${taskClass}">${summary.unfinished}/${summary.total}</span>
+          <div class="district-count-split"><span class="chip ${taskClass}">T: ${summary.unfinished}/${summary.total}</span><span class="chip ${targetClass}">D: ${districtTargets.length}</span></div>
         </div>
         <div class="panel-body">
           <div class="preview-score">
@@ -6697,7 +10275,7 @@ HTML = r"""<!doctype html>
           </div>
           <div class="action-row">
             <button class="mini-button primary" data-profile-district="${d.name}">Туман профили</button>
-            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
             <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Ижро журнали</button>
             <button class="mini-button" data-page-jump="tasks">Топшириқларни кўриш</button>
           </div>
@@ -6745,6 +10323,7 @@ HTML = r"""<!doctype html>
         <header class="districts-map-head">
           <div>
             <strong>${kpi.short} — ${kpi.label}</strong>
+            <span>Ранглар танланган KPI ҳолатини кўрсатади.</span>
           </div>
         </header>
         <div class="districts-map-canvas">
@@ -6770,10 +10349,68 @@ HTML = r"""<!doctype html>
                 <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#1b4d5a" flood-opacity="0.18"/>
               </filter>
             </defs>
-            <g filter="url(#mapCellShadow)">${cellShapes}</g>
+            <g>${cellShapes}</g>
             <g class="map-labels">${cellLabels}</g>
           </svg>
         </div>
+        <div class="districts-map-legend">
+          <span class="legend-chip green">Яхши</span>
+          <span class="legend-chip amber">Ўртача</span>
+          <span class="legend-chip red">Эътибор</span>
+          <span class="legend-chip grey">Маълумот йўқ</span>
+        </div>
+      </section>`;
+    }
+
+    function renderSelectedDistrictSummaryCard(d, kpi, cfg, period) {
+      if (!d) return `<section class="district-summary-card empty">
+        <div class="district-summary-head">
+          <div>
+            <span>Танланган ҳудуд</span>
+            <h3>Туман танланмаган</h3>
+          </div>
+        </div>
+        <p class="muted">Харита ёки рейтингдан туман/шаҳарни танланг.</p>
+      </section>`;
+      const row = districtKpi(d, kpi.id, period);
+      const status = rowStatus(row);
+      const taskSummary = districtTaskSummary(d, kpi.id);
+      const scopedTargets = districtScopedTargets(d, kpi.id);
+      const taskClass = taskSummary.total && taskSummary.unfinished ? "red" : taskSummary.total ? "green" : "grey";
+      const targetClass = scopedTargets.length ? "blue" : "grey";
+      const report = latestAnyReportFor(kpi.id, period, d.name);
+      return `<section class="district-summary-card">
+        <header class="district-summary-head">
+          <div>
+            <span>Танланган ҳудуд</span>
+            <h3>${d.name}</h3>
+          </div>
+          <span class="chip ${status}">${statusLabel(status)}</span>
+        </header>
+        <div class="district-summary-value">
+          <div>
+            <strong>${districtPrimaryValue(row, kpi.id)}</strong>
+            <span>${districtPrimaryLabel(kpi.id)} · ${kpi.short}</span>
+          </div>
+          <div class="district-count-split">
+            <span class="chip ${taskClass}">T: ${taskSummary.unfinished}/${taskSummary.total}</span>
+            <span class="chip ${targetClass}">D: ${scopedTargets.length}</span>
+          </div>
+        </div>
+        <div class="district-summary-metrics">
+          ${cfg.columns.slice(0, 4).map(col => `<div class="district-summary-metric">
+            <span>${col.label}</span>
+            <strong>${col.value(d)}</strong>
+            <small>${col.note ? col.note(d) : ""}</small>
+          </div>`).join("")}
+        </div>
+        <div class="district-summary-actions">
+          <button class="mini-button primary" data-profile-district="${d.name}">Туман профили</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Текширув киритиш</button>
+          <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
+          <button class="mini-button" data-page-jump="tasks">Топшириқлар</button>
+        </div>
+        ${report ? `<span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)} · ${h(reportImpactLabel(report))}</span>` : `<span class="chip grey">ҳисобот йўқ</span>`}
       </section>`;
     }
 
@@ -6785,7 +10422,7 @@ HTML = r"""<!doctype html>
           <span>${withData.length} та туманлар · ${kpi.short}</span>
         </header>
         <ol class="districts-lb-list">
-          ${withData.map((item, idx) => {
+          ${withData.length ? withData.map((item, idx) => {
             const d = item.d;
             const row = districtKpi(d, kpi.id, period);
             const status = rowStatus(row);
@@ -6799,23 +10436,9 @@ HTML = r"""<!doctype html>
               <span class="lb-value">${value}</span>
               <span class="lb-bar"><i style="width:${barPct.toFixed(1)}%"></i></span>
             </li>`;
-          }).join("")}
+          }).join("") : `<li class="lb-empty">Қидирув бўйича туман топилмади. Қидирувни тозаланг ёки бошқа KPI танланг.</li>`}
         </ol>
       </section>`;
-    }
-
-    function districtScopedTasks(d) {
-      if (!d) return [];
-      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return (DATA.tasks || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
-        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
-    }
-
-    function districtScopedTargets(d) {
-      if (!d) return [];
-      const stem = d.name.replace(/\s+(шаҳри|тумани)$/i, "").toLowerCase();
-      return (DATA.kafolat_district_targets || []).filter(t => (Array.isArray(t.districts) && t.districts.includes(d.name))
-        || cleanTaskTitle(t.title || "").toLowerCase().includes(stem));
     }
 
     function renderDistrictCrossKpi(d) {
@@ -6847,10 +10470,10 @@ HTML = r"""<!doctype html>
       </section>`;
     }
 
-    function renderDistrictTasksPanels(d) {
+    function renderDistrictTasksPanels(d, kpiId = state.kpi) {
       if (!d) return "";
-      const tasks = districtScopedTasks(d);
-      const targets = districtScopedTargets(d);
+      const tasks = districtScopedTasks(d, kpiId);
+      const targets = districtScopedTargets(d, kpiId);
       const sortByStatus = arr => [...arr].sort((a, b) => {
         const order = { red: 0, amber: 1, grey: 2, green: 3 };
         return (order[a.status || "grey"] ?? 4) - (order[b.status || "grey"] ?? 4);
@@ -6885,17 +10508,17 @@ HTML = r"""<!doctype html>
       return `<section class="dpc-tasks-grid">
         <div class="dpc-task-panel">
           <header class="dpc-task-head">
-            <strong>Тумандаги топшириқлар</strong>
+            <strong>T-топшириқлар</strong>
             <span class="chip ${tasks.length ? "blue" : "grey"}">${tasks.length} та</span>
           </header>
-          ${tasks.length ? `<ul class="dpc-task-list">${taskItems}</ul>${tasks.length > 12 ? `<p class="dpc-task-more">…ва яна ${tasks.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Бу ҳудудга бириктирилган T-топшириқ йўқ.</p>`}
+          ${tasks.length ? `<ul class="dpc-task-list">${taskItems}</ul>${tasks.length > 12 ? `<p class="dpc-task-more">…ва яна ${tasks.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Танланган KPI бўйича бу ҳудудга бириктирилган T-топшириқ йўқ.</p>`}
         </div>
         <div class="dpc-task-panel">
           <header class="dpc-task-head">
-            <strong>Туман мақсадлари</strong>
+            <strong>D-мақсадлар</strong>
             <span class="chip ${targets.length ? "blue" : "grey"}">${targets.length} та</span>
           </header>
-          ${targets.length ? `<ul class="dpc-task-list">${targetItems}</ul>${targets.length > 12 ? `<p class="dpc-task-more">…ва яна ${targets.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Кафолат хатида D-кўрсаткич ажратилмаган.</p>`}
+          ${targets.length ? `<ul class="dpc-task-list">${targetItems}</ul>${targets.length > 12 ? `<p class="dpc-task-more">…ва яна ${targets.length - 12} та</p>` : ""}` : `<p class="dpc-task-empty">Танланган KPI бўйича кафолат хатида D-мақсад ажратилмаган.</p>`}
         </div>
       </section>`;
     }
@@ -6904,12 +10527,11 @@ HTML = r"""<!doctype html>
       if (!d) return "";
       const row = districtKpi(d, kpi.id, period);
       const status = rowStatus(row);
-      const scopedTasks = districtScopedTasks(d);
-      const scopedTargets = districtScopedTargets(d);
-      const scopedTotal = scopedTasks.length + scopedTargets.length;
-      const scopedUnfinished = scopedTasks.filter(t => (t.status || "grey") !== "green").length
-        + scopedTargets.filter(t => (t.status || "grey") !== "green").length;
-      const taskClass = scopedTotal && scopedUnfinished ? "red" : scopedTotal ? "green" : "grey";
+      const scopedTasks = districtScopedTasks(d, kpi.id);
+      const scopedTargets = districtScopedTargets(d, kpi.id);
+      const unfinishedTasks = scopedTasks.filter(t => (t.status || "grey") !== "green").length;
+      const taskClass = scopedTasks.length && unfinishedTasks ? "red" : scopedTasks.length ? "green" : "grey";
+      const targetClass = scopedTargets.length ? "blue" : "grey";
       const report = latestAnyReportFor(kpi.id, period, d.name);
       return `<article class="district-profile-card">
         <header class="dpc-head">
@@ -6924,7 +10546,8 @@ HTML = r"""<!doctype html>
           </div>
           <div class="dpc-head-chips">
             <span class="chip ${status}">${statusLabel(status)}</span>
-            <span class="chip ${taskClass}">${scopedUnfinished}/${scopedTotal} топшириқ</span>
+            <span class="chip ${taskClass}">T: ${unfinishedTasks}/${scopedTasks.length}</span>
+            <span class="chip ${targetClass}">D: ${scopedTargets.length}</span>
           </div>
         </header>
         <div class="dpc-metrics">
@@ -6935,10 +10558,10 @@ HTML = r"""<!doctype html>
           </div>`).join("")}
         </div>
         ${renderDistrictCrossKpi(d)}
-        ${renderDistrictTasksPanels(d)}
+        ${renderDistrictTasksPanels(d, kpi.id)}
         <footer class="dpc-actions">
           <button class="mini-button primary" data-profile-district="${d.name}">Туман профили →</button>
-          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Ҳисобот киритиш</button>
+          <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${period}">Текширув киритиш</button>
           <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${period}">Ижро журнали</button>
           <button class="mini-button" data-page-jump="tasks">Топшириқларни кўриш</button>
           ${report ? `<span class="chip ${reportStatusClass(report.status)}" style="margin-left:auto">${reportStatusLabel(report.status)} · ${h(report.date || "")}</span>` : ""}
@@ -6990,27 +10613,83 @@ HTML = r"""<!doctype html>
       return districtSelectorDefs().filter(def => kpiHasAnyDistrictData(def.id));
     }
 
+    const districtKpiModuleMap = {
+      macro: ["grp", "industry", "agriculture", "services", "localization", "energy_electricity", "energy_gas"],
+      inflation: ["inflation"],
+      budget: ["budget"],
+      budget_investment: ["budget_investment"],
+      investment: ["investment"],
+      export: ["export"],
+      employment: ["unemployment", "poverty", "jobs", "legalization", "mfy_clear", "microprojects"]
+    };
+
+    function districtKpisForModule(moduleId) {
+      const available = districtSelectorDefsWithData();
+      const ids = districtKpiModuleMap[moduleId] || districtKpiModuleMap.macro;
+      return ids.map(id => available.find(def => def.id === id)).filter(Boolean);
+    }
+
+    function districtModulesWithData() {
+      return dashboardModules().filter(module => districtKpisForModule(module.id).length);
+    }
+
+    function districtKpiOption(def, cfg) {
+      const active = def.id === state.kpi ? "active" : "";
+      return `<button class="district-kpi-option ${active}" type="button" data-district-kpi="${def.id}" aria-label="${def.label}">
+        <span class="kpi-mini-icon" aria-hidden="true">${icon(def.icon)}</span>
+        <span>
+          <strong>${def.short}</strong>
+          <small>${cfg?.source || def.label}</small>
+        </span>
+      </button>`;
+    }
+
     function renderDistrictsPage() {
       const availableDefs = districtSelectorDefsWithData();
       if (!availableDefs.some(def => def.id === state.kpi)) state.kpi = availableDefs[0]?.id || "grp";
+      let activeModule = dashboardModuleForKpi(state.kpi);
+      let moduleDefs = districtKpisForModule(activeModule);
+      if (!moduleDefs.some(def => def.id === state.kpi)) {
+        state.kpi = moduleDefs[0]?.id || availableDefs[0]?.id || "grp";
+        activeModule = dashboardModuleForKpi(state.kpi);
+        moduleDefs = districtKpisForModule(activeModule);
+      }
       const kpi = currentKpiDef();
       const cfg = districtTableConfig(kpi);
       const period = cfg.primaryPeriod || state.period;
+      const selectedModule = moduleById(activeModule) || dashboardModules()[0];
       const ranked = districtRowsForKpi(kpi.id);
-      const districts = ranked.map(x => x.d);
-      const selectedDistrict = state.district ? districts.find(d => d.name === state.district) : null;
+      const query = String(state.search || "").trim().toLowerCase();
+      const filteredRanked = query
+        ? ranked.filter(item => item.d.name.toLowerCase().includes(query) || String(item.d.owner || "").toLowerCase().includes(query))
+        : ranked;
+      const visibleRanked = filteredRanked;
+      const districts = visibleRanked.map(x => x.d);
+      let selectedDistrict = state.district ? districts.find(d => d.name === state.district) : null;
+      if (!selectedDistrict) {
+        selectedDistrict = districts[0] || null;
+        if (selectedDistrict) state.district = selectedDistrict.name;
+      }
       const statusByDistrict = buildMapStatusByDistrict(kpi.id, period);
-      const values = ranked.map(r => districtRowValue(r, kpi.id)).filter(v => v !== null);
+      const values = visibleRanked.map(r => districtRowValue(r, kpi.id)).filter(v => v !== null);
       const maxAbs = values.length ? Math.max(...values.map(Math.abs)) : 1;
       $("#districtsPage").innerHTML = `
         <header class="districts-head">
+          <div class="dashboard-module-tabs district-module-tabs">
+            ${districtModulesWithData().map(module => `<button class="module-tab ${module.id === activeModule ? "active" : ""}" data-district-module="${module.id}" type="button">
+              <span class="module-dot" aria-hidden="true"></span>
+              <strong>${module.label.replace(/^\d+\.\s*/, "")}</strong>
+            </button>`).join("")}
+          </div>
+          <div class="module-heading">
+            <div>
+              <h2>${selectedModule?.label || "Туманлар мониторинги"}</h2>
+              <p>${cfg.description}</p>
+            </div>
+          </div>
+          ${moduleDefs.length > 1 ? `<div class="district-kpi-selector">${moduleDefs.map(def => districtKpiOption(def, districtTableConfig(def))).join("")}</div>` : ""}
+          ${renderDistrictDataLayers(kpi, period)}
           <div class="districts-head-actions">
-            <label class="districts-control">
-              <span>KPI / маълумот</span>
-              <select id="districtKpiSelect">
-                ${availableDefs.map(def => `<option value="${def.id}" ${def.id === state.kpi ? "selected" : ""}>${def.short} — ${def.label}</option>`).join("")}
-              </select>
-            </label>
             <label class="districts-control">
               <span>Саралаш</span>
               <select id="districtSortSelect">
@@ -7029,13 +10708,31 @@ HTML = r"""<!doctype html>
         </header>
         <div class="districts-grid">
           ${renderAndijanHexMap(kpi, statusByDistrict, selectedDistrict)}
-          ${renderDistrictLeaderboard(ranked, kpi, period, selectedDistrict, maxAbs)}
+          <aside class="districts-side">
+            ${renderSelectedDistrictSummaryCard(selectedDistrict, kpi, cfg, period)}
+            ${renderDistrictLeaderboard(visibleRanked, kpi, period, selectedDistrict, maxAbs)}
+          </aside>
         </div>
-        ${renderSelectedDistrictCard(selectedDistrict, kpi, cfg, period)}`;
-      $("#districtKpiSelect").addEventListener("change", event => {
-        state.kpi = event.target.value;
+        <section class="panel district-detail-table">
+          <div class="panel-head">
+            <div><h3>Батафсил жадвал</h3><p>${cfg.title}. ${cfg.description}</p></div>
+            <span class="chip grey">${cfg.source}</span>
+          </div>
+          ${renderDistrictTable(visibleRanked, kpi, cfg)}
+        </section>`;
+      $$("[data-district-module]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        const defs = districtKpisForModule(btn.dataset.districtModule);
+        state.kpi = defs[0]?.id || state.kpi;
+        state.dashboardModule = btn.dataset.districtModule;
+        state.search = "";
         render();
-      });
+      }));
+      $$("[data-district-kpi]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.kpi = btn.dataset.districtKpi;
+        state.dashboardModule = dashboardModuleForKpi(state.kpi);
+        state.search = "";
+        render();
+      }));
       $("#districtSortSelect").addEventListener("change", event => {
         state.districtSort = event.target.value;
         render();
@@ -7067,6 +10764,10 @@ HTML = r"""<!doctype html>
         render();
       }));
       $$("[data-page-jump]", $("#districtsPage")).forEach(btn => btn.addEventListener("click", () => {
+        if (btn.dataset.pageJump === "tasks") {
+          openTasksForContext(state.kpi, state.district, state.period, "open");
+          return;
+        }
         state.page = btn.dataset.pageJump;
         render();
       }));
@@ -7115,7 +10816,7 @@ HTML = r"""<!doctype html>
           </label>
           <div class="action-row" style="margin-top:0">
             <button class="mini-button" data-open-districts="${kpi.id}">Туманлар кесимига қайтиш</button>
-            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+            <button class="mini-button" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
             <button class="mini-button primary" data-page-jump="dashboard">KPI экрани</button>
           </div>
         </div>
@@ -7156,7 +10857,7 @@ HTML = r"""<!doctype html>
               <div class="profile-side-stat"><span>Туман мақсадлари</span><strong>${districtTargets.length}</strong></div>
               <div class="profile-side-stat"><span>Ҳисобот таъсири</span><strong>${latestReport ? reportImpactLabel(latestReport) : "ҳисобот йўқ"}</strong></div>
               <div class="profile-actions" style="margin-top:12px">
-                <button class="mini-button primary" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Ҳисобот киритиш</button>
+                <button class="mini-button primary" data-open-report-modal data-report-kpi="${kpi.id}" data-report-district="${d.name}" data-report-period="${cfg.primaryPeriod || state.period}">Текширув киритиш</button>
                 <button class="mini-button" data-open-districts="${kpi.id}">Туманлар жадвали</button>
                 <button class="mini-button" data-open-execution data-exec-kpi="${kpi.id}" data-exec-district="${d.name}" data-exec-period="${cfg.primaryPeriod || state.period}">Ижро журнали</button>
               </div>
@@ -7228,6 +10929,10 @@ HTML = r"""<!doctype html>
         render();
       }));
       $$("[data-page-jump]", $("#profilePage")).forEach(btn => btn.addEventListener("click", () => {
+        if (btn.dataset.pageJump === "tasks") {
+          openTasksForContext(state.kpi, state.district, state.period, "open");
+          return;
+        }
         state.page = btn.dataset.pageJump;
         render();
       }));
@@ -7242,32 +10947,106 @@ HTML = r"""<!doctype html>
     function renderExecutionPage() {
       const reports = filteredExecutionReports();
       const allReports = getExecutionReports();
-      const approved = allReports.filter(r => r.status === "approved").length;
-      const review = allReports.filter(r => r.status === "review" || r.status === "rejected").length;
-      const submitted = allReports.filter(r => r.status === "submitted").length;
-      $("#executionPage").innerHTML = `
-        <div class="district-context">
+      const approvedReports = allReports.filter(r => r.status === "approved");
+      const submittedReports = allReports.filter(r => r.status === "submitted");
+      const reviewReports = allReports.filter(r => r.status === "review");
+      const rejectedReports = allReports.filter(r => r.status === "rejected");
+      const queueReports = allReports.filter(r => r.status === "submitted" || r.status === "review").slice(0, 5);
+      const visibleQueue = queueReports.length ? queueReports : allReports.slice(0, 5);
+      const problemReports = allReports.filter(r => ["Бажарилмади", "Муддати кечикди"].includes(r.executionStatus) || ["Етарли эмас", "Далил йўқ"].includes(r.evidenceStatus) || r.status === "rejected");
+      const approved = approvedReports.length;
+      const submitted = submittedReports.length;
+      const review = reviewReports.length;
+      const rejected = rejectedReports.length;
+      const approvedPct = allReports.length ? Math.round(approved / allReports.length * 100) : 0;
+      const hasReports = allReports.length > 0;
+      const commandTitle = hasReports ? "Ҳисоб палатаси текширувидан KPI амалда қийматигача" : "Ҳисоб палатаси маълумоти келишига тайёр ҳолат";
+      const commandText = hasReports
+        ? "Ҳисоб палатаси ҳар бир T/D қатор бўйича ижро ҳолати, далил ҳолати ва изоҳ беради. Фақат қабул қилинган қаторлар KPI “амалда” қийматига қўшилади."
+        : "Реал текширув маълумоти ҳали киритилмаган. Template тўлдирилгандан кейин “Платформага қабул = Тайёр” қаторлари журналга тушади, тасдиқланганлари эса KPI “амалда” қийматига қўшилади.";
+      const impactMap = new Map();
+      approvedReports.forEach(report => {
+        const key = report.kpiLabel || report.kpi || "KPI";
+        const current = impactMap.get(key) || { label: key, count: 0, latest: report };
+        current.count += 1;
+        current.latest = report;
+        impactMap.set(key, current);
+      });
+      const impactRows = [...impactMap.values()].slice(0, 5);
+      const statusButton = (id, label, count, tone = "") => `<button class="execution-status-btn ${tone} ${state.reportStatus === id ? "active" : ""}" type="button" data-report-status-filter="${id}"><span>${label}</span><strong>${count}</strong></button>`;
+      const reportCard = report => `<article class="execution-card">
+        <header>
           <div>
-            <div class="eyebrow">Ижро мониторинги</div>
-            <h3>Ижро ҳисоботлари журнали</h3>
-            <p>Ҳар бир киритилган амалдаги натижа шу ерда текширилади. “Тасдиқланди” ҳолатига ўтмагунча у KPI натижасига қўшилмайди.</p>
+            <strong>${h(report.district)} · ${h(report.kpiLabel)}</strong>
+              <p>${h(report.taskTitle || report.comment || "Топшириқ ID кўрсатилмаган")}</p>
           </div>
-          <div class="district-context-actions">
-            <button class="mini-button primary" data-open-report-modal>+ Ҳисобот киритиш</button>
+          <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
+        </header>
+        <div class="execution-card-meta">
+          <span>қатор: ${h(report.templateRowId || report.taskId || "—")}</span>
+          <span>${h(report.periodLabel || report.period || "давр йўқ")}</span>
+          <span>факт: ${h(report.actualValue || "—")} ${h(report.unit || "")}</span>
+          <span>ижро: ${h(report.executionStatus || "—")}</span>
+          <span>далил: ${h(report.evidenceStatus || "—")}</span>
+          <span>${h(report.createdBy || report.responsible || "киритувчи йўқ")}</span>
+        </div>
+        <div class="action-row compact">
+          ${report.status !== "approved" ? `<button class="mini-button primary" data-report-status="${report.id}:approved">Қабул қилиш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
+          ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Кўриб чиқишда</button>` : ""}
+          ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
+        </div>
+      </article>`;
+      $("#executionPage").innerHTML = `
+        <div class="execution-command">
+          <div class="execution-command-copy">
+            <span>Ижро мониторинги</span>
+            <strong>${commandTitle}</strong>
+            <small>${commandText}</small>
+          </div>
+          <div class="execution-status-grid">
+            ${statusButton("all", "Жами", allReports.length)}
+            ${statusButton("submitted", "Киритилди", submitted, "blue")}
+            ${statusButton("review", "Кўриб чиқилмоқда", review, "amber")}
+            ${statusButton("approved", "Тасдиқланди", approved, "green")}
+            ${statusButton("rejected", "Қайтарилди", rejected, "red")}
+          </div>
+          <div class="execution-actions">
+            <a class="score-action primary" href="templates/hisob_palatasi_ijro_tekshiruv_template.xlsx" download>Template XLSX</a>
+            <a class="score-action" href="templates/hisob_palatasi_ijro_import_contract.md">Import қоидаси</a>
+            <button class="score-action" type="button" data-open-report-modal>Текширув киритиш</button>
+            <button class="score-action" type="button" data-clear-report-filters>Фильтрни тозалаш</button>
           </div>
         </div>
-        <div class="task-summary-strip">
-          <div class="small-stat"><span>Жами ҳисобот</span><strong>${allReports.length}</strong><small>браузерда сақланган журнал</small></div>
-          <div class="small-stat"><span>Тасдиқланди</span><strong>${approved}</strong><small>KPI “амалда” қийматига ўтган</small></div>
-          <div class="small-stat"><span>Қайта кўриш / қайтарилди</span><strong>${review}</strong><small>KPIга ўтмаган ҳисоботлар</small></div>
-          <div class="small-stat"><span>Киритилди</span><strong>${submitted}</strong><small>тасдиқ кутаётган ҳисоботлар</small></div>
+        <div class="execution-flow">
+          <div class="execution-step"><span>1</span><strong>Template тўлдирилади</strong><small>Ҳисоб палатаси T-ID ёки D-ID бўйича текширув натижасини беради.</small></div>
+          <div class="execution-step"><span>2</span><strong>Platform қабул қилади</strong><small>“Платформага қабул” тайёр бўлган қаторлар журналга тушади.</small></div>
+          <div class="execution-step"><span>3</span><strong>Ижро ҳолати кўринади</strong><small>Бажарилди, қисман, бажарилмади, кечикди ва далил сифати алоҳида юритилади.</small></div>
+          <div class="execution-step"><span>4</span><strong>KPIга қўшилади</strong><small>Фақат тасдиқланган/қабул қилинган қатор “амалда” қийматга ўтади.</small></div>
         </div>
-        <div class="workflow-strip">
-          <div class="workflow-step"><span>1</span><strong>Ҳисобот киритилади</strong><small>Туман KPI бўйича амалдаги натижа, бирлик ва далилни киритади.</small></div>
-          <div class="workflow-step"><span>2</span><strong>Текширилади</strong><small>Маълумот қабул қилинади, қайта кўришга юборилади ёки қайтарилади.</small></div>
-          <div class="workflow-step"><span>3</span><strong>KPIга ўтади</strong><small>Фақат “Тасдиқланди” ҳолатидаги ҳисобот мониторингда амалдаги қиймат бўлади.</small></div>
+        <div class="execution-workspace">
+          <section class="execution-lane">
+            <div class="execution-lane-head">
+              <h3>${queueReports.length ? "Текшириш навбати" : "Сўнгги ҳисоботлар"}</h3>
+              <span class="chip ${queueReports.length ? "blue" : "grey"}">${visibleQueue.length} та</span>
+            </div>
+            <div class="execution-card-list">
+              ${visibleQueue.length ? visibleQueue.map(reportCard).join("") : `<div class="execution-empty">Ҳали Ҳисоб палатаси текшируви киритилмаган. Биринчи текширувни “Текширув киритиш” орқали киритинг.</div>`}
+            </div>
+          </section>
+          <aside class="task-focus">
+            <div class="eyebrow">KPIга қўшилган ҳисоботлар</div>
+            <h3>${approvedPct}% тасдиқланган</h3>
+            <p>Ҳисоб палатаси тасдиқлаган ва platform қабул қилган қаторлар KPI мониторингида амалдаги натижа сифатида ишлатилади. Қайта кўриш ва қайтарилган қаторлар KPIга қўшилмайди.</p>
+            <div class="execution-impact">
+              <div class="impact-row"><div><strong>Тасдиқланган</strong><span>KPI амалда қийматига қўшилган</span></div><span class="chip green">${approved}</span></div>
+              <div class="impact-row"><div><strong>Кутилаётган</strong><span>киритилган ёки кўриб чиқилмоқда</span></div><span class="chip blue">${submitted + review}</span></div>
+              <div class="impact-row"><div><strong>Қайтарилган</strong><span>KPIга қўшилмайди</span></div><span class="chip red">${rejected}</span></div>
+              <div class="impact-row"><div><strong>Муаммоли</strong><span>кечиккан, бажарилмаган ёки далили етарсиз</span></div><span class="chip amber">${problemReports.length}</span></div>
+              ${impactRows.length ? impactRows.map(row => `<div class="impact-row"><div><strong>${h(row.label)}</strong><span>${h(row.latest.district)} · ${h(row.latest.periodLabel || "")}</span></div><span class="chip green">${row.count}</span></div>`).join("") : `<div class="execution-empty">Тасдиқланган ҳисобот йўқ.</div>`}
+            </div>
+          </aside>
         </div>
-        <div class="task-filter report-filter">
+        <div class="task-filter report-filter execution-filter">
           <label>KPI
             <select id="reportKpiFilter">
               <option value="all" ${state.sector === "all" ? "selected" : ""}>Барча KPI</option>
@@ -7279,7 +11058,7 @@ HTML = r"""<!doctype html>
               <option value="all" ${state.reportStatus === "all" ? "selected" : ""}>Барча ҳолатлар</option>
               <option value="submitted" ${state.reportStatus === "submitted" ? "selected" : ""}>Киритилди</option>
               <option value="approved" ${state.reportStatus === "approved" ? "selected" : ""}>Тасдиқланди</option>
-              <option value="review" ${state.reportStatus === "review" ? "selected" : ""}>Қайта кўришда</option>
+              <option value="review" ${state.reportStatus === "review" ? "selected" : ""}>Кўриб чиқилмоқда</option>
               <option value="rejected" ${state.reportStatus === "rejected" ? "selected" : ""}>Қайтарилди</option>
             </select>
           </label>
@@ -7305,37 +11084,42 @@ HTML = r"""<!doctype html>
         </div>
         <article class="panel">
           <div class="panel-head">
-            <div><h3>Ҳисоботлар</h3><p>${reports.length} / ${allReports.length} та ҳисобот кўрсатилмоқда.</p></div>
-            <span class="chip blue">ҳисобот киритиш</span>
+            <div><h3>Батафсил журнал</h3><p>${reports.length} / ${allReports.length} та текширув кўрсатилмоқда. Бу ерда ҳар бир қаторнинг ижро ҳолати, далил ҳолати ва KPIга қўшилган-қўшилмагани кўринади.</p></div>
+            <span class="chip blue">Ҳисоб палатаси журнали</span>
           </div>
           <div class="panel-body">
             ${reports.length ? `<div class="table-scroll">
               <table>
-                <thead><tr><th>Сана</th><th>Давр</th><th>Туман</th><th>KPI</th><th>Топшириқ / изоҳ</th><th class="num">Амалда</th><th>Киритувчи / текширувчи</th><th>Ҳолат</th><th>Далил / сабаб</th><th>Амал</th></tr></thead>
+                <thead><tr><th>Қатор</th><th>Сана</th><th>Давр</th><th>Ҳудуд</th><th>KPI</th><th>Топшириқ / изоҳ</th><th class="num">Факт</th><th>Ижро / далил</th><th>Қабул ҳолати</th><th>Муаммо / тавсия</th><th>Амал</th></tr></thead>
                 <tbody>${reports.map(report => `<tr>
+                  <td><strong>${h(report.templateRowId || report.taskId || "—")}</strong><br><span class="muted">${h(report.reportSource || "Ҳисоб палатаси")}</span></td>
                   <td>${h(report.date)}</td>
                   <td>${h(report.periodLabel)}</td>
                   <td><strong>${h(report.district)}</strong><br><span class="muted">${h(report.responsible || "")}</span></td>
                   <td>${h(report.kpiLabel)}</td>
                   <td>${h((report.taskTitle || "").slice(0, 90))}${(report.taskTitle || "").length > 90 ? "…" : ""}<br><span class="muted">${h(report.comment || "")}</span></td>
                   <td class="num"><strong>${h(report.actualValue || "—")}</strong><br><span class="muted">${h(report.unit || "")}</span></td>
-                  <td><strong>${h(report.createdBy || report.responsible || "—")}</strong><br><span class="muted">${report.checkedBy ? `Текширди: ${h(report.checkedBy)}` : "текширув кутилмоқда"}</span></td>
+                  <td>
+                    <span class="chip ${executionStatusClass(report.executionStatus)}">${h(report.executionStatus || "Маълумот йўқ")}</span>
+                    <div style="margin-top:6px"><span class="chip ${evidenceStatusClass(report.evidenceStatus)}">${h(report.evidenceStatus || "Далил йўқ")}</span></div>
+                    <div class="history-list"><span>Текширувчи: ${h(report.checkedBy || report.createdBy || "—")}</span></div>
+                  </td>
                   <td>
                     <span class="chip ${reportStatusClass(report.status)}">${reportStatusLabel(report.status)}</span>
-                    <div style="margin-top:6px"><span class="chip ${reportImpactClass(report)}">${reportImpactLabel(report)}</span></div>
+                    <div style="margin-top:6px"><span class="chip ${reportImpactClass(report)}">${report.status === "approved" ? "KPIга қўшилди" : "KPIга қўшилмади"}</span></div>
                     <div class="history-list">${reportHistory(report).slice(0, 3).map(item => `<span>${h(reportStatusLabel(item.status))} · ${h(item.actor || "—")} · ${h((item.at || "").slice(0, 10))}</span>`).join("")}</div>
                   </td>
-                  <td>${h(report.evidenceName || "—")}<br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span></td>
+                  <td><strong>${h(report.issueType || "Муаммо йўқ")}</strong><br><span class="muted">${h(report.evidenceName || "далил йўқ")}</span><br><span class="muted">${h(latestStatusReason(report) || "сабаб/изоҳ йўқ")}</span>${report.correctionDeadline ? `<br><span class="muted">тузатиш: ${h(report.correctionDeadline)}</span>` : ""}</td>
                   <td>
                     <div class="action-row compact">
-                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Тасдиқлаш</button>` : `<span class="chip green">KPIга ўтди</span>`}
-                      ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Қайта кўриш</button>` : ""}
+                      ${report.status !== "approved" ? `<button class="mini-button" data-report-status="${report.id}:approved">Қабул қилиш</button>` : `<span class="chip green">KPIга қўшилди</span>`}
+                      ${report.status !== "review" ? `<button class="mini-button" data-report-status="${report.id}:review">Кўриб чиқишда</button>` : ""}
                       ${report.status !== "rejected" ? `<button class="mini-button danger" data-report-status="${report.id}:rejected">Қайтариш</button>` : ""}
                     </div>
                   </td>
                 </tr>`).join("")}</tbody>
               </table>
-            </div>` : `<div class="empty"><b>Ҳисобот киритилмаган</b><br>“+ Ҳисобот киритиш” тугмаси орқали биринчи ижро ҳисоботини киритинг.</div>`}
+            </div>` : `<div class="execution-empty"><b>Текширув киритилмаган</b><br>“Текширув киритиш” тугмаси орқали биринчи Ҳисоб палатаси текширувини киритинг.</div>`}
           </div>
         </article>`;
       $("#reportKpiFilter").addEventListener("change", event => {
@@ -7367,6 +11151,10 @@ HTML = r"""<!doctype html>
         state.search = "";
         render();
       }));
+      $$("[data-report-status-filter]", $("#executionPage")).forEach(btn => btn.addEventListener("click", () => {
+        state.reportStatus = btn.dataset.reportStatusFilter;
+        render();
+      }));
       $$("[data-report-status]", $("#executionPage")).forEach(btn => btn.addEventListener("click", () => {
         const [id, status] = btn.dataset.reportStatus.split(":");
         openStatusModal(id, status);
@@ -7379,7 +11167,7 @@ HTML = r"""<!doctype html>
         tasks: ["Топшириқлар", "Танланган KPIга боғланган бажарилмаган ишлар."],
         districts: ["Туманлар кесими", `${currentKpiDef().short} бўйича туман/шаҳарлар кесими: режа, амалда/кутилма, ижро ва топшириқлар.`],
         profile: ["Туман ҳолати", `${state.district}: ${currentKpiDef().short} бўйича режа, амалда ва топшириқлар.`],
-        execution: ["Ижро мониторинги", "Ҳокимликлар киритган ҳисоботлар, далиллар ва тасдиқ ҳолати."]
+        execution: ["Ижро мониторинги", "Ҳисоб палатаси текширувлари, ижро ҳолати, далил сифати ва platform қабул ҳолати."]
       };
       $("#pageTitle").textContent = meta[state.page][0];
       $("#pageSubtitle").textContent = meta[state.page][1];
@@ -7390,19 +11178,19 @@ HTML = r"""<!doctype html>
       const pageChanged = renderedPage !== state.page;
       renderPeriodTabs();
       renderSectorFilter();
-      $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks"].includes(state.page));
+      $("#periodTabs").closest(".segmented").classList.toggle("hidden", ["dashboard", "tasks", "execution"].includes(state.page));
       $("#sectorFilter").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
-      $("#searchBox").classList.toggle("hidden", ["dashboard", "districts", "profile"].includes(state.page));
-      setPageMeta();
+      $("#searchBox").classList.toggle("hidden", ["dashboard", "tasks", "districts", "profile", "execution"].includes(state.page));
       $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === state.page));
       ["dashboard", "tasks", "districts", "profile", "execution"].forEach(page => {
         $(`#${page}Page`).classList.toggle("hidden", page !== state.page);
       });
-      renderDashboard();
-      renderTasksPage();
-      renderDistrictsPage();
-      renderProfilePage();
-      renderExecutionPage();
+      if (state.page === "dashboard") renderDashboard();
+      if (state.page === "tasks") renderTasksPage();
+      if (state.page === "districts") renderDistrictsPage();
+      if (state.page === "profile") renderProfilePage();
+      if (state.page === "execution") renderExecutionPage();
+      setPageMeta();
       if (pageChanged) {
         renderedPage = state.page;
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -7482,4 +11270,11 @@ HTML = r"""<!doctype html>
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--audit-action-plan" in sys.argv:
+        audit_action_plan_cli()
+    elif "--audit-kpi-compare" in sys.argv:
+        audit_kpi_compare_cli()
+    else:
+        main()
