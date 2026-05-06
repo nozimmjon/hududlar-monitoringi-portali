@@ -29,9 +29,13 @@ class PromoteImportRunCommand extends Command
 
         $run->update(['status' => ImportRunStatus::Promoting]);
 
-        $factCount      = $this->promoteIndicatorFacts($runId);
-        $foodCount      = $this->promoteFoodBalance($runId);
-        $warehouseCount = $this->promoteWarehouses($runId);
+        $factCount = $foodCount = $warehouseCount = 0;
+
+        DB::transaction(function () use ($runId, &$factCount, &$foodCount, &$warehouseCount) {
+            $factCount      = $this->promoteIndicatorFacts($runId);
+            $foodCount      = $this->promoteFoodBalance($runId);
+            $warehouseCount = $this->promoteWarehouses($runId);
+        });
 
         $totalPromoted = $factCount + $foodCount + $warehouseCount;
 
