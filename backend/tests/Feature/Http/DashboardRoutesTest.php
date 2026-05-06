@@ -38,3 +38,49 @@ test('root redirect hits dashboard', function () {
     $this->seed();
     $this->get('/')->assertRedirect('/dashboard');
 });
+
+test('dashboard with explicit module and kpi returns 200', function () {
+    $this->seed();
+    $this->get('/dashboard?module=inflation&kpi=inflation')->assertStatus(200);
+});
+
+test('dashboard inflation panel renders price caps', function () {
+    $this->seed();
+    $response = $this->get('/dashboard?module=inflation&kpi=inflation');
+    $response->assertStatus(200);
+    $response->assertSee('Инфляция чегаралари', false);
+    $response->assertSee('Тухум', false);
+});
+
+test('dashboard macro module renders module composition dropdown', function () {
+    $this->seed();
+    $response = $this->get('/dashboard?module=macro');
+    $response->assertStatus(200);
+    $response->assertSee('macro-composition-panel', false);
+});
+
+test('dashboard employment module renders front cards layout', function () {
+    $this->seed();
+    $response = $this->get('/dashboard?module=employment&kpi=poverty');
+    $response->assertStatus(200);
+    $response->assertSee('module-kpis employment-layout', false);
+});
+
+test('dashboard renders scoreline strip', function () {
+    $this->seed();
+    $response = $this->get('/dashboard');
+    $response->assertStatus(200);
+    $response->assertSee('scoreline execution-strip', false);
+});
+
+test('dashboard module tabs render all 7 modules', function () {
+    $this->seed();
+    $response = $this->get('/dashboard');
+    $response->assertStatus(200);
+    $response->assertSee('Макроиқтисодиёт', false);
+    $response->assertSee('Инфляция', false);
+    $response->assertSee('Бюджет', false);
+    $response->assertSee('Хорижий инвестициялар', false);
+    $response->assertSee('Экспорт', false);
+    $response->assertSee('Бандлик', false);
+});
