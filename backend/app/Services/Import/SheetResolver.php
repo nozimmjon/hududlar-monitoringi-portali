@@ -18,6 +18,7 @@ class SheetResolver
         'food_balance'              => ['Балансини асос', 'Маҳсулот номи', 'Ресурс'],
         'warehouses_district_table' => ['Захира омборлари', 'совутгичли омборлар'],
         'budget'                    => ['прогноз', 'кутилиш', 'Ҳудудлар'],
+        'budget_invest'             => ['I-чорак', 'Қишлоқ, ўрмон ва балиқчилик хўжалиги'],
     ];
 
     public function __construct(private IssueCollector $issues) {}
