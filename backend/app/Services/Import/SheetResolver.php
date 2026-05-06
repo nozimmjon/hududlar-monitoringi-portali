@@ -17,6 +17,7 @@ class SheetResolver
         'district_services'         => ['Бозор хизматлари'],
         'food_balance'              => ['Балансини асос', 'Маҳсулот номи', 'Ресурс'],
         'warehouses_district_table' => ['Захира омборлари', 'совутгичли омборлар'],
+        'budget'                    => ['прогноз', 'кутилиш', 'Ҳудудлар'],
     ];
 
     public function __construct(private IssueCollector $issues) {}
