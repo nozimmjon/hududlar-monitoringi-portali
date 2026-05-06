@@ -19,6 +19,7 @@ class SheetResolver
         'warehouses_district_table' => ['Захира омборлари', 'совутгичли омборлар'],
         'budget'                    => ['прогноз', 'кутилиш', 'Ҳудудлар'],
         'budget_invest'             => ['I-чорак', 'Қишлоқ, ўрмон ва балиқчилик хўжалиги'],
+        'foreign_invest'            => ['Шаҳар ва туманлар номи', 'I чорак'],
     ];
 
     public function __construct(private IssueCollector $issues) {}
