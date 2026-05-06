@@ -30,9 +30,9 @@ class KpiWorkspaceCard extends Component
             ->keyBy('period');
 
         $panel = match (true) {
-            $this->kpi === 'inflation'                  => 'inflation',
-            $this->kpi === 'unemployment'               => 'unemployment',
-            $this->kpi === 'poverty'                    => 'poverty',
+            $this->kpi === 'inflation'                  => 'inflation-details',
+            $this->kpi === 'unemployment'               => 'unemployment-details',
+            $this->kpi === 'poverty'                    => 'poverty-details',
             $this->kpi === 'budget_investment'          => 'budget-investment',
             DashboardCatalog::isMacroGrowthKpi($this->kpi) => 'macro-growth',
             default                                     => 'quarter-matrix',
@@ -51,11 +51,11 @@ class KpiWorkspaceCard extends Component
     protected function loadPanelData(string $panel): array
     {
         return match ($panel) {
-            'inflation'         => $this->inflationData(),
-            'unemployment'      => $this->employmentData(['jobs', 'legalization']),
-            'poverty'           => $this->povertyData(),
-            'macro-growth'      => $this->macroGrowthData(),
-            default             => [],
+            'inflation-details'   => $this->inflationData(),
+            'unemployment-details' => $this->employmentData(['jobs', 'legalization']),
+            'poverty-details'     => $this->povertyData(),
+            'macro-growth'        => $this->macroGrowthData(),
+            default               => [],
         };
     }
 
