@@ -12,6 +12,7 @@ use App\Services\Import\ImportContext;
 use App\Services\Import\IssueCollector;
 use App\Services\Import\Modules\BudgetInvestModuleParser;
 use App\Services\Import\Modules\BudgetModuleParser;
+use App\Services\Import\Modules\ForeignInvestModuleParser;
 use App\Services\Import\Modules\InflationModuleParser;
 use App\Services\Import\Modules\MacroModuleParser;
 use App\Services\Import\SheetResolver;
@@ -66,10 +67,11 @@ class ImportRegionCommand extends Command
         $files = $locator->locate($ctx, $this->option('module'));
 
         $parsers = [
-            'macro'         => new MacroModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
-            'inflation'     => new InflationModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
-            'budget'        => new BudgetModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
-            'budget_invest' => new BudgetInvestModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'macro'          => new MacroModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'inflation'      => new InflationModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'budget'         => new BudgetModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'budget_invest'  => new BudgetInvestModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'foreign_invest' => new ForeignInvestModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
         ];
 
         $this->info("Importing region '$regionCode' year $year (modules: " . implode(', ', array_keys($files)) . ")…");
