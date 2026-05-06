@@ -141,7 +141,8 @@
                 "name_latin": null,
                 "kind": "city",
                 "alt_labels": [
-                    "Андижон шаҳар"
+                    "Андижон шаҳар",
+                    "Андижон ш."
                 ]
             },
             {
@@ -151,7 +152,8 @@
                 "name_latin": null,
                 "kind": "city",
                 "alt_labels": [
-                    "Хонобод шаҳар"
+                    "Хонобод шаҳар",
+                    "Хонобод ш."
                 ]
             },
             {
@@ -159,56 +161,80 @@
                 "name_short": "Андижон тумани",
                 "name_full": "Андижон тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Андижон"
+                ]
             },
             {
                 "sort_order": 4,
                 "name_short": "Асака тумани",
                 "name_full": "Асака тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Асака"
+                ]
             },
             {
                 "sort_order": 5,
                 "name_short": "Балиқчи тумани",
                 "name_full": "Балиқчи тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Балиқчи"
+                ]
             },
             {
                 "sort_order": 6,
                 "name_short": "Булоқбоши тумани",
                 "name_full": "Булоқбоши тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Булоқбоши"
+                ]
             },
             {
                 "sort_order": 7,
                 "name_short": "Бўстон тумани",
                 "name_full": "Бўстон тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Бустон"
+                ]
             },
             {
                 "sort_order": 8,
                 "name_short": "Жалақудуқ тумани",
                 "name_full": "Жалақудуқ тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Жалақудуқ"
+                ]
             },
             {
                 "sort_order": 9,
                 "name_short": "Избоскан тумани",
                 "name_full": "Избоскан тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Избоскан"
+                ]
             },
             {
                 "sort_order": 10,
                 "name_short": "Қўрғонтепа тумани",
                 "name_full": "Қўрғонтепа тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Қўрғонтепа"
+                ]
             },
             {
                 "sort_order": 11,
@@ -217,7 +243,9 @@
                 "name_latin": null,
                 "kind": "district",
                 "alt_labels": [
-                    "Мархамат тумани"
+                    "Мархамат тумани",
+                    "Марҳамат",
+                    "Мархамат"
                 ]
             },
             {
@@ -225,28 +253,41 @@
                 "name_short": "Олтинкўл тумани",
                 "name_full": "Олтинкўл тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Олтинкўл"
+                ]
             },
             {
                 "sort_order": 13,
                 "name_short": "Пахтаобод тумани",
                 "name_full": "Пахтаобод тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Пахтаобод"
+                ]
             },
             {
                 "sort_order": 14,
                 "name_short": "Улуғнор тумани",
                 "name_full": "Улуғнор тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Улуғнор",
+                    "Улуғноp"
+                ]
             },
             {
                 "sort_order": 15,
                 "name_short": "Хўжаобод тумани",
                 "name_full": "Хўжаобод тумани",
                 "name_latin": null,
-                "kind": "district"
+                "kind": "district",
+                "alt_labels": [
+                    "Хўжаобод"
+                ]
             },
             {
                 "sort_order": 16,
@@ -255,7 +296,10 @@
                 "name_latin": null,
                 "kind": "district",
                 "alt_labels": [
-                    "Шахрихон тумани"
+                    "Шахрихон тумани",
+                    "Шаҳрихон",
+                    "Шахрихон",
+                    "Шаҳриҳон"
                 ]
             }
         ]
