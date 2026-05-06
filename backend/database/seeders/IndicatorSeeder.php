@@ -13,6 +13,7 @@ class IndicatorSeeder extends Seeder
         $allPeriods = json_encode(['q1','h1','m9','year']);
         $yearOnly   = json_encode(['year']);
         $h1Year     = json_encode(['h1','year']);
+        $h1q2Year   = json_encode(['h1','q2','year']);
 
         $rows = [
             // code, label_full, label_short, sector, module, scope, unit, lower, periods, growth, pct_plan, sentinel, ce, ce2, icon, sort
@@ -22,7 +23,7 @@ class IndicatorSeeder extends Seeder
             ['construction',         'Қурилиш ишлари',                                  'Қурилиш',                     'Макро иқтисодиёт',     'macro',          'region',   'млрд сўм',    false, $allPeriods, true,  false, false, null,                           null,           'bank',      40],
             ['services',             'Бозор хизматлари',                                'Хизматлар',                   'Макро иқтисодиёт',     'macro',          'both',     'млрд сўм',    false, $allPeriods, true,  false, false, null,                           null,           'globe',     50],
             ['inflation',            'Инфляция ва асосий озиқ-овқат нархлари',           'Инфляция',                    'Инфляция',             'inflation',      'region',   '%',           true,  $allPeriods, false, false, false, null,                           null,           'price',     60],
-            ['budget',               'Бюджет тушумлари',                                'Бюджет',                      'Бюджет',               'budget',         'both',     'млрд сўм',    false, $allPeriods, false, true,  false, null,                           null,           'bank',      70],
+            ['budget',               'Бюджет тушумлари',                                'Бюджет',                      'Бюджет',               'budget',         'both',     'млрд сўм',    false, $h1q2Year,   false, true,  false, null,                           null,           'bank',      70],
             ['budget_investment',    'Бюджет инвестициялари ўзлаштирилиши',             'Бюджет инвест',               'Бюджет инвестициялари','budget_invest',  'both',     'млн сўм',     false, $allPeriods, false, true,  false, 'Объектлар сони',                'Ишга туширилаётган объектлар', 'bank',      80],
             ['investment',           'Хорижий инвестициялар',                          'Инвестиция',                  'Хорижий инвестиция',   'foreign_invest', 'both',     'млн доллар',  false, $allPeriods, false, true,  false, 'Лойиҳалар сони',                'Иш ўринлари', 'rocket',    90],
             ['export',               'Экспорт ҳажми',                                  'Экспорт',                     'Экспорт',              'export',         'both',     'минг доллар', false, $allPeriods, true,  false, false, 'Экспортчи корхоналар сони',     null,           'globe',    100],
