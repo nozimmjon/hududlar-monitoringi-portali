@@ -1,17 +1,17 @@
 {
-  "sourceDoc": "C:\\Users\\n.ortiqov\\Desktop\\2026\\41. Худудлар мониторинги портали\\data_source\\Кафолат хатлар имзога\\2. Андижон\\0_Чора_тадбир_Андижон_кафолат_хати.docx",
-  "rowCount": 82,
+  "sourceDoc": "C:\\Users\\n.ortiqov\\Desktop\\2026\\41. Худудлар мониторинги портали\\data_source\\Кафолат хатлар имзога\\2. Андижон\\00_Чора_тадбир_Андижон.docx",
+  "rowCount": 86,
   "numberRange": [
     1,
-    82
+    86
   ],
   "missingNumbers": [],
   "duplicateNumbers": [],
   "unknownTypes": [],
   "emptyRequiredFields": [],
   "typeCounts": {
-    "KPI": 30,
-    "Чора-тадбирлар": 52
+    "KPI": 32,
+    "Чора-тадбирлар": 54
   },
   "sectionCounts": {
     "1.1. Ялпи ҳудудий маҳсулот бўйича мақсадлар": {
@@ -44,7 +44,7 @@
       "Чора-тадбирлар": 13
     },
     "III. Бюджет тушумлари прогнозини таъминлаш": {
-      "KPI": 1,
+      "KPI": 3,
       "Чора-тадбирлар": 1
     },
     "IV. Инвестицияларни ўзлаштириш": {
@@ -65,7 +65,7 @@
     },
     "7.2. Камбағалликни қисқартириш йўналишида": {
       "KPI": 4,
-      "Чора-тадбирлар": 4
+      "Чора-тадбирлар": 6
     }
   },
   "districtLinkedRows": [
@@ -86,7 +86,7 @@
       ]
     },
     {
-      "sourceNo": 73,
+      "sourceNo": 75,
       "sourceType": "Чора-тадбирлар",
       "districts": [
         "Андижон тумани",
@@ -144,7 +144,7 @@
       ]
     },
     {
-      "sourceNo": 78,
+      "sourceNo": 80,
       "sourceType": "Чора-тадбирлар",
       "districts": [
         "Бўстон тумани",
@@ -156,10 +156,33 @@
         "Пахтаобод тумани",
         "Улуғнор тумани"
       ],
-      "districtsFromExecutor": []
+      "districtsFromExecutor": [
+        "Бўстон тумани",
+        "Пахтаобод тумани",
+        "Улуғнор тумани"
+      ]
     },
     {
-      "sourceNo": 81,
+      "sourceNo": 83,
+      "sourceType": "Чора-тадбирлар",
+      "districts": [
+        "Бўстон тумани",
+        "Пахтаобод тумани",
+        "Улуғнор тумани"
+      ],
+      "districtsFromTitle": [
+        "Бўстон тумани",
+        "Пахтаобод тумани",
+        "Улуғнор тумани"
+      ],
+      "districtsFromExecutor": [
+        "Бўстон тумани",
+        "Пахтаобод тумани",
+        "Улуғнор тумани"
+      ]
+    },
+    {
+      "sourceNo": 85,
       "sourceType": "Чора-тадбирлар",
       "districts": [
         "Асака тумани",
@@ -182,7 +205,7 @@
       ]
     },
     {
-      "sourceNo": 82,
+      "sourceNo": 86,
       "sourceType": "Чора-тадбирлар",
       "districts": [
         "Бўстон тумани",
@@ -203,7 +226,7 @@
   ],
   "childBreakdownRows": [
     {
-      "sourceNo": 73,
+      "sourceNo": 75,
       "sourceType": "Чора-тадбирлар",
       "districtsFromTitle": [
         "Андижон тумани",
@@ -225,7 +248,7 @@
       ]
     },
     {
-      "sourceNo": 78,
+      "sourceNo": 80,
       "sourceType": "Чора-тадбирлар",
       "districtsFromTitle": [
         "Бўстон тумани",
@@ -234,7 +257,16 @@
       ]
     },
     {
-      "sourceNo": 81,
+      "sourceNo": 83,
+      "sourceType": "Чора-тадбирлар",
+      "districtsFromTitle": [
+        "Бўстон тумани",
+        "Пахтаобод тумани",
+        "Улуғнор тумани"
+      ]
+    },
+    {
+      "sourceNo": 85,
       "sourceType": "Чора-тадбирлар",
       "districtsFromTitle": [
         "Асака тумани",
@@ -245,7 +277,7 @@
       ]
     },
     {
-      "sourceNo": 82,
+      "sourceNo": 86,
       "sourceType": "Чора-тадбирлар",
       "districtsFromTitle": [
         "Бўстон тумани",
@@ -256,16 +288,7 @@
   ],
   "executorTitleMismatches": [
     {
-      "sourceNo": 78,
-      "extraInTitle": [
-        "Бўстон тумани",
-        "Пахтаобод тумани",
-        "Улуғнор тумани"
-      ],
-      "districtsFromExecutor": []
-    },
-    {
-      "sourceNo": 81,
+      "sourceNo": 85,
       "extraInTitle": [
         "Асака тумани",
         "Шаҳрихон тумани"
@@ -280,10 +303,10 @@
   "longTaskRows": [
     {
       "sourceNo": 49,
-      "length": 1190
+      "length": 816
     },
     {
-      "sourceNo": 81,
+      "sourceNo": 85,
       "length": 625
     }
   ]

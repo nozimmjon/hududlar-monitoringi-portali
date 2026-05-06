@@ -20,7 +20,7 @@ KAFOLAT_ACTION_PLAN_DOCX = (
     / "data_source"
     / "Кафолат хатлар имзога"
     / "2. Андижон"
-    / "0_Чора_тадбир_Андижон_кафолат_хати.docx"
+    / "00_Чора_тадбир_Андижон.docx"
 )
 ACTION_PLAN_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_action_plan_audit.json"
 KPI_COMPARE_AUDIT_JSON = ROOT / "platform prototypes" / "andijon_kpi_source_compare_audit.json"
@@ -593,9 +593,19 @@ def parse_action_plan_int(value: str | None) -> int | None:
     return int(match.group(0).replace(" ", ""))
 
 
+def action_plan_breakdown_kind(task: dict) -> str | None:
+    title = str(task.get("title") or "").casefold()
+    if "субъект" in title and "фаолиятини тиклаш" in title:
+        return "restored_subjects"
+    if "камбағаллик ва ишсизликдан холи ҳудуд" in title:
+        return "poverty_free_mfy"
+    return None
+
+
 def action_plan_district_breakdowns(task: dict, districts: list[dict]) -> list[dict]:
     """Create internal district rows only where the source gives real district targets."""
-    if task.get("sourceNo") not in {73, 78}:
+    kind = action_plan_breakdown_kind(task)
+    if not kind:
         return []
     title = str(task.get("title") or "")
     low = title.casefold()
@@ -615,7 +625,7 @@ def action_plan_district_breakdowns(task: dict, districts: list[dict]) -> list[d
             year_value = parse_action_plan_int(match.group(2))
             if h1_or_main is None:
                 break
-            if task.get("sourceNo") == 73:
+            if kind == "restored_subjects":
                 rows.append({
                     "title": f"Фаолияти тикланадиган субъектлар — {name}",
                     "district": name,
@@ -625,6 +635,8 @@ def action_plan_district_breakdowns(task: dict, districts: list[dict]) -> list[d
                     "note": "800 та субъектлар фаолиятини тиклаш бўйича туман кесими.",
                 })
             else:
+                if year_value is None and task.get("periodCode") == "year":
+                    year_value = h1_or_main
                 rows.append({
                     "title": f"Камбағаллик ва ишсизликдан холи ҳудудлар — {name}",
                     "district": name,
@@ -1200,7 +1212,11 @@ def extract_kafolat_tasks(data: dict) -> list[dict]:
         "district_linked_actions": len(district_linked),
         "district_linked_source_rows": [row.get("sourceNo") for row in district_linked],
         "info_rows": len(info_rows),
-        "note": "0_Чора-тадбир жадвали икки қатламга ажратилди: 30 та KPI топшириқлар сонига қўшилмайди, 52 та чора-тадбир эса T-001...T-052 реестрига киритилди.",
+        "note": (
+            f"{KAFOLAT_ACTION_PLAN_DOCX.name} икки қатламга ажратилди: "
+            f"{len(kpi_targets)} та KPI топшириқлар сонига қўшилмайди, "
+            f"{len(execution_tasks)} та чора-тадбир эса T-001...T-{len(execution_tasks):03d} реестрига киритилди."
+        ),
     }
     return execution_tasks or data.get("tasks", [])
 

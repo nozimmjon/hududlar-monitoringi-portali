@@ -1,10 +1,10 @@
 {
-  "sourceDoc": "C:\\Users\\n.ortiqov\\Desktop\\2026\\41. Худудлар мониторинги портали\\data_source\\Кафолат хатлар имзога\\2. Андижон\\0_Чора_тадбир_Андижон_кафолат_хати.docx",
-  "wordKpiCount": 30,
+  "sourceDoc": "C:\\Users\\n.ortiqov\\Desktop\\2026\\41. Худудлар мониторинги портали\\data_source\\Кафолат хатлар имзога\\2. Андижон\\00_Чора_тадбир_Андижон.docx",
+  "wordKpiCount": 32,
   "currentKpiSourceCount": 19,
   "summary": {
     "match": 27,
-    "mismatch": 1,
+    "mismatch": 3,
     "no-current-source": 1,
     "partial": 1
   },
@@ -422,6 +422,48 @@
     },
     {
       "sourceNo": 50,
+      "kpi": "budget",
+      "period": "h1",
+      "status": "mismatch",
+      "title": "Бюджет даромадлари прогнози 1-ярим йилликда 2 599 млрд сўмга (режага нисбатан 7,9%, 2025 йил 1-ярмига нисбатан ўсиш – 19,1%) бажариш ва бюджетга қўшимча 191 млрд сўм ундириш.",
+      "checks": {
+        "value_bln": {
+          "status": "mismatch",
+          "word": 2599.0,
+          "current": 2407.9,
+          "diff": 191.0999999999999
+        }
+      },
+      "current": {
+        "value_bln": 2407.9,
+        "expected_bln": 2598.6,
+        "unit": "млрд сўм",
+        "source": "3-жадвал (бюджет).xlsx · тушум"
+      }
+    },
+    {
+      "sourceNo": 51,
+      "kpi": "budget",
+      "period": "year",
+      "status": "mismatch",
+      "title": "2026 йил якунига қадар йиллик прогноз 5 889 млрд сўмга бажарилиши (режа 11,1 %га, 2025 йилга нисбатан ўсиш 18,4%) ва бюджетга қўшимча 590 млрд сўм тушум тушишини таъминлаш.",
+      "checks": {
+        "value_bln": {
+          "status": "mismatch",
+          "word": 5889.0,
+          "current": 5298.6,
+          "diff": 590.3999999999996
+        }
+      },
+      "current": {
+        "value_bln": 5298.6,
+        "expected_bln": 5888.6,
+        "unit": "млрд сўм",
+        "source": "3-жадвал (бюджет).xlsx · тушум"
+      }
+    },
+    {
+      "sourceNo": 52,
       "kpi": "budget_investment",
       "period": "h1",
       "status": "mismatch",
@@ -448,7 +490,7 @@
       }
     },
     {
-      "sourceNo": 52,
+      "sourceNo": 54,
       "kpi": "budget_investment",
       "period": "year",
       "status": "match",
@@ -469,7 +511,7 @@
       }
     },
     {
-      "sourceNo": 56,
+      "sourceNo": 58,
       "kpi": "investment",
       "period": "h1",
       "status": "match",
@@ -489,7 +531,7 @@
       }
     },
     {
-      "sourceNo": 57,
+      "sourceNo": 59,
       "kpi": "investment",
       "period": "year",
       "status": "match",
@@ -509,7 +551,7 @@
       }
     },
     {
-      "sourceNo": 60,
+      "sourceNo": 62,
       "kpi": "export",
       "period": "h1",
       "status": "match",
@@ -535,7 +577,7 @@
       }
     },
     {
-      "sourceNo": 61,
+      "sourceNo": 63,
       "kpi": "export",
       "period": "year",
       "status": "match",
@@ -561,7 +603,7 @@
       }
     },
     {
-      "sourceNo": 66,
+      "sourceNo": 68,
       "kpi": "unemployment",
       "period": "h1",
       "status": "match",
@@ -581,7 +623,7 @@
       }
     },
     {
-      "sourceNo": 68,
+      "sourceNo": 70,
       "kpi": "unemployment",
       "period": "year",
       "status": "match",
@@ -601,15 +643,15 @@
       }
     },
     {
-      "sourceNo": 74,
+      "sourceNo": 76,
       "kpi": "small_business_share",
       "period": "year",
       "status": "no-current-source",
-      "title": "Кичик тадбиркорликни қўллаб-қувватлаш натижасида вилоятда жорий йил якуни билан кичик тадбиркорликнинг ялпи ҳудудий маҳсулотдаги улуши 71 фоизга етказиш.",
+      "title": "Кичик тадбиркорликни қўллаб-қувватлаш натижасида республикада жорий йил якуни билан кичик тадбиркорликнинг ялпи ҳудудий маҳсулотдаги улуши 71 фоизга етказиш.",
       "checks": {}
     },
     {
-      "sourceNo": 75,
+      "sourceNo": 77,
       "kpi": "poverty",
       "period": "h1",
       "status": "match",
@@ -629,7 +671,7 @@
       }
     },
     {
-      "sourceNo": 76,
+      "sourceNo": 78,
       "kpi": "poverty",
       "period": "year",
       "status": "match",
@@ -649,7 +691,7 @@
       }
     },
     {
-      "sourceNo": 77,
+      "sourceNo": 79,
       "kpi": "mfy_clear",
       "period": "h1",
       "status": "match",
@@ -669,7 +711,7 @@
       }
     },
     {
-      "sourceNo": 79,
+      "sourceNo": 82,
       "kpi": "mfy_clear",
       "period": "year",
       "status": "match",
