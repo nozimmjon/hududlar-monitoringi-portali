@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\IndicatorFact;
 use App\Models\Indicator;
-use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class KpiDashboard extends Component
