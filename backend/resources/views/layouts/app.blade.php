@@ -14,6 +14,18 @@
   @livewireStyles
 </head>
 <body>
+  <header class="topbar">
+    <div class="mast">
+      <div class="brand">
+        <div class="brand-mark">CERR</div>
+        <div>
+          <h1>Андижон вилояти мониторинг платформаси</h1>
+          <p>KPI · туманлар · ижро мониторинги</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <div class="shell">
     <aside class="sidebar">
       <div class="side-title">
@@ -54,13 +66,11 @@
         <div>
           <div class="eyebrow">Андижон вилояти</div>
           <h2>@yield('page-title', 'KPI')</h2>
-          @hasSection('page-subtitle')<p>@yield('page-subtitle')</p>@endif
+          <p>@yield('page-subtitle', '')</p>
         </div>
       </section>
 
-      <div style="padding: 0 24px 32px;">
-        @yield('content')
-      </div>
+      @yield('content')
     </main>
   </div>
 
