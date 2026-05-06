@@ -21,6 +21,7 @@ class SheetResolver
         'budget_invest'             => ['I-чорак', 'Қишлоқ, ўрмон ва балиқчилик хўжалиги'],
         'foreign_invest'            => ['Шаҳар ва туманлар номи', 'I чорак'],
         'export'                    => ['Экспорт ҳажмининг', 'Туман/шаҳарлар'],
+        'employment'                => ['Туман (шаҳар)номи', 'минг нафар'],
     ];
 
     public function __construct(private IssueCollector $issues) {}
