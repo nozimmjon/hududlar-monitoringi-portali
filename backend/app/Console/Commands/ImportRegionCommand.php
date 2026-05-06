@@ -12,6 +12,7 @@ use App\Services\Import\ImportContext;
 use App\Services\Import\IssueCollector;
 use App\Services\Import\Modules\BudgetInvestModuleParser;
 use App\Services\Import\Modules\BudgetModuleParser;
+use App\Services\Import\Modules\EmploymentModuleParser;
 use App\Services\Import\Modules\ExportModuleParser;
 use App\Services\Import\Modules\ForeignInvestModuleParser;
 use App\Services\Import\Modules\InflationModuleParser;
@@ -74,6 +75,7 @@ class ImportRegionCommand extends Command
             'budget_invest'  => new BudgetInvestModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
             'foreign_invest' => new ForeignInvestModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
             'export'         => new ExportModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
+            'employment'     => new EmploymentModuleParser($sheetResolver, $headerDetector, $districtResolver, $writer, $issues),
         ];
 
         $this->info("Importing region '$regionCode' year $year (modules: " . implode(', ', array_keys($files)) . ")…");
