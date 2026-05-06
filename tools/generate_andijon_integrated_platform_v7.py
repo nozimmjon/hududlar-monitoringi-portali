@@ -2017,6 +2017,10 @@ HTML = r"""<!doctype html>
     }
 
     .score-action {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      text-decoration: none;
       min-height: 38px;
       border: 1px solid rgba(23, 105, 224, .36);
       border-radius: 10px;
@@ -9390,7 +9394,7 @@ HTML = r"""<!doctype html>
             </label>
           </div>
           <div class="modal-grid">
-            <label class="modal-field"><span>Template ID</span><input id="reportTemplateRow" type="text" value="${h(taskId)}" placeholder="T-001 / M-001 / D-001"></label>
+            <label class="modal-field"><span>Template ID</span><input id="reportTemplateRow" type="text" value="${h(taskId)}" placeholder="T-001 / D-01"></label>
             <label class="modal-field"><span>Ҳисобот ҳолати</span>
               <select id="reportStatusInput">
                 <option value="submitted">Киритилди</option>
@@ -10955,6 +10959,11 @@ HTML = r"""<!doctype html>
       const review = reviewReports.length;
       const rejected = rejectedReports.length;
       const approvedPct = allReports.length ? Math.round(approved / allReports.length * 100) : 0;
+      const hasReports = allReports.length > 0;
+      const commandTitle = hasReports ? "Ҳисоб палатаси текширувидан KPI амалда қийматигача" : "Ҳисоб палатаси маълумоти келишига тайёр ҳолат";
+      const commandText = hasReports
+        ? "Ҳисоб палатаси ҳар бир T/D қатор бўйича ижро ҳолати, далил ҳолати ва изоҳ беради. Фақат қабул қилинган қаторлар KPI “амалда” қийматига қўшилади."
+        : "Реал текширув маълумоти ҳали киритилмаган. Template тўлдирилгандан кейин “Платформага қабул = Тайёр” қаторлари журналга тушади, тасдиқланганлари эса KPI “амалда” қийматига қўшилади.";
       const impactMap = new Map();
       approvedReports.forEach(report => {
         const key = report.kpiLabel || report.kpi || "KPI";
@@ -10991,8 +11000,8 @@ HTML = r"""<!doctype html>
         <div class="execution-command">
           <div class="execution-command-copy">
             <span>Ижро мониторинги</span>
-            <strong>Ҳисоб палатаси текширувидан KPI амалда қийматигача</strong>
-            <small>Ҳисоб палатаси ҳар бир T/M/D қатор бўйича ижро ҳолати, далил ҳолати ва изоҳ беради. Фақат қабул қилинган қаторлар KPI “амалда” қийматига қўшилади.</small>
+            <strong>${commandTitle}</strong>
+            <small>${commandText}</small>
           </div>
           <div class="execution-status-grid">
             ${statusButton("all", "Жами", allReports.length)}
@@ -11002,12 +11011,14 @@ HTML = r"""<!doctype html>
             ${statusButton("rejected", "Қайтарилди", rejected, "red")}
           </div>
           <div class="execution-actions">
-            <button class="score-action primary" type="button" data-open-report-modal>Текширув киритиш</button>
+            <a class="score-action primary" href="templates/hisob_palatasi_ijro_tekshiruv_template.xlsx" download>Template XLSX</a>
+            <a class="score-action" href="templates/hisob_palatasi_ijro_import_contract.md">Import қоидаси</a>
+            <button class="score-action" type="button" data-open-report-modal>Текширув киритиш</button>
             <button class="score-action" type="button" data-clear-report-filters>Фильтрни тозалаш</button>
           </div>
         </div>
         <div class="execution-flow">
-          <div class="execution-step"><span>1</span><strong>Template тўлдирилади</strong><small>Ҳисоб палатаси T-ID, M-ID ёки D-ID бўйича текширув натижасини беради.</small></div>
+          <div class="execution-step"><span>1</span><strong>Template тўлдирилади</strong><small>Ҳисоб палатаси T-ID ёки D-ID бўйича текширув натижасини беради.</small></div>
           <div class="execution-step"><span>2</span><strong>Platform қабул қилади</strong><small>“Платформага қабул” тайёр бўлган қаторлар журналга тушади.</small></div>
           <div class="execution-step"><span>3</span><strong>Ижро ҳолати кўринади</strong><small>Бажарилди, қисман, бажарилмади, кечикди ва далил сифати алоҳида юритилади.</small></div>
           <div class="execution-step"><span>4</span><strong>KPIга қўшилади</strong><small>Фақат тасдиқланган/қабул қилинган қатор “амалда” қийматга ўтади.</small></div>
