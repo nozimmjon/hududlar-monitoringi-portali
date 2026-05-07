@@ -15,16 +15,13 @@
             $growthText = $row && $row->growth_pct !== null
                 ? DashboardCatalog::growthValue($row->growth_pct)
                 : '—';
-            $planFmt = $row && $row->plan_value !== null
-                ? number_format((float) $row->plan_value, 1) . ' ' . $unit
-                : '—';
-            $factFmt = $row && $row->actual_hokimyat !== null
-                ? number_format((float) $row->actual_hokimyat, 1) . ' ' . $unit
-                : ($row && $row->actual_statistika !== null
-                    ? number_format((float) $row->actual_statistika, 1) . ' ' . $unit
-                    : '—');
+            $planFmt = DashboardCatalog::displayValue($row->plan_value ?? null, $unit);
+            $factRaw = $sourceKind === 'expected'
+                ? ($row?->expected_value ?? $row?->actual_hokimyat ?? $row?->actual_statkom)
+                : ($row?->actual_hokimyat ?? $row?->actual_statkom ?? $row?->expected_value);
+            $factFmt = DashboardCatalog::displayValue($factRaw, $unit);
             $execFmt = $row && $row->pct_of_plan !== null
-                ? number_format((float) $row->pct_of_plan, 1) . '%'
+                ? DashboardCatalog::fmt((float) $row->pct_of_plan, 1) . '%'
                 : '—';
 
             $hero = $row && $row->growth_pct !== null
@@ -32,7 +29,7 @@
                 : ($row && $row->pct_of_plan !== null
                     ? $execFmt
                     : ($row && $row->plan_value !== null
-                        ? number_format((float) $row->plan_value, 1) . ' ' . $unit
+                        ? $planFmt
                         : '—'));
 
             $measureLabel = $row && $row->growth_pct !== null

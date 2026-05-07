@@ -259,6 +259,78 @@ class DashboardCatalog
         return self::fmt(((float) $value) / 1000, 1) . ' млрд сўм';
     }
 
+    /**
+     * Mirrors index.html displayValue(): unit-aware scaling for currency, percent,
+     * minimal pretty-printing for other units. Returns '—' on null/non-numeric input.
+     */
+    public static function displayValue($value, string $unit = '', bool $compact = true): string
+    {
+        if ($value === null || ! is_numeric($value)) return '—';
+        $num = (float) $value;
+
+        if (str_contains($unit, 'минг доллар')) {
+            return self::fmt($num / 1000, $compact ? 1 : 2) . ' млн $';
+        }
+        if (str_contains($unit, 'млн доллар')) {
+            if ($compact && abs($num) >= 1000) return self::fmt($num / 1000, 1) . ' млрд $';
+            return self::fmt($num, $compact ? 1 : 2) . ' млн $';
+        }
+        if (str_contains($unit, 'млрд сўм')) {
+            if ($compact && abs($num) >= 1000) return self::fmt($num / 1000, 1) . ' трлн сўм';
+            return self::fmt($num, 1) . ' млрд сўм';
+        }
+        if (str_contains($unit, 'млн сўм')) {
+            return self::fmt($num / 1000, 1) . ' млрд сўм';
+        }
+        if (str_contains($unit, '%')) {
+            return self::fmt($num, 1) . '%';
+        }
+        if (str_contains($unit, 'минг нафар')) {
+            return self::fmt($num, 1) . ' минг';
+        }
+        if ($unit === 'count') {
+            return self::fmt($num, 0) . ' та';
+        }
+        return trim(self::fmt($num, $compact ? 1 : 2) . ' ' . $unit);
+    }
+
+    /**
+     * Maps a Cyrillic food name to an emoji that loosely mirrors index.html foodIcon().
+     * Uses single-codepoint emojis (no inline SVG) — close enough for the inflation grid.
+     */
+    public static function foodIcon(string $name): string
+    {
+        $lower = mb_strtolower($name);
+        $patterns = [
+            '/мол\s*гўшт|қорамол/u' => '🐄',
+            '/қўй\s*гўшт|қўзи|эчки/u' => '🐑',
+            '/гўшт/u'   => '🍖',
+            '/тухум/u'  => '🥚',
+            '/сариёғ|маска/u' => '🧈',
+            '/сут/u'    => '🥛',
+            '/картошка/u' => '🥔',
+            '/пиёз/u'   => '🧅',
+            '/сабзи/u'  => '🥕',
+            '/гуруч/u'  => '🍚',
+            '/нон|бўғдой/u' => '🍞',
+            '/ун/u'     => '🌾',
+            '/мева/u'   => '🍎',
+            '/сабзавот/u' => '🥬',
+            '/қалампир/u' => '🌶',
+            '/узум/u'   => '🍇',
+            '/лимон/u'  => '🍋',
+            '/тарвуз/u' => '🍉',
+            '/қовун/u'  => '🍈',
+            '/балиқ/u'  => '🐟',
+            '/мой|ёғ/u' => '🛢',
+            '/шакар|қанд/u' => '🍬',
+        ];
+        foreach ($patterns as $pattern => $emoji) {
+            if (preg_match($pattern, $lower)) return $emoji;
+        }
+        return '🥗';
+    }
+
     public static function industryDrivers(): array
     {
         $d = self::INDUSTRY_DRIVERS;
