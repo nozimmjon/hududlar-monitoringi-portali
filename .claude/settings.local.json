@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(php -d memory_limit=1G vendor/bin/pest tests/Feature/PromoteImportRunCommandTest.php -v)",
+      "Bash(php -d memory_limit=1G vendor/bin/pest --stop-on-failure)",
+      "Bash(php -d memory_limit=2G vendor/bin/pest --stop-on-failure)",
+      "Bash(php artisan *)",
+      "Bash(php -r *)",
+      "Bash(composer require *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Y41A7~1.UTE\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-y-utepbergenov-Desktop-hududlar-monitoringi-portali\\\\84b8be4e-a8b7-4f7e-8b7b-bc5b40deca7b\\\\tasks\\\\besmzga3u.output\" -Wait)",
+      "Bash(Select-String -Pattern \"livewire|Updating|Installing|Nothing|Error|error|failed|Writing\" --SimpleMatch)",
+      "PowerShell(New-Item *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python -c \"import sys,json; routes=[r for r in json.loads\\(sys.stdin.read\\(\\)\\) if 'livewire' not in r.get\\('uri',''\\) and r.get\\('uri'\\) != 'up' and 'storage' not in r.get\\('uri',''\\)]; [print\\(r.get\\('method'\\), r.get\\('uri'\\), r.get\\('name'\\)\\) for r in routes]\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/dashboard)",
+      "Bash(kill %1)",
+      "Bash(curl -s http://localhost:8766/dashboard)",
+      "Bash(curl -v http://localhost:8767/dashboard)",
+      "Bash(python -c ' *)",
+      "Bash(New-Item *)",
+      "WebFetch(domain:127.0.0.1)",
+      "PowerShell($response = Invoke-WebRequest -Uri \"http://127.0.0.1:8000/dashboard\" -UseBasicParsing -TimeoutSec 10; $response.StatusCode; $response.Content.Substring\\(0, [Math]::Min\\(3000, $response.Content.Length\\)\\))",
+      "PowerShell(cd \"C:\\\\Users\\\\y.utepbergenov\\\\Desktop\\\\hududlar-monitoringi-portali\\\\backend\"; php -r \"require 'vendor/autoload.php'; \\\\$app = require 'bootstrap/app.php'; \\\\$kernel = \\\\$app->make\\(Illuminate\\\\Contracts\\\\Http\\\\Kernel::class\\); \\\\$request = Illuminate\\\\Http\\\\Request::create\\('/dashboard', 'GET'\\); \\\\$response = \\\\$kernel->handle\\(\\\\$request\\); echo \\\\$response->getStatusCode\\(\\) . PHP_EOL; \\\\$content = \\\\$response->getContent\\(\\); echo substr\\(\\\\$content, 0, 2000\\);\" 2>&1)",
+      "Bash(grep \"use Illuminate\\\\\\\\\\\\\\\\Support\\\\\\\\\\\\\\\\Collection\")",
+      "Bash(php -d memory_limit=1G vendor/bin/pest tests/Feature/Http/DashboardRoutesTest.php -v)",
+      "Bash(php -d memory_limit=1G vendor/bin/pest --stop-on-failure --exclude-group=skip --filter=\"not the application returns\")",
+      "Bash(php -d memory_limit=1G vendor/bin/pest --stop-on-failure --ignore=tests/Feature/ExampleTest.php)",
+      "Bash(php -d memory_limit=1G vendor/bin/pest --stop-on-failure tests/Unit tests/Feature/Schema tests/Feature/Import tests/Feature/Http tests/Feature/PromoteImportRunCommandTest.php)",
+      "Bash(git stash *)",
+      "Bash(php -d memory_limit=2G vendor/bin/pest tests/Feature/Http/DashboardRoutesTest.php -v)"
+    ]
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true,
+    "superpowers@superpowers-marketplace": true
+  }
+}

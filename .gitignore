@@ -13,10 +13,13 @@ desktop.ini
 # Temporary working files
 tmp_*.mjs
 tmp_*.py
+tmp_*.txt
+tmp_*.json
 *.tmp
 *.bak
 ~$*
 handoff/
+data/
 
 # External/reference prototype with its own nested git metadata
 platform prototypes/claude/v2/
