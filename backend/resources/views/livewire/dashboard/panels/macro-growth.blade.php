@@ -21,7 +21,9 @@
     $maxDelta = max(1, ...array_map(fn ($v) => abs($v - 100), $values));
 
     $showIndustryDrivers = $kpi === 'industry';
-    $industryDrivers = $showIndustryDrivers ? DashboardCatalog::industryDrivers() : [];
+    $industryDrivers = $showIndustryDrivers
+        ? DashboardCatalog::industryDrivers($industryDriverFacts ?? null)
+        : [];
 @endphp
 
 <section class="macro-growth-panel {{ $showIndustryDrivers ? 'with-side' : 'solo' }}" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">

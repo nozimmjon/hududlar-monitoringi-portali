@@ -133,18 +133,18 @@ class ForeignInvestModuleParser extends ModuleParser
 
         $q1Plan      = $this->numericOrNull($sheet->getCell([self::COL_Q1_PLAN,       $row])->getCalculatedValue());
         $q1Actual    = $this->numericOrNull($sheet->getCell([self::COL_Q1_ACTUAL,     $row])->getCalculatedValue());
-        $q1Pct       = $this->numericOrNull($sheet->getCell([self::COL_Q1_PCT,        $row])->getCalculatedValue());
+        $q1Pct       = $this->ratioToPercent($sheet->getCell([self::COL_Q1_PCT,       $row])->getCalculatedValue());
         $q1Projects  = $this->intOrNull(    $sheet->getCell([self::COL_Q1_PROJECTS,   $row])->getCalculatedValue());
 
         $h1Plan      = $this->numericOrNull($sheet->getCell([self::COL_H1_PLAN,       $row])->getCalculatedValue());
         $h1Expected  = $this->numericOrNull($sheet->getCell([self::COL_H1_EXPECTED,   $row])->getCalculatedValue());
-        $h1Pct       = $this->numericOrNull($sheet->getCell([self::COL_H1_PCT,        $row])->getCalculatedValue());
+        $h1Pct       = $this->ratioToPercent($sheet->getCell([self::COL_H1_PCT,       $row])->getCalculatedValue());
         $h1Projects  = $this->intOrNull(    $sheet->getCell([self::COL_H1_PROJECTS,   $row])->getCalculatedValue());
         $h1Jobs      = $this->intOrNull(    $sheet->getCell([self::COL_H1_JOBS,       $row])->getCalculatedValue());
 
         $yearForecast = $this->numericOrNull($sheet->getCell([self::COL_YEAR_FORECAST, $row])->getCalculatedValue());
         $yearExpected = $this->numericOrNull($sheet->getCell([self::COL_YEAR_EXPECTED, $row])->getCalculatedValue());
-        $yearPct      = $this->numericOrNull($sheet->getCell([self::COL_YEAR_PCT,      $row])->getCalculatedValue());
+        $yearPct      = $this->ratioToPercent($sheet->getCell([self::COL_YEAR_PCT,     $row])->getCalculatedValue());
 
         $rows = [
             ['period' => 'q1',   'plan' => $q1Plan,        'expected' => null,          'actual' => $q1Actual,  'pct' => $q1Pct,   'extra' => $q1Projects, 'extra2' => null],
@@ -187,5 +187,15 @@ class ForeignInvestModuleParser extends ModuleParser
         if ($value === null || $value === '') return null;
         if (! is_numeric($value)) return null;
         return (int) $value;
+    }
+
+    /**
+     * Excel percent-formatted cells (e.g. 105%) deliver as 1.05 from PhpSpreadsheet.
+     * Multiply by 100 so DB stores percentage units consistently with other parsers.
+     */
+    private function ratioToPercent(mixed $value): ?float
+    {
+        $num = $this->numericOrNull($value);
+        return $num === null ? null : $num * 100;
     }
 }

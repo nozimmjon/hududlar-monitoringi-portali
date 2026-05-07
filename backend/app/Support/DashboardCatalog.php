@@ -331,8 +331,16 @@ class DashboardCatalog
         return '🥗';
     }
 
-    public static function industryDrivers(): array
+    /**
+     * Build the 3 industry-driver cards. When `$facts` is non-empty (grouped by
+     * indicator_code, each containing rows for h1 + year), values come from DB.
+     * Otherwise falls back to INDUSTRY_DRIVERS hardcoded snapshot from index.html.
+     */
+    public static function industryDrivers($facts = null): array
     {
+        if ($facts && method_exists($facts, 'isNotEmpty') && $facts->isNotEmpty()) {
+            return self::industryDriversFromFacts($facts);
+        }
         $d = self::INDUSTRY_DRIVERS;
         return [
             [
@@ -366,6 +374,66 @@ class DashboardCatalog
                 'h1'       => self::fmt($d['energy_gas_h1'], 1) . ' млн м³',
                 'h1Note'   => '',
                 'year'     => self::fmt($d['energy_gas_year'], 1) . ' млн м³',
+                'yearNote' => '',
+            ],
+        ];
+    }
+
+    private static function industryDriversFromFacts($facts): array
+    {
+        $pick = function (string $code, string $period, string $field) use ($facts) {
+            $rows = $facts->get($code);
+            if (! $rows) return null;
+            $row = $rows->firstWhere('period', $period);
+            if (! $row) return null;
+            return $row->{$field} ?? null;
+        };
+
+        $locH1Cnt   = $pick('localization', 'h1',   'count_extra');
+        $locH1Val   = $pick('localization', 'h1',   'expected_value');
+        $locYrCnt   = $pick('localization', 'year', 'count_extra');
+        $locYrVal   = $pick('localization', 'year', 'expected_value');
+        $elH1       = $pick('energy_electricity', 'h1',   'expected_value');
+        $elYr       = $pick('energy_electricity', 'year', 'expected_value');
+        $gasH1      = $pick('energy_gas',         'h1',   'expected_value');
+        $gasYr      = $pick('energy_gas',         'year', 'expected_value');
+
+        $cnt = fn ($v) => $v === null ? '—' : self::fmt((float) $v, 0) . ' та';
+        $kwh = fn ($v) => $v === null ? '—' : self::fmt((float) $v, 1) . ' млн кВт·соат';
+        $m3  = fn ($v) => $v === null ? '—' : self::fmt((float) $v, 1) . ' млн м³';
+
+        return [
+            [
+                'id'       => 'localization',
+                'cls'      => 'green',
+                'icon'     => 'factory',
+                'title'    => 'Маҳаллийлаштириш',
+                'desc'     => 'Лойиҳалар сони ва қиймати',
+                'h1'       => $cnt($locH1Cnt),
+                'h1Note'   => self::displayMlnSum($locH1Val),
+                'year'     => $cnt($locYrCnt),
+                'yearNote' => self::displayMlnSum($locYrVal),
+            ],
+            [
+                'id'       => 'energy_electricity',
+                'cls'      => 'blue',
+                'icon'     => 'trend',
+                'title'    => 'Электр тежаш',
+                'desc'     => 'Тежаладиган электр энергияси',
+                'h1'       => $kwh($elH1),
+                'h1Note'   => '',
+                'year'     => $kwh($elYr),
+                'yearNote' => '',
+            ],
+            [
+                'id'       => 'energy_gas',
+                'cls'      => 'orange',
+                'icon'     => 'rocket',
+                'title'    => 'Газ тежаш',
+                'desc'     => 'Тежаладиган табиий газ',
+                'h1'       => $m3($gasH1),
+                'h1Note'   => '',
+                'year'     => $m3($gasYr),
                 'yearNote' => '',
             ],
         ];
