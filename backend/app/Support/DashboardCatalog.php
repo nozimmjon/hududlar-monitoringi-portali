@@ -85,6 +85,17 @@ class DashboardCatalog
         ['period' => 'Йил якуни',  'cap' => '≤6,6%', 'note' => 'йил якуни бўйича чегара'],
     ];
 
+    public const INDUSTRY_DRIVERS = [
+        'localization_h1_projects'    => 122,
+        'localization_h1_value_mln'   => 3864542.138295122,
+        'localization_year_projects'  => 124,
+        'localization_year_value_mln' => 12445307.572824338,
+        'energy_electricity_h1'       => 81.40672334972915,
+        'energy_gas_h1'               => 22.847122793194615,
+        'energy_electricity_year'     => 177.62126910265005,
+        'energy_gas_year'             => 53.119454870439036,
+    ];
+
     public static function modules(): array
     {
         return self::MODULES;
@@ -232,5 +243,59 @@ class DashboardCatalog
         $delta = abs($num) > 50 ? $num - 100 : $num;
         $sign = $delta >= 0 ? '+' : '';
         return $sign . number_format($delta, 1) . '%';
+    }
+
+    public static function fmt($value, int $digits = 1): string
+    {
+        if ($value === null) return '—';
+        $num = (float) $value;
+        $hasFraction = abs($num - (int) $num) > 0;
+        return number_format($num, $hasFraction ? $digits : 0, ',', ' ');
+    }
+
+    public static function displayMlnSum($value): string
+    {
+        if ($value === null) return '—';
+        return self::fmt(((float) $value) / 1000, 1) . ' млрд сўм';
+    }
+
+    public static function industryDrivers(): array
+    {
+        $d = self::INDUSTRY_DRIVERS;
+        return [
+            [
+                'id'       => 'localization',
+                'cls'      => 'green',
+                'icon'     => 'factory',
+                'title'    => 'Маҳаллийлаштириш',
+                'desc'     => 'Лойиҳалар сони ва қиймати',
+                'h1'       => self::fmt($d['localization_h1_projects'], 0) . ' та',
+                'h1Note'   => self::displayMlnSum($d['localization_h1_value_mln']),
+                'year'     => self::fmt($d['localization_year_projects'], 0) . ' та',
+                'yearNote' => self::displayMlnSum($d['localization_year_value_mln']),
+            ],
+            [
+                'id'       => 'energy_electricity',
+                'cls'      => 'blue',
+                'icon'     => 'trend',
+                'title'    => 'Электр тежаш',
+                'desc'     => 'Тежаладиган электр энергияси',
+                'h1'       => self::fmt($d['energy_electricity_h1'], 1) . ' млн кВт·соат',
+                'h1Note'   => '',
+                'year'     => self::fmt($d['energy_electricity_year'], 1) . ' млн кВт·соат',
+                'yearNote' => '',
+            ],
+            [
+                'id'       => 'energy_gas',
+                'cls'      => 'orange',
+                'icon'     => 'rocket',
+                'title'    => 'Газ тежаш',
+                'desc'     => 'Тежаладиган табиий газ',
+                'h1'       => self::fmt($d['energy_gas_h1'], 1) . ' млн м³',
+                'h1Note'   => '',
+                'year'     => self::fmt($d['energy_gas_year'], 1) . ' млн м³',
+                'yearNote' => '',
+            ],
+        ];
     }
 }

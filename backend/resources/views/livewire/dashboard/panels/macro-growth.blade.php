@@ -19,9 +19,12 @@
         $values[] = $r ? (float) ($r->growth_pct ?? 0) : 0;
     }
     $maxDelta = max(1, ...array_map(fn ($v) => abs($v - 100), $values));
+
+    $showIndustryDrivers = $kpi === 'industry';
+    $industryDrivers = $showIndustryDrivers ? DashboardCatalog::industryDrivers() : [];
 @endphp
 
-<section class="macro-growth-panel solo" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
+<section class="macro-growth-panel {{ $showIndustryDrivers ? 'with-side' : 'solo' }}" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
     <div class="macro-main-panel">
         <div class="macro-section-title">
             <strong>{{ $indicator->label_short ?? '' }} ўсиши</strong>
@@ -58,4 +61,47 @@
             @endforeach
         </div>
     </div>
+    @if($showIndustryDrivers)
+        <aside class="industry-driver-panel" aria-label="Саноат драйверлари">
+            <div class="industry-driver-head">
+                <strong>Саноат драйверлари</strong>
+                <span class="info-dot" title="Саноатга боғланган туманлар кесимидаги драйверлар">i</span>
+            </div>
+            <div class="industry-driver-list">
+                @foreach($industryDrivers as $item)
+                    <a class="industry-driver-card {{ $item['cls'] }}"
+                       href="{{ route('districts') }}?indicatorCode={{ $item['id'] }}&period=h1">
+                        <span class="driver-icon {{ $item['cls'] }}">
+                            @include('partials.icon', ['name' => $item['icon']])
+                        </span>
+                        <span class="industry-driver-body">
+                            <span class="industry-driver-title">
+                                <strong>{{ $item['title'] }}</strong>
+                                <span>{{ $item['desc'] }}</span>
+                            </span>
+                            <span class="industry-driver-metrics">
+                                <span class="industry-driver-metric">
+                                    <span>I ярим йиллик</span>
+                                    <strong>{{ $item['h1'] }}</strong>
+                                    @if($item['h1Note'] !== '')
+                                        <small>{{ $item['h1Note'] }}</small>
+                                    @endif
+                                </span>
+                                <span class="industry-driver-divider" aria-hidden="true"></span>
+                                <span class="industry-driver-metric">
+                                    <span>Йиллик кутилиш</span>
+                                    <strong>{{ $item['year'] }}</strong>
+                                    @if($item['yearNote'] !== '')
+                                        <small>{{ $item['yearNote'] }}</small>
+                                    @endif
+                                </span>
+                            </span>
+                        </span>
+                        <span class="industry-driver-arrow" aria-hidden="true">›</span>
+                    </a>
+                @endforeach
+            </div>
+            <a class="mini-button" href="{{ route('districts') }}?indicatorCode=industry&period=h1">Саноат деталларига ўтиш ›</a>
+        </aside>
+    @endif
 </section>
