@@ -2,28 +2,51 @@
     use App\Support\DashboardCatalog;
     $periods = DashboardCatalog::PERIODS;
     $periodLabels = DashboardCatalog::PERIOD_LABELS;
-    $hasGrowth = $indicator->has_growth_pct ?? false;
 @endphp
 
 <div class="quarter-matrix">
     @foreach($periods as $period)
         @php
             $row = $rows->get($period);
-            $unit = $row->unit ?? $indicator->default_unit ?? '';
-            $growth   = $row && $row->growth_pct !== null ? number_format((float) $row->growth_pct, 1) . '%' : null;
-            $plan     = $row && $row->plan_value !== null ? number_format((float) $row->plan_value, 1) . ' ' . $unit : '—';
-            $fact     = $row && $row->actual_hokimyat !== null ? number_format((float) $row->actual_hokimyat, 1) . ' ' . $unit : '—';
-            $exec     = $row && $row->pct_of_plan !== null ? number_format((float) $row->pct_of_plan, 1) . '%' : null;
+            $unit = ($row->unit ?? null) ?: ($indicator->default_unit ?? '');
+            $stateInfo = DashboardCatalog::periodState($kpi, $period, $row);
+            $sourceKind = DashboardCatalog::periodSourceKind($kpi, $period, $row);
 
-            $hero = $growth ?? $exec ?? ($row && $row->plan_value !== null ? number_format((float) $row->plan_value, 1) . ' ' . $unit : '—');
+            $growthText = $row && $row->growth_pct !== null
+                ? DashboardCatalog::growthValue($row->growth_pct)
+                : '—';
+            $planFmt = $row && $row->plan_value !== null
+                ? number_format((float) $row->plan_value, 1) . ' ' . $unit
+                : '—';
+            $factFmt = $row && $row->actual_hokimyat !== null
+                ? number_format((float) $row->actual_hokimyat, 1) . ' ' . $unit
+                : ($row && $row->actual_statistika !== null
+                    ? number_format((float) $row->actual_statistika, 1) . ' ' . $unit
+                    : '—');
+            $execFmt = $row && $row->pct_of_plan !== null
+                ? number_format((float) $row->pct_of_plan, 1) . '%'
+                : '—';
 
-            $hasFact = $row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null || $row->growth_pct !== null);
-            $stateClass = $hasFact ? 'actual' : 'planned';
-            $statusText = $hasFact ? 'Амалда бор' : '—';
-            $chipClass = $hasFact ? 'green' : 'grey';
-            $measureLabel = $growth ? 'Ўсиш' : ($exec ? 'Ижро' : 'Режа');
+            $hero = $row && $row->growth_pct !== null
+                ? $growthText
+                : ($row && $row->pct_of_plan !== null
+                    ? $execFmt
+                    : ($row && $row->plan_value !== null
+                        ? number_format((float) $row->plan_value, 1) . ' ' . $unit
+                        : '—'));
+
+            $measureLabel = $row && $row->growth_pct !== null
+                ? 'Ўсиш'
+                : DashboardCatalog::executionLabel($kpi, $period, $row);
+
+            $statusText = $stateInfo['label'] !== ''
+                ? $stateInfo['label']
+                : ($stateInfo['cls'] === 'actual' ? 'Амалда бор' : '—');
+            $chipClass = $stateInfo['chip'] !== '' ? $stateInfo['chip'] : ($stateInfo['cls'] === 'actual' ? 'green' : 'grey');
+
+            $hidePlanRow = $sourceKind === 'target' || ($kpi === 'investment' && $sourceKind === 'expected');
         @endphp
-        <div class="quarter-row {{ $stateClass }}">
+        <div class="quarter-row {{ $stateInfo['cls'] }}">
             <div class="q-head">
                 <span class="q-period">{{ $periodLabels[$period] }}</span>
             </div>
@@ -32,8 +55,10 @@
                 <span class="q-hero-label">{{ $measureLabel }}</span>
             </div>
             <dl class="q-aux">
-                <div class="q-aux-row"><span>Режа</span><b class="num">{{ $plan }}</b></div>
-                <div class="q-aux-row"><span>Амалда</span><b class="num">{{ $fact }}</b></div>
+                @if(! $hidePlanRow)
+                    <div class="q-aux-row"><span>{{ DashboardCatalog::planLabel($kpi, $period, $row) }}</span><b class="num">{{ $planFmt }}</b></div>
+                @endif
+                <div class="q-aux-row"><span>{{ DashboardCatalog::factLabel($kpi, $period, $row) }}</span><b class="num">{{ $factFmt }}</b></div>
                 <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip {{ $chipClass }}">{{ $statusText }}</span></b></div>
             </dl>
         </div>

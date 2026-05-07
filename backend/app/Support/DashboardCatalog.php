@@ -154,4 +154,83 @@ class DashboardCatalog
     {
         return self::PERIOD_LABELS[$period] ?? $period;
     }
+
+    public static function periodSourceKind(string $kpi, string $period, ?object $row): string
+    {
+        if ($period === 'q1' && $row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null || $row->growth_pct !== null)) {
+            return 'actual';
+        }
+        if (in_array($kpi, ['budget', 'budget_investment', 'investment', 'export'], true)
+            && $period !== 'q1'
+            && $row
+            && ($row->actual_hokimyat !== null || $row->expected_value !== null || $row->pct_of_plan !== null)) {
+            return 'expected';
+        }
+        if (in_array($kpi, ['inflation', 'unemployment', 'poverty', 'small_business_share'], true)) {
+            return 'target';
+        }
+        return ($row && self::hasPeriodValue($row)) ? 'plan' : 'empty';
+    }
+
+    public static function hasPeriodValue(object $row): bool
+    {
+        return $row->plan_value !== null
+            || $row->actual_hokimyat !== null
+            || $row->actual_statistika !== null
+            || $row->growth_pct !== null
+            || $row->pct_of_plan !== null
+            || $row->expected_value !== null;
+    }
+
+    /**
+     * Returns ['cls' => actual|planned|empty, 'chip' => '', 'label' => '']
+     */
+    public static function periodState(string $kpi, string $period, ?object $row): array
+    {
+        if ($period === 'q1' && $row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null || $row->growth_pct !== null)) {
+            return ['cls' => 'actual', 'chip' => '', 'label' => ''];
+        }
+        if ($period === 'q1') {
+            return ['cls' => 'empty', 'chip' => 'grey', 'label' => 'I чорак белгиланмаган'];
+        }
+        $kind = self::periodSourceKind($kpi, $period, $row);
+        return match ($kind) {
+            'expected' => ['cls' => 'planned', 'chip' => 'grey', 'label' => 'Кутилиш'],
+            'target'   => ['cls' => 'planned', 'chip' => 'grey', 'label' => 'Маълумот кутилмоқда'],
+            'plan'     => ['cls' => 'planned', 'chip' => 'grey', 'label' => 'Режа'],
+            default    => ['cls' => 'empty',   'chip' => 'grey', 'label' => 'Давр белгиланмаган'],
+        };
+    }
+
+    public static function planLabel(string $kpi, string $period, ?object $row): string
+    {
+        return self::periodSourceKind($kpi, $period, $row) === 'target' ? 'Режа (мақсад)' : 'Режа';
+    }
+
+    public static function factLabel(string $kpi, string $period, ?object $row): string
+    {
+        return self::periodSourceKind($kpi, $period, $row) === 'expected' ? 'Кутилиш' : 'Амалда';
+    }
+
+    public static function executionLabel(string $kpi, string $period, ?object $row): string
+    {
+        $kind = self::periodSourceKind($kpi, $period, $row);
+        if ($kind === 'target') return 'Мақсад';
+        if (! $row || $row->pct_of_plan === null) return 'Кўрсаткич';
+        if ($period === 'q1') return 'Ижро';
+        return 'Кутилган ижро';
+    }
+
+    /**
+     * Format growth percent the way index.html growthValue() does.
+     * Values >50 are treated as ratios (105.5 → "+5.5%"), small values as deltas (5.5 → "+5.5%").
+     */
+    public static function growthValue($value): string
+    {
+        if ($value === null) return '—';
+        $num = (float) $value;
+        $delta = abs($num) > 50 ? $num - 100 : $num;
+        $sign = $delta >= 0 ? '+' : '';
+        return $sign . number_format($delta, 1) . '%';
+    }
 }

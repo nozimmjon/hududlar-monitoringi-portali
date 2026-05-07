@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\Indicator;
 use App\Support\DashboardCatalog;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
@@ -22,7 +23,8 @@ class KpiScoreline extends Component
         $open = $total - $done;
         $pct = $total > 0 ? (int) round(($done / $total) * 100) : 0;
 
-        $kpiShort = $this->kpi === 'grp' ? 'ЯҲМ' : ucfirst($this->kpi);
+        $indicator = Indicator::where('code', $this->kpi)->first();
+        $kpiShort = $indicator->label_short ?? $this->kpi;
         $scope = $kpiShort . 'га оид чора-тадбирлар';
 
         return view('livewire.dashboard.kpi-scoreline', [
