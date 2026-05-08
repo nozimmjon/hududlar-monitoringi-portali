@@ -19,10 +19,6 @@
 
         @include('livewire.dashboard.panels.' . $panel, get_defined_vars())
 
-        @if($module === 'macro' && $kpi === 'grp')
-            <livewire:dashboard.macro-composition :key="'macro-comp-inline'" />
-        @endif
-
         @if(in_array($kpi, ['budget', 'budget_investment', 'investment'], true))
             <p class="finance-source">Манба: 4-жадвал ва кафолат хати.</p>
         @endif
