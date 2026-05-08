@@ -62,14 +62,6 @@
     </aside>
 
     <main class="main">
-      <section class="page-head">
-        <div>
-          <div class="eyebrow">Андижон вилояти</div>
-          <h2>@yield('page-title', 'KPI')</h2>
-          <p>@yield('page-subtitle', '')</p>
-        </div>
-      </section>
-
       @yield('content')
     </main>
   </div>
