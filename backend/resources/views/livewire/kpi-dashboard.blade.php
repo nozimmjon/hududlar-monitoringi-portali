@@ -14,9 +14,5 @@
 
     <livewire:dashboard.kpi-workspace-card :module="$module" :kpi="$kpi" :key="'work-'.$module.'-'.$kpi" />
 
-    @if($module === 'macro')
-        <livewire:dashboard.macro-composition :key="'macro-comp'" />
-    @endif
-
     <livewire:dashboard.kpi-scoreline :module="$module" :kpi="$kpi" :key="'score-'.$module.'-'.$kpi" />
 </div>
