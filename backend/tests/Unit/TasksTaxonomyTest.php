@@ -13,8 +13,8 @@ test('numeric subsection map maps to indicator codes', function () {
     expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.1'])->toBe('grp');
     expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.2'])->toBe('industry');
     expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.3'])->toBe('services');
-    expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.4'])->toBe('agri');
-    expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.5'])->toBe('build');
+    expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.4'])->toBe('agriculture');
+    expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['1.5'])->toBe('construction');
     expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['7.1'])->toBe('unemployment');
     expect(TasksTaxonomy::NUMERIC_TO_INDICATOR['7.2'])->toBe('poverty');
 });
