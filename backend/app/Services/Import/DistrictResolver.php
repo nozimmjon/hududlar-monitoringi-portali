@@ -16,7 +16,7 @@ class DistrictResolver
     {
         $this->aliasToCode = [];
         District::where('region_code', $regionCode)->get()->each(function (District $d) {
-            $aliases = json_decode($d->alt_labels ?? '[]', true) ?: [];
+            $aliases = is_array($d->alt_labels) ? $d->alt_labels : (json_decode($d->alt_labels ?? '[]', true) ?: []);
             $aliases[] = $d->name_short;
             $aliases[] = $d->name_full;
             if ($d->name_latin) {
