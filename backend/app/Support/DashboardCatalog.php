@@ -234,7 +234,7 @@ class DashboardCatalog
 
     /**
      * Format growth percent the way index.html growthValue() does.
-     * Values >50 are treated as ratios (105.5 → "+5.5%"), small values as deltas (5.5 → "+5.5%").
+     * Values >50 are treated as ratios (105.5 → "+5,5%"), small values as deltas (5.5 → "+5,5%").
      */
     public static function growthValue($value): string
     {
@@ -242,15 +242,26 @@ class DashboardCatalog
         $num = (float) $value;
         $delta = abs($num) > 50 ? $num - 100 : $num;
         $sign = $delta >= 0 ? '+' : '';
-        return $sign . number_format($delta, 1) . '%';
+        return $sign . self::fmt($delta, 1) . '%';
     }
 
+    /**
+     * Display-side number formatter. Uses comma decimal + space thousands.
+     * Rounds to $digits, then drops trailing zeros after the comma so 8,0 → 8
+     * and 8,10 → 8,1. Negative sign and integer part are preserved.
+     */
     public static function fmt($value, int $digits = 1): string
     {
         if ($value === null) return '—';
         $num = (float) $value;
-        $hasFraction = abs($num - (int) $num) > 0;
-        return number_format($num, $hasFraction ? $digits : 0, ',', ' ');
+        $rounded = round($num, $digits);
+        $hasFraction = abs($rounded - (int) $rounded) > 0;
+        if (! $hasFraction || $digits <= 0) {
+            return number_format($rounded, 0, ',', ' ');
+        }
+        $str = number_format($rounded, $digits, ',', ' ');
+        $str = rtrim($str, '0');
+        return rtrim($str, ',');
     }
 
     public static function displayMlnSum($value): string

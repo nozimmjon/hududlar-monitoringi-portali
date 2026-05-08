@@ -16,7 +16,7 @@
                     $ind = $indicators->get($code);
                     $fact = $facts->get($code);
                     if (! $ind) continue;
-                    $growth = $fact && $fact->growth_pct !== null ? number_format((float) $fact->growth_pct, 1) . '%' : '—';
+                    $growth = $fact && $fact->growth_pct !== null ? \App\Support\DashboardCatalog::growthValue($fact->growth_pct) : '—';
                 @endphp
                 <button class="component-card"
                         wire:click="selectKpi('{{ $code }}')"

@@ -36,14 +36,14 @@
                     </div>
                     <div class="poverty-stat-body">
                         <span class="poverty-stat-label">{{ $s['label'] }}</span>
-                        <strong class="poverty-stat-value">{{ $yearVal !== null ? number_format((float) $yearVal, $digits) : '—' }}<em>{{ $s['unit'] }}</em></strong>
+                        <strong class="poverty-stat-value">{{ \App\Support\DashboardCatalog::fmt($yearVal, $digits) }}<em>{{ $s['unit'] }}</em></strong>
                         <div class="poverty-stat-meta">
-                            <span>II чорак <b>{{ $h1Val !== null ? number_format((float) $h1Val, $digits) : '—' }}</b></span>
+                            <span>II чорак <b>{{ \App\Support\DashboardCatalog::fmt($h1Val, $digits) }}</b></span>
                             <span class="poverty-stat-divider">·</span>
                             <span>Йиллик мақсад</span>
                         </div>
                         <div class="poverty-progress" role="progressbar" aria-valuenow="{{ (int) $pct }}" aria-valuemin="0" aria-valuemax="100">
-                            <i style="width:{{ number_format($pct, 1) }}%"></i>
+                            <i style="width:{{ number_format($pct, 1, '.', '') }}%"></i>
                         </div>
                     </div>
                 </article>
