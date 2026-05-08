@@ -227,6 +227,7 @@ class DashboardCatalog
     {
         $kind = self::periodSourceKind($kpi, $period, $row);
         if ($kind === 'target') return 'Мақсад';
+        if ($kind === 'expected') return 'Кутилган ижро';
         if (! $row || $row->pct_of_plan === null) return 'Кўрсаткич';
         if ($period === 'q1') return 'Ижро';
         return 'Кутилган ижро';

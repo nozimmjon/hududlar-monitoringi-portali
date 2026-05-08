@@ -20,13 +20,16 @@
                 ? ($row?->expected_value ?? $row?->actual_hokimyat ?? $row?->actual_statkom)
                 : ($row?->actual_hokimyat ?? $row?->actual_statkom ?? $row?->expected_value);
             $factFmt = DashboardCatalog::displayValue($factRaw, $unit);
-            $execFmt = $row && $row->pct_of_plan !== null
-                ? DashboardCatalog::fmt((float) $row->pct_of_plan, 1) . '%'
-                : '—';
+            $execValue = $row && $row->pct_of_plan !== null
+                ? (float) $row->pct_of_plan
+                : ($factRaw !== null && ($row->plan_value ?? null) !== null && (float) $row->plan_value != 0
+                    ? ((float) $factRaw / (float) $row->plan_value) * 100
+                    : null);
+            $execFmt = $execValue !== null ? DashboardCatalog::fmt($execValue, 1) . '%' : '—';
 
             $hero = $row && $row->growth_pct !== null
                 ? $growthText
-                : ($row && $row->pct_of_plan !== null
+                : ($execValue !== null
                     ? $execFmt
                     : ($row && $row->plan_value !== null
                         ? $planFmt
