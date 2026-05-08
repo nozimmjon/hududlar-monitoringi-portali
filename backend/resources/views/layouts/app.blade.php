@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
   <link rel="stylesheet" href="/css/portal.css">
   <style>
-    a.nav-btn { text-decoration: none; }
+    a { text-decoration: none; color: inherit; }
   </style>
   @livewireStyles
 </head>
