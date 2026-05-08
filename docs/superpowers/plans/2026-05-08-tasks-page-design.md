@@ -231,8 +231,8 @@ test('tasks table exists with all expected columns', function () {
 
 test('tasks table enforces unique (region_code, task_number)', function () {
     \DB::table('regions')->insert([
-        'code' => 'andijan', 'label' => 'Andijan', 'sort_order' => 1,
-        'created_at' => now(), 'updated_at' => now(),
+        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'sort_order' => 1, 'created_at' => now(), 'updated_at' => now(),
     ]);
 
     \DB::table('tasks')->insert([
@@ -352,8 +352,8 @@ test('task_districts pivot table exists with task_id and district_id', function 
 
 test('task_districts has composite primary key', function () {
     \DB::table('regions')->insert([
-        'code' => 'andijan', 'label' => 'Andijan', 'sort_order' => 1,
-        'created_at' => now(), 'updated_at' => now(),
+        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'sort_order' => 1, 'created_at' => now(), 'updated_at' => now(),
     ]);
     $regionId = \DB::table('regions')->where('code', 'andijan')->value('id');
 
@@ -979,8 +979,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     DB::table('regions')->insert([
-        'code' => 'andijan', 'label' => 'Андижон вилояти', 'sort_order' => 2,
-        'created_at' => now(), 'updated_at' => now(),
+        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'sort_order' => 2, 'created_at' => now(), 'updated_at' => now(),
     ]);
     $regionId = DB::table('regions')->where('code', 'andijan')->value('id');
 
@@ -1482,8 +1482,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     DB::table('regions')->insert([
-        'code' => 'andijan', 'label' => 'A', 'sort_order' => 1,
-        'created_at' => now(), 'updated_at' => now(),
+        'code' => 'andijan', 'name_short' => 'A', 'name_full' => 'Andijan',
+        'sort_order' => 1, 'created_at' => now(), 'updated_at' => now(),
     ]);
     DB::table('modules')->insert([
         ['code' => 'macro',  'label' => 'M', 'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
