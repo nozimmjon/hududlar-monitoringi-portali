@@ -705,8 +705,38 @@
     }
 
     .front-kpis.module-kpis.employment-layout {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
     }
+
+    .front-kpis.module-kpis.employment-layout .front-kpi {
+      min-height: 60px;
+      padding: 10px 12px;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      border-radius: 12px;
+    }
+
+    .front-kpis.module-kpis.employment-layout .front-kpi .kpi-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+    }
+
+    .front-kpis.module-kpis.employment-layout .front-kpi .kpi-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .front-kpis.module-kpis.employment-layout .front-kpi h3 {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+    }
+
+    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy { gap: 2px; }
+    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy p { font-size: 11px; line-height: 1.15; }
+    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-meta { display: none; }
 
     .front-kpis.module-kpis.macro-layout .front-kpi {
       min-height: 92px;
