@@ -121,10 +121,6 @@
                 <strong>{{ $taskCount }} та</strong>
                 <small>Шу KPI билан боғлиқ амалий топшириқлар сони.</small>
             </div>
-            <div class="district-layer-note">
-                <span>Мантиқ</span>
-                <strong>Ижро % = факт / режа × 100. Ўсиш % = ўтган йил билан таққослаш.</strong>
-            </div>
         </div>
 
         <div class="districts-head-actions">
