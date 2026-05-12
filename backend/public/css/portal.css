@@ -4758,6 +4758,11 @@
 
     .task-group .task-list {
       padding: 12px;
+      max-height: calc(100vh - 320px);
+      overflow-y: auto;
+      padding-right: 4px;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
     }
 
     .task-card.compact {
