@@ -5,7 +5,7 @@ namespace App\Support\Import;
 final readonly class FoodBalanceDto
 {
     public function __construct(
-        public string $regionCode,
+        public int $regionCode,
         public int $year,
         public string $product,
         public int $productSortOrder,

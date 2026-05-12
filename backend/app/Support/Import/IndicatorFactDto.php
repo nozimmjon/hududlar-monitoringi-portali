@@ -5,8 +5,8 @@ namespace App\Support\Import;
 final readonly class IndicatorFactDto
 {
     public function __construct(
-        public string $regionCode,
-        public ?string $districtCode,
+        public int $regionCode,
+        public ?int $districtCode,
         public int $year,
         public string $indicatorCode,
         public string $period,

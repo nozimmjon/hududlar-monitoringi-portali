@@ -5,8 +5,8 @@ namespace App\Support\Import;
 final readonly class WarehouseDto
 {
     public function __construct(
-        public string $regionCode,
-        public ?string $districtCode,        // NULL = region rollup
+        public int $regionCode,
+        public ?int $districtCode,        // NULL = region rollup
         public int $year,
         public ?int $reserveWarehouses,
         public ?int $reserveCapacityT,
