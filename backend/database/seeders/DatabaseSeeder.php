@@ -14,8 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ReportingYearSeeder::class,
             ModuleSeeder::class,
-            RegionSeeder::class,
-            DistrictSeeder::class,
+            SoatoSeeder::class,
             IndicatorSeeder::class,
             RegionIndicatorAvailabilitySeeder::class,
         ]);

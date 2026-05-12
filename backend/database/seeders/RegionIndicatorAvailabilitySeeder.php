@@ -37,8 +37,9 @@ class RegionIndicatorAvailabilitySeeder extends Seeder
 
         // Apply known exceptions
 
+        // 1726 = Tashkent city (SOATO), 1712 = Navoi (SOATO)
         DB::table('region_indicator_availability')
-            ->where('region_code', 'tashkent_city')
+            ->where('region_code', 1726)
             ->where('indicator_code', 'agriculture')
             ->update([
                 'status'     => 'not_applicable',
@@ -47,7 +48,7 @@ class RegionIndicatorAvailabilitySeeder extends Seeder
             ]);
 
         DB::table('region_indicator_availability')
-            ->where('region_code', 'navoiy')
+            ->where('region_code', 1712)
             ->whereIn('indicator_code', ['grp','industry','agriculture','construction','services'])
             ->update([
                 'status'     => 'blocked',
