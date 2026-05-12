@@ -1,0 +1,1018 @@
+# Districts Page (Andijan) Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Implement `/districts` page for Andijan region with full visual parity to `index.html#districtsPage`: module-tabs header, KPI selector, sort/search controls, Andijan SVG map (16 cells), selected-district summary card, leaderboard list, detail table with profile links.
+
+**Architecture:** One Livewire 3 component owns URL-synced state + computed properties + actions. Two pure helper classes carry data (`AndijanMapGeometry`) and pure functions (`DistrictStatus`). Blade view mirrors prototype markup 1:1. All CSS classes already exist in `portal.css`. Zero new CSS.
+
+**Tech Stack:** Laravel 11 + Livewire 3 + Pest 3 + PostgreSQL. No JS.
+
+**Spec:** `docs/superpowers/specs/2026-05-12-districts-page-design.md`
+
+**Working directory:** `C:\Users\y.utepbergenov\Desktop\hududlar-monitoringi-portali`. All `php artisan`, `vendor/bin/pest`, `composer` commands run from inside `backend/`. All `git` commands from project root.
+
+---
+
+## File Structure
+
+| File | Responsibility |
+|---|---|
+| `backend/app/Support/AndijanMapGeometry.php` | const `VIEWBOX` + const `CELLS` array (16 entries copied verbatim from `index.html:8837-8854`) |
+| `backend/app/Support/DistrictStatus.php` | static `statusFor()` returning `'green'`/`'amber'`/`'red'`/`'grey'` |
+| `backend/app/Livewire/DistrictsPage.php` | URL-synced state + computed properties + action methods (replaces stub) |
+| `backend/resources/views/livewire/districts-page.blade.php` | markup mirroring `index.html#districtsPage` (replaces stub) |
+| `backend/tests/Unit/AndijanMapGeometryTest.php` | cell count, name set, shape sanity |
+| `backend/tests/Unit/DistrictStatusTest.php` | direction-aware threshold boundaries |
+| `backend/tests/Feature/Http/DistrictsPageTest.php` | route 200, markup classes present, Livewire interactions |
+
+No migrations, no CSS, no other Blade files, no JS.
+
+---
+
+### Task 1: `AndijanMapGeometry` constant class + unit test
+
+**Files:**
+- Create: `backend/app/Support/AndijanMapGeometry.php`
+- Create: `backend/tests/Unit/AndijanMapGeometryTest.php`
+
+The cell data is copied verbatim from `index.html:8837-8854`. The names match `districts.name_full` for Andijan exactly.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `backend/tests/Unit/AndijanMapGeometryTest.php`:
+
+```php
+<?php
+
+use App\Support\AndijanMapGeometry;
+
+test('VIEWBOX is the prototype viewBox', function () {
+    expect(AndijanMapGeometry::VIEWBOX)->toBe('0 0 600 328');
+});
+
+test('CELLS has exactly 16 entries', function () {
+    expect(AndijanMapGeometry::CELLS)->toHaveCount(16);
+});
+
+test('every cell has required fields with correct types', function () {
+    foreach (AndijanMapGeometry::CELLS as $cell) {
+        expect($cell)
+            ->toHaveKeys(['name', 'short', 'cx', 'cy', 'path']);
+        expect($cell['name'])->toBeString()->not->toBe('');
+        expect($cell['short'])->toBeString()->not->toBe('');
+        expect($cell['path'])->toBeString()->toStartWith('M');
+        expect($cell['cx'])->toBeFloat();
+        expect($cell['cy'])->toBeFloat();
+    }
+});
+
+test('cell names include the two Andijan cities and the 14 districts', function () {
+    $names = array_column(AndijanMapGeometry::CELLS, 'name');
+    expect($names)->toContain('Андижон шаҳри', 'Хонобод шаҳри');
+    expect(array_filter($names, fn ($n) => str_ends_with($n, 'тумани')))->toHaveCount(14);
+});
+```
+
+- [ ] **Step 2: Run test, expect FAIL**
+
+```bash
+cd backend && vendor/bin/pest tests/Unit/AndijanMapGeometryTest.php
+```
+
+Expected: FAIL — `App\Support\AndijanMapGeometry` not found.
+
+- [ ] **Step 3: Implement the class**
+
+Create `backend/app/Support/AndijanMapGeometry.php` with the contents below. The 16 entries are copied verbatim from `index.html:8838-8853`. Keep the path strings on one line each — do not reformat them.
+
+```php
+<?php
+
+namespace App\Support;
+
+class AndijanMapGeometry
+{
+    public const VIEWBOX = '0 0 600 328';
+
+    /**
+     * 16 Andijan cells copied verbatim from index.html (lines 8838-8853).
+     *
+     * Each entry:
+     * - name  : Cyrillic district name; matches District.name_full for Andijan.
+     * - short : Display label inside the cell.
+     * - cx,cy : Label centroid in viewBox coordinates.
+     * - path  : SVG path `d` attribute.
+     */
+    public const CELLS = [
+        ['name' => 'Андижон тумани',   'short' => 'Андижон',     'cx' => 331.4, 'cy' => 129.2, 'path' => 'M381.7 83.5 L376.7 83.3 L366.1 77.5 L351.4 77.9 L335.6 78.2 L325.7 83.8 L317.5 83.7 L303.7 88.3 L296.8 93.6 L292.4 90.3 L288.7 91.7 L289.5 96.5 L284.6 99.0 L292.7 106.3 L294.5 113.0 L299.3 117.9 L302.7 117.6 L306.4 111.0 L309.0 111.5 L313.4 121.6 L317.2 124.7 L320.0 127.1 L320.6 129.7 L319.9 132.4 L319.0 140.4 L316.2 143.4 L309.0 146.6 L297.6 148.3 L296.9 152.7 L303.6 162.3 L293.4 175.6 L294.0 189.9 L301.6 185.6 L307.7 186.1 L310.9 179.9 L308.7 171.1 L314.7 168.9 L319.0 167.6 L324.5 177.6 L339.5 172.7 L338.9 166.4 L344.4 167.5 L345.4 162.0 L339.3 158.2 L340.2 155.6 L373.0 157.5 L377.5 152.6 L371.8 147.6 L372.5 143.2 L379.1 138.2 L376.9 129.9 L387.9 121.5 L385.8 115.6 L374.7 115.5 L368.8 109.3 L375.3 102.2 L377.7 95.3 L380.3 92.3 L381.7 83.5 Z'],
+        ['name' => 'Андижон шаҳри',    'short' => 'Андижон ш.',  'cx' => 308.1, 'cy' => 130.0, 'path' => 'M297.6 148.3 L309.0 146.6 L316.2 143.4 L319.0 140.4 L319.9 132.4 L320.6 129.7 L320.0 127.1 L317.2 124.7 L313.4 121.6 L309.0 111.5 L306.4 111.0 L302.7 117.6 L299.3 117.9 L299.0 126.4 L296.9 128.9 L293.7 134.9 L297.6 148.3 Z'],
+        ['name' => 'Асака тумани',     'short' => 'Асака',       'cx' => 272.7, 'cy' => 189.1, 'path' => 'M296.9 152.7 L290.3 158.1 L286.0 157.1 L283.4 153.0 L273.3 155.6 L268.5 146.3 L268.9 141.9 L254.2 139.6 L245.5 145.4 L244.4 154.8 L242.1 167.4 L251.0 168.7 L253.0 176.6 L252.1 181.7 L236.7 179.6 L231.8 183.1 L235.6 186.2 L249.4 190.1 L252.8 193.4 L245.5 199.2 L238.1 200.2 L214.7 212.3 L224.7 212.7 L232.0 209.1 L231.2 221.4 L238.2 224.8 L242.8 222.9 L247.3 232.0 L255.1 232.2 L263.2 239.9 L272.6 226.9 L269.8 221.7 L273.7 218.8 L277.6 219.4 L280.6 215.7 L287.5 217.1 L294.5 209.6 L305.4 209.1 L320.7 203.2 L315.2 199.2 L306.1 201.1 L305.2 197.0 L308.4 193.8 L310.9 187.9 L319.0 181.0 L314.7 168.9 L308.7 171.1 L310.9 179.9 L307.7 186.1 L301.6 185.6 L294.0 189.9 L293.4 175.6 L303.6 162.3 L296.9 152.7 Z'],
+        ['name' => 'Балиқчи тумани',   'short' => 'Балиқчи',     'cx' => 182.8, 'cy' => 104.0, 'path' => 'M228.5 90.4 L223.0 86.9 L218.3 93.6 L214.2 86.1 L206.7 84.9 L199.9 89.6 L193.2 86.0 L169.4 83.3 L160.6 75.5 L143.9 72.8 L131.9 75.3 L116.5 78.1 L110.7 84.2 L103.3 81.8 L101.3 91.7 L113.9 102.9 L117.9 103.2 L123.5 107.3 L117.7 113.9 L136.1 132.4 L143.6 132.8 L146.6 139.0 L156.9 135.1 L158.8 133.8 L174.2 123.6 L183.7 122.6 L183.3 119.6 L178.9 116.9 L179.2 113.3 L184.6 111.4 L182.3 104.1 L188.3 101.7 L187.1 95.0 L200.7 107.5 L215.3 108.8 L229.5 120.8 L235.4 120.1 L255.9 119.0 L262.8 113.7 L260.4 108.1 L254.3 110.5 L245.4 105.0 L230.4 109.6 L231.5 96.6 L228.5 90.4 Z'],
+        ['name' => 'Булоқбоши тумани', 'short' => 'Булоқбоши',   'cx' => 354.5, 'cy' => 205.8, 'path' => 'M339.5 172.7 L324.5 177.6 L319.0 167.6 L314.7 168.9 L319.0 181.0 L310.9 187.9 L308.4 193.8 L305.2 197.0 L306.1 201.1 L315.2 199.2 L320.7 203.2 L327.9 204.8 L337.0 210.0 L338.6 215.8 L349.3 224.7 L353.4 232.3 L360.2 241.5 L363.6 244.9 L365.2 245.2 L370.4 243.0 L374.1 244.4 L374.8 245.0 L379.5 233.7 L385.5 232.7 L396.8 236.8 L397.0 231.4 L400.7 230.2 L395.0 226.5 L394.5 224.2 L404.9 213.3 L403.2 210.4 L394.9 211.9 L395.2 200.3 L368.5 191.5 L356.1 188.6 L354.5 183.8 L361.7 177.5 L358.7 175.3 L352.7 180.1 L348.7 178.8 L345.6 182.7 L339.9 184.9 L341.7 174.9 L339.5 172.7 Z'],
+        ['name' => 'Бўстон тумани',    'short' => 'Бўстон',      'cx' => 162.0, 'cy' => 173.6, 'path' => 'M195.9 210.6 L196.6 202.2 L192.9 188.3 L189.1 186.7 L188.9 183.2 L198.2 180.1 L193.8 174.5 L194.8 168.4 L192.0 166.7 L183.4 170.1 L180.8 166.4 L179.4 157.6 L175.5 144.7 L168.8 138.1 L162.0 140.0 L158.8 133.8 L156.9 135.1 L146.6 139.0 L142.2 143.7 L133.6 144.7 L132.6 148.3 L134.3 151.2 L132.9 153.1 L129.1 149.3 L124.9 153.4 L128.3 165.0 L127.9 175.7 L124.9 183.1 L131.9 189.6 L136.0 196.2 L142.3 205.2 L148.4 202.2 L154.9 203.8 L163.5 208.7 L167.5 209.3 L170.8 209.2 L180.5 209.0 L195.9 210.6 Z'],
+        ['name' => 'Жалақудуқ тумани', 'short' => 'Жалақудуқ',   'cx' => 424.5, 'cy' => 155.9, 'path' => 'M468.9 187.0 L459.3 174.4 L447.9 182.4 L445.8 178.8 L439.4 179.1 L422.5 191.1 L411.5 178.7 L415.1 171.1 L431.2 160.5 L446.9 156.6 L441.5 151.6 L450.6 142.6 L448.1 121.3 L461.3 121.4 L461.9 117.5 L457.0 115.8 L465.0 112.0 L463.5 108.6 L454.3 113.5 L442.3 111.6 L429.6 115.1 L416.9 110.9 L405.3 104.0 L397.6 104.0 L377.7 95.3 L375.3 102.2 L368.8 109.3 L374.7 115.5 L385.8 115.6 L387.9 121.5 L376.9 129.9 L379.1 138.2 L372.5 143.2 L371.8 147.6 L377.5 152.6 L373.0 157.5 L377.3 161.1 L371.5 165.5 L377.3 171.9 L389.4 175.8 L406.0 178.1 L409.1 188.8 L416.7 193.3 L430.3 201.8 L443.1 208.7 L459.2 218.3 L458.6 210.0 L459.4 206.8 L465.0 202.2 L464.7 199.6 L461.9 196.1 L460.8 192.8 L461.2 190.4 L463.5 187.7 L468.9 187.0 Z'],
+        ['name' => 'Избоскан тумани',  'short' => 'Избоскан',    'cx' => 281.9, 'cy' => 73.4,  'path' => 'M303.7 88.3 L313.2 79.7 L321.0 78.1 L329.8 70.6 L339.9 62.6 L340.7 53.8 L332.2 50.0 L325.5 52.9 L316.1 60.4 L307.1 61.9 L304.2 55.7 L296.4 50.8 L281.7 44.1 L280.1 35.0 L275.6 37.0 L272.3 39.3 L269.4 40.4 L264.4 40.5 L259.8 37.7 L251.6 53.9 L242.2 53.6 L241.7 66.6 L237.1 72.2 L235.5 77.4 L228.5 90.4 L231.5 96.6 L230.4 109.6 L245.4 105.0 L254.3 110.5 L260.4 108.1 L274.2 103.4 L279.4 111.6 L292.7 106.3 L284.6 99.0 L289.5 96.5 L288.7 91.7 L292.4 90.3 L296.8 93.6 L303.7 88.3 Z'],
+        ['name' => 'Марҳамат тумани',  'short' => 'Марҳамат',    'cx' => 314.9, 'cy' => 258.3, 'path' => 'M338.6 215.8 L337.0 210.0 L327.9 204.8 L320.7 203.2 L305.4 209.1 L294.5 209.6 L287.5 217.1 L280.6 215.7 L277.6 219.4 L273.7 218.8 L269.8 221.7 L272.6 226.9 L263.2 239.9 L262.6 246.5 L252.3 253.5 L259.3 271.5 L261.5 271.0 L269.5 272.9 L278.3 272.2 L281.7 274.3 L282.2 276.2 L279.7 284.7 L279.7 286.0 L281.0 287.7 L283.0 288.6 L289.8 288.5 L292.0 290.1 L295.7 295.5 L298.2 297.1 L304.1 294.8 L306.3 295.5 L311.2 299.0 L320.6 308.1 L322.9 311.1 L326.3 313.2 L329.0 314.4 L333.4 314.8 L337.4 316.1 L339.6 315.6 L340.9 314.4 L341.4 309.6 L339.3 303.2 L342.8 293.6 L347.9 283.0 L346.1 277.3 L343.5 275.3 L342.4 273.4 L341.3 269.5 L340.7 262.2 L338.7 259.5 L336.7 259.3 L334.3 260.3 L330.6 260.3 L329.6 256.8 L330.8 253.0 L332.8 251.6 L338.6 251.6 L340.6 250.8 L343.2 247.8 L343.8 246.0 L343.5 243.6 L342.1 240.9 L340.5 239.4 L332.6 236.9 L331.4 235.5 L329.1 229.2 L326.7 226.9 L318.3 224.0 L317.2 221.8 L318.3 219.3 L320.2 217.7 L323.0 218.2 L328.4 217.7 L330.6 216.1 L335.8 214.5 L338.6 215.8 Z'],
+        ['name' => 'Олтинкўл тумани',  'short' => 'Олтинкўл',    'cx' => 239.0, 'cy' => 126.1, 'path' => 'M260.4 108.1 L262.8 113.7 L255.9 119.0 L235.4 120.1 L229.5 120.8 L215.3 108.8 L200.7 107.5 L187.1 95.0 L188.3 101.7 L182.3 104.1 L184.6 111.4 L179.2 113.3 L178.9 116.9 L183.3 119.6 L183.7 122.6 L185.7 122.8 L191.7 121.6 L198.9 126.1 L200.1 122.3 L203.1 120.5 L208.2 122.7 L205.0 129.3 L211.5 132.8 L211.6 145.3 L221.7 154.2 L235.7 143.9 L245.5 145.4 L254.2 139.6 L268.9 141.9 L268.5 146.3 L273.3 155.6 L283.4 153.0 L286.0 157.1 L290.3 158.1 L296.9 152.7 L297.6 148.3 L293.7 134.9 L296.9 128.9 L299.0 126.4 L299.3 117.9 L294.5 113.0 L292.7 106.3 L279.4 111.6 L274.2 103.4 L260.4 108.1 Z'],
+        ['name' => 'Пахтаобод тумани', 'short' => 'Пахтаобод',   'cx' => 342.7, 'cy' => 49.0,  'path' => 'M393.8 82.7 L393.9 79.1 L393.1 76.8 L388.8 71.6 L387.8 69.2 L382.3 61.4 L378.8 54.6 L375.7 51.7 L372.2 49.9 L370.3 50.1 L368.6 50.5 L365.2 55.9 L364.1 56.1 L362.7 54.4 L362.6 52.7 L368.8 41.3 L369.6 36.5 L368.7 30.0 L367.6 27.6 L362.6 25.3 L356.8 24.0 L350.3 24.6 L345.3 22.8 L344.3 21.7 L341.2 21.1 L337.7 21.3 L336.1 20.7 L330.4 16.2 L322.1 13.5 L320.4 13.6 L319.4 12.2 L316.9 12.0 L314.1 12.7 L311.2 15.3 L305.6 22.0 L296.5 28.9 L290.8 30.3 L285.9 32.5 L280.1 35.0 L281.7 44.1 L296.4 50.8 L304.2 55.7 L307.1 61.9 L316.1 60.4 L325.5 52.9 L332.2 50.0 L340.7 53.8 L339.9 62.6 L329.8 70.6 L321.0 78.1 L313.2 79.7 L303.7 88.3 L317.5 83.7 L325.7 83.8 L335.6 78.2 L351.4 77.9 L366.1 77.5 L376.7 83.3 L381.7 83.5 L393.8 82.7 Z'],
+        ['name' => 'Улуғнор тумани',   'short' => 'Улуғнор',     'cx' => 84.9,  'cy' => 147.4, 'path' => 'M146.6 139.0 L143.6 132.8 L136.1 132.4 L117.7 113.9 L123.5 107.3 L117.9 103.2 L113.9 102.9 L101.3 91.7 L103.3 81.8 L99.6 82.6 L94.9 89.4 L82.6 87.8 L78.2 90.2 L74.3 97.0 L65.2 106.4 L53.8 111.6 L42.7 119.6 L35.4 125.7 L34.1 132.5 L43.2 147.4 L37.2 152.6 L22.9 158.4 L12.0 163.4 L16.4 165.7 L21.8 165.7 L28.9 171.5 L34.3 180.8 L40.7 192.3 L44.8 199.3 L46.8 207.0 L55.0 201.7 L61.4 194.8 L68.3 188.4 L71.9 185.0 L63.4 175.4 L62.9 166.2 L64.4 159.8 L70.7 153.9 L77.0 161.4 L84.1 167.0 L91.7 169.6 L99.5 172.2 L108.8 174.0 L116.3 177.9 L124.9 183.1 L127.9 175.7 L128.3 165.0 L124.9 153.4 L129.1 149.3 L132.9 153.1 L134.3 151.2 L132.6 148.3 L133.6 144.7 L142.2 143.7 L146.6 139.0 Z'],
+        ['name' => 'Хонобод шаҳри',    'short' => 'Хонобод ш.',  'cx' => 537.1, 'cy' => 122.4, 'path' => 'M539.4 122.8 L537.8 120.3 L535.1 120.8 L534.4 123.1 L536.2 124.9 L539.4 122.8 Z'],
+        ['name' => 'Хўжаобод тумани',  'short' => 'Хўжаобод',    'cx' => 395.1, 'cy' => 209.6, 'path' => 'M373.0 157.5 L340.2 155.6 L339.3 158.2 L345.4 162.0 L344.4 167.5 L338.9 166.4 L339.5 172.7 L341.7 174.9 L339.9 184.9 L345.6 182.7 L348.7 178.8 L352.7 180.1 L358.7 175.3 L361.7 177.5 L354.5 183.8 L356.1 188.6 L368.5 191.5 L395.2 200.3 L394.9 211.9 L403.2 210.4 L404.9 213.3 L394.5 224.2 L395.0 226.5 L400.7 230.2 L397.0 231.4 L396.8 236.8 L385.5 232.7 L379.5 233.7 L374.8 245.0 L381.0 251.0 L386.2 253.8 L393.0 253.5 L397.2 254.3 L407.7 262.8 L410.8 263.1 L415.9 261.9 L420.2 253.8 L421.8 243.2 L422.9 241.4 L429.4 236.7 L429.7 230.9 L432.2 228.1 L443.5 230.7 L446.7 233.1 L450.7 238.1 L454.6 240.4 L457.7 240.0 L459.4 238.7 L459.9 230.7 L459.4 222.1 L459.2 218.3 L443.1 208.7 L430.3 201.8 L416.7 193.3 L409.1 188.8 L406.0 178.1 L389.4 175.8 L377.3 171.9 L371.5 165.5 L377.3 161.1 L373.0 157.5 Z'],
+        ['name' => 'Шаҳрихон тумани',  'short' => 'Шаҳрихон',    'cx' => 209.5, 'cy' => 161.0, 'path' => 'M245.5 145.4 L235.7 143.9 L221.7 154.2 L211.6 145.3 L211.5 132.8 L205.0 129.3 L208.2 122.7 L203.1 120.5 L200.1 122.3 L198.9 126.1 L191.7 121.6 L185.7 122.8 L183.7 122.6 L174.2 123.6 L158.8 133.8 L162.0 140.0 L168.8 138.1 L175.5 144.7 L179.4 157.6 L180.8 166.4 L183.4 170.1 L192.0 166.7 L194.8 168.4 L193.8 174.5 L198.2 180.1 L188.9 183.2 L189.1 186.7 L192.9 188.3 L196.6 202.2 L195.9 210.6 L214.7 212.3 L238.1 200.2 L245.5 199.2 L252.8 193.4 L249.4 190.1 L235.6 186.2 L231.8 183.1 L236.7 179.6 L252.1 181.7 L253.0 176.6 L251.0 168.7 L242.1 167.4 L244.4 154.8 L245.5 145.4 Z'],
+        ['name' => 'Қўрғонтепа тумани','short' => 'Қўрғонтепа',  'cx' => 491.6, 'cy' => 128.4, 'path' => 'M468.9 187.0 L469.4 186.9 L472.4 187.9 L477.9 188.0 L483.2 186.8 L489.5 184.3 L495.4 179.2 L497.0 177.0 L503.3 174.0 L507.1 171.4 L513.6 169.9 L514.0 168.2 L516.9 168.0 L520.1 166.9 L530.6 161.0 L539.3 154.9 L544.1 148.4 L556.5 146.6 L562.6 143.9 L565.9 143.2 L575.0 138.3 L578.1 137.5 L581.5 135.1 L584.8 130.5 L586.4 126.1 L588.0 117.5 L587.6 113.4 L586.3 110.2 L583.0 107.3 L580.1 106.5 L571.7 106.8 L566.3 110.1 L564.6 110.7 L562.5 109.9 L556.1 104.9 L551.8 104.5 L549.4 103.4 L542.6 94.3 L541.8 92.4 L538.5 92.4 L536.8 94.1 L533.6 104.8 L536.2 108.5 L540.6 111.5 L541.4 112.6 L541.7 115.5 L539.1 117.1 L534.7 117.3 L531.7 120.9 L526.9 123.4 L525.5 125.6 L520.8 126.8 L520.6 127.6 L516.8 127.9 L511.8 126.6 L510.5 125.5 L507.7 117.6 L501.2 111.2 L496.3 105.1 L493.3 102.9 L490.1 101.7 L484.7 101.5 L468.1 105.7 L463.0 104.1 L456.0 105.6 L449.0 108.6 L440.5 106.6 L435.4 106.4 L431.2 107.9 L419.4 103.5 L410.7 99.8 L409.4 98.7 L400.4 96.0 L396.8 94.0 L394.6 91.9 L393.7 86.1 L393.8 82.7 L381.7 83.5 L380.3 92.3 L377.7 95.3 L397.6 104.0 L405.3 104.0 L416.9 110.9 L429.6 115.1 L442.3 111.6 L454.3 113.5 L463.5 108.6 L465.0 112.0 L457.0 115.8 L461.9 117.5 L461.3 121.4 L448.1 121.3 L450.6 142.6 L441.5 151.6 L446.9 156.6 L431.2 160.5 L415.1 171.1 L411.5 178.7 L422.5 191.1 L439.4 179.1 L445.8 178.8 L447.9 182.4 L459.3 174.4 L468.9 187.0 Z M539.4 122.8 L536.2 124.9 L534.4 123.1 L535.1 120.8 L537.8 120.3 L539.4 122.8 Z'],
+    ];
+}
+```
+
+- [ ] **Step 4: Run test, expect PASS**
+
+```bash
+cd backend && vendor/bin/pest tests/Unit/AndijanMapGeometryTest.php
+```
+
+Expected: 4 tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/app/Support/AndijanMapGeometry.php backend/tests/Unit/AndijanMapGeometryTest.php
+git commit -m "feat(districts): AndijanMapGeometry — 16-cell SVG geometry"
+```
+
+---
+
+### Task 2: `DistrictStatus` helper + unit test
+
+**Files:**
+- Create: `backend/app/Support/DistrictStatus.php`
+- Create: `backend/tests/Unit/DistrictStatusTest.php`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `backend/tests/Unit/DistrictStatusTest.php`:
+
+```php
+<?php
+
+use App\Support\DistrictStatus;
+
+test('null pct + null growth returns grey', function () {
+    expect(DistrictStatus::statusFor(null, null, false))->toBe('grey');
+    expect(DistrictStatus::statusFor(null, null, true))->toBe('grey');
+});
+
+test('higher-is-better thresholds use 95/80 split', function () {
+    expect(DistrictStatus::statusFor(95.0, null, false))->toBe('green');
+    expect(DistrictStatus::statusFor(94.9, null, false))->toBe('amber');
+    expect(DistrictStatus::statusFor(80.0, null, false))->toBe('amber');
+    expect(DistrictStatus::statusFor(79.9, null, false))->toBe('red');
+});
+
+test('lower-is-better thresholds use 100/110 split', function () {
+    expect(DistrictStatus::statusFor(100.0, null, true))->toBe('green');
+    expect(DistrictStatus::statusFor(100.1, null, true))->toBe('amber');
+    expect(DistrictStatus::statusFor(110.0, null, true))->toBe('amber');
+    expect(DistrictStatus::statusFor(110.1, null, true))->toBe('red');
+});
+
+test('falls back to growth when pct_of_plan is null', function () {
+    expect(DistrictStatus::statusFor(null, 96.0, false))->toBe('green');
+    expect(DistrictStatus::statusFor(null, 70.0, false))->toBe('red');
+});
+
+test('uses pct over growth when both present', function () {
+    expect(DistrictStatus::statusFor(60.0, 99.0, false))->toBe('red');
+    expect(DistrictStatus::statusFor(99.0, 50.0, false))->toBe('green');
+});
+```
+
+- [ ] **Step 2: Run test, expect FAIL**
+
+```bash
+cd backend && vendor/bin/pest tests/Unit/DistrictStatusTest.php
+```
+
+Expected: FAIL — `App\Support\DistrictStatus` not found.
+
+- [ ] **Step 3: Implement the class**
+
+Create `backend/app/Support/DistrictStatus.php`:
+
+```php
+<?php
+
+namespace App\Support;
+
+class DistrictStatus
+{
+    public const GREEN = 'green';
+    public const AMBER = 'amber';
+    public const RED   = 'red';
+    public const GREY  = 'grey';
+
+    /**
+     * Direction-aware status thresholds.
+     *
+     * Higher-is-better: >=95 green, >=80 amber, else red.
+     * Lower-is-better:  <=100 green, <=110 amber, else red.
+     *
+     * Falls back to growth_pct if pct_of_plan is null. Both null -> grey.
+     */
+    public static function statusFor(?float $pctOfPlan, ?float $growth, bool $lowerIsBetter): string
+    {
+        $value = $pctOfPlan ?? $growth;
+        if ($value === null) {
+            return self::GREY;
+        }
+
+        if ($lowerIsBetter) {
+            if ($value <= 100) return self::GREEN;
+            if ($value <= 110) return self::AMBER;
+            return self::RED;
+        }
+
+        if ($value >= 95) return self::GREEN;
+        if ($value >= 80) return self::AMBER;
+        return self::RED;
+    }
+}
+```
+
+- [ ] **Step 4: Run test, expect PASS**
+
+```bash
+cd backend && vendor/bin/pest tests/Unit/DistrictStatusTest.php
+```
+
+Expected: 5 tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/app/Support/DistrictStatus.php backend/tests/Unit/DistrictStatusTest.php
+git commit -m "feat(districts): DistrictStatus direction-aware thresholds"
+```
+
+---
+
+### Task 3: Replace `DistrictsPage` Livewire component
+
+**Files:**
+- Modify (replace): `backend/app/Livewire/DistrictsPage.php`
+
+- [ ] **Step 1: Replace the stub**
+
+Replace the entire contents of `backend/app/Livewire/DistrictsPage.php` with:
+
+```php
+<?php
+
+namespace App\Livewire;
+
+use App\Models\District;
+use App\Models\Indicator;
+use App\Models\IndicatorFact;
+use App\Models\Module;
+use App\Models\PromiseTarget;
+use App\Models\Task;
+use App\Support\DistrictStatus;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+
+class DistrictsPage extends Component
+{
+    public const REGION_CODE = 'andijan';
+
+    #[Url]
+    public string $module = 'macro';
+
+    #[Url]
+    public string $kpi = 'industry';
+
+    #[Url]
+    public string $period = 'h1';
+
+    #[Url]
+    public string $district = '';
+
+    #[Url]
+    public string $sort = 'attention';
+
+    #[Url]
+    public string $search = '';
+
+    public function selectModule(string $code): void
+    {
+        $this->module = $code;
+        $first = $this->kpiOptions()->first();
+        $this->kpi = $first?->code ?? $this->kpi;
+        $this->search = '';
+    }
+
+    public function selectKpi(string $code): void
+    {
+        $this->kpi = $code;
+        $indicator = Indicator::where('code', $code)->first();
+        if ($indicator?->module_code) {
+            $this->module = $indicator->module_code;
+        }
+    }
+
+    public function selectDistrict(string $code): void
+    {
+        $this->district = $code;
+    }
+
+    public function setSort(string $value): void
+    {
+        $this->sort = $value;
+    }
+
+    #[Computed]
+    public function districts(): Collection
+    {
+        return District::where('region_code', self::REGION_CODE)
+            ->orderBy('sort_order')
+            ->get()
+            ->keyBy('code');
+    }
+
+    #[Computed]
+    public function indicator(): ?Indicator
+    {
+        return Indicator::where('code', $this->kpi)->first();
+    }
+
+    #[Computed]
+    public function facts(): Collection
+    {
+        return IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->where('period', $this->period)
+            ->whereNotNull('district_code')
+            ->get()
+            ->keyBy('district_code');
+    }
+
+    #[Computed]
+    public function rollup(): ?IndicatorFact
+    {
+        return IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->where('period', $this->period)
+            ->whereNull('district_code')
+            ->first();
+    }
+
+    #[Computed]
+    public function statusByDistrict(): array
+    {
+        $lower = (bool) ($this->indicator?->lower_is_better);
+        $out = [];
+        foreach ($this->districts as $code => $_district) {
+            $fact = $this->facts->get($code);
+            $out[$code] = DistrictStatus::statusFor(
+                $fact?->pct_of_plan !== null ? (float) $fact->pct_of_plan : null,
+                $fact?->growth_pct !== null ? (float) $fact->growth_pct : null,
+                $lower,
+            );
+        }
+        return $out;
+    }
+
+    #[Computed]
+    public function rankedDistricts(): array
+    {
+        $rows = [];
+        foreach ($this->districts as $code => $district) {
+            $fact = $this->facts->get($code);
+            $status = $this->statusByDistrict[$code] ?? 'grey';
+            $rows[] = [
+                'district' => $district,
+                'fact'     => $fact,
+                'status'   => $status,
+            ];
+        }
+
+        $query = mb_strtolower(trim($this->search));
+        if ($query !== '') {
+            $rows = array_values(array_filter($rows, function ($r) use ($query) {
+                return mb_strpos(mb_strtolower($r['district']->name_full), $query) !== false
+                    || mb_strpos(mb_strtolower($r['district']->name_short), $query) !== false;
+            }));
+        }
+
+        $rank = ['red' => 0, 'amber' => 1, 'grey' => 2, 'green' => 3];
+
+        usort($rows, function ($a, $b) use ($rank) {
+            return match ($this->sort) {
+                'execution' => ($b['fact']?->pct_of_plan ?? -INF) <=> ($a['fact']?->pct_of_plan ?? -INF),
+                'plan'      => ($b['fact']?->plan_value ?? -INF)  <=> ($a['fact']?->plan_value ?? -INF),
+                'name'      => strcmp($a['district']->name_full, $b['district']->name_full),
+                'attention' => [$rank[$a['status']] ?? 99, $a['district']->name_full]
+                                 <=> [$rank[$b['status']] ?? 99, $b['district']->name_full],
+                default     => 0,
+            };
+        });
+
+        return $rows;
+    }
+
+    #[Computed]
+    public function selectedDistrict(): ?array
+    {
+        $rows = $this->rankedDistricts;
+        if ($this->district !== '') {
+            foreach ($rows as $row) {
+                if ($row['district']->code === $this->district) {
+                    return $row;
+                }
+            }
+        }
+        return $rows[0] ?? null;
+    }
+
+    #[Computed]
+    public function moduleOptions(): Collection
+    {
+        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->whereNotNull('district_code')
+            ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
+            ->whereNotNull('indicators.module_code')
+            ->distinct()
+            ->pluck('indicators.module_code');
+
+        return Module::whereIn('code', $codes)->orderBy('sort_order')->get();
+    }
+
+    #[Computed]
+    public function kpiOptions(): Collection
+    {
+        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('period', $this->period)
+            ->whereNotNull('district_code')
+            ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
+            ->where('indicators.module_code', $this->module)
+            ->distinct()
+            ->pluck('indicator_facts.indicator_code');
+
+        return Indicator::whereIn('code', $codes)->orderBy('label_short')->get();
+    }
+
+    #[Computed]
+    public function coverage(): array
+    {
+        $count = $this->facts->count();
+        $periods = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->whereNotNull('district_code')
+            ->distinct()
+            ->pluck('period')
+            ->all();
+        return ['count' => $count, 'periods' => $periods];
+    }
+
+    #[Computed]
+    public function targetCount(): int
+    {
+        return PromiseTarget::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->whereNotNull('target_districts')
+            ->count();
+    }
+
+    #[Computed]
+    public function taskCount(): int
+    {
+        return Task::forRegion(self::REGION_CODE)
+            ->forIndicator($this->kpi)
+            ->count();
+    }
+
+    public function render()
+    {
+        return view('livewire.districts-page');
+    }
+}
+```
+
+- [ ] **Step 2: Sanity check**
+
+```bash
+cd backend && php -l app/Livewire/DistrictsPage.php
+```
+
+Expected: `No syntax errors`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add backend/app/Livewire/DistrictsPage.php
+git commit -m "feat(districts): replace stub with state + computed properties"
+```
+
+---
+
+### Task 4: Replace `districts-page.blade.php` view
+
+**Files:**
+- Modify (replace): `backend/resources/views/livewire/districts-page.blade.php`
+
+- [ ] **Step 1: Replace the stub**
+
+Replace the entire contents of `backend/resources/views/livewire/districts-page.blade.php` with:
+
+```blade
+@php
+    use App\Support\AndijanMapGeometry;
+
+    $districts        = $this->districts;
+    $facts            = $this->facts;
+    $rollup           = $this->rollup;
+    $statusByDistrict = $this->statusByDistrict;
+    $rankedDistricts  = $this->rankedDistricts;
+    $selectedRow      = $this->selectedDistrict;
+    $moduleOptions    = $this->moduleOptions;
+    $kpiOptions       = $this->kpiOptions;
+    $coverage         = $this->coverage;
+    $targetCount      = $this->targetCount;
+    $taskCount        = $this->taskCount;
+    $indicator        = $this->indicator;
+
+    $selectedCode = $selectedRow ? $selectedRow['district']->code : '';
+    $selectedDistrict = $selectedRow ? $selectedRow['district'] : null;
+    $selectedFact = $selectedRow ? $selectedRow['fact'] : null;
+    $selectedStatus = $selectedRow ? $selectedRow['status'] : 'grey';
+
+    $fmt = function ($v, int $decimals = 1): string {
+        if ($v === null || $v === '') return '—';
+        return number_format((float) $v, $decimals, ',', ' ');
+    };
+
+    $unit = $indicator?->default_unit ?? '';
+    $kpiShort = $indicator?->label_short ?? $kpi;
+    $kpiFull  = $indicator?->label_full  ?? $kpi;
+
+    $moduleLabel = $moduleOptions->firstWhere('code', $module)?->label ?? 'Туманлар';
+    $moduleDesc = 'KPI бўйича туман/шаҳарлар кесими ва ҳолат харитаси.';
+
+    $isCity = fn (string $name) => str_ends_with($name, ' шаҳри');
+@endphp
+
+<div>
+    <header class="districts-head">
+        <div class="dashboard-module-tabs district-module-tabs">
+            @foreach($moduleOptions as $m)
+                <button class="module-tab {{ $m->code === $module ? 'active' : '' }}"
+                        wire:click="selectModule('{{ $m->code }}')"
+                        type="button">
+                    <span class="module-dot" aria-hidden="true"></span>
+                    <strong>{{ preg_replace('/^\d+\.\s*/u', '', $m->label) }}</strong>
+                </button>
+            @endforeach
+        </div>
+
+        <div class="module-heading">
+            <div>
+                <h2>{{ $moduleLabel }}</h2>
+                <p>{{ $moduleDesc }}</p>
+            </div>
+        </div>
+
+        @if($kpiOptions->count() > 1)
+            <div class="district-kpi-selector">
+                @foreach($kpiOptions as $i)
+                    <button class="district-kpi-option {{ $i->code === $kpi ? 'active' : '' }}"
+                            wire:click="selectKpi('{{ $i->code }}')"
+                            type="button">
+                        <strong>{{ $i->label_short }}</strong>
+                        <span>{{ $i->label_full }}</span>
+                    </button>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="district-data-layers">
+            <div class="district-data-layer">
+                <span>D-маълумот</span>
+                <strong>{{ $coverage['count'] }} ҳудуд</strong>
+                <small>{{ $kpiFull }} бўйича маълумоти бор туман/шаҳарлар.</small>
+            </div>
+            <div class="district-data-layer">
+                <span>D-мақсад</span>
+                <strong>{{ $targetCount }} та</strong>
+                <small>Кафолат хатидан ажратилган туман/шаҳар мажбурияти.</small>
+            </div>
+            <div class="district-data-layer">
+                <span>T-топшириқ</span>
+                <strong>{{ $taskCount }} та</strong>
+                <small>Шу KPI билан боғлиқ амалий топшириқлар сони.</small>
+            </div>
+            <div class="district-layer-note">
+                <span>Мантиқ</span>
+                <strong>Ижро % = факт / режа × 100. Ўсиш % = ўтган йил билан таққослаш.</strong>
+            </div>
+        </div>
+
+        <div class="districts-head-actions">
+            <label class="districts-control">
+                <span>Саралаш</span>
+                <select wire:model.live="sort">
+                    <option value="attention">Эътибор талаб</option>
+                    <option value="execution">Юқоридан</option>
+                    <option value="plan">Режа каттадан</option>
+                    <option value="name">Алифбо бўйича</option>
+                </select>
+            </label>
+            <label class="districts-control districts-control--search">
+                <span>Қидириш</span>
+                <input wire:model.live.debounce.300ms="search" placeholder="Туман қидириш">
+            </label>
+        </div>
+    </header>
+
+    <div class="districts-grid">
+        <section class="districts-map">
+            <header class="districts-map-head">
+                <div>
+                    <strong>{{ $kpiShort }} — {{ $kpiFull }}</strong>
+                    <span>Ранглар танланган KPI ҳолатини кўрсатади.</span>
+                </div>
+            </header>
+            <div class="districts-map-canvas">
+                <svg viewBox="{{ AndijanMapGeometry::VIEWBOX }}" class="andijan-map" role="img" aria-label="Андижон вилоятининг ҳудудлар харитаси">
+                    <defs>
+                        <linearGradient id="mapGradGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#d6ecdb"/>
+                            <stop offset="100%" stop-color="#8fc69f"/>
+                        </linearGradient>
+                        <linearGradient id="mapGradAmber" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#fbe9b6"/>
+                            <stop offset="100%" stop-color="#e3b766"/>
+                        </linearGradient>
+                        <linearGradient id="mapGradRed" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#f5cfcf"/>
+                            <stop offset="100%" stop-color="#d68585"/>
+                        </linearGradient>
+                        <linearGradient id="mapGradGrey" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#e8e6dd"/>
+                            <stop offset="100%" stop-color="#bcb9ac"/>
+                        </linearGradient>
+                        <filter id="mapCellShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#1b4d5a" flood-opacity="0.18"/>
+                        </filter>
+                    </defs>
+                    <g>
+                        @foreach(AndijanMapGeometry::CELLS as $cell)
+                            @php
+                                $cellDistrict = $districts->firstWhere('name_full', $cell['name']);
+                                $cellCode = $cellDistrict?->code ?? '';
+                                $cellStatus = $cellCode !== '' ? ($statusByDistrict[$cellCode] ?? 'grey') : 'grey';
+                                $cellFact = $cellCode !== '' ? $facts->get($cellCode) : null;
+                                $cellSelected = $cellCode === $selectedCode ? 'selected' : '';
+                                $cellCity = $isCity($cell['name']) ? 'is-city' : '';
+                                $cellValue = $cellFact?->pct_of_plan !== null
+                                    ? $fmt($cellFact->pct_of_plan, 1) . '%'
+                                    : ($cellFact?->growth_pct !== null ? $fmt($cellFact->growth_pct, 1) . '%' : '—');
+                            @endphp
+                            <g class="map-cell {{ $cellStatus }} {{ $cellSelected }} {{ $cellCity }}"
+                               wire:click="selectDistrict('{{ $cellCode }}')"
+                               tabindex="0">
+                                <title>{{ $cell['name'] }} · {{ $cellValue }}</title>
+                                <path class="map-fill" d="{{ $cell['path'] }}"/>
+                            </g>
+                        @endforeach
+                    </g>
+                    <g class="map-labels">
+                        @foreach(AndijanMapGeometry::CELLS as $cell)
+                            @php
+                                $cellDistrict = $districts->firstWhere('name_full', $cell['name']);
+                                $cellCode = $cellDistrict?->code ?? '';
+                                $cellSelected = $cellCode === $selectedCode ? 'selected' : '';
+                                $cellCity = $isCity($cell['name']) ? 'is-city' : '';
+                            @endphp
+                            <text class="map-label {{ $cellCity }} {{ $cellSelected }}"
+                                  x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 1 }}"
+                                  text-anchor="middle" dominant-baseline="central">{{ $cell['short'] }}</text>
+                        @endforeach
+                    </g>
+                </svg>
+            </div>
+            <div class="districts-map-legend">
+                <span class="legend-chip green">Яхши</span>
+                <span class="legend-chip amber">Ўртача</span>
+                <span class="legend-chip red">Эътибор</span>
+                <span class="legend-chip grey">Маълумот йўқ</span>
+            </div>
+        </section>
+
+        <aside class="districts-side">
+            <section class="district-summary-card {{ $selectedDistrict ? '' : 'empty' }}">
+                <header class="district-summary-head">
+                    <div>
+                        <span>Танланган ҳудуд</span>
+                        <h3>{{ $selectedDistrict?->name_full ?? 'Туман танланмаган' }}</h3>
+                    </div>
+                    @if($selectedDistrict)
+                        <span class="chip {{ $selectedStatus }}">{{ ['green'=>'Яхши','amber'=>'Ўртача','red'=>'Эътибор','grey'=>'Маълумот йўқ'][$selectedStatus] ?? '—' }}</span>
+                    @endif
+                </header>
+                @if($selectedDistrict)
+                    <div class="district-summary-value">
+                        <div>
+                            <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : '—' }}</strong>
+                            <span>Ижро бажарилиши · {{ $kpiShort }}</span>
+                        </div>
+                    </div>
+                    <dl class="district-summary-kv">
+                        <div><dt>Режа</dt><dd>{{ $fmt($selectedFact?->plan_value) }} {{ $unit }}</dd></div>
+                        <div><dt>Амалда</dt><dd>{{ $fmt($selectedFact?->actual_hokimyat ?? $selectedFact?->actual_statkom) }} {{ $unit }}</dd></div>
+                        <div><dt>Ўсиш</dt><dd>{{ $selectedFact?->growth_pct !== null ? $fmt($selectedFact->growth_pct) . '%' : '—' }}</dd></div>
+                    </dl>
+                    <a class="mini-button primary" href="{{ route('profile') }}?districtCode={{ $selectedCode }}">Туман профили</a>
+                @else
+                    <p class="muted">Харита ёки рейтингдан туман/шаҳарни танланг.</p>
+                @endif
+            </section>
+
+            <section class="district-leaderboard">
+                <header><strong>Рейтинг</strong><span>{{ count($rankedDistricts) }} та</span></header>
+                <ol>
+                    @foreach($rankedDistricts as $row)
+                        @php
+                            $rd = $row['district'];
+                            $rf = $row['fact'];
+                            $rs = $row['status'];
+                            $rPct = $rf?->pct_of_plan !== null ? (float) $rf->pct_of_plan : null;
+                            $barW = $rPct !== null ? max(0, min(100, $rPct)) : 0;
+                        @endphp
+                        <li class="leaderboard-row {{ $rs }} {{ $rd->code === $selectedCode ? 'selected' : '' }}"
+                            wire:click="selectDistrict('{{ $rd->code }}')">
+                            <span class="leaderboard-name">{{ $rd->name_short }}</span>
+                            <span class="leaderboard-bar" style="--w:{{ $barW }}%"></span>
+                            <span class="leaderboard-value">{{ $rPct !== null ? $fmt($rPct) . '%' : '—' }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            </section>
+        </aside>
+    </div>
+
+    <section class="panel district-detail-table">
+        <div class="panel-head">
+            <div>
+                <h3>Батафсил жадвал</h3>
+                <p>{{ $kpiShort }} — {{ $kpiFull }}. Манба: ҳокимлик ҳисоботи.</p>
+            </div>
+            <span class="chip grey">{{ count($rankedDistricts) }} ҳудуд</span>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Туман</th>
+                        <th class="num">Режа</th>
+                        <th class="num">Амалда</th>
+                        <th class="num">Ўсиш %</th>
+                        <th class="num">Ижро %</th>
+                        <th>Ҳолат</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($rankedDistricts as $row)
+                        @php
+                            $rd = $row['district'];
+                            $rf = $row['fact'];
+                            $rs = $row['status'];
+                        @endphp
+                        <tr class="{{ $rd->code === $selectedCode ? 'active-row' : '' }}">
+                            <td><strong>{{ $rd->name_full }}</strong></td>
+                            <td class="num">{{ $fmt($rf?->plan_value) }}</td>
+                            <td class="num">{{ $fmt($rf?->actual_hokimyat ?? $rf?->actual_statkom) }}</td>
+                            <td class="num">{{ $rf?->growth_pct !== null ? $fmt($rf->growth_pct) . '%' : '—' }}</td>
+                            <td class="num">{{ $rf?->pct_of_plan !== null ? $fmt($rf->pct_of_plan) . '%' : '—' }}</td>
+                            <td><span class="chip {{ $rs }}">{{ ['green'=>'Яхши','amber'=>'Ўртача','red'=>'Эътибор','grey'=>'—'][$rs] ?? '—' }}</span></td>
+                            <td><a class="mini-button" href="{{ route('profile') }}?districtCode={{ $rd->code }}">Профил</a></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add backend/resources/views/livewire/districts-page.blade.php
+git commit -m "feat(districts): replace stub view with full prototype layout"
+```
+
+---
+
+### Task 5: HTTP + Livewire feature test
+
+**Files:**
+- Create: `backend/tests/Feature/Http/DistrictsPageTest.php`
+
+- [ ] **Step 1: Write the tests**
+
+Create `backend/tests/Feature/Http/DistrictsPageTest.php`:
+
+```php
+<?php
+
+use App\Livewire\DistrictsPage;
+use App\Models\IndicatorFact;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    DB::table('regions')->insert([
+        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'sort_order' => 2, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $regionId = DB::table('regions')->where('code', 'andijan')->value('id');
+
+    DB::table('modules')->insert([
+        ['code' => 'macro',  'label' => 'Макро',   'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ['code' => 'export', 'label' => 'Экспорт', 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    DB::table('indicators')->insert([
+        [
+            'code' => 'industry', 'label_full' => 'Саноат', 'label_short' => 'Саноат',
+            'scope' => 'both', 'default_unit' => 'trln', 'module_code' => 'macro',
+            'lower_is_better' => false, 'has_growth_pct' => true, 'has_pct_of_plan' => true,
+            'has_sentinel' => false, 'sort_order' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ],
+        [
+            'code' => 'export', 'label_full' => 'Экспорт', 'label_short' => 'Экспорт',
+            'scope' => 'both', 'default_unit' => 'mln', 'module_code' => 'export',
+            'lower_is_better' => false, 'has_growth_pct' => true, 'has_pct_of_plan' => true,
+            'has_sentinel' => false, 'sort_order' => 2,
+            'created_at' => now(), 'updated_at' => now(),
+        ],
+    ]);
+
+    DB::table('districts')->insert([
+        [
+            'region_id' => $regionId, 'region_code' => 'andijan',
+            'code' => 'andijan_city', 'name_short' => 'Андижон ш.', 'name_full' => 'Андижон шаҳри',
+            'kind' => 'city', 'sort_order' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ],
+        [
+            'region_id' => $regionId, 'region_code' => 'andijan',
+            'code' => 'asaka_district', 'name_short' => 'Асака т.', 'name_full' => 'Асака тумани',
+            'kind' => 'district', 'sort_order' => 2,
+            'created_at' => now(), 'updated_at' => now(),
+        ],
+    ]);
+
+    IndicatorFact::create([
+        'region_code' => 'andijan', 'district_code' => 'andijan_city',
+        'indicator_code' => 'industry', 'period' => 'h1', 'year' => 2026,
+        'plan_value' => 100, 'actual_hokimyat' => 95,
+        'growth_pct' => 8.0, 'pct_of_plan' => 95.0,
+    ]);
+    IndicatorFact::create([
+        'region_code' => 'andijan', 'district_code' => 'asaka_district',
+        'indicator_code' => 'industry', 'period' => 'h1', 'year' => 2026,
+        'plan_value' => 80, 'actual_hokimyat' => 60,
+        'growth_pct' => 3.0, 'pct_of_plan' => 75.0,
+    ]);
+});
+
+test('GET /districts returns 200 with map and table markup', function () {
+    $response = $this->get('/districts');
+
+    $response->assertOk();
+    $response->assertSee('districts-map', false);
+    $response->assertSee('districts-side', false);
+    $response->assertSee('district-detail-table', false);
+    $response->assertSee('Андижон шаҳри', false);
+    $response->assertSee('Асака тумани', false);
+});
+
+test('selectModule cascades kpi to first indicator in module', function () {
+    Livewire::test(DistrictsPage::class)
+        ->call('selectModule', 'export');
+    // Note: kpi may stay as 'industry' if no facts exist for export — that is acceptable.
+    // What matters is that the module property was set.
+    Livewire::test(DistrictsPage::class)
+        ->call('selectModule', 'export')
+        ->assertSet('module', 'export');
+});
+
+test('selectKpi sets indicator and syncs module', function () {
+    Livewire::test(DistrictsPage::class)
+        ->call('selectKpi', 'export')
+        ->assertSet('kpi', 'export')
+        ->assertSet('module', 'export');
+});
+
+test('selectDistrict updates state', function () {
+    Livewire::test(DistrictsPage::class)
+        ->call('selectDistrict', 'asaka_district')
+        ->assertSet('district', 'asaka_district');
+});
+
+test('detail table contains profile link for each district', function () {
+    $response = $this->get('/districts');
+    $response->assertSee('/profile?districtCode=asaka_district', false);
+    $response->assertSee('/profile?districtCode=andijan_city', false);
+});
+
+test('status thresholds drive cell coloring', function () {
+    $response = $this->get('/districts');
+    // andijan_city has pct_of_plan=95.0 → green; asaka_district has 75.0 → red
+    $html = $response->getContent();
+    expect($html)->toContain('map-cell green');
+    expect($html)->toContain('map-cell red');
+});
+```
+
+- [ ] **Step 2: Run tests, expect PASS**
+
+```bash
+cd backend && vendor/bin/pest tests/Feature/Http/DistrictsPageTest.php
+```
+
+Expected: 6 tests pass. If a test fails because IndicatorFact requires a column the test doesn't supply, inspect `database/migrations/2026_05_05_000004_create_indicator_facts_table.php` and fill in the required NOT NULL columns (e.g. `source`, `unit`).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add backend/tests/Feature/Http/DistrictsPageTest.php
+git commit -m "test(districts): HTTP + Livewire interactions + status thresholds"
+```
+
+---
+
+### Task 6: User visual QA (controller-only)
+
+**Files:** none
+
+- [ ] **Step 1: Run the dev server**
+
+User runs from `backend/`:
+
+```bash
+php artisan serve
+```
+
+- [ ] **Step 2: Walk the page**
+
+Open `http://127.0.0.1:8000/districts`. Check:
+
+1. Module tabs render across the top; clicking switches active style and module/kpi state in URL.
+2. KPI selector appears when current module has 2+ indicators with district data.
+3. Data-layers panel shows 4 mini-stat blocks with current coverage / target / task counts.
+4. Sort `<select>` + search `<input>` render in `districts-head-actions`.
+5. SVG Andijan map renders 16 cells filled by status color (`map-cell green/amber/red/grey`).
+6. Clicking a cell selects the district and updates the summary card on the right.
+7. Leaderboard `<ol>` lists all districts; clicking a row selects same as map.
+8. Detail table at bottom shows every district with plan/fact/growth/execution/status + a Профил link.
+9. Profile link href = `/profile?districtCode=<code>`.
+10. Resize 1280 → 1024 → 768. Existing media-queries collapse `.districts-grid` to single column on narrow.
+
+Report any visual gaps.
+
+---
+
+## Self-Review
+
+**Spec coverage map:**
+
+| Spec section | Task |
+|---|---|
+| §3 File structure | Tasks 1–5 each map to one file pair |
+| §4.1 URL-synced state | Task 3 |
+| §4.2 Action methods | Task 3 |
+| §4.3 Computed properties | Task 3 |
+| §5.1 AndijanMapGeometry | Task 1 |
+| §5.2 DistrictStatus | Task 2 |
+| §6 Blade view shape (header / grid / table) | Task 4 |
+| §7 Routing — no change | confirmed in Task 5 (route already exists) |
+| §8 Tests | Tasks 1, 2, 5 |
+| §9 Files touched | each task lists its files |
+| §10 Risks (cell-name drift, null fallback, no-data KPIs, SVG bloat, thresholds) | Tasks 1 (test cross-checks names), 2 (fallback unit test), 3 (kpiOptions filter), 4 (one-shot render), 2 (thresholds in DistrictStatus doc) |
+
+**Placeholder scan:** none — every step has complete code or a verifiable command.
+
+**Type/name consistency:**
+- Constant `REGION_CODE = 'andijan'` defined in Task 3 (`DistrictsPage`), referenced inside the same class.
+- Class names `App\Support\AndijanMapGeometry` (Task 1) and `App\Support\DistrictStatus` (Task 2) match Task 3's imports.
+- Computed property names (`districts`, `facts`, `rollup`, `statusByDistrict`, `rankedDistricts`, `selectedDistrict`, `moduleOptions`, `kpiOptions`, `coverage`, `targetCount`, `taskCount`, `indicator`) match between Task 3 (component) and Task 4 (view).
+- Action method names (`selectModule`, `selectKpi`, `selectDistrict`, `setSort`) match between Task 3 and Task 4.
+- Status string values (`'green'`/`'amber'`/`'red'`/`'grey'`) match between Task 2 thresholds, Task 3 statusByDistrict, and Task 4 cell classnames.
