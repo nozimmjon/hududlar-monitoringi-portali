@@ -4,7 +4,7 @@ use App\Support\Import\IndicatorFactDto;
 
 test('toStagingRow produces a complete row array', function () {
     $dto = new IndicatorFactDto(
-        regionCode:     'andijan',
+        regionCode:     1703,
         districtCode:   null,
         year:           2026,
         indicatorCode:  'grp',
@@ -18,7 +18,7 @@ test('toStagingRow produces a complete row array', function () {
 
     $row = $dto->toStagingRow(importRunId: 42);
 
-    expect($row['region_code'])->toBe('andijan');
+    expect($row['region_code'])->toBe(1703);
     expect($row['district_code'])->toBeNull();
     expect($row['year'])->toBe(2026);
     expect($row['indicator_code'])->toBe('grp');
@@ -38,7 +38,7 @@ test('toStagingRow produces a complete row array', function () {
 
 test('sentinel DTO sets is_sentinel and sentinel_label', function () {
     $dto = new IndicatorFactDto(
-        regionCode: 'andijan', districtCode: 'd01', year: 2026,
+        regionCode: 1703, districtCode: 1703401, year: 2026,
         indicatorCode: 'poverty', period: 'year',
         unit: '%', sourceLabel: 'fixture',
         isSentinel: true, sentinelLabel: 'холи ҳудуд',

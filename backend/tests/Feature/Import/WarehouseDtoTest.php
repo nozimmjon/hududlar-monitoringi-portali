@@ -4,7 +4,7 @@ use App\Support\Import\WarehouseDto;
 
 test('WarehouseDto.toStagingRow produces complete row for a district', function () {
     $dto = new WarehouseDto(
-        regionCode: 'andijan', districtCode: 'd01', year: 2026,
+        regionCode: 1703, districtCode: 1703401, year: 2026,
         reserveWarehouses: 3, reserveCapacityT: 600,
         coldStorageCount: 10, coldStorageCapacityT: 10000,
         newSmallColdCount: null, newSmallColdCapacityT: null, newSmallColdMfys: null,
@@ -15,8 +15,8 @@ test('WarehouseDto.toStagingRow produces complete row for a district', function 
     $row = $dto->toStagingRow(importRunId: 5);
 
     expect($row['import_run_id'])->toBe(5);
-    expect($row['region_code'])->toBe('andijan');
-    expect($row['district_code'])->toBe('d01');
+    expect($row['region_code'])->toBe(1703);
+    expect($row['district_code'])->toBe(1703401);
     expect($row['year'])->toBe(2026);
     expect($row['reserve_warehouses'])->toBe(3);
     expect($row['reserve_capacity_t'])->toBe(600);
@@ -30,7 +30,7 @@ test('WarehouseDto.toStagingRow produces complete row for a district', function 
 
 test('WarehouseDto allows null district_code for region rollup row', function () {
     $dto = new WarehouseDto(
-        regionCode: 'andijan', districtCode: null, year: 2026,
+        regionCode: 1703, districtCode: null, year: 2026,
         reserveWarehouses: 89, reserveCapacityT: 36321,
         coldStorageCount: 320, coldStorageCapacityT: 109235,
         newSmallColdCount: 1, newSmallColdCapacityT: 80, newSmallColdMfys: 1,

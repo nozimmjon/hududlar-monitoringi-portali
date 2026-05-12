@@ -22,8 +22,8 @@ function employmentParserCtx(): array
     if (! file_exists($path)) {
         test()->markTestSkipped('Andijan employment workbook not present');
     }
-    $region = Region::where('code', 'andijan')->first();
-    $run = ImportRun::create(['region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]);
+    $region = Region::where('code', 1703)->first();
+    $run = ImportRun::create(['region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]);
     $rwb = RegionWorkbook::create([
         'region_id'         => $region->id,
         'reporting_year_id' => DB::table('reporting_years')->where('year', 2026)->value('id'),

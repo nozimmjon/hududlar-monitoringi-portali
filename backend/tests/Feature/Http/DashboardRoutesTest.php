@@ -26,7 +26,7 @@ test('profile route returns 200 with no district', function () {
 
 test('profile route returns 200 with valid districtCode', function () {
     $this->seed();
-    $this->get('/profile?districtCode=andijon_tumani')->assertStatus(200);
+    $this->get('/profile?districtCode=1703203')->assertStatus(200);
 });
 
 test('execution route returns 200', function () {

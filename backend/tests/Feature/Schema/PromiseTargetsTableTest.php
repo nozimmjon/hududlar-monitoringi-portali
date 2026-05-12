@@ -27,12 +27,12 @@ class PromiseTargetsTableTest extends TestCase
     {
         $this->seed();
         $letter = GuaranteeLetter::create([
-            'region_code' => 'andijan', 'year' => 2026, 'paragraph_count' => 110,
+            'region_code' => 1703, 'year' => 2026, 'paragraph_count' => 110,
             'raw_text' => 'lorem', 'status' => 'imported',
         ]);
         $promise = PromiseTarget::create([
             'guarantee_letter_id' => $letter->id,
-            'region_code' => 'andijan', 'year' => 2026,
+            'region_code' => 1703, 'year' => 2026,
             'kind' => PromiseKind::Numeric, 'title' => 'GRP H1 = 52,100.8',
             'body' => 'Биринчи ярим йилликда…',
             'sector' => 'Макро иқтисодиёт',
@@ -48,12 +48,12 @@ class PromiseTargetsTableTest extends TestCase
     {
         $this->seed();
         $letter = GuaranteeLetter::create([
-            'region_code' => 'andijan', 'year' => 2026, 'paragraph_count' => 1,
+            'region_code' => 1703, 'year' => 2026, 'paragraph_count' => 1,
             'raw_text' => 'x', 'status' => 'imported',
         ]);
         $promise = PromiseTarget::create([
             'guarantee_letter_id' => $letter->id,
-            'region_code' => 'andijan', 'year' => 2026,
+            'region_code' => 1703, 'year' => 2026,
             'kind' => PromiseKind::Narrative, 'title' => 'Reopen factories',
             'body' => 'Хонобод шаҳри ва Шаҳрихон тумани…',
             'target_districts' => ['city', 'shahrikhan_district'],

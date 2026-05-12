@@ -13,8 +13,8 @@ uses(RefreshDatabase::class);
 function makeAndijanCtxForDistrictResolver(): ImportContext
 {
     return new ImportContext(
-        run: ImportRun::create(['region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]),
-        region: Region::where('code', 'andijan')->first(),
+        run: ImportRun::create(['region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]),
+        region: Region::where('code', 1703)->first(),
         year: 2026, dataPath: base_path('../data'),
     );
 }
@@ -23,11 +23,11 @@ test('DistrictResolver returns code for known full name', function () {
     $this->seed();
     $issues = new IssueCollector();
     $resolver = new DistrictResolver($issues);
-    $resolver->loadFor('andijan');
+    $resolver->loadFor(1703);
 
     $code = $resolver->resolve('Андижон шаҳри', makeAndijanCtxForDistrictResolver(), 'fixture');
 
-    expect($code)->toBe('d01');
+    expect($code)->toBe('1703401');
     expect($issues->bufferedCount())->toBe(0);
 });
 
@@ -35,7 +35,7 @@ test('DistrictResolver raises UnknownDistrict issue and returns null on miss', f
     $this->seed();
     $issues = new IssueCollector();
     $resolver = new DistrictResolver($issues);
-    $resolver->loadFor('andijan');
+    $resolver->loadFor(1703);
 
     $code = $resolver->resolve('Совершенно неизвестный район', makeAndijanCtxForDistrictResolver(), 'fixture-row-99');
 
@@ -54,9 +54,9 @@ test('DistrictResolver trims whitespace before lookup', function () {
     $this->seed();
     $issues = new IssueCollector();
     $resolver = new DistrictResolver($issues);
-    $resolver->loadFor('andijan');
+    $resolver->loadFor(1703);
 
     $code = $resolver->resolve("  Андижон шаҳри  \n", makeAndijanCtxForDistrictResolver(), 'fixture');
 
-    expect($code)->toBe('d01');
+    expect($code)->toBe('1703401');
 });

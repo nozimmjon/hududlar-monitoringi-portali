@@ -25,13 +25,13 @@ class GuaranteeLettersTableTest extends TestCase
     {
         $this->seed();
         GuaranteeLetter::create([
-            'region_code' => 'andijan', 'year' => 2026,
+            'region_code' => 1703, 'year' => 2026,
             'paragraph_count' => 110, 'raw_text' => 'lorem',
             'status' => 'imported',
         ]);
         $this->expectException(QueryException::class);
         GuaranteeLetter::create([
-            'region_code' => 'andijan', 'year' => 2026,
+            'region_code' => 1703, 'year' => 2026,
             'paragraph_count' => 9, 'raw_text' => 'dup',
             'status' => 'imported',
         ]);

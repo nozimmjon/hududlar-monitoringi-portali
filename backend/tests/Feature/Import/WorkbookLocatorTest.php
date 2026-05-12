@@ -10,9 +10,9 @@ uses(RefreshDatabase::class);
 
 function makeAndijanContext(): ImportContext
 {
-    $region = Region::where('code', 'andijan')->firstOrFail();
+    $region = Region::where('code', 1703)->firstOrFail();
     $run = ImportRun::create([
-        'region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli',
+        'region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli',
         'status' => 'parsing', 'started_at' => now(),
     ]);
     return new ImportContext(

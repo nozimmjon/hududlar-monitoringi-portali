@@ -29,7 +29,7 @@ class WarehousesTableTest extends TestCase
     {
         $this->seed();
         $row = Warehouse::create([
-            'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+            'region_code' => 1703, 'district_code' => null, 'year' => 2026,
             'reserve_warehouses' => 89, 'cold_storage_count' => 320,
             'source_label' => 'test',
         ]);
@@ -40,7 +40,7 @@ class WarehousesTableTest extends TestCase
     {
         $this->seed();
         Warehouse::create([
-            'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+            'region_code' => 1703, 'district_code' => null, 'year' => 2026,
             'reserve_warehouses' => 89, 'source_label' => 'test',
         ]);
 
@@ -49,7 +49,7 @@ class WarehousesTableTest extends TestCase
         try {
             DB::transaction(function () {
                 Warehouse::create([
-                    'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                    'region_code' => 1703, 'district_code' => null, 'year' => 2026,
                     'reserve_warehouses' => 99, 'source_label' => 'dup',
                 ]);
             });
@@ -59,7 +59,7 @@ class WarehousesTableTest extends TestCase
         }
 
         $this->assertSame(1,
-            Warehouse::where('region_code', 'andijan')
+            Warehouse::where('region_code', 1703)
                 ->whereNull('district_code')
                 ->where('year', 2026)
                 ->count()
@@ -70,13 +70,13 @@ class WarehousesTableTest extends TestCase
     {
         $this->seed();
         Warehouse::create([
-            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'region_code' => 1703, 'district_code' => 1703401, 'year' => 2026,
             'reserve_warehouses' => 3, 'source_label' => 'test',
         ]);
 
         $this->expectException(QueryException::class);
         Warehouse::create([
-            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'region_code' => 1703, 'district_code' => 1703401, 'year' => 2026,
             'reserve_warehouses' => 9, 'source_label' => 'dup',
         ]);
     }

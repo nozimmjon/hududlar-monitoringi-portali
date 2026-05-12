@@ -29,7 +29,7 @@ class IndicatorFactsTableTest extends TestCase
     {
         $this->seed();
         IndicatorFact::create([
-            'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+            'region_code' => 1703, 'district_code' => null, 'year' => 2026,
             'indicator_code' => 'grp', 'period' => 'h1',
             'plan_value' => 52100.8, 'unit' => 'млрд сўм', 'source_label' => 'test',
         ]);
@@ -40,7 +40,7 @@ class IndicatorFactsTableTest extends TestCase
         try {
             DB::transaction(function () {
                 IndicatorFact::create([
-                    'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                    'region_code' => 1703, 'district_code' => null, 'year' => 2026,
                     'indicator_code' => 'grp', 'period' => 'h1',
                     'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
                 ]);
@@ -52,7 +52,7 @@ class IndicatorFactsTableTest extends TestCase
 
         $this->assertSame(
             1,
-            IndicatorFact::where('region_code', 'andijan')
+            IndicatorFact::where('region_code', 1703)
                 ->whereNull('district_code')
                 ->where('year', 2026)
                 ->where('indicator_code', 'grp')
@@ -66,14 +66,14 @@ class IndicatorFactsTableTest extends TestCase
     {
         $this->seed();
         IndicatorFact::create([
-            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'region_code' => 1703, 'district_code' => 1703401, 'year' => 2026,
             'indicator_code' => 'industry', 'period' => 'q1',
             'plan_value' => 4600.9, 'unit' => 'млрд сўм', 'source_label' => 'test',
         ]);
 
         $this->expectException(QueryException::class);
         IndicatorFact::create([
-            'region_code' => 'andijan', 'district_code' => 'd01', 'year' => 2026,
+            'region_code' => 1703, 'district_code' => 1703401, 'year' => 2026,
             'indicator_code' => 'industry', 'period' => 'q1',
             'plan_value' => 99.0, 'unit' => 'млрд сўм', 'source_label' => 'dup',
         ]);
@@ -83,7 +83,7 @@ class IndicatorFactsTableTest extends TestCase
     {
         $this->seed();
         $row = IndicatorFact::create([
-            'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+            'region_code' => 1703, 'district_code' => null, 'year' => 2026,
             'indicator_code' => 'industry', 'period' => 'q1',
             'plan_value' => 25945.4, 'growth_pct' => 108.4,
             'unit' => 'млрд сўм', 'source_label' => 'test',

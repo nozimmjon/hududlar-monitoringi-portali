@@ -15,7 +15,7 @@ test('import:promote moves indicator facts to production table', function () {
     $this->seed();
 
     $run = ImportRun::create([
-        'region_code'  => 'andijan',
+        'region_code'  => 1703,
         'year'         => 2026,
         'trigger_kind' => 'cli',
         'status'       => 'awaiting_review',
@@ -25,7 +25,7 @@ test('import:promote moves indicator facts to production table', function () {
 
     DB::table('import_staging_indicator_facts')->insert([
         'import_run_id'  => $run->id,
-        'region_code'    => 'andijan',
+        'region_code'    => 1703,
         'district_code'  => null,
         'year'           => 2026,
         'indicator_code' => 'export',
@@ -57,7 +57,7 @@ test('import:promote fails if run is not awaiting_review', function () {
     $this->seed();
 
     $run = ImportRun::create([
-        'region_code'  => 'andijan',
+        'region_code'  => 1703,
         'year'         => 2026,
         'trigger_kind' => 'cli',
         'status'       => 'promoted',
@@ -77,7 +77,7 @@ test('import:promote is idempotent — second run with same key updates value', 
     $this->seed();
 
     $run1 = ImportRun::create([
-        'region_code'  => 'andijan',
+        'region_code'  => 1703,
         'year'         => 2026,
         'trigger_kind' => 'cli',
         'status'       => 'awaiting_review',
@@ -87,7 +87,7 @@ test('import:promote is idempotent — second run with same key updates value', 
 
     DB::table('import_staging_indicator_facts')->insert([
         'import_run_id'  => $run1->id,
-        'region_code'    => 'andijan',
+        'region_code'    => 1703,
         'district_code'  => null,
         'year'           => 2026,
         'indicator_code' => 'export',
@@ -103,7 +103,7 @@ test('import:promote is idempotent — second run with same key updates value', 
     Artisan::call('import:promote', ['run_id' => $run1->id]);
 
     $run2 = ImportRun::create([
-        'region_code'  => 'andijan',
+        'region_code'  => 1703,
         'year'         => 2026,
         'trigger_kind' => 'cli',
         'status'       => 'awaiting_review',
@@ -113,7 +113,7 @@ test('import:promote is idempotent — second run with same key updates value', 
 
     DB::table('import_staging_indicator_facts')->insert([
         'import_run_id'  => $run2->id,
-        'region_code'    => 'andijan',
+        'region_code'    => 1703,
         'district_code'  => null,
         'year'           => 2026,
         'indicator_code' => 'export',
@@ -139,7 +139,7 @@ test('import:promote also promotes food_balance and warehouses', function () {
     $this->seed();
 
     $run = ImportRun::create([
-        'region_code'  => 'andijan',
+        'region_code'  => 1703,
         'year'         => 2026,
         'trigger_kind' => 'cli',
         'status'       => 'awaiting_review',
@@ -149,7 +149,7 @@ test('import:promote also promotes food_balance and warehouses', function () {
 
     DB::table('import_staging_food_balance')->insert([
         'import_run_id'  => $run->id,
-        'region_code'    => 'andijan',
+        'region_code'    => 1703,
         'year'           => 2026,
         'product'        => 'Буғдой',
         'source_label'   => 'test',
@@ -160,7 +160,7 @@ test('import:promote also promotes food_balance and warehouses', function () {
 
     DB::table('import_staging_warehouses')->insert([
         'import_run_id'      => $run->id,
-        'region_code'        => 'andijan',
+        'region_code'        => 1703,
         'district_code'      => null,
         'year'               => 2026,
         'reserve_warehouses' => 5,

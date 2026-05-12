@@ -12,20 +12,20 @@ test('task_districts pivot table exists with task_id and district_id', function 
 
 test('task_districts has composite primary key', function () {
     \DB::table('regions')->insert([
-        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти', 'sort_order' => 1,
+        'code' => 1703, 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти', 'sort_order' => 1,
         'created_at' => now(), 'updated_at' => now(),
     ]);
-    $regionId = \DB::table('regions')->where('code', 'andijan')->value('id');
+    $regionId = \DB::table('regions')->where('code', 1703)->value('id');
 
     $districtId = \DB::table('districts')->insertGetId([
-        'region_id' => $regionId, 'region_code' => 'andijan',
-        'code' => 'andijan_city', 'name_short' => 'Андижон ш.',
+        'region_id' => $regionId, 'region_code' => 1703,
+        'code' => 1703401, 'name_short' => 'Андижон ш.',
         'name_full' => 'Андижон шаҳри', 'kind' => 'city', 'sort_order' => 1,
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
     $taskId = \DB::table('tasks')->insertGetId([
-        'region_code' => 'andijan', 'task_number' => '1', 'title' => 'x',
+        'region_code' => 1703, 'task_number' => '1', 'title' => 'x',
         'executor_text' => 'x', 'kind' => 'kpi', 'section_path' => 'I',
         'section_label' => 'I', 'source_paragraph_index' => 1,
         'created_at' => now(), 'updated_at' => now(),

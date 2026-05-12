@@ -25,7 +25,7 @@ class ImportFilesTableTest extends TestCase
     {
         $this->seed();
         $run = ImportRun::create([
-            'region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli',
+            'region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli',
             'status' => 'parsing', 'started_at' => now(),
         ]);
         $file = ImportFile::create([

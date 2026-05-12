@@ -37,13 +37,13 @@ class ImportStagingTablesTest extends TestCase
     {
         $this->seed();
         $run = ImportRun::create([
-            'region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli',
+            'region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli',
             'status' => 'parsing', 'started_at' => now(),
         ]);
         for ($i = 0; $i < 2; $i++) {
             ImportStagingIndicatorFact::create([
                 'import_run_id' => $run->id,
-                'region_code' => 'andijan', 'district_code' => null, 'year' => 2026,
+                'region_code' => 1703, 'district_code' => null, 'year' => 2026,
                 'indicator_code' => 'grp', 'period' => 'h1',
                 'plan_value' => 52100.8, 'unit' => 'млрд сўм', 'source_label' => 'test',
                 'staging_status' => StagingStatus::Pending,

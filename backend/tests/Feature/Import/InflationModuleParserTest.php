@@ -23,8 +23,8 @@ function inflationParserCtx(): array
     if (! file_exists($path)) {
         test()->markTestSkipped('Andijan inflation workbook not present');
     }
-    $region = Region::where('code', 'andijan')->first();
-    $run = ImportRun::create(['region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]);
+    $region = Region::where('code', 1703)->first();
+    $run = ImportRun::create(['region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]);
     $rwb = RegionWorkbook::create([
         'region_id'         => $region->id,
         'reporting_year_id' => DB::table('reporting_years')->where('year', 2026)->value('id'),
@@ -69,19 +69,19 @@ test('InflationModuleParser produces 11 food_balance + 17 warehouses staging row
     expect(ImportStagingWarehouse::whereNull('district_code')->count())->toBe(1);
     expect(ImportStagingWarehouse::whereNotNull('district_code')->count())->toBe(16);
 
-    $flour = ImportStagingFoodBalance::where('region_code', 'andijan')
+    $flour = ImportStagingFoodBalance::where('region_code', 1703)
         ->where('product', 'Ун')->first();
     expect($flour)->not->toBeNull();
     expect($flour->resource_total)->toBeNumericallyClose(430.27, 0.05);
     expect($flour->production)->toBeNumericallyClose(368.34, 0.05);
 
-    $andijanCity = ImportStagingWarehouse::where('region_code', 'andijan')
+    $andijanCity = ImportStagingWarehouse::where('region_code', 1703)
         ->where('district_code', 'd01')->first();
     expect($andijanCity)->not->toBeNull();
     expect($andijanCity->reserve_warehouses)->toBe(3);
     expect($andijanCity->cold_storage_count)->toBe(10);
 
-    $rollup = ImportStagingWarehouse::where('region_code', 'andijan')
+    $rollup = ImportStagingWarehouse::where('region_code', 1703)
         ->whereNull('district_code')->first();
     expect($rollup)->not->toBeNull();
     expect($rollup->reserve_warehouses)->toBe(89);

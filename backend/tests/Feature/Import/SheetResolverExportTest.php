@@ -25,7 +25,7 @@ function loadAndijanExport(): \PhpOffice\PhpSpreadsheet\Spreadsheet
 
 function exportSheetCtx(): array
 {
-    $region = Region::where('code', 'andijan')->first();
+    $region = Region::where('code', 1703)->first();
     $rwb = RegionWorkbook::create([
         'region_id'         => $region->id,
         'reporting_year_id' => DB::table('reporting_years')->where('year', 2026)->value('id'),
@@ -35,7 +35,7 @@ function exportSheetCtx(): array
         'last_seen_at' => now(),
     ]);
     $ctx = new ImportContext(
-        run: ImportRun::create(['region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]),
+        run: ImportRun::create(['region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli', 'status' => 'parsing', 'started_at' => now()]),
         region: $region, year: 2026, dataPath: base_path('../data'),
     );
     return ['ctx' => $ctx, 'rwb' => $rwb];

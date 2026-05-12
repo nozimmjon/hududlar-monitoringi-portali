@@ -28,12 +28,12 @@ class FoodBalanceTableTest extends TestCase
     {
         $this->seed();
         FoodBalance::create([
-            'region_code' => 'andijan', 'year' => 2026, 'product' => 'Ун',
+            'region_code' => 1703, 'year' => 2026, 'product' => 'Ун',
             'production' => 368.3, 'source_label' => 'test',
         ]);
         $this->expectException(QueryException::class);
         FoodBalance::create([
-            'region_code' => 'andijan', 'year' => 2026, 'product' => 'Ун',
+            'region_code' => 1703, 'year' => 2026, 'product' => 'Ун',
             'production' => 999.0, 'source_label' => 'dup',
         ]);
     }

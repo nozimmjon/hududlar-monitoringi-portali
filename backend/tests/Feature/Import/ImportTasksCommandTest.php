@@ -10,10 +10,10 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     DB::table('regions')->insert([
-        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
-        'sort_order' => 2, 'created_at' => now(), 'updated_at' => now(),
+        'code' => 1703, 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'name_latin' => 'andijan', 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now(),
     ]);
-    $regionId = DB::table('regions')->where('code', 'andijan')->value('id');
+    $regionId = DB::table('regions')->where('code', 1703)->value('id');
 
     DB::table('modules')->insert([
         ['code' => 'macro',             'label' => 'Макро',     'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
@@ -38,19 +38,19 @@ beforeEach(function () {
 
     // Seed enough Andijan districts for the multi-district rows in the docx.
     $districts = [
-        ['code' => 'andijan_city',        'name_short' => 'Андижон ш.',    'name_full' => 'Андижон шаҳри'],
-        ['code' => 'khonobod_city',       'name_short' => 'Хонобод ш.',    'name_full' => 'Хонобод шаҳри'],
-        ['code' => 'asaka_district',      'name_short' => 'Асака т.',      'name_full' => 'Асака тумани'],
-        ['code' => 'andijan_district',    'name_short' => 'Андижон т.',    'name_full' => 'Андижон тумани'],
-        ['code' => 'shahrikhan_district', 'name_short' => 'Шаҳрихон т.',  'name_full' => 'Шаҳрихон тумани'],
-        ['code' => 'boston_district',     'name_short' => 'Бўстон т.',     'name_full' => 'Бўстон тумани'],
-        ['code' => 'ulugnor_district',    'name_short' => 'Улуғнор т.',    'name_full' => 'Улуғнор тумани'],
-        ['code' => 'pakhtaobod_district', 'name_short' => 'Пахтаобод т.', 'name_full' => 'Пахтаобод тумани'],
+        ['code' => 1703401, 'name_short' => 'Андижон ш.',    'name_full' => 'Андижон шаҳри'],
+        ['code' => 1703408, 'name_short' => 'Хонобод ш.',    'name_full' => 'Хонобод шаҳри'],
+        ['code' => 1703224, 'name_short' => 'Асака т.',      'name_full' => 'Асака тумани'],
+        ['code' => 1703203, 'name_short' => 'Андижон т.',    'name_full' => 'Андижон тумани'],
+        ['code' => 1703230, 'name_short' => 'Шаҳрихон т.',  'name_full' => 'Шаҳрихон тумани'],
+        ['code' => 1703209, 'name_short' => 'Бўстон т.',     'name_full' => 'Бўстон тумани'],
+        ['code' => 1703217, 'name_short' => 'Улуғнор т.',    'name_full' => 'Улуғнор тумани'],
+        ['code' => 1703232, 'name_short' => 'Пахтаобод т.', 'name_full' => 'Пахтаобод тумани'],
     ];
     foreach ($districts as $i => $d) {
         DB::table('districts')->insert(array_merge($d, [
             'region_id'   => $regionId,
-            'region_code' => 'andijan',
+            'region_code' => 1703,
             'kind'        => str_contains($d['name_full'], 'шаҳри') ? 'city' : 'district',
             'sort_order'  => $i + 1,
             'created_at'  => now(),
@@ -62,14 +62,14 @@ beforeEach(function () {
 test('import:tasks andijan loads at least 80 tasks from docx', function () {
     Artisan::call('import:tasks', ['region' => 'andijan']);
 
-    expect(Task::where('region_code', 'andijan')->count())->toBeGreaterThanOrEqual(80);
+    expect(Task::where('region_code', 1703)->count())->toBeGreaterThanOrEqual(80);
 });
 
 test('imported tasks have module + indicator codes derived from sections', function () {
     Artisan::call('import:tasks', ['region' => 'andijan']);
 
     // Task number 3 is in section I.1.2 (Саноат), h1 deadline.
-    $task = Task::where('region_code', 'andijan')->where('task_number', '3')->first();
+    $task = Task::where('region_code', 1703)->where('task_number', '3')->first();
     expect($task)->not->toBeNull();
     expect($task->module_code)->toBe('macro');
     expect($task->indicator_code)->toBe('industry');
@@ -86,7 +86,7 @@ test('multi-district executor parses to pivot rows', function () {
     //   Бўстон тумани ҳокимлиги, Улуғнор тумани ҳокимлиги, Пахтаобод тумани ҳокимлиги
     // → 3 matched districts. Task 75 also contains those three names but
     //   lists all 8 seeded districts so we target task_number='80' explicitly.
-    $task = Task::where('region_code', 'andijan')
+    $task = Task::where('region_code', 1703)
         ->where('task_number', '80')
         ->first();
 
@@ -99,10 +99,10 @@ test('multi-district executor parses to pivot rows', function () {
 
 test('rerun is idempotent', function () {
     Artisan::call('import:tasks', ['region' => 'andijan']);
-    $first = Task::where('region_code', 'andijan')->count();
+    $first = Task::where('region_code', 1703)->count();
 
     Artisan::call('import:tasks', ['region' => 'andijan']);
-    $second = Task::where('region_code', 'andijan')->count();
+    $second = Task::where('region_code', 1703)->count();
 
     expect($second)->toBe($first);
 });

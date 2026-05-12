@@ -15,10 +15,10 @@ beforeEach(function () {
     ]);
 
     DB::table('regions')->insert([
-        'code' => 'andijan', 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
+        'code' => 1703, 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти',
         'sort_order' => 2, 'created_at' => now(), 'updated_at' => now(),
     ]);
-    $regionId = DB::table('regions')->where('code', 'andijan')->value('id');
+    $regionId = DB::table('regions')->where('code', 1703)->value('id');
 
     DB::table('modules')->insert([
         ['code' => 'macro',  'label' => 'Макро',   'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
@@ -44,14 +44,14 @@ beforeEach(function () {
 
     DB::table('districts')->insert([
         [
-            'region_id' => $regionId, 'region_code' => 'andijan',
-            'code' => 'andijan_city', 'name_short' => 'Андижон ш.', 'name_full' => 'Андижон шаҳри',
+            'region_id' => $regionId, 'region_code' => 1703,
+            'code' => 1703401, 'name_short' => 'Андижон ш.', 'name_full' => 'Андижон шаҳри',
             'kind' => 'city', 'sort_order' => 1,
             'created_at' => now(), 'updated_at' => now(),
         ],
         [
-            'region_id' => $regionId, 'region_code' => 'andijan',
-            'code' => 'asaka_district', 'name_short' => 'Асака т.', 'name_full' => 'Асака тумани',
+            'region_id' => $regionId, 'region_code' => 1703,
+            'code' => 1703224, 'name_short' => 'Асака т.', 'name_full' => 'Асака тумани',
             'kind' => 'district', 'sort_order' => 2,
             'created_at' => now(), 'updated_at' => now(),
         ],
@@ -59,14 +59,14 @@ beforeEach(function () {
 
     // unit and source_label are NOT NULL in the indicator_facts migration
     IndicatorFact::create([
-        'region_code' => 'andijan', 'district_code' => 'andijan_city',
+        'region_code' => 1703, 'district_code' => 1703401,
         'indicator_code' => 'industry', 'period' => 'h1', 'year' => 2026,
         'plan_value' => 100, 'actual_hokimyat' => 95,
         'growth_pct' => 8.0, 'pct_of_plan' => 95.0,
         'unit' => 'trln', 'source_label' => 'Ҳокимлик ҳисоботи',
     ]);
     IndicatorFact::create([
-        'region_code' => 'andijan', 'district_code' => 'asaka_district',
+        'region_code' => 1703, 'district_code' => 1703224,
         'indicator_code' => 'industry', 'period' => 'h1', 'year' => 2026,
         'plan_value' => 80, 'actual_hokimyat' => 60,
         'growth_pct' => 3.0, 'pct_of_plan' => 75.0,
@@ -100,14 +100,14 @@ test('selectKpi sets indicator and syncs module', function () {
 
 test('selectDistrict updates state', function () {
     Livewire::test(DistrictsPage::class)
-        ->call('selectDistrict', 'asaka_district')
-        ->assertSet('district', 'asaka_district');
+        ->call('selectDistrict', '1703224')
+        ->assertSet('district', '1703224');
 });
 
 test('detail table contains profile link for each district', function () {
     $response = $this->get('/districts');
-    $response->assertSee('/profile?districtCode=asaka_district', false);
-    $response->assertSee('/profile?districtCode=andijan_city', false);
+    $response->assertSee('/profile?districtCode=1703224', false);
+    $response->assertSee('/profile?districtCode=1703401', false);
 });
 
 test('status thresholds drive cell coloring', function () {
@@ -135,7 +135,7 @@ test('detail table shows budget-specific column headers when budget KPI active',
         'created_at' => now(), 'updated_at' => now(),
     ]);
     \App\Models\IndicatorFact::create([
-        'region_code' => 'andijan', 'district_code' => 'andijan_city',
+        'region_code' => 1703, 'district_code' => 1703401,
         'indicator_code' => 'budget', 'period' => 'h1', 'year' => 2026,
         'unit' => 'млрд', 'source_label' => 'test',
         'plan_value' => 200, 'actual_hokimyat' => 180,

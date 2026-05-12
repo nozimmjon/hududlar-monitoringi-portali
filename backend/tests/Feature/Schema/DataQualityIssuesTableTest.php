@@ -28,12 +28,12 @@ class DataQualityIssuesTableTest extends TestCase
     {
         $this->seed();
         $run = ImportRun::create([
-            'region_code' => 'navoiy', 'year' => 2026, 'trigger_kind' => 'cli',
+            'region_code' => 1712, 'year' => 2026, 'trigger_kind' => 'cli',
             'status' => 'parsing', 'started_at' => now(),
         ]);
         $issue = DataQualityIssue::create([
             'import_run_id' => $run->id,
-            'region_code' => 'navoiy', 'indicator_code' => 'industry',
+            'region_code' => 1712, 'indicator_code' => 'industry',
             'issue_kind' => 'cross_region_data', 'severity' => IssueSeverity::Blocker,
             'detail' => 'Sheet contains Surxondaryo districts under Navoi',
             'detected_value' => 'Termiz shahri',

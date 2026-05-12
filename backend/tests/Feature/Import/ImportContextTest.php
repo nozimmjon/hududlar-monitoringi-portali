@@ -9,9 +9,9 @@ uses(RefreshDatabase::class);
 
 test('ImportContext exposes region code via helper method', function () {
     $this->seed();
-    $region = Region::where('code', 'andijan')->firstOrFail();
+    $region = Region::where('code', 1703)->firstOrFail();
     $run = ImportRun::create([
-        'region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli',
+        'region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli',
         'status' => 'parsing', 'started_at' => now(),
     ]);
 
@@ -20,7 +20,7 @@ test('ImportContext exposes region code via helper method', function () {
         dataPath: '/tmp/data',
     );
 
-    expect($ctx->regionCode())->toBe('andijan');
+    expect($ctx->regionCode())->toBe('1703');
     expect($ctx->year)->toBe(2026);
     expect($ctx->run->id)->toBe($run->id);
 });

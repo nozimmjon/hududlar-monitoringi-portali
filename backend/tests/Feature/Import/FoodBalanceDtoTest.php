@@ -4,7 +4,7 @@ use App\Support\Import\FoodBalanceDto;
 
 test('FoodBalanceDto.toStagingRow produces a complete row array', function () {
     $dto = new FoodBalanceDto(
-        regionCode: 'andijan', year: 2026, product: 'Ун', productSortOrder: 1,
+        regionCode: 1703, year: 2026, product: 'Ун', productSortOrder: 1,
         resourceTotal: 430.27, yearStartStock: 21.84,
         production: 368.34, importVolume: 40.09,
         useTotal: 260.82, useHousehold: 86.93,
@@ -17,7 +17,7 @@ test('FoodBalanceDto.toStagingRow produces a complete row array', function () {
     $row = $dto->toStagingRow(importRunId: 99);
 
     expect($row['import_run_id'])->toBe(99);
-    expect($row['region_code'])->toBe('andijan');
+    expect($row['region_code'])->toBe(1703);
     expect($row['year'])->toBe(2026);
     expect($row['product'])->toBe('Ун');
     expect($row['product_sort_order'])->toBe(1);
@@ -38,7 +38,7 @@ test('FoodBalanceDto.toStagingRow produces a complete row array', function () {
 
 test('FoodBalanceDto handles all-nullable optional fields', function () {
     $dto = new FoodBalanceDto(
-        regionCode: 'andijan', year: 2026, product: 'Шакар', productSortOrder: 3,
+        regionCode: 1703, year: 2026, product: 'Шакар', productSortOrder: 3,
         resourceTotal: null, yearStartStock: null,
         production: null, importVolume: null,
         useTotal: null, useHousehold: null,

@@ -19,7 +19,7 @@ test('import:region andijan 2026 macro creates a successful run', function () {
     expect($exitCode)->toBe(0);
 
     $run = ImportRun::latest()->first();
-    expect($run->region_code)->toBe('andijan');
+    expect($run->region_code)->toBe(1703);
     expect($run->status->value)->toBe('awaiting_review');
     expect($run->issues_blocker_count)->toBe(0);
     expect($run->rows_staged)->toBe(212);

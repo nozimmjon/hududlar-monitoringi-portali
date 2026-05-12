@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 function makeStagingWriterRun(): ImportRun
 {
     return ImportRun::create([
-        'region_code' => 'andijan', 'year' => 2026, 'trigger_kind' => 'cli',
+        'region_code' => 1703, 'year' => 2026, 'trigger_kind' => 'cli',
         'status' => 'parsing', 'started_at' => now(),
     ]);
 }
@@ -23,7 +23,7 @@ test('StagingWriter buffers and flushes DTOs to staging table', function () {
 
     $writer = new StagingWriter();
     $dto = new IndicatorFactDto(
-        regionCode: 'andijan', districtCode: null, year: 2026,
+        regionCode: 1703, districtCode: null, year: 2026,
         indicatorCode: 'grp', period: 'h1',
         planValue: 52100.81, growthPct: 107.16,
         unit: 'млрд сўм', sourceLabel: 'fixture',
@@ -44,7 +44,7 @@ test('StagingWriter discard() empties the buffer without writing', function () {
 
     $writer = new StagingWriter();
     $dto = new IndicatorFactDto(
-        regionCode: 'andijan', districtCode: null, year: 2026,
+        regionCode: 1703, districtCode: null, year: 2026,
         indicatorCode: 'grp', period: 'h1',
         unit: 'млрд сўм', sourceLabel: 'fixture',
     );
@@ -59,11 +59,16 @@ test('StagingWriter flushes 250 rows in chunks', function () {
     $this->seed();
     $run = makeStagingWriterRun();
 
+    $andijanDistrictCodes = [
+        1703401, 1703408, 1703202, 1703203, 1703206, 1703209, 1703210,
+        1703211, 1703214, 1703217, 1703220, 1703224, 1703227, 1703230,
+        1703232, 1703236,
+    ];
     $writer = new StagingWriter();
     for ($i = 1; $i <= 250; $i++) {
         $dto = new IndicatorFactDto(
-            regionCode: 'andijan',
-            districtCode: 'd' . str_pad((string)((($i - 1) % 16) + 1), 2, '0', STR_PAD_LEFT),
+            regionCode: 1703,
+            districtCode: $andijanDistrictCodes[(($i - 1) % 16)],
             year: 2026,
             indicatorCode: 'industry', period: 'h1',
             planValue: $i, unit: 'млрд сўм', sourceLabel: "row $i",

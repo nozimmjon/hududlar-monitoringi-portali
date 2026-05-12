@@ -31,7 +31,7 @@ class RegionIndicatorAvailabilityTest extends TestCase
     public function test_tashkent_city_agriculture_is_not_applicable(): void
     {
         $this->seed();
-        $row = RegionIndicatorAvailability::where('region_code', 'tashkent_city')
+        $row = RegionIndicatorAvailability::where('region_code', 1726)
             ->where('indicator_code', 'agriculture')->firstOrFail();
         $this->assertSame(AvailabilityStatus::NotApplicable, $row->status);
     }
@@ -41,7 +41,7 @@ class RegionIndicatorAvailabilityTest extends TestCase
         $this->seed();
         $blockedCodes = ['grp','industry','agriculture','construction','services'];
         foreach ($blockedCodes as $code) {
-            $row = RegionIndicatorAvailability::where('region_code', 'navoiy')
+            $row = RegionIndicatorAvailability::where('region_code', 1712)
                 ->where('indicator_code', $code)->firstOrFail();
             $this->assertSame(AvailabilityStatus::Blocked, $row->status,
                 "navoiy × $code should be blocked");

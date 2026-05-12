@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 function andijanEmploymentDistrictCode(string $nameFull): ?string
 {
     $sortOrder = DB::table('districts')
-        ->where('region_code', 'andijan')
+        ->where('region_code', 1703)
         ->where('name_full', $nameFull)
         ->value('sort_order');
     if ($sortOrder === null) return null;

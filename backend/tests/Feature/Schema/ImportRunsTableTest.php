@@ -27,7 +27,7 @@ class ImportRunsTableTest extends TestCase
     {
         $this->seed();
         $run = ImportRun::create([
-            'region_code' => 'andijan', 'year' => 2026,
+            'region_code' => 1703, 'year' => 2026,
             'trigger_kind' => 'cli', 'status' => ImportRunStatus::Parsing,
             'started_at' => now(),
         ]);
