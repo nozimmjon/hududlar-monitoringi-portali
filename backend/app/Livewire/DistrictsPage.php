@@ -9,6 +9,7 @@ use App\Models\Module;
 use App\Models\PromiseTarget;
 use App\Models\Task;
 use App\Support\DistrictStatus;
+use App\Support\DistrictTableConfig;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -51,6 +52,7 @@ class DistrictsPage extends Component
         if ($indicator?->module_code) {
             $this->module = $indicator->module_code;
         }
+        $this->period = DistrictTableConfig::for($code)['primary_period'];
     }
 
     public function selectDistrict(string $code): void
@@ -222,6 +224,93 @@ class DistrictsPage extends Component
         return Task::forRegion(self::REGION_CODE)
             ->forIndicator($this->kpi)
             ->count();
+    }
+
+    #[Computed]
+    public function tableConfig(): array
+    {
+        return DistrictTableConfig::for($this->kpi);
+    }
+
+    /**
+     * Build [$kpi][$district_code][$period] => IndicatorFact|null lookup
+     * for every (kpi, period) pair referenced by the current tableConfig.
+     */
+    #[Computed]
+    public function factMatrix(): array
+    {
+        $cfg = $this->tableConfig;
+        $pairs = [];
+        foreach ($cfg['columns'] as $col) {
+            if ($col['metric'] === null) continue;
+            $pairs[$col['metric']['kpi'] . '|' . $col['metric']['period']] = [
+                $col['metric']['kpi'],
+                $col['metric']['period'],
+            ];
+        }
+        if (empty($pairs)) return [];
+
+        $query = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->whereNotNull('district_code');
+
+        $query->where(function ($q) use ($pairs) {
+            foreach ($pairs as [$k, $p]) {
+                $q->orWhere(function ($w) use ($k, $p) {
+                    $w->where('indicator_code', $k)->where('period', $p);
+                });
+            }
+        });
+
+        $out = [];
+        foreach ($query->get() as $row) {
+            $out[$row->indicator_code][$row->district_code][$row->period] = $row;
+        }
+        return $out;
+    }
+
+    /**
+     * @return array<string, array{unfinished:int,total:int}>
+     */
+    #[Computed]
+    public function taskCountByDistrict(): array
+    {
+        $out = [];
+        $tasks = Task::forRegion(self::REGION_CODE)
+            ->forIndicator($this->kpi)
+            ->with('districts:id,code')
+            ->get();
+
+        foreach ($tasks as $task) {
+            foreach ($task->districts as $d) {
+                $out[$d->code] ??= ['unfinished' => 0, 'total' => 0];
+                $out[$d->code]['total']++;
+                if ($task->status !== 'done') {
+                    $out[$d->code]['unfinished']++;
+                }
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function targetCountByDistrict(): array
+    {
+        $out = [];
+        $targets = PromiseTarget::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->whereNotNull('target_districts')
+            ->get();
+
+        foreach ($targets as $target) {
+            $codes = is_array($target->target_districts) ? $target->target_districts : [];
+            foreach ($codes as $code) {
+                $out[$code] = ($out[$code] ?? 0) + 1;
+            }
+        }
+        return $out;
     }
 
     public function render()
