@@ -30,7 +30,16 @@ class ImportRegionCommand extends Command
 
     public function handle(): int
     {
-        $regionCode = (string) $this->argument('region_code');
+        $arg = (string) $this->argument('region_code');
+        $regionCode = ctype_digit($arg)
+            ? (int) $arg
+            : \App\Models\Region::where('name_latin', $arg)->value('code');
+
+        if ($regionCode === null) {
+            $this->error("Unknown region: {$arg}");
+            return self::FAILURE;
+        }
+
         $year = (int) $this->argument('year');
 
         $region = Region::where('code', $regionCode)->first();
@@ -39,7 +48,7 @@ class ImportRegionCommand extends Command
             return 1;
         }
 
-        if ($regionCode === 'navoiy') {
+        if ($arg === 'navoiy') {
             $this->warn("Skipped 'navoiy' — see data_quality_issues for upstream macro 1.2 contamination.");
             return 0;
         }

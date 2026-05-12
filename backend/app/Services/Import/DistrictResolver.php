@@ -12,7 +12,7 @@ class DistrictResolver
 
     public function __construct(private IssueCollector $issues) {}
 
-    public function loadFor(string $regionCode): void
+    public function loadFor(int $regionCode): void
     {
         $this->aliasToCode = [];
         District::where('region_code', $regionCode)->get()->each(function (District $d) {

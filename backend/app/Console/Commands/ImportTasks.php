@@ -17,8 +17,21 @@ class ImportTasks extends Command
 
     public function handle(): int
     {
-        $regionCode = (string) $this->argument('region');
-        $file       = $this->option('file') ?: $this->resolveFile($regionCode);
+        $arg = (string) $this->argument('region');
+        $regionCode = ctype_digit($arg)
+            ? (int) $arg
+            : \App\Models\Region::where('name_latin', $arg)->value('code');
+
+        if ($regionCode === null) {
+            $this->error("Unknown region: {$arg}");
+            return self::FAILURE;
+        }
+
+        $slug = ctype_digit($arg)
+            ? array_search($regionCode, \Database\Seeders\SoatoSeeder::REGION_LATIN, true)
+            : $arg;
+
+        $file = $this->option('file') ?: $this->resolveFile($slug);
 
         if (! is_file($file)) {
             $this->error("Source docx not found: {$file}");
@@ -53,9 +66,9 @@ class ImportTasks extends Command
         return self::SUCCESS;
     }
 
-    private function resolveFile(string $regionCode): string
+    private function resolveFile(string $regionSlug): string
     {
-        $name = TasksTaxonomy::REGION_FILENAMES[$regionCode] ?? null;
+        $name = TasksTaxonomy::REGION_FILENAMES[$regionSlug] ?? null;
         if ($name === null) {
             return base_path('../data/tasks/00_Чора_тадбир_Андижон.docx');
         }
