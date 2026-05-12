@@ -17,6 +17,8 @@ class ImportStagingWarehouse extends Model
     ];
 
     protected $casts = [
+        'region_code'        => 'integer',
+        'district_code'      => 'integer',
         'staging_status'     => StagingStatus::class,
         'validation_errors'  => 'array',
     ];

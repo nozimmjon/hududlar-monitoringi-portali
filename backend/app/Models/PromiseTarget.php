@@ -15,6 +15,7 @@ class PromiseTarget extends Model
     ];
 
     protected $casts = [
+        'region_code'      => 'integer',
         'kind'             => PromiseKind::class,
         'target_value'     => 'decimal:6',
         'target_districts' => 'array',

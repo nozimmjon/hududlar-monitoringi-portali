@@ -16,6 +16,10 @@ class Task extends Model
         'source_paragraph_index', 'status',
     ];
 
+    protected $casts = [
+        'region_code' => 'integer',
+    ];
+
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_code', 'code');
@@ -41,7 +45,7 @@ class Task extends Model
         return $this->belongsToMany(District::class, 'task_districts');
     }
 
-    public function scopeForRegion(Builder $q, string $code): Builder
+    public function scopeForRegion(Builder $q, int $code): Builder
     {
         return $q->where('region_code', $code);
     }

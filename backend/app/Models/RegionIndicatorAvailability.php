@@ -16,6 +16,7 @@ class RegionIndicatorAvailability extends Model
     ];
 
     protected $casts = [
+        'region_code'   => 'integer',
         'status'        => AvailabilityStatus::class,
         'blocked_until' => 'date',
     ];

@@ -13,6 +13,7 @@ class GuaranteeLetter extends Model
     ];
 
     protected $casts = [
+        'region_code'  => 'integer',
         'signed_at'    => 'date',
         'imported_at'  => 'datetime',
     ];

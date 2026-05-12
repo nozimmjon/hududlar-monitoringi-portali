@@ -13,7 +13,9 @@ class District extends Model
     ];
 
     protected $casts = [
-        'alt_labels' => 'array',
+        'alt_labels'  => 'array',
+        'code'        => 'integer',
+        'region_code' => 'integer',
     ];
 
     public function tasks(): BelongsToMany

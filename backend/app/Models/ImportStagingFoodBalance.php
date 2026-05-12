@@ -18,6 +18,7 @@ class ImportStagingFoodBalance extends Model
     ];
 
     protected $casts = [
+        'region_code'        => 'integer',
         'staging_status'     => StagingStatus::class,
         'validation_errors'  => 'array',
     ];

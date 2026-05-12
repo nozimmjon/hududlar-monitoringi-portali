@@ -17,6 +17,7 @@ class FoodBalance extends Model
     ];
 
     protected $casts = [
+        'region_code'       => 'integer',
         'resource_total'    => 'decimal:6',
         'year_start_stock'  => 'decimal:6',
         'production'        => 'decimal:6',

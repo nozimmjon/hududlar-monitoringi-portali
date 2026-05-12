@@ -16,6 +16,8 @@ class DataQualityIssue extends Model
     ];
 
     protected $casts = [
+        'region_code'   => 'integer',
+        'district_code' => 'integer',
         'severity'    => IssueSeverity::class,
         'detected_at' => 'datetime',
         'resolved_at' => 'datetime',

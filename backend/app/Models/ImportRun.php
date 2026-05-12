@@ -17,6 +17,7 @@ class ImportRun extends Model
     ];
 
     protected $casts = [
+        'region_code'  => 'integer',
         'status'       => ImportRunStatus::class,
         'started_at'   => 'datetime',
         'parsed_at'    => 'datetime',

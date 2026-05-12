@@ -20,6 +20,8 @@ class ImportStagingIndicatorFact extends Model
     ];
 
     protected $casts = [
+        'region_code'        => 'integer',
+        'district_code'      => 'integer',
         'period'             => Period::class,
         'staging_status'     => StagingStatus::class,
         'validation_errors'  => 'array',

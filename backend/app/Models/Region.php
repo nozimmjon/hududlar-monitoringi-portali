@@ -10,6 +10,7 @@ class Region extends Model
 
     protected $casts = [
         'has_districts' => 'boolean',
+        'code'          => 'integer',
     ];
 
     public function getRouteKeyName(): string

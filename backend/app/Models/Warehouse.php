@@ -13,4 +13,9 @@ class Warehouse extends Model
         'new_small_cold_count','new_small_cold_capacity_t','new_small_cold_mfys',
         'new_large_cold_count','new_large_cold_capacity_t','source_label',
     ];
+
+    protected $casts = [
+        'region_code'   => 'integer',
+        'district_code' => 'integer',
+    ];
 }

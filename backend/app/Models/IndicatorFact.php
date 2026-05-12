@@ -17,6 +17,8 @@ class IndicatorFact extends Model
     ];
 
     protected $casts = [
+        'region_code'          => 'integer',
+        'district_code'        => 'integer',
         'period'               => Period::class,
         'plan_value'           => 'decimal:6',
         'expected_value'       => 'decimal:6',
