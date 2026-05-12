@@ -21,10 +21,10 @@ class RegionProfile extends Component
 
         if ($this->districtCode !== '') {
             $district = District::where('code', $this->districtCode)
-                ->where('region_code', 'andijan')
+                ->where('region_code', 1703)
                 ->first();
 
-            $facts = IndicatorFact::where('region_code', 'andijan')
+            $facts = IndicatorFact::where('region_code', 1703)
                 ->where('year', 2026)
                 ->where('district_code', $this->districtCode)
                 ->where('period', 'year')

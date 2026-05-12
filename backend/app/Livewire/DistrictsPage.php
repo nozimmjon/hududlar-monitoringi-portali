@@ -17,7 +17,7 @@ use Livewire\Component;
 
 class DistrictsPage extends Component
 {
-    public const REGION_CODE = 'andijan';
+    public const REGION_CODE = 1703;
 
     #[Url]
     public string $module = 'macro';

@@ -30,7 +30,7 @@ class TasksBoard extends Component
     #[Url]
     public string $search = '';
 
-    public string $regionCode = 'andijan';
+    public int $regionCode = 1703;
 
     public function selectModule(string $code): void
     {

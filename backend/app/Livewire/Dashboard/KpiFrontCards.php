@@ -25,7 +25,7 @@ class KpiFrontCards extends Component
     {
         $codes = DashboardCatalog::moduleKpis($this->module);
 
-        $facts = IndicatorFact::where('region_code', 'andijan')
+        $facts = IndicatorFact::where('region_code', 1703)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->where('period', 'year')

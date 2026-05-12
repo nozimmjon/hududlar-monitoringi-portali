@@ -22,7 +22,7 @@ class ExecutionPage extends Component
 
     public function render()
     {
-        $facts = IndicatorFact::where('region_code', 'andijan')
+        $facts = IndicatorFact::where('region_code', 1703)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->where('period', $this->period)

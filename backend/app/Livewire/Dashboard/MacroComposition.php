@@ -18,7 +18,7 @@ class MacroComposition extends Component
     {
         $components = ['industry', 'agriculture', 'construction', 'services'];
 
-        $facts = IndicatorFact::where('region_code', 'andijan')
+        $facts = IndicatorFact::where('region_code', 1703)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->whereIn('indicator_code', $components)
