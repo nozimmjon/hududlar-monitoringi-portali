@@ -3,56 +3,229 @@
 namespace App\Livewire;
 
 use App\Models\District;
+use App\Models\Indicator;
 use App\Models\IndicatorFact;
+use App\Models\Module;
+use App\Models\PromiseTarget;
+use App\Models\Task;
+use App\Support\DistrictStatus;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class DistrictsPage extends Component
 {
-    public string $period = 'year';
-    public string $indicatorCode = 'export';
+    public const REGION_CODE = 'andijan';
 
-    public array $availableIndicators = [
-        'export'           => 'Экспорт',
-        'investment'       => 'Инвестициялар',
-        'budget'           => 'Бюджет',
-        'budget_investment'=> 'Бюджет инвест',
-        'industry'         => 'Саноат',
-        'unemployment'     => 'Ишсизлик',
-        'poverty'          => 'Камбағаллик',
-    ];
+    #[Url]
+    public string $module = 'macro';
 
-    public array $periodLabels = [
-        'year' => 'Йиллик',
-        'h1'   => 'I ярим йил',
-        'q1'   => 'I чорак',
-    ];
+    #[Url]
+    public string $kpi = 'industry';
 
-    public function render()
+    #[Url]
+    public string $period = 'h1';
+
+    #[Url]
+    public string $district = '';
+
+    #[Url]
+    public string $sort = 'attention';
+
+    #[Url]
+    public string $search = '';
+
+    public function selectModule(string $code): void
     {
-        $districts = District::where('region_code', 'andijan')
+        $this->module = $code;
+        $first = $this->kpiOptions()->first();
+        $this->kpi = $first?->code ?? $this->kpi;
+        $this->search = '';
+    }
+
+    public function selectKpi(string $code): void
+    {
+        $this->kpi = $code;
+        $indicator = Indicator::where('code', $code)->first();
+        if ($indicator?->module_code) {
+            $this->module = $indicator->module_code;
+        }
+    }
+
+    public function selectDistrict(string $code): void
+    {
+        $this->district = $code;
+    }
+
+    public function setSort(string $value): void
+    {
+        $this->sort = $value;
+    }
+
+    #[Computed]
+    public function districts(): Collection
+    {
+        return District::where('region_code', self::REGION_CODE)
             ->orderBy('sort_order')
             ->get()
             ->keyBy('code');
+    }
 
-        $facts = IndicatorFact::where('region_code', 'andijan')
-            ->where('year', 2026)
+    #[Computed]
+    public function indicator(): ?Indicator
+    {
+        return Indicator::where('code', $this->kpi)->first();
+    }
+
+    #[Computed]
+    public function facts(): Collection
+    {
+        return IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
             ->where('period', $this->period)
-            ->where('indicator_code', $this->indicatorCode)
             ->whereNotNull('district_code')
             ->get()
             ->keyBy('district_code');
+    }
 
-        $rollup = IndicatorFact::where('region_code', 'andijan')
-            ->where('year', 2026)
+    #[Computed]
+    public function rollup(): ?IndicatorFact
+    {
+        return IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
             ->where('period', $this->period)
-            ->where('indicator_code', $this->indicatorCode)
             ->whereNull('district_code')
             ->first();
+    }
 
-        return view('livewire.districts-page', [
-            'districts' => $districts,
-            'facts'     => $facts,
-            'rollup'    => $rollup,
-        ]);
+    #[Computed]
+    public function statusByDistrict(): array
+    {
+        $lower = (bool) ($this->indicator?->lower_is_better);
+        $out = [];
+        foreach ($this->districts as $code => $_district) {
+            $fact = $this->facts->get($code);
+            $out[$code] = DistrictStatus::statusFor(
+                $fact?->pct_of_plan !== null ? (float) $fact->pct_of_plan : null,
+                $fact?->growth_pct !== null ? (float) $fact->growth_pct : null,
+                $lower,
+            );
+        }
+        return $out;
+    }
+
+    #[Computed]
+    public function rankedDistricts(): array
+    {
+        $rows = [];
+        foreach ($this->districts as $code => $district) {
+            $fact = $this->facts->get($code);
+            $status = $this->statusByDistrict[$code] ?? 'grey';
+            $rows[] = [
+                'district' => $district,
+                'fact'     => $fact,
+                'status'   => $status,
+            ];
+        }
+
+        $query = mb_strtolower(trim($this->search));
+        if ($query !== '') {
+            $rows = array_values(array_filter($rows, function ($r) use ($query) {
+                return mb_strpos(mb_strtolower($r['district']->name_full), $query) !== false
+                    || mb_strpos(mb_strtolower($r['district']->name_short), $query) !== false;
+            }));
+        }
+
+        $rank = ['red' => 0, 'amber' => 1, 'grey' => 2, 'green' => 3];
+
+        usort($rows, function ($a, $b) use ($rank) {
+            return match ($this->sort) {
+                'execution' => ($b['fact']?->pct_of_plan ?? -INF) <=> ($a['fact']?->pct_of_plan ?? -INF),
+                'plan'      => ($b['fact']?->plan_value ?? -INF)  <=> ($a['fact']?->plan_value ?? -INF),
+                'name'      => strcmp($a['district']->name_full, $b['district']->name_full),
+                'attention' => [$rank[$a['status']] ?? 99, $a['district']->name_full]
+                                 <=> [$rank[$b['status']] ?? 99, $b['district']->name_full],
+                default     => 0,
+            };
+        });
+
+        return $rows;
+    }
+
+    #[Computed]
+    public function selectedDistrict(): ?array
+    {
+        $rows = $this->rankedDistricts;
+        if ($this->district !== '') {
+            foreach ($rows as $row) {
+                if ($row['district']->code === $this->district) {
+                    return $row;
+                }
+            }
+        }
+        return $rows[0] ?? null;
+    }
+
+    #[Computed]
+    public function moduleOptions(): Collection
+    {
+        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->whereNotNull('district_code')
+            ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
+            ->whereNotNull('indicators.module_code')
+            ->distinct()
+            ->pluck('indicators.module_code');
+
+        return Module::whereIn('code', $codes)->orderBy('sort_order')->get();
+    }
+
+    #[Computed]
+    public function kpiOptions(): Collection
+    {
+        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('period', $this->period)
+            ->whereNotNull('district_code')
+            ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
+            ->where('indicators.module_code', $this->module)
+            ->distinct()
+            ->pluck('indicator_facts.indicator_code');
+
+        return Indicator::whereIn('code', $codes)->orderBy('label_short')->get();
+    }
+
+    #[Computed]
+    public function coverage(): array
+    {
+        $count = $this->facts->count();
+        $periods = IndicatorFact::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->whereNotNull('district_code')
+            ->distinct()
+            ->pluck('period')
+            ->all();
+        return ['count' => $count, 'periods' => $periods];
+    }
+
+    #[Computed]
+    public function targetCount(): int
+    {
+        return PromiseTarget::where('region_code', self::REGION_CODE)
+            ->where('indicator_code', $this->kpi)
+            ->whereNotNull('target_districts')
+            ->count();
+    }
+
+    #[Computed]
+    public function taskCount(): int
+    {
+        return Task::forRegion(self::REGION_CODE)
+            ->forIndicator($this->kpi)
+            ->count();
+    }
+
+    public function render()
+    {
+        return view('livewire.districts-page');
     }
 }
