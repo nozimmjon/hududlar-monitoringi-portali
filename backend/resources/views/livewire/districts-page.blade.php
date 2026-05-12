@@ -29,9 +29,6 @@
         ];
     };
 
-    $selectedTasks  = $selectedRow ? ($taskCountByDistrict[$selectedCode] ?? ['unfinished' => 0, 'total' => 0]) : ['unfinished' => 0, 'total' => 0];
-    $selectedTargetCount = $selectedRow ? ($targetCountByDistrict[$selectedCode] ?? 0) : 0;
-
     $districts        = $this->districts;
     $facts            = $this->facts;
     $rollup           = $this->rollup;
@@ -49,6 +46,9 @@
     $selectedDistrict = $selectedRow ? $selectedRow['district'] : null;
     $selectedFact = $selectedRow ? $selectedRow['fact'] : null;
     $selectedStatus = $selectedRow ? $selectedRow['status'] : 'grey';
+
+    $selectedTasks  = $selectedRow ? ($taskCountByDistrict[$selectedCode] ?? ['unfinished' => 0, 'total' => 0]) : ['unfinished' => 0, 'total' => 0];
+    $selectedTargetCount = $selectedRow ? ($targetCountByDistrict[$selectedCode] ?? 0) : 0;
 
     $fmt = function ($v, int $decimals = 1): string {
         if ($v === null || $v === '') return '—';

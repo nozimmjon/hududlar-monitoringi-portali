@@ -263,7 +263,8 @@ class DistrictsPage extends Component
 
         $out = [];
         foreach ($query->get() as $row) {
-            $out[$row->indicator_code][$row->district_code][$row->period] = $row;
+            $periodKey = $row->period instanceof \BackedEnum ? $row->period->value : (string) $row->period;
+            $out[$row->indicator_code][$row->district_code][$periodKey] = $row;
         }
         return $out;
     }

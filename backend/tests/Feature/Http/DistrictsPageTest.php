@@ -117,3 +117,55 @@ test('status thresholds drive cell coloring', function () {
     expect($html)->toContain('map-cell green');
     expect($html)->toContain('map-cell red');
 });
+
+test('detail table shows industry-specific column headers for industry KPI', function () {
+    $response = $this->get('/districts?kpi=industry');
+    $response->assertOk();
+    $response->assertSee('I чорак амалда', false);
+    $response->assertSee('I ярим йиллик прогноз', false);
+    $response->assertSee('Йиллик прогноз', false);
+});
+
+test('detail table shows budget-specific column headers when budget KPI active', function () {
+    DB::table('indicators')->insert([
+        'code' => 'budget', 'label_full' => 'Бюджет', 'label_short' => 'Бюджет',
+        'scope' => 'both', 'default_unit' => 'млрд', 'module_code' => 'macro',
+        'lower_is_better' => false, 'has_growth_pct' => false, 'has_pct_of_plan' => true,
+        'has_sentinel' => false, 'sort_order' => 3,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    \App\Models\IndicatorFact::create([
+        'region_code' => 'andijan', 'district_code' => 'andijan_city',
+        'indicator_code' => 'budget', 'period' => 'h1', 'year' => 2026,
+        'unit' => 'млрд', 'source_label' => 'test',
+        'plan_value' => 200, 'actual_hokimyat' => 180,
+        'pct_of_plan' => 90.0,
+    ]);
+
+    \Livewire\Livewire::test(\App\Livewire\DistrictsPage::class)
+        ->set('kpi', 'budget')
+        ->assertSee('II чорак ижро')
+        ->assertSee('I ярим йиллик ижро')
+        ->assertDontSee('I чорак амалда');
+});
+
+test('side aside renders T/D count chips, metric tiles, and leaderboard markup', function () {
+    $response = $this->get('/districts');
+    $response->assertOk();
+    $html = $response->getContent();
+    expect($html)->toContain('district-count-split');
+    expect($html)->toContain('district-summary-metrics');
+    expect($html)->toContain('district-summary-actions');
+    expect($html)->toContain('districts-leaderboard');
+    expect($html)->toContain('districts-lb-list');
+    expect($html)->toContain('lb-row');
+    expect($html)->toContain('lb-rank');
+});
+
+test('detail table renders T-topshiriq and D-maqsad cells', function () {
+    $response = $this->get('/districts');
+    $html = $response->getContent();
+    expect($html)->toContain('T-топшириқ');
+    expect($html)->toContain('D-мақсад');
+    expect($html)->toContain('ҳисобот йўқ');
+});
