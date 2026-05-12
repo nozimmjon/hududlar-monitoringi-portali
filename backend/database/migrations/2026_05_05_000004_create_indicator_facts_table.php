@@ -10,8 +10,8 @@ return new class extends Migration {
     {
         Schema::create('indicator_facts', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
-            $table->string('district_code', 64)->nullable();         // NULL = region rollup
+            $table->unsignedInteger('region_code');
+            $table->unsignedInteger('district_code')->nullable();         // NULL = region rollup
             $table->smallInteger('year');
             $table->string('indicator_code', 48);
             $table->string('period', 8);                              // q1 | h1 | m9 | year

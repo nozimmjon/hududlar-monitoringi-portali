@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('import_run_id')->nullable()
                   ->constrained('import_runs')->nullOnDelete();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->string('district_code', 64)->nullable();
             $table->string('indicator_code', 48)->nullable();
             $table->smallInteger('year')->nullable();

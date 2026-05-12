@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->foreignId('guarantee_letter_id')->nullable()->constrained('guarantee_letters')->nullOnDelete();
             $table->string('task_number', 16);
             $table->text('title');

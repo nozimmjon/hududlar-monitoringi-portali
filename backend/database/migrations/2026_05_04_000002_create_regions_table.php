@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('regions', function (Blueprint $table) {
             $table->smallIncrements('id');
-            $table->string('code', 32)->unique();              // slug: andijan, fergana, ...
+            $table->unsignedInteger('code')->unique();              // slug: andijan, fergana, ...
             $table->string('name_short', 64);                  // "Андижон"
             $table->string('name_full', 128);                  // "Андижон вилояти"
             $table->string('name_latin', 64)->nullable();      // "Andijan"

@@ -10,8 +10,8 @@ return new class extends Migration {
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
-            $table->string('district_code', 64)->nullable();
+            $table->unsignedInteger('region_code');
+            $table->unsignedInteger('district_code')->nullable();
 
             $table->smallInteger('year');
 

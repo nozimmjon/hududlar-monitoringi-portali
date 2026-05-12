@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('region_id')->constrained('regions')->cascadeOnDelete();
-            $table->string('code', 64);                    // slug, unique within region
+            $table->unsignedInteger('code');                    // slug, unique within region
             $table->string('name_short', 96);              // "Андижон ш." (workbook abbreviation)
             $table->string('name_full', 128);              // "Андижон шаҳри"
             $table->string('name_latin', 96)->nullable();

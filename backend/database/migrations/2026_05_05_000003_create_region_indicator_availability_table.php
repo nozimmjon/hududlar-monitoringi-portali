@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('region_indicator_availability', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->string('indicator_code', 48);
             $table->string('status', 16)->default('available');
             $table->text('note')->nullable();

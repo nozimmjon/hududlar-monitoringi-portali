@@ -9,7 +9,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('districts', function (Blueprint $table) {
-            $table->string('region_code', 32)->nullable()->after('region_id');
+            $table->unsignedInteger('region_code')->nullable()->after('region_id');
         });
 
         DB::statement(<<<'SQL'
@@ -20,7 +20,7 @@ return new class extends Migration {
         SQL);
 
         Schema::table('districts', function (Blueprint $table) {
-            $table->string('region_code', 32)->nullable(false)->change();
+            $table->unsignedInteger('region_code')->nullable(false)->change();
             $table->unique(['region_code', 'code'], 'uq_districts_region_code_code');
             $table->index('region_code', 'idx_districts_region_code');
         });

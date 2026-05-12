@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('import_run_id')->constrained('import_runs')->cascadeOnDelete();
 
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->smallInteger('year');
             $table->string('product', 96);
             $table->smallInteger('product_sort_order')->default(0);

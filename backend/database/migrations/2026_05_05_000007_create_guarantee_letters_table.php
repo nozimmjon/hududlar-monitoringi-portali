@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('guarantee_letters', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->smallInteger('year');
             $table->string('source_path', 512)->nullable();
             $table->char('sha256', 64)->nullable();

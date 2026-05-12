@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('import_runs', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->smallInteger('year');
             $table->foreignId('triggered_by_user_id')->nullable()
                   ->constrained('users')->nullOnDelete();

@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('promise_targets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('guarantee_letter_id')->constrained('guarantee_letters')->cascadeOnDelete();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->smallInteger('year');
             $table->string('kind', 16);                                  // 'numeric' | 'narrative'
             $table->string('title', 255);

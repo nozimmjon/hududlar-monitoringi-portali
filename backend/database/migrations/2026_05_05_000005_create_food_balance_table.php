@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('food_balance', function (Blueprint $table) {
             $table->id();
-            $table->string('region_code', 32);
+            $table->unsignedInteger('region_code');
             $table->smallInteger('year');
             $table->string('product', 96);
             $table->smallInteger('product_sort_order')->default(0);
