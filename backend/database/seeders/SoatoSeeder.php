@@ -153,6 +153,13 @@ class SoatoSeeder extends Seeder
         ];
     }
 
+    /** SOATO district code => alternate Cyrillic spellings (e.g. older orthography). */
+    public const DISTRICT_ALT_LABELS = [
+        // xlsx uses Х; older sources use Ҳ — keep both for importer fuzzy match.
+        1703227 => ['Марҳамат тумани', 'Марҳамат'],
+        1703230 => ['Шаҳрихон тумани', 'Шаҳрихон'],
+    ];
+
     private function makeDistrictRow(int $regionCode, int $code, string $name, \DateTimeInterface $now): array
     {
         if (str_ends_with($name, ' тумани')) {
@@ -166,6 +173,8 @@ class SoatoSeeder extends Seeder
             $kind = 'city';
         }
 
+        $alt = self::DISTRICT_ALT_LABELS[$code] ?? null;
+
         return [
             'code'         => $code,
             'region_code'  => $regionCode,
@@ -173,7 +182,7 @@ class SoatoSeeder extends Seeder
             'name_full'    => $nameFull,
             'name_latin'   => self::DISTRICT_LATIN[$code] ?? null,
             'kind'         => $kind,
-            'alt_labels'   => null,
+            'alt_labels'   => $alt !== null ? json_encode($alt, JSON_UNESCAPED_UNICODE) : null,
             'created_at'   => $now,
             'updated_at'   => $now,
         ];
