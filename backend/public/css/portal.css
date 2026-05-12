@@ -5556,6 +5556,7 @@
       .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .front-kpis.module-kpis.employment-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
       .execution-command, .execution-status-grid, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
       .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
+      .task-group .task-list { max-height: none; overflow: visible; padding-right: 0; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
