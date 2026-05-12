@@ -88,11 +88,18 @@
         @if($kpiOptions->count() > 1)
             <div class="district-kpi-selector">
                 @foreach($kpiOptions as $i)
+                    @php $iCfg = \App\Support\DistrictTableConfig::for($i->code); @endphp
                     <button class="district-kpi-option {{ $i->code === $kpi ? 'active' : '' }}"
                             wire:click="selectKpi('{{ $i->code }}')"
-                            type="button">
-                        <strong>{{ $i->label_short }}</strong>
-                        <span>{{ $i->label_full }}</span>
+                            type="button"
+                            aria-label="{{ $i->label_full }}">
+                        <span class="kpi-mini-icon" aria-hidden="true">
+                            @include('partials.icon', ['name' => $i->icon ?? 'trend'])
+                        </span>
+                        <span>
+                            <strong>{{ $i->label_short }}</strong>
+                            <small>{{ $iCfg['source'] }}</small>
+                        </span>
                     </button>
                 @endforeach
             </div>
