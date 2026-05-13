@@ -52,13 +52,6 @@
         </svg>
         <span>Туманлар</span>
       </a>
-      <a class="nav-btn {{ Route::is('execution') ? 'active' : '' }}"
-         href="{{ route('execution') }}" title="Ижро мониторинги">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M4 5h16M4 12h16M4 19h10M8 9l2 2 4-4"/>
-        </svg>
-        <span>Ижро</span>
-      </a>
     </aside>
 
     <main class="main">
