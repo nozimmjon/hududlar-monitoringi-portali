@@ -57,14 +57,20 @@ class BudgetModuleParser extends ModuleParser
     }
 
     /**
-     * Find the rollup row: the row where col B contains 'вилояти' (e.g. 'Андижон вилояти').
+     * Find the rollup row: the row where col A or col B contains a short string ending with
+     * 'вилояти' (e.g. 'Андижон вилояти') or 'Республикаси' (Karakalpak).
      */
     private function findRollupRow(Worksheet $sheet): ?int
     {
         for ($row = 1; $row <= 15; $row++) {
-            $colB = $sheet->getCell([2, $row])->getCalculatedValue();
-            if (is_string($colB) && str_contains($colB, 'вилояти')) {
-                return $row;
+            foreach ([1, 2] as $col) {
+                $val = $sheet->getCell([$col, $row])->getCalculatedValue();
+                if (! is_string($val)) continue;
+                $trimmed = trim($val);
+                if (mb_strlen($trimmed) > 40) continue;
+                if (str_ends_with($trimmed, 'вилояти') || str_ends_with($trimmed, 'Республикаси')) {
+                    return $row;
+                }
             }
         }
         return null;
