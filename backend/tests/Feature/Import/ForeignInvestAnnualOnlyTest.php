@@ -40,3 +40,25 @@ test('isAnnualOnlyLayout returns false when "I чорак" appears in row range'
 
     expect(invade(makeForeignInvestParser())->isAnnualOnlyLayout($sheet))->toBeFalse();
 });
+
+test('isRollupCell accepts standard region with "вилояти" suffix', function () {
+    expect(invade(makeForeignInvestParser())->isRollupCell('Андижон вилояти'))->toBeTrue();
+});
+
+test('isRollupCell accepts "Жами" (used in karakalpak)', function () {
+    expect(invade(makeForeignInvestParser())->isRollupCell('Жами'))->toBeTrue();
+});
+
+test('isRollupCell accepts "Қорақалпоғистон Республикаси"', function () {
+    expect(invade(makeForeignInvestParser())->isRollupCell('Қорақалпоғистон Республикаси'))->toBeTrue();
+});
+
+test('isRollupCell rejects multi-sentence title cells', function () {
+    $longTitle = 'Қорақалпоғистон Республикасининг 2026 йил учун инвестиция прогноз кўрсаткичлари тўғрисида МАЪЛУМОТ';
+    expect(invade(makeForeignInvestParser())->isRollupCell($longTitle))->toBeFalse();
+});
+
+test('isRollupCell rejects non-strings', function () {
+    expect(invade(makeForeignInvestParser())->isRollupCell(42))->toBeFalse();
+    expect(invade(makeForeignInvestParser())->isRollupCell(null))->toBeFalse();
+});
