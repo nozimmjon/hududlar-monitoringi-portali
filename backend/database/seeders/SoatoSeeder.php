@@ -187,6 +187,11 @@ class SoatoSeeder extends Seeder
         // xlsx uses Х; older sources use Ҳ — keep both for importer fuzzy match.
         1703227 => ['Марҳамат тумани', 'Марҳамат'],
         1703230 => ['Шаҳрихон тумани', 'Шаҳрихон'],
+        // Karakalpak orthography variants — DB canonical from districts.xlsx differs from
+        // module xlsx spellings.
+        1735218 => ['Қонликўл тумани', 'Қонликўл'],
+        1735243 => ['Шўманой тумани', 'Шўманой'],
+        1735250 => ['Элликқалъа тумани', 'Элликқалъа', 'Элликқальа тумани', 'Элликқальа'],
     ];
 
     private function makeDistrictRow(int $regionCode, int $code, string $name, \DateTimeInterface $now): array
