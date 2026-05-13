@@ -18,25 +18,29 @@ class HeaderDetector
             return $cached->header_row;
         }
 
+        $allRows = $sheet->toArray(null, true, true, false);
         $hasUnitAbove = false;
-        for ($row = 1; $row <= 15; $row++) {
-            $colA = $sheet->getCell([1, $row])->getValue();
+
+        $limit = min(15, count($allRows));
+        for ($i = 0; $i < $limit; $i++) {
             $rowText = '';
-            foreach ($sheet->getRowIterator($row, $row) as $r) {
-                foreach ($r->getCellIterator() as $cell) {
-                    $v = $cell->getValue();
-                    if (is_string($v)) $rowText .= ' ' . $v;
+            foreach ($allRows[$i] as $cell) {
+                if (is_string($cell)) {
+                    $rowText .= ' ' . $cell;
                 }
             }
+
             if (mb_stripos($rowText, 'ҳажм') !== false || mb_stripos($rowText, 'млрд.сўм') !== false) {
                 $hasUnitAbove = true;
             }
 
+            $colA = $allRows[$i][0] ?? null;
             if ($hasUnitAbove && (is_int($colA) || (is_string($colA) && ctype_digit(trim($colA))))) {
+                $rowNumber = $i + 1;
                 if ($cached) {
-                    $cached->update(['header_row' => $row]);
+                    $cached->update(['header_row' => $rowNumber]);
                 }
-                return $row;
+                return $rowNumber;
             }
         }
 
