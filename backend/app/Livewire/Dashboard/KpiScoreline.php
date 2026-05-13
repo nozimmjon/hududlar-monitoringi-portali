@@ -30,7 +30,7 @@ class KpiScoreline extends Component
         $pct   = $total > 0 ? (int) round(($done / $total) * 100) : 0;
 
         $indicator = Indicator::where('code', $this->kpi)->first();
-        $kpiShort  = $indicator->label_short ?? $this->kpi;
+        $kpiShort  = $indicator?->label_short ?? $this->kpi;
         $scope     = $kpiShort . 'га оид чора-тадбирлар';
 
         return view('livewire.dashboard.kpi-scoreline', [

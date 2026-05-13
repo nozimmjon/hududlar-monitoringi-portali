@@ -108,3 +108,10 @@ test('ignores tasks from other regions', function () {
     Livewire::test(KpiScoreline::class, ['module' => 'macro', 'kpi' => 'grp'])
         ->assertViewHas('total', 0);
 });
+
+test('falls back to kpi code when Indicator record is missing', function () {
+    DB::table('indicators')->where('code', 'grp')->delete();
+
+    Livewire::test(KpiScoreline::class, ['module' => 'macro', 'kpi' => 'grp'])
+        ->assertViewHas('scope', 'grpга оид чора-тадбирлар');
+});
