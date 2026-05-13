@@ -48,11 +48,6 @@ class ImportRegionCommand extends Command
             return 1;
         }
 
-        if ($arg === 'navoiy') {
-            $this->warn("Skipped 'navoiy' — see data_quality_issues for upstream macro 1.2 contamination.");
-            return 0;
-        }
-
         $run = ImportRun::create([
             'region_code'   => $regionCode,
             'year'          => $year,
