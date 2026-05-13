@@ -88,14 +88,18 @@ class ExportModuleParser extends ModuleParser
     }
 
     /**
-     * A rollup cell is a string ≤ 40 chars that ends with 'вилояти' (after trimming).
-     * This distinguishes 'Андижон вилояти' (16 chars) from multi-sentence title rows.
+     * A rollup cell is a short string (≤ 40 chars) that ends with 'вилояти' or 'Республикаси',
+     * or is exactly 'Жами'. This distinguishes 'Андижон вилояти' and
+     * 'Қорақалпоғистон Республикаси' from multi-sentence title rows.
      */
     private function isRollupCell(mixed $value): bool
     {
         if (! is_string($value)) return false;
         $trimmed = trim($value);
-        return strlen($trimmed) <= 40 && str_ends_with($trimmed, 'вилояти');
+        if (mb_strlen($trimmed) > 40) return false;
+        return str_ends_with($trimmed, 'вилояти')
+            || str_ends_with($trimmed, 'Республикаси')
+            || $trimmed === 'Жами';
     }
 
     /**
