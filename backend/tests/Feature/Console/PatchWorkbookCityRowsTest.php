@@ -40,3 +40,26 @@ test('isDistrictSheet returns false for header-only sheets', function () {
     $cmd = new PatchWorkbookCityRows();
     expect(invade($cmd)->isDistrictSheet($rows))->toBeFalse();
 });
+
+test('cityFormsForRegion returns bare + full + normalized variants', function () {
+    DB::table('regions')->insert([
+        'code' => 1710, 'name_short' => 'Қашқадарё', 'name_full' => 'Қашқадарё вилояти',
+        'name_latin' => 'kashkadarya', 'sort_order' => 5,
+        'has_districts' => true, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $regionId = DB::table('regions')->where('code', 1710)->value('id');
+    DB::table('districts')->insert([
+        ['code' => 1710401, 'region_id' => $regionId, 'region_code' => 1710, 'name_short' => 'Қарши ш.', 'name_full' => 'Қарши шаҳри', 'kind' => 'city', 'sort_order' => 15, 'created_at' => now(), 'updated_at' => now()],
+        ['code' => 1710405, 'region_id' => $regionId, 'region_code' => 1710, 'name_short' => 'Шаҳрисабз ш.', 'name_full' => 'Шаҳрисабз шаҳри', 'kind' => 'city', 'sort_order' => 16, 'created_at' => now(), 'updated_at' => now()],
+        ['code' => 1710224, 'region_id' => $regionId, 'region_code' => 1710, 'name_short' => 'Қарши т.', 'name_full' => 'Қарши тумани', 'kind' => 'district', 'sort_order' => 4, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    $cmd = new PatchWorkbookCityRows();
+    $forms = invade($cmd)->cityFormsForRegion(1710);
+
+    expect($forms)->toHaveCount(2);
+    expect($forms[0]['full'])->toBe('Қарши ш.');
+    expect($forms[0]['bare'])->toBe('Қарши');
+    expect($forms[0]['bareNorm'])->toBe('қарши');
+    expect($forms[0]['fullNorm'])->toBe('қарши ш.');
+});
