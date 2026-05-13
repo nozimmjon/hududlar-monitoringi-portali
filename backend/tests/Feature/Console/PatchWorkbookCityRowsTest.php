@@ -120,10 +120,8 @@ test('patchSheet ignores rows with explicit district marker like " тумани"
     $sheet->setTitle('5.1');
     $sheet->setCellValue('B4', 'Туман/шаҳар номи');
     $sheet->setCellValue('B7', 'Қашқадарё вилояти');
-    $sheet->setCellValue('A8', '1');
-    $sheet->setCellValue('B8', 'Қарши ш.');         // city already marked — row 8
     $sheet->setCellValue('A12', '5');
-    $sheet->setCellValue('B12', 'Қарши тумани');    // district full form — MUST NOT be patched
+    $sheet->setCellValue('B12', 'Қарши тумани');     // district full form — MUST NOT be patched
     $sheet->setCellValue('A20', '13');
     $sheet->setCellValue('B20', 'Шаҳрисабз тумани'); // district full form — MUST NOT be patched
 
