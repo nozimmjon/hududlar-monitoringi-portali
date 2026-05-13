@@ -52,6 +52,10 @@ class ForeignInvestModuleParser extends ModuleParser
         $sheet = $this->sheetResolver->resolve($ctx, $book, $regionWorkbookId, 'foreign_invest', 'foreign_invest');
         if ($sheet === null) return 0;
 
+        if ($this->isAnnualOnlyLayout($sheet)) {
+            return $this->parseAnnualOnly($ctx, $sheet, $filePath);
+        }
+
         $rollupRow = $this->findRollupRow($sheet);
         if ($rollupRow === null) return 0;
 
@@ -177,6 +181,60 @@ class ForeignInvestModuleParser extends ModuleParser
             $count++;
         }
         return $count;
+    }
+
+    private function parseAnnualOnly(ImportContext $ctx, Worksheet $sheet, string $filePath): int
+    {
+        $rollupRow = $this->findRollupRow($sheet);
+        if ($rollupRow === null) return 0;
+
+        $count = 0;
+        $count += $this->emitAnnualRow($ctx, $sheet, $rollupRow, null, $filePath);
+
+        for ($row = $rollupRow + 1; $row <= $rollupRow + 30; $row++) {
+            $colA = $sheet->getCell([1, $row])->getCalculatedValue();
+            $colB = $sheet->getCell([2, $row])->getCalculatedValue();
+            if (! is_string($colA) || trim($colA) === '') continue;
+            if (! is_numeric($colB)) continue;
+
+            $districtCode = $this->districtResolver->resolve(
+                trim($colA), $ctx,
+                basename($filePath) . " · {$sheet->getTitle()} · row $row",
+            );
+            if ($districtCode === null) continue;
+
+            $count += $this->emitAnnualRow($ctx, $sheet, $row, $districtCode, $filePath);
+        }
+        return $count;
+    }
+
+    private function emitAnnualRow(
+        ImportContext $ctx,
+        Worksheet $sheet,
+        int $row,
+        ?int $districtCode,
+        string $filePath,
+    ): int {
+        $value = $this->numericOrNull($sheet->getCell([2, $row])->getCalculatedValue());
+        if ($value === null) return 0;
+
+        $dto = new IndicatorFactDto(
+            regionCode:     $ctx->regionCode(),
+            districtCode:   $districtCode,
+            year:           $ctx->year,
+            indicatorCode:  'investment',
+            period:         'year',
+            planValue:      $value,
+            expectedValue:  null,
+            actualHokimyat: null,
+            pctOfPlan:      null,
+            countExtra:     null,
+            countExtra2:    null,
+            unit:           'млн доллар',
+            sourceLabel:    basename($filePath) . " · {$sheet->getTitle()} · row $row",
+        );
+        $this->stagingWriter->buffer('import_staging_indicator_facts', $dto->toStagingRow($ctx->run->id));
+        return 1;
     }
 
     private function numericOrNull(mixed $value): ?float
