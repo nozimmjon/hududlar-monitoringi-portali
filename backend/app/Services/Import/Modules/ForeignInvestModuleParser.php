@@ -198,4 +198,23 @@ class ForeignInvestModuleParser extends ModuleParser
         $num = $this->numericOrNull($value);
         return $num === null ? null : $num * 100;
     }
+
+    /**
+     * Returns true when the sheet has no "I чорак" header in the first 10 rows,
+     * indicating a karakalpak-style annual-only layout instead of the standard
+     * quarterly layout used by Andijan and other regions.
+     */
+    private function isAnnualOnlyLayout(Worksheet $sheet): bool
+    {
+        $rows = $sheet->toArray(null, true, true, false);
+        $limit = min(10, count($rows));
+        for ($i = 0; $i < $limit; $i++) {
+            foreach ($rows[$i] as $cell) {
+                if (is_string($cell) && mb_stripos($cell, 'I чорак') !== false) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
