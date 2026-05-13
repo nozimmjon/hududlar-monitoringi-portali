@@ -131,7 +131,7 @@ class PatchWorkbookCityRows extends Command
         $rows = $sheet->toArray(null, true, true, false);
 
         $colBNorm = [];
-        for ($i = 6; $i < count($rows); $i++) {
+        for ($i = 0; $i < count($rows); $i++) {
             $val = $rows[$i][1] ?? null;
             if (! is_string($val)) continue;
             $trimmed = trim($val);

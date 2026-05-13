@@ -177,3 +177,28 @@ test('handle patches a tmp xlsx end-to-end and reports correctly', function () {
 
     File::deleteDirectory($tmpDataDir);
 });
+
+test('patchSheet skips region when city full form is present in an early row (rollup-at-row-5 layout)', function () {
+    $book = new Spreadsheet();
+    $sheet = $book->getActiveSheet();
+    $sheet->setTitle('2.2');
+    $sheet->setCellValue('A3', '№');
+    $sheet->setCellValue('B3', 'Туман номи');
+    $sheet->setCellValue('A5', null);
+    $sheet->setCellValue('B5', 'Наманган вилояти');
+    $sheet->setCellValue('A6', '1');
+    $sheet->setCellValue('B6', 'Наманган ш.');   // city already marked at row 6
+    $sheet->setCellValue('A11', '6');
+    $sheet->setCellValue('B11', 'Наманган');      // bare — MUST NOT be patched (city marker exists above)
+
+    $cityForms = [
+        ['bare' => 'Наманган', 'full' => 'Наманган ш.', 'bareNorm' => 'наманган', 'fullNorm' => 'наманган ш.'],
+    ];
+
+    $cmd = new PatchWorkbookCityRows();
+    $patches = invade($cmd)->patchSheet($sheet, $cityForms);
+
+    expect($patches)->toHaveCount(0);
+    expect($sheet->getCell('B6')->getValue())->toBe('Наманган ш.');
+    expect($sheet->getCell('B11')->getValue())->toBe('Наманган');
+});
