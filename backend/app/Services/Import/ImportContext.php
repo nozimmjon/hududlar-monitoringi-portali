@@ -11,7 +11,7 @@ final readonly class ImportContext
         public ImportRun $run,
         public Region $region,
         public int $year,
-        public string $dataPath,
+        public ?string $dataPath,
     ) {}
 
     public function regionCode(): string
