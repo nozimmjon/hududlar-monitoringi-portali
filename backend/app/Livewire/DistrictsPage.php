@@ -161,7 +161,7 @@ class DistrictsPage extends Component
         $rows = $this->rankedDistricts;
         if ($this->district !== '') {
             foreach ($rows as $row) {
-                if ($row['district']->code === $this->district) {
+                if ((string) $row['district']->code === $this->district) {
                     return $row;
                 }
             }
