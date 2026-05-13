@@ -103,6 +103,13 @@ class SoatoSeeder extends Seeder
             return;
         }
 
+        $expectedCodes = array_keys(self::REGION_LATIN);
+        foreach (['REGION_SORT' => self::REGION_SORT, 'REGION_FOLDER' => self::REGION_FOLDER] as $label => $map) {
+            if (array_diff_key($map, array_flip($expectedCodes)) || array_diff_key(array_flip($expectedCodes), $map)) {
+                throw new \RuntimeException("SoatoSeeder::{$label} disagrees with REGION_LATIN on region codes.");
+            }
+        }
+
         $sheet = IOFactory::load($path)->getActiveSheet();
         $now = now();
 
