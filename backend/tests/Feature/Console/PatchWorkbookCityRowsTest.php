@@ -114,6 +114,32 @@ test('regionFolderName uses folder_name when set, falls back to sort_order + nam
     expect(invade($cmd)->regionFolderName($kkalp))->toBe('1. Қорақалпоғистон Республикаси');
 });
 
+test('patchSheet ignores rows with explicit district marker like " тумани"', function () {
+    $book = new Spreadsheet();
+    $sheet = $book->getActiveSheet();
+    $sheet->setTitle('5.1');
+    $sheet->setCellValue('B4', 'Туман/шаҳар номи');
+    $sheet->setCellValue('B7', 'Қашқадарё вилояти');
+    $sheet->setCellValue('A8', '1');
+    $sheet->setCellValue('B8', 'Қарши ш.');         // city already marked — row 8
+    $sheet->setCellValue('A12', '5');
+    $sheet->setCellValue('B12', 'Қарши тумани');    // district full form — MUST NOT be patched
+    $sheet->setCellValue('A20', '13');
+    $sheet->setCellValue('B20', 'Шаҳрисабз тумани'); // district full form — MUST NOT be patched
+
+    $cityForms = [
+        ['bare' => 'Қарши',      'full' => 'Қарши ш.',      'bareNorm' => 'қарши',      'fullNorm' => 'қарши ш.'],
+        ['bare' => 'Шаҳрисабз',  'full' => 'Шаҳрисабз ш.',  'bareNorm' => 'шаҳрисабз',  'fullNorm' => 'шаҳрисабз ш.'],
+    ];
+
+    $cmd = new PatchWorkbookCityRows();
+    $patches = invade($cmd)->patchSheet($sheet, $cityForms);
+
+    expect($patches)->toHaveCount(0);
+    expect($sheet->getCell('B12')->getValue())->toBe('Қарши тумани');
+    expect($sheet->getCell('B20')->getValue())->toBe('Шаҳрисабз тумани');
+});
+
 test('handle patches a tmp xlsx end-to-end and reports correctly', function () {
     DB::table('regions')->insert([
         'code' => 1710, 'name_short' => 'Қашқадарё', 'name_full' => 'Қашқадарё вилояти',

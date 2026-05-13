@@ -136,6 +136,10 @@ class PatchWorkbookCityRows extends Command
             if (! is_string($val)) continue;
             $trimmed = trim($val);
             if ($trimmed === '') continue;
+            // Skip rows that carry an explicit district marker — they are unambiguously districts.
+            if (preg_match('/\bтумани\b|\sт\.\s*$/u', $trimmed)) {
+                continue;
+            }
             $colBNorm[$i + 1] = DistrictNameNormalizer::normalize($trimmed);
         }
 
