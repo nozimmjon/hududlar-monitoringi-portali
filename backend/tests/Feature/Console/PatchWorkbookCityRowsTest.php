@@ -94,3 +94,22 @@ test('patchSheet rewrites topmost bare-city row to canonical city full form', fu
     expect($sheet->getCell('B9')->getValue())->toBe('Шахрисабз ш.');
     expect($sheet->getCell('B13')->getValue())->toBe('Қарши ');
 });
+
+test('regionFolderName uses folder_name when set, falls back to sort_order + name_short', function () {
+    // Two separate inserts: rows have different columns (one has folder_name, one does not),
+    // which PostgreSQL rejects in a single multi-row INSERT with mismatched column lists.
+    DB::table('regions')->insert(
+        ['code' => 1703, 'name_short' => 'Андижон', 'name_full' => 'Андижон вилояти', 'name_latin' => 'andijan', 'sort_order' => 2, 'has_districts' => true, 'created_at' => now(), 'updated_at' => now()]
+    );
+    DB::table('regions')->insert(
+        ['code' => 1735, 'name_short' => 'Қорақалпоғистон', 'name_full' => 'Қорақалпоғистон Республикаси', 'name_latin' => 'karakalpak', 'sort_order' => 1, 'folder_name' => '1. Қорақалпоғистон Республикаси', 'has_districts' => true, 'created_at' => now(), 'updated_at' => now()]
+    );
+
+    $cmd = new PatchWorkbookCityRows();
+
+    $andijan = Region::where('code', 1703)->first();
+    expect(invade($cmd)->regionFolderName($andijan))->toBe('2. Андижон');
+
+    $kkalp = Region::where('code', 1735)->first();
+    expect(invade($cmd)->regionFolderName($kkalp))->toBe('1. Қорақалпоғистон Республикаси');
+});

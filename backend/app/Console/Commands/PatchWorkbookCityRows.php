@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\District;
+use App\Models\Region;
 use App\Support\Import\DistrictNameNormalizer;
 use Illuminate\Console\Command;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -19,6 +20,14 @@ class PatchWorkbookCityRows extends Command
     {
         $this->info('Patched 0 row(s) across 0 xlsx file(s) in 0 region(s).');
         return self::SUCCESS;
+    }
+
+    private function regionFolderName(Region $region): string
+    {
+        if (! empty($region->folder_name)) {
+            return $region->folder_name;
+        }
+        return sprintf('%d. %s', $region->sort_order, $region->name_short);
     }
 
     private function cityFormsForRegion(int $regionCode): array
