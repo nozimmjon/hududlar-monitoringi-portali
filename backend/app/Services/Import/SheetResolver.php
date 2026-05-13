@@ -87,13 +87,15 @@ class SheetResolver
 
     private function scoreSheet(Worksheet $sheet, array $signatures): int
     {
+        $rows = $sheet->toArray(null, true, true, false);
         $score = 0;
-        for ($row = 1; $row <= 5; $row++) {
+        $limit = min(8, count($rows));
+
+        for ($i = 0; $i < $limit; $i++) {
             $rowText = '';
-            foreach ($sheet->getRowIterator($row, $row) as $r) {
-                foreach ($r->getCellIterator() as $cell) {
-                    $val = $cell->getValue();
-                    if (is_string($val)) $rowText .= ' ' . $val;
+            foreach ($rows[$i] as $cell) {
+                if (is_string($cell)) {
+                    $rowText .= ' ' . $cell;
                 }
             }
             foreach ($signatures as $sig) {
