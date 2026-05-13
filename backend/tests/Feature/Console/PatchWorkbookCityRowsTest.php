@@ -63,3 +63,34 @@ test('cityFormsForRegion returns bare + full + normalized variants', function ()
     expect($forms[0]['bareNorm'])->toBe('қарши');
     expect($forms[0]['fullNorm'])->toBe('қарши ш.');
 });
+
+test('patchSheet rewrites topmost bare-city row to canonical city full form', function () {
+    $book = new Spreadsheet();
+    $sheet = $book->getActiveSheet();
+    $sheet->setTitle('1.5');
+    $sheet->setCellValue('A4', '№');
+    $sheet->setCellValue('B4', 'Туман/шаҳар номи');
+    $sheet->setCellValue('B7', 'Қашқадарё вилояти');
+    $sheet->setCellValue('A8', '1');
+    $sheet->setCellValue('B8', 'Қарши ');
+    $sheet->setCellValue('A9', '2');
+    $sheet->setCellValue('B9', 'Шахрисабз ш.');
+    $sheet->setCellValue('A13', '6');
+    $sheet->setCellValue('B13', 'Қарши ');
+
+    $cityForms = [
+        ['bare' => 'Қарши', 'full' => 'Қарши ш.', 'bareNorm' => 'қарши', 'fullNorm' => 'қарши ш.'],
+        ['bare' => 'Шаҳрисабз', 'full' => 'Шаҳрисабз ш.', 'bareNorm' => 'шаҳрисабз', 'fullNorm' => 'шаҳрисабз ш.'],
+    ];
+
+    $cmd = new PatchWorkbookCityRows();
+    $patches = invade($cmd)->patchSheet($sheet, $cityForms);
+
+    expect($patches)->toHaveCount(1);
+    expect($patches[0]['row'])->toBe(8);
+    expect($patches[0]['old'])->toBe('Қарши ');
+    expect($patches[0]['new'])->toBe('Қарши ш.');
+    expect($sheet->getCell('B8')->getValue())->toBe('Қарши ш.');
+    expect($sheet->getCell('B9')->getValue())->toBe('Шахрисабз ш.');
+    expect($sheet->getCell('B13')->getValue())->toBe('Қарши ');
+});

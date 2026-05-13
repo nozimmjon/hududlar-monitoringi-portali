@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\District;
 use App\Support\Import\DistrictNameNormalizer;
 use Illuminate\Console\Command;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class PatchWorkbookCityRows extends Command
 {
@@ -39,6 +40,37 @@ class PatchWorkbookCityRows extends Command
             })
             ->values()
             ->all();
+    }
+
+    private function patchSheet(Worksheet $sheet, array $cityForms): array
+    {
+        $rows = $sheet->toArray(null, true, true, false);
+
+        $colBNorm = [];
+        for ($i = 6; $i < count($rows); $i++) {
+            $val = $rows[$i][1] ?? null;
+            if (! is_string($val)) continue;
+            $trimmed = trim($val);
+            if ($trimmed === '') continue;
+            $colBNorm[$i + 1] = DistrictNameNormalizer::normalize($trimmed);
+        }
+
+        $patches = [];
+        foreach ($cityForms as $cf) {
+            $bareRows = array_keys(array_filter($colBNorm, fn($v) => $v === $cf['bareNorm']));
+            $fullRows = array_keys(array_filter($colBNorm, fn($v) => $v === $cf['fullNorm']));
+
+            if (count($fullRows) > 0) continue;
+            if (count($bareRows) === 0) continue;
+
+            $patchRow = min($bareRows);
+            $oldValue = $sheet->getCell([2, $patchRow])->getValue();
+            $sheet->setCellValue([2, $patchRow], $cf['full']);
+            $colBNorm[$patchRow] = $cf['fullNorm'];
+
+            $patches[] = ['row' => $patchRow, 'old' => $oldValue, 'new' => $cf['full']];
+        }
+        return $patches;
     }
 
     private function isDistrictSheet(array $rows): bool
