@@ -113,3 +113,43 @@ test('regionFolderName uses folder_name when set, falls back to sort_order + nam
     $kkalp = Region::where('code', 1735)->first();
     expect(invade($cmd)->regionFolderName($kkalp))->toBe('1. Қорақалпоғистон Республикаси');
 });
+
+test('handle patches a tmp xlsx end-to-end and reports correctly', function () {
+    DB::table('regions')->insert([
+        'code' => 1710, 'name_short' => 'Қашқадарё', 'name_full' => 'Қашқадарё вилояти',
+        'name_latin' => 'kashkadarya', 'sort_order' => 5, 'has_districts' => true,
+        'folder_name' => null, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $regionId = DB::table('regions')->where('code', 1710)->value('id');
+    DB::table('districts')->insert([
+        ['code' => 1710401, 'region_id' => $regionId, 'region_code' => 1710, 'name_short' => 'Қарши ш.', 'name_full' => 'Қарши шаҳри', 'kind' => 'city', 'sort_order' => 15, 'created_at' => now(), 'updated_at' => now()],
+        ['code' => 1710224, 'region_id' => $regionId, 'region_code' => 1710, 'name_short' => 'Қарши т.', 'name_full' => 'Қарши тумани', 'kind' => 'district', 'sort_order' => 4, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    $tmpDataDir = sys_get_temp_dir() . '/patch_city_rows_' . uniqid();
+    $regionDir = $tmpDataDir . DIRECTORY_SEPARATOR . '5. Қашқадарё';
+    File::makeDirectory($regionDir, 0777, true);
+
+    $book = new Spreadsheet();
+    $sheet = $book->getActiveSheet();
+    $sheet->setTitle('1.5');
+    $sheet->setCellValue('B4', 'Туман/шаҳар номи');
+    $sheet->setCellValue('B8', 'Қарши ');
+    $xlsxPath = $regionDir . DIRECTORY_SEPARATOR . 'macro.xlsx';
+    (new XlsxWriter($book))->save($xlsxPath);
+    $book->disconnectWorksheets();
+    unset($book);
+
+    config(['import.data_path' => $tmpDataDir]);
+
+    Artisan::call('data:patch-city-rows', ['--region' => ['kashkadarya']]);
+    $output = Artisan::output();
+
+    expect($output)->toContain("row 8 | 'Қарши ' → 'Қарши ш.'");
+    expect($output)->toContain('Patched 1 row(s) across 1 xlsx file(s) in 1 region(s).');
+
+    $reloaded = \PhpOffice\PhpSpreadsheet\IOFactory::load($xlsxPath);
+    expect($reloaded->getActiveSheet()->getCell('B8')->getValue())->toBe('Қарши ш.');
+
+    File::deleteDirectory($tmpDataDir);
+});

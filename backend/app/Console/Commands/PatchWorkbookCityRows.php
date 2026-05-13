@@ -6,7 +6,9 @@ use App\Models\District;
 use App\Models\Region;
 use App\Support\Import\DistrictNameNormalizer;
 use Illuminate\Console\Command;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxWriter;
 
 class PatchWorkbookCityRows extends Command
 {
@@ -18,7 +20,80 @@ class PatchWorkbookCityRows extends Command
 
     public function handle(): int
     {
-        $this->info('Patched 0 row(s) across 0 xlsx file(s) in 0 region(s).');
+        $dataPath = config('import.data_path');
+        if (! is_string($dataPath) || ! is_dir($dataPath)) {
+            $this->error("data_path '{$dataPath}' not found or not a directory.");
+            return self::FAILURE;
+        }
+
+        $regionSlugs = (array) $this->option('region');
+        $dryRun = (bool) $this->option('dry-run');
+
+        $query = Region::query()->orderBy('sort_order');
+        if (! empty($regionSlugs)) {
+            $query->whereIn('name_latin', $regionSlugs);
+        }
+        $regions = $query->get();
+
+        $totalPatched = 0;
+        $totalFiles = 0;
+        $totalRegions = 0;
+
+        foreach ($regions as $region) {
+            $regionDir = $dataPath . DIRECTORY_SEPARATOR . $this->regionFolderName($region);
+            if (! is_dir($regionDir)) {
+                $this->line("{$region->code} {$region->name_latin}: data folder not found, skipping");
+                continue;
+            }
+
+            $cityForms = $this->cityFormsForRegion($region->code);
+            if (empty($cityForms)) continue;
+
+            $regionPatchedAny = false;
+            foreach (glob($regionDir . DIRECTORY_SEPARATOR . '*.xlsx') as $file) {
+                $book = IOFactory::load($file);
+                $dirty = false;
+
+                foreach ($book->getAllSheets() as $sheet) {
+                    $rows = $sheet->toArray(null, true, true, false);
+                    if (! $this->isDistrictSheet($rows)) continue;
+
+                    $patches = $this->patchSheet($sheet, $cityForms);
+                    foreach ($patches as $p) {
+                        $this->line(sprintf(
+                            "%d %s | %s | %s | row %d | '%s' → '%s'",
+                            $region->code,
+                            $region->name_latin,
+                            basename($file),
+                            $sheet->getTitle(),
+                            $p['row'],
+                            $p['old'],
+                            $p['new'],
+                        ));
+                        $totalPatched++;
+                        $dirty = true;
+                    }
+                }
+
+                if ($dirty) {
+                    $totalFiles++;
+                    $regionPatchedAny = true;
+                    if (! $dryRun) {
+                        try {
+                            (new XlsxWriter($book))->save($file);
+                        } catch (\Throwable $e) {
+                            $this->error("Failed to save {$file}: {$e->getMessage()} (close it in Excel and re-run)");
+                        }
+                    }
+                }
+                $book->disconnectWorksheets();
+                unset($book);
+            }
+
+            if ($regionPatchedAny) $totalRegions++;
+        }
+
+        $this->info("Patched {$totalPatched} row(s) across {$totalFiles} xlsx file(s) in {$totalRegions} region(s).");
         return self::SUCCESS;
     }
 
