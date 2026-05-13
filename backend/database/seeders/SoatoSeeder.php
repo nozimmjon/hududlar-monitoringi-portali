@@ -70,6 +70,28 @@ class SoatoSeeder extends Seeder
         1733 => 14,
     ];
 
+    /**
+     * SOATO region code => exact folder name on disk under data/.
+     * Decoupled from sort_order because operator's folder numbering
+     * differs from UI display order. Values must match disk byte-for-byte.
+     */
+    public const REGION_FOLDER = [
+        1735 => '1. Қорақалпоғистон Республикаси',
+        1703 => '2. Андижон',
+        1706 => '3. Бухоро',
+        1708 => '4. Жиззах',
+        1710 => '5. Қашқадарё',
+        1712 => '6. Навоий',
+        1714 => '7. Наманган',
+        1718 => '8. Самарқанд',
+        1722 => '9. Сурхондарё',
+        1724 => '10. Сирдарё',
+        1727 => '11. Тошкент вил',
+        1730 => '12. Фарғона',
+        1733 => '13. Хоразм',
+        1726 => '14. Тошкент ш',
+    ];
+
     public function run(): void
     {
         $path = base_path('../districts.xlsx');
@@ -145,7 +167,7 @@ class SoatoSeeder extends Seeder
             'name_short'    => $nameShort,
             'name_full'     => $nameFull,
             'name_latin'    => self::REGION_LATIN[$code] ?? null,
-            'folder_name'   => null,
+            'folder_name'   => self::REGION_FOLDER[$code] ?? null,
             'sort_order'    => self::REGION_SORT[$code] ?? 99,
             'has_districts' => true,
             'created_at'    => $now,
