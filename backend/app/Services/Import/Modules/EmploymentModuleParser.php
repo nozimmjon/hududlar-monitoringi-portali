@@ -88,19 +88,24 @@ class EmploymentModuleParser extends ModuleParser
         }
     }
 
-    /** Rollup detection: col A == 'ЖАМИ' (uppercase, exact match). */
+    /** Rollup detection: col A or col B == 'ЖАМИ' (uppercase, exact match). */
     private function findRollupRow(Worksheet $sheet): ?int
     {
         for ($row = 1; $row <= 15; $row++) {
-            $colA = $sheet->getCell([1, $row])->getCalculatedValue();
-            if (is_string($colA) && trim($colA) === 'ЖАМИ') return $row;
+            foreach ([1, 2] as $col) {
+                $val = $sheet->getCell([$col, $row])->getCalculatedValue();
+                if (is_string($val) && trim($val) === 'ЖАМИ') return $row;
+            }
         }
         return null;
     }
 
     private function classifyRow(mixed $colA, mixed $colB): string
     {
-        if (is_string($colA) && trim($colA) === 'ЖАМИ') return 'rollup';
+        if ((is_string($colA) && trim($colA) === 'ЖАМИ')
+            || (is_string($colB) && trim($colB) === 'ЖАМИ')) {
+            return 'rollup';
+        }
         if (! is_string($colB) || trim($colB) === '') return 'skip';
         if (is_int($colA) || (is_string($colA) && ctype_digit(trim((string) $colA)))) return 'district';
         return 'skip';
