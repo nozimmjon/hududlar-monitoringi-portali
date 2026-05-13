@@ -27,3 +27,15 @@ test('REGION_LATIN, REGION_SORT, REGION_FOLDER all cover the same region codes',
     expect($latin)->toBe($sort);
     expect($latin)->toBe($folder);
 });
+
+test('every region folder_name exists on disk when data dir is present', function () {
+    $dataPath = base_path('../data');
+    if (! is_dir($dataPath)) {
+        $this->markTestSkipped('data/ folder not present in this environment.');
+    }
+
+    foreach (SoatoSeeder::REGION_FOLDER as $code => $folder) {
+        $full = $dataPath . DIRECTORY_SEPARATOR . $folder;
+        expect(is_dir($full))->toBeTrue("Missing data folder for region {$code}: {$full}");
+    }
+});
