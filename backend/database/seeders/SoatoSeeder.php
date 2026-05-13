@@ -192,6 +192,7 @@ class SoatoSeeder extends Seeder
         1735218 => ['Қонликўл тумани', 'Қонликўл'],
         1735243 => ['Шўманой тумани', 'Шўманой'],
         1735250 => ['Элликқалъа тумани', 'Элликқалъа', 'Элликқальа тумани', 'Элликқальа'],
+        1735401 => ['Нукус шаҳар'],
     ];
 
     private function makeDistrictRow(int $regionCode, int $code, string $name, \DateTimeInterface $now): array
