@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Task extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'region_code', 'guarantee_letter_id', 'task_number', 'title',
         'deadline_text', 'period_code', 'executor_text', 'kind',

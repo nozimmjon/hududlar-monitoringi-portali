@@ -69,6 +69,13 @@ class DashboardCatalog
         ],
     ];
 
+    /**
+     * Modules whose `tasks.indicator_code` is populated. For other modules
+     * tasks land with indicator_code = NULL, and the scoreline must skip the
+     * indicator_code predicate.
+     */
+    public const MODULES_WITH_INDICATOR_TASKS = ['macro', 'employment'];
+
     public const INFLATION_PRICE_CAPS = [
         ['name' => 'Гўшт ва гўшт маҳсулотлари', 'icon' => 'meat',         'cap' => '6–7%дан ошмаслик'],
         ['name' => 'Тухум',                      'icon' => 'egg',          'cap' => '5–6%дан ошмаслик'],
