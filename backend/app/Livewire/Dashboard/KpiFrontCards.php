@@ -16,6 +16,13 @@ class KpiFrontCards extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public int $regionCode;
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
+
     public function selectKpi(string $code): void
     {
         $this->dispatch('kpi-selected', kpi: $code);
@@ -25,7 +32,7 @@ class KpiFrontCards extends Component
     {
         $codes = DashboardCatalog::moduleKpis($this->module);
 
-        $facts = IndicatorFact::where('region_code', 1703)
+        $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->where('period', 'year')

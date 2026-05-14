@@ -16,9 +16,16 @@ class KpiScoreline extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public int $regionCode;
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
+
     public function render()
     {
-        $base = Task::forRegion(1703)->forModule($this->module);
+        $base = Task::forRegion($this->regionCode)->forModule($this->module);
 
         if (in_array($this->module, DashboardCatalog::MODULES_WITH_INDICATOR_TASKS, true)) {
             $base->forIndicator($this->kpi);

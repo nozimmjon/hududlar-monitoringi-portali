@@ -17,7 +17,7 @@ use Livewire\Component;
 
 class DistrictsPage extends Component
 {
-    public const REGION_CODE = 1703;
+    public int $regionCode;
 
     #[Url]
     public string $module = 'macro';
@@ -36,6 +36,11 @@ class DistrictsPage extends Component
 
     #[Url]
     public string $search = '';
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
 
     public function selectModule(string $code): void
     {
@@ -68,7 +73,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function districts(): Collection
     {
-        return District::where('region_code', self::REGION_CODE)
+        return District::where('region_code', $this->regionCode)
             ->orderBy('sort_order')
             ->get()
             ->keyBy('code');
@@ -83,7 +88,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function facts(): Collection
     {
-        return IndicatorFact::where('region_code', self::REGION_CODE)
+        return IndicatorFact::where('region_code', $this->regionCode)
             ->where('indicator_code', $this->kpi)
             ->where('period', $this->period)
             ->whereNotNull('district_code')
@@ -94,7 +99,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function rollup(): ?IndicatorFact
     {
-        return IndicatorFact::where('region_code', self::REGION_CODE)
+        return IndicatorFact::where('region_code', $this->regionCode)
             ->where('indicator_code', $this->kpi)
             ->where('period', $this->period)
             ->whereNull('district_code')
@@ -172,7 +177,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function moduleOptions(): Collection
     {
-        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+        $codes = IndicatorFact::where('region_code', $this->regionCode)
             ->whereNotNull('district_code')
             ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
             ->whereNotNull('indicators.module_code')
@@ -185,7 +190,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function kpiOptions(): Collection
     {
-        $codes = IndicatorFact::where('region_code', self::REGION_CODE)
+        $codes = IndicatorFact::where('region_code', $this->regionCode)
             ->where('period', $this->period)
             ->whereNotNull('district_code')
             ->join('indicators', 'indicator_facts.indicator_code', '=', 'indicators.code')
@@ -200,7 +205,7 @@ class DistrictsPage extends Component
     public function coverage(): array
     {
         $count = $this->facts->count();
-        $periods = IndicatorFact::where('region_code', self::REGION_CODE)
+        $periods = IndicatorFact::where('region_code', $this->regionCode)
             ->where('indicator_code', $this->kpi)
             ->whereNotNull('district_code')
             ->distinct()
@@ -212,7 +217,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function targetCount(): int
     {
-        return PromiseTarget::where('region_code', self::REGION_CODE)
+        return PromiseTarget::where('region_code', $this->regionCode)
             ->where('indicator_code', $this->kpi)
             ->whereNotNull('target_districts')
             ->count();
@@ -221,7 +226,7 @@ class DistrictsPage extends Component
     #[Computed]
     public function taskCount(): int
     {
-        return Task::forRegion(self::REGION_CODE)
+        return Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
             ->count();
     }
@@ -250,7 +255,7 @@ class DistrictsPage extends Component
         }
         if (empty($pairs)) return [];
 
-        $query = IndicatorFact::where('region_code', self::REGION_CODE)
+        $query = IndicatorFact::where('region_code', $this->regionCode)
             ->whereNotNull('district_code');
 
         $query->where(function ($q) use ($pairs) {
@@ -276,7 +281,7 @@ class DistrictsPage extends Component
     public function taskCountByDistrict(): array
     {
         $out = [];
-        $tasks = Task::forRegion(self::REGION_CODE)
+        $tasks = Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
             ->with('districts:id,code')
             ->get();
@@ -300,7 +305,7 @@ class DistrictsPage extends Component
     public function targetCountByDistrict(): array
     {
         $out = [];
-        $targets = PromiseTarget::where('region_code', self::REGION_CODE)
+        $targets = PromiseTarget::where('region_code', $this->regionCode)
             ->where('indicator_code', $this->kpi)
             ->whereNotNull('target_districts')
             ->get();

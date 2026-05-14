@@ -30,7 +30,12 @@ class TasksBoard extends Component
     #[Url]
     public string $search = '';
 
-    public int $regionCode = 1703;
+    public int $regionCode;
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
 
     public function selectModule(string $code): void
     {

@@ -18,8 +18,8 @@ use Livewire\Component;
 
 class RegionProfile extends Component
 {
-    private const REGION_CODE = 1703;
-    private const YEAR        = 2026;
+    public int $regionCode;
+    private const YEAR = 2026;
 
     #[Url]
     public string $districtCode = '';
@@ -34,6 +34,7 @@ class RegionProfile extends Component
 
     public function mount(): void
     {
+        $this->regionCode = \App\Support\CurrentRegion::code();
         $kpis = $this->availableKpis();
         if ($kpis->isNotEmpty() && ! $kpis->firstWhere('code', $this->kpi)) {
             $this->kpi = $kpis->first()->code;
@@ -44,7 +45,7 @@ class RegionProfile extends Component
     public function district(): ?District
     {
         if ($this->districtCode === '') return null;
-        return District::where('region_code', self::REGION_CODE)
+        return District::where('region_code', $this->regionCode)
             ->where('code', (int) $this->districtCode)
             ->first();
     }
@@ -53,7 +54,7 @@ class RegionProfile extends Component
     public function facts(): Collection
     {
         if (! $this->district) return collect();
-        return IndicatorFact::where('region_code', self::REGION_CODE)
+        return IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', self::YEAR)
             ->where('district_code', $this->district->code)
             ->where('period', 'year')
@@ -65,7 +66,7 @@ class RegionProfile extends Component
     public function availableKpis(): Collection
     {
         $codes = DB::table('region_indicator_availability')
-            ->where('region_code', self::REGION_CODE)
+            ->where('region_code', $this->regionCode)
             ->where('status', 'available')
             ->pluck('indicator_code');
 
@@ -109,7 +110,7 @@ class RegionProfile extends Component
     public function tasksForKpi(): Collection
     {
         if (! $this->district) return collect();
-        return Task::forRegion(self::REGION_CODE)
+        return Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
             ->forDistrict($this->district->id)
             ->limit(4)
@@ -120,7 +121,7 @@ class RegionProfile extends Component
     public function taskCounts(): array
     {
         if (! $this->district) return ['total' => 0, 'unfinished' => 0];
-        $base = Task::forRegion(self::REGION_CODE)
+        $base = Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
             ->forDistrict($this->district->id);
         $total = (clone $base)->count();
@@ -132,7 +133,7 @@ class RegionProfile extends Component
     public function tasksForDistrict(): Collection
     {
         if (! $this->district) return collect();
-        return Task::forRegion(self::REGION_CODE)
+        return Task::forRegion($this->regionCode)
             ->forDistrict($this->district->id)
             ->with('indicator')
             ->orderBy('section_path')
@@ -144,7 +145,7 @@ class RegionProfile extends Component
     public function districtTaskCounts(): array
     {
         if (! $this->district) return ['total' => 0, 'unfinished' => 0];
-        $base = Task::forRegion(self::REGION_CODE)->forDistrict($this->district->id);
+        $base = Task::forRegion($this->regionCode)->forDistrict($this->district->id);
         $total = (clone $base)->count();
         $done  = (clone $base)->where('status', 'done')->count();
         return ['total' => $total, 'unfinished' => $total - $done];

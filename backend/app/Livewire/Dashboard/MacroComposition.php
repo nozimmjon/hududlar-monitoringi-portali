@@ -9,6 +9,13 @@ use Livewire\Component;
 
 class MacroComposition extends Component
 {
+    public int $regionCode;
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
+
     public function selectKpi(string $code): void
     {
         $this->dispatch('kpi-selected', kpi: $code);
@@ -18,7 +25,7 @@ class MacroComposition extends Component
     {
         $components = ['industry', 'agriculture', 'construction', 'services'];
 
-        $facts = IndicatorFact::where('region_code', 1703)
+        $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->whereIn('indicator_code', $components)

@@ -17,11 +17,18 @@ class KpiWorkspaceCard extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public int $regionCode;
+
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
+
     public function render()
     {
         $indicator = Indicator::where('code', $this->kpi)->first();
 
-        $rows = IndicatorFact::where('region_code', 1703)
+        $rows = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->where('indicator_code', $this->kpi)
@@ -62,7 +69,7 @@ class KpiWorkspaceCard extends Component
     protected function inflationData(): array
     {
         $foods = DB::table('food_balance')
-            ->where('region_code', 1703)
+            ->where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNotNull('product')
             ->where('product', '!=', 'шундан:')
@@ -75,7 +82,7 @@ class KpiWorkspaceCard extends Component
             ->values();
 
         $warehouses = DB::table('warehouses')
-            ->where('region_code', 1703)
+            ->where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->get();
@@ -89,7 +96,7 @@ class KpiWorkspaceCard extends Component
 
     protected function employmentData(array $codes): array
     {
-        $facts = IndicatorFact::where('region_code', 1703)
+        $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->whereIn('indicator_code', $codes)
@@ -112,7 +119,7 @@ class KpiWorkspaceCard extends Component
         $base = $this->employmentData(['jobs', 'legalization', 'mfy_clear', 'microprojects']);
 
         $clearDistricts = DB::table('districts')
-            ->where('region_code', 1703)
+            ->where('region_code', $this->regionCode)
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('indicator_facts')
@@ -129,7 +136,7 @@ class KpiWorkspaceCard extends Component
 
     protected function macroGrowthData(): array
     {
-        $facts = IndicatorFact::where('region_code', 1703)
+        $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->whereIn('indicator_code', DashboardCatalog::MACRO_GROWTH_KPIS)
@@ -144,7 +151,7 @@ class KpiWorkspaceCard extends Component
 
         $industryDriverFacts = collect();
         if ($this->kpi === 'industry') {
-            $industryDriverFacts = IndicatorFact::where('region_code', 1703)
+            $industryDriverFacts = IndicatorFact::where('region_code', $this->regionCode)
                 ->where('year', 2026)
                 ->whereNull('district_code')
                 ->whereIn('indicator_code', ['localization', 'energy_electricity', 'energy_gas'])

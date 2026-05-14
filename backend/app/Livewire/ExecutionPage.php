@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class ExecutionPage extends Component
 {
+    public int $regionCode;
+
     public string $period = 'year';
 
     public array $periodLabels = [
@@ -16,13 +18,18 @@ class ExecutionPage extends Component
         'q1'   => 'I чорак',
     ];
 
+    public function mount(): void
+    {
+        $this->regionCode = \App\Support\CurrentRegion::code();
+    }
+
     private array $executionIndicators = [
         'budget', 'budget_investment', 'investment', 'export',
     ];
 
     public function render()
     {
-        $facts = IndicatorFact::where('region_code', 1703)
+        $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
             ->where('period', $this->period)
