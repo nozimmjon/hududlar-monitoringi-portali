@@ -37,11 +37,26 @@ class MacroModuleParser extends ModuleParser
 
         $count = 0;
         $count += $this->parseRollupSheet($ctx, $book, $regionWorkbookId, $filePath);
-        $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_industry',    'industry',    'млрд сўм');
-        $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_agriculture', 'agriculture', 'млрд сўм');
-        $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_services',    'services',    'млрд сўм');
+        if ($this->isApplicable($ctx, 'industry')) {
+            $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_industry',    'industry',    'млрд сўм');
+        }
+        if ($this->isApplicable($ctx, 'agriculture')) {
+            $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_agriculture', 'agriculture', 'млрд сўм');
+        }
+        if ($this->isApplicable($ctx, 'services')) {
+            $count += $this->parseDistrictSheet($ctx, $book, $regionWorkbookId, $filePath, 'district_services',    'services',    'млрд сўм');
+        }
         $count += $this->parseIndustryDriversRollup($ctx, $book, $regionWorkbookId, $filePath);
         return $count;
+    }
+
+    private function isApplicable(ImportContext $ctx, string $indicatorCode): bool
+    {
+        $status = \DB::table('region_indicator_availability')
+            ->where('region_code', $ctx->regionCode())
+            ->where('indicator_code', $indicatorCode)
+            ->value('status');
+        return $status !== 'not_applicable';
     }
 
     private function parseRollupSheet(ImportContext $ctx, Spreadsheet $book, int $rwbId, string $filePath): int
