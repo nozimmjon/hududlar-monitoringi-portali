@@ -100,8 +100,20 @@ test('city resolves via explicit suffix', function () {
     expect($r->resolve('Андижон ш.', $ctx, 'src'))->toBe(1703401);
 });
 
-test('non-district string returns null and emits issue', function () {
+test('sentinel string returns null silently — no issue emitted', function () {
     [$r, $ctx, $issues] = makeDistrictResolver();
     expect($r->resolve('ДСБ солиқ тўловчилари', $ctx, 'src'))->toBeNull();
+    expect($issues->bufferedCount())->toBe(0);
+});
+
+test('truly unknown district returns null AND emits issue', function () {
+    [$r, $ctx, $issues] = makeDistrictResolver();
+    expect($r->resolve('Несуществующий тумани', $ctx, 'src'))->toBeNull();
     expect($issues->bufferedCount())->toBeGreaterThan(0);
+});
+
+test('Заҳира лойиҳаларни sentinel from foreign_invest karakalpak is silent', function () {
+    [$r, $ctx, $issues] = makeDistrictResolver();
+    expect($r->resolve('Заҳира лойиҳаларни жадаллаштириш ҳисобидан', $ctx, 'src'))->toBeNull();
+    expect($issues->bufferedCount())->toBe(0);
 });

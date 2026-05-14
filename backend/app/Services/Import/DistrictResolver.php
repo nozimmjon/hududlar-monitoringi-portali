@@ -9,6 +9,16 @@ use App\Support\Import\DistrictNameNormalizer;
 
 class DistrictResolver
 {
+    /**
+     * Workbook strings that look like district names structurally but are
+     * sentinel/category rows (state tax payers, reserve project line items, etc.).
+     * Skipped silently — no district_code, no issue raised.
+     */
+    private const SENTINEL_VALUES = [
+        'ДСБ солиқ тўловчилари',
+        'Заҳира лойиҳаларни жадаллаштириш ҳисобидан',
+    ];
+
     private array $aliasToCode = [];
 
     public function __construct(private IssueCollector $issues) {}
@@ -57,6 +67,10 @@ class DistrictResolver
     public function resolve(string $workbookString, ImportContext $ctx, string $sourceLabel): ?int
     {
         $key = trim($workbookString);
+
+        if (in_array($key, self::SENTINEL_VALUES, true)) {
+            return null;
+        }
 
         if (isset($this->aliasToCode[$key])) {
             return $this->aliasToCode[$key];
