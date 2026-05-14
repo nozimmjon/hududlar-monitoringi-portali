@@ -9,14 +9,24 @@ use Tests\Helpers\IndexHtmlDataExtractor;
 
 uses(RefreshDatabase::class);
 
-function andijanDistrictCode(string $nameFull): ?string
+function andijanDistrictCode(string $nameFull): ?int
 {
-    $sortOrder = DB::table('districts')
+    // Try exact name_full match first
+    $code = DB::table('districts')
         ->where('region_code', 1703)
         ->where('name_full', $nameFull)
-        ->value('sort_order');
-    if ($sortOrder === null) return null;
-    return 'd' . str_pad((string) $sortOrder, 2, '0', STR_PAD_LEFT);
+        ->value('code');
+    if ($code !== null) return (int) $code;
+
+    // Fall back to alt_labels search (handles Cyrillic spelling variants)
+    $districts = DB::table('districts')->where('region_code', 1703)->get(['code', 'alt_labels']);
+    foreach ($districts as $d) {
+        $alts = json_decode($d->alt_labels ?? '[]', true) ?: [];
+        if (in_array($nameFull, $alts, true)) {
+            return (int) $d->code;
+        }
+    }
+    return null;
 }
 
 test('Andijan macro import reproduces the inlined DATA blob within 1e-6', function () {
@@ -35,7 +45,7 @@ test('Andijan macro import reproduces the inlined DATA blob within 1e-6', functi
     $run = ImportRun::latest()->first();
     expect($run->status->value)->toBe('awaiting_review');
     expect($run->issues_blocker_count)->toBe(0);
-    expect($run->rows_staged)->toBe(212);
+    expect($run->rows_staged)->toBe(218);
 
     $expected = (new IndexHtmlDataExtractor())->extract(base_path('../index.html'));
     $rows = ImportStagingIndicatorFact::where('import_run_id', $run->id)->get();

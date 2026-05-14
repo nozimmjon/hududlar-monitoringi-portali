@@ -9,14 +9,22 @@ use Tests\Helpers\IndexHtmlDataExtractor;
 
 uses(RefreshDatabase::class);
 
-function andijanBudgetDistrictCode(string $nameFull): ?string
+function andijanBudgetDistrictCode(string $nameFull): ?int
 {
-    $sortOrder = DB::table('districts')
+    $code = DB::table('districts')
         ->where('region_code', 1703)
         ->where('name_full', $nameFull)
-        ->value('sort_order');
-    if ($sortOrder === null) return null;
-    return 'd' . str_pad((string) $sortOrder, 2, '0', STR_PAD_LEFT);
+        ->value('code');
+    if ($code !== null) return (int) $code;
+
+    $districts = DB::table('districts')->where('region_code', 1703)->get(['code', 'alt_labels']);
+    foreach ($districts as $d) {
+        $alts = json_decode($d->alt_labels ?? '[]', true) ?: [];
+        if (in_array($nameFull, $alts, true)) {
+            return (int) $d->code;
+        }
+    }
+    return null;
 }
 
 test('Andijan budget import reproduces DATA.regional.budget and DATA.districts[*].data.budget within 0.05', function () {
