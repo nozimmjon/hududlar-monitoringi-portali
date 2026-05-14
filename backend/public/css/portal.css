@@ -5647,3 +5647,32 @@
       table { min-width: 720px; }
       .table-scroll { overflow-x: auto; }
     }
+
+/* ── Region Switcher ─────────────────────────────────────────── */
+.region-switcher {
+    padding: 12px 14px 0;
+}
+.region-switcher label {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.region-switcher select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+}
+.region-switcher select:focus {
+    outline: 2px solid var(--blue-2);
+    outline-offset: 1px;
+}
