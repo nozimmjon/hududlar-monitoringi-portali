@@ -53,7 +53,25 @@ test('taskCounts reflects tasks linked to district and KPI', function () {
         ->assertViewHas('taskCounts', fn ($c) => $c['total'] === 1 && $c['unfinished'] === 1);
 });
 
-test('tasks panel renders empty state when no tasks match', function () {
+test('district tasks panel renders empty state when district has no tasks', function () {
+    Task::query()->delete();
     Livewire::test(RegionProfile::class, ['districtCode' => '1703401', 'kpi' => 'grp'])
-        ->assertSee('Бу KPI бўйича топшириқ топилмади');
+        ->assertSee('Бу туман бўйича топшириқ топилмади');
+});
+
+test('districtTaskCounts shows tasks across all KPIs for the district', function () {
+    Task::query()->delete();
+    $districtId = \DB::table('districts')->where('code', 1703401)->value('id');
+
+    // 2 industry + 1 grp + 1 services tasks linked to district
+    foreach (['industry', 'industry', 'grp', 'services'] as $code) {
+        $t = Task::factory()->create([
+            'region_code' => 1703, 'module_code' => 'macro', 'indicator_code' => $code, 'status' => 'open',
+        ]);
+        \DB::table('task_districts')->insert(['task_id' => $t->id, 'district_id' => $districtId]);
+    }
+
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401', 'kpi' => 'industry'])
+        ->assertViewHas('districtTaskCounts', fn ($c) => $c['total'] === 4 && $c['unfinished'] === 4)
+        ->assertViewHas('taskCounts', fn ($c) => $c['total'] === 2);  // hero stays KPI-scoped
 });

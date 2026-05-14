@@ -128,6 +128,28 @@ class RegionProfile extends Component
         return ['total' => $total, 'unfinished' => $total - $done];
     }
 
+    #[Computed]
+    public function tasksForDistrict(): Collection
+    {
+        if (! $this->district) return collect();
+        return Task::forRegion(self::REGION_CODE)
+            ->forDistrict($this->district->id)
+            ->with('indicator')
+            ->orderBy('section_path')
+            ->orderBy('task_number')
+            ->get();
+    }
+
+    #[Computed]
+    public function districtTaskCounts(): array
+    {
+        if (! $this->district) return ['total' => 0, 'unfinished' => 0];
+        $base = Task::forRegion(self::REGION_CODE)->forDistrict($this->district->id);
+        $total = (clone $base)->count();
+        $done  = (clone $base)->where('status', 'done')->count();
+        return ['total' => $total, 'unfinished' => $total - $done];
+    }
+
     public function render()
     {
         return view('livewire.region-profile', [
@@ -140,6 +162,8 @@ class RegionProfile extends Component
             'status'               => $this->status,
             'tasks'                => $this->tasksForKpi,
             'taskCounts'           => $this->taskCounts,
+            'districtTasks'        => $this->tasksForDistrict,
+            'districtTaskCounts'   => $this->districtTaskCounts,
             'districtTargetsCount' => 0,
         ]);
     }
