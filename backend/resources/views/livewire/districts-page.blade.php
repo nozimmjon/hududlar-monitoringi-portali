@@ -252,7 +252,6 @@
                         <a class="mini-button" href="{{ route('execution') }}?indicator={{ $kpi }}&district={{ $selectedCode }}&period={{ $period }}">Ижро журнали</a>
                         <a class="mini-button" href="{{ route('tasks') }}?indicator={{ $kpi }}&district={{ $selectedCode }}">Топшириқлар</a>
                     </div>
-                    <span class="chip grey">ҳисобот йўқ</span>
                 @else
                     <p class="muted">Харита ёки рейтингдан туман/шаҳарни танланг.</p>
                 @endif
@@ -307,7 +306,6 @@
                         @endforeach
                         <th class="num">T-топшириқ</th>
                         <th class="num">D-мақсад</th>
-                        <th>Ҳисобот / таъсир</th>
                         <th>Амал</th>
                     </tr>
                 </thead>
@@ -329,7 +327,6 @@
                             @endforeach
                             <td class="num"><span class="chip {{ $taskChipClass($tasks) }}">{{ $tasks['unfinished'] }}/{{ $tasks['total'] }}</span></td>
                             <td class="num"><span class="chip {{ $targetChipClass($targets) }}">{{ $targets }}</span></td>
-                            <td><span class="chip grey">ҳисобот йўқ</span><small>амалдаги натижа киритилмаган</small></td>
                             <td>
                                 <div class="action-row compact">
                                     <a class="mini-button profile" href="{{ route('profile') }}?districtCode={{ $code }}">Профил</a>

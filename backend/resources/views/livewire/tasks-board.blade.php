@@ -77,10 +77,6 @@
                 <span>Бажарилмади</span>
                 <strong>{{ $totals['open'] }}</strong>
             </button>
-            <button class="exec-status-pill blue" type="button" disabled>
-                <span>Ҳисобот киритилган</span>
-                <strong>0</strong>
-            </button>
         </div>
         <div class="exec-progress-box">
             <div class="exec-donut" style="--pct:{{ $totals['pct'] }}"><strong>{{ $totals['pct'] }}%</strong></div>
@@ -126,7 +122,7 @@
         </div>
         <aside class="task-focus">
             <div class="eyebrow">Топшириқлар</div>
-            <h3>KPI → топшириқ → ҳисобот</h3>
+            <h3>KPI → топшириқ</h3>
             <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради.</p>
             <div class="task-side-stack">
                 <div class="task-side-row">
@@ -136,10 +132,6 @@
                 <div class="task-side-row">
                     <div><strong>Танланган KPI</strong><span>{{ $indicator === 'all' ? 'Барча KPI' : ($indicatorOptions->firstWhere('code', $indicator)?->label_full ?? $indicator) }}</span></div>
                     <span class="chip blue">{{ $indicator === 'all' ? 'ҳаммаси' : $indicator }}</span>
-                </div>
-                <div class="task-side-row">
-                    <div><strong>Ҳисобот киритилган</strong><span>Киритилган ҳисоботлар ижро журналида текширилади.</span></div>
-                    <span class="chip grey">0/{{ $totals['total'] }}</span>
                 </div>
             </div>
         </aside>

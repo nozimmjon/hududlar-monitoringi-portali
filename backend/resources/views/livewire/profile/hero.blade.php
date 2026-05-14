@@ -18,13 +18,12 @@
             <div>
                 <div class="eyebrow">{{ preg_replace('/^\d+\.\s*/u', '', $moduleLabel) }}</div>
                 <h3>{{ $district->name_full }}: {{ $indicator?->label_short ?? $kpi ?? '' }}</h3>
-                <p>Танланган KPI бўйича туман ҳолати: режа, амалдаги натижа, ҳисобот таъсири ва очиқ топшириқлар.</p>
+                <p>Танланган KPI бўйича туман ҳолати: режа, амалдаги натижа ва очиқ топшириқлар.</p>
                 <div class="action-row">
                     <span class="chip blue">Туман профили</span>
                     <span class="chip {{ $status }}">{{ $statusLabel }}</span>
                     <span class="chip {{ $taskChip }}">{{ $taskCounts['unfinished'] }}/{{ $taskCounts['total'] }} T-топшириқ</span>
                     <span class="chip grey">{{ $districtTargetsCount }} D-мақсад</span>
-                    <span class="chip grey">ҳисобот йўқ</span>
                 </div>
             </div>
             <div class="profile-main-value">
@@ -62,9 +61,7 @@
             <div class="profile-side-stat"><span>Жорий маълумот</span><strong>{{ $primaryValue }}</strong></div>
             <div class="profile-side-stat"><span>Бажарилмаган T-топшириқ</span><strong>{{ $taskCounts['unfinished'] }}/{{ $taskCounts['total'] }}</strong></div>
             <div class="profile-side-stat"><span>Туман мақсадлари</span><strong>{{ $districtTargetsCount }}</strong></div>
-            <div class="profile-side-stat"><span>Ҳисобот таъсири</span><strong>ҳисобот йўқ</strong></div>
             <div class="profile-actions" style="margin-top:12px">
-                <button class="mini-button primary" type="button" disabled title="Тез орада">Ҳисобот киритиш</button>
                 <a class="mini-button" href="{{ route('districts') }}?kpi={{ $kpi }}">Туманлар жадвали</a>
                 <button class="mini-button" type="button" disabled title="Тез орада">Ижро журнали</button>
             </div>

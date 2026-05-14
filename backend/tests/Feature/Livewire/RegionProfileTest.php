@@ -57,8 +57,3 @@ test('tasks panel renders empty state when no tasks match', function () {
     Livewire::test(RegionProfile::class, ['districtCode' => '1703401', 'kpi' => 'grp'])
         ->assertSee('Бу KPI бўйича топшириқ топилмади');
 });
-
-test('reports panel always shows empty state', function () {
-    Livewire::test(RegionProfile::class, ['districtCode' => '1703401', 'kpi' => 'industry'])
-        ->assertSee('Ҳисобот йўқ');
-});
