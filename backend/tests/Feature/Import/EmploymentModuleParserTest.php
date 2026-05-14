@@ -85,7 +85,7 @@ test('EmploymentModuleParser produces 204 staging rows for Andijan', function ()
 
     // Андижон шаҳри poverty_year IS a sentinel
     $cityPovYear = ImportStagingIndicatorFact::where('indicator_code', 'poverty')
-        ->where('district_code', 'd01')->where('period', 'year')->first();
+        ->where('district_code', 1703401)->where('period', 'year')->first();
     expect($cityPovYear->is_sentinel)->toBeTrue();
     expect($cityPovYear->plan_value)->toBeNull();
     expect($cityPovYear->sentinel_label)->toContain('холи ҳудуд');

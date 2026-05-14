@@ -93,9 +93,9 @@ test('ForeignInvestModuleParser produces 51 staging rows for Andijan', function 
     expect($year->count_extra)->toBeNull();
     expect($year->count_extra_2)->toBeNull();
 
-    // Andijan city (d01) q1: plan=175.2, actual=141.1
+    // Andijan city (1703401) q1: plan=175.2, actual=141.1
     $cityQ1 = ImportStagingIndicatorFact::where('indicator_code', 'investment')
-        ->where('district_code', 'd01')->where('period', 'q1')->first();
+        ->where('district_code', 1703401)->where('period', 'q1')->first();
     expect($cityQ1)->not->toBeNull();
     expect($cityQ1->plan_value)->toBeNumericallyClose(175.2, 0.5);
     expect($cityQ1->actual_hokimyat)->toBeNumericallyClose(141.1, 0.5);

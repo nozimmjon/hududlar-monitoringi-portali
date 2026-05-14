@@ -76,7 +76,7 @@ test('InflationModuleParser produces 11 food_balance + 17 warehouses staging row
     expect($flour->production)->toBeNumericallyClose(368.34, 0.05);
 
     $andijanCity = ImportStagingWarehouse::where('region_code', 1703)
-        ->where('district_code', 'd01')->first();
+        ->where('district_code', 1703401)->first();
     expect($andijanCity)->not->toBeNull();
     expect($andijanCity->reserve_warehouses)->toBe(3);
     expect($andijanCity->cold_storage_count)->toBe(10);

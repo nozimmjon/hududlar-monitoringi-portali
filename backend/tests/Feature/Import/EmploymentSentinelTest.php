@@ -60,7 +60,7 @@ test('Andijan city poverty_year is parsed as a sentinel row', function () {
     $issues->flush();
 
     $row = ImportStagingIndicatorFact::where('region_code', 1703)
-        ->where('district_code', 'd01')
+        ->where('district_code', 1703401)
         ->where('indicator_code', 'poverty')
         ->where('period', 'year')
         ->first();

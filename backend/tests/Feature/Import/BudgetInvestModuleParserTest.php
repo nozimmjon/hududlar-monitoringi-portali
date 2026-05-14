@@ -87,9 +87,9 @@ test('BudgetInvestModuleParser produces 51 staging rows for Andijan', function (
     expect($year->count_extra)->toBe(100);
     expect($year->count_extra_2)->toBe(96);
 
-    // Andijan city (d01) q1: limit=128147.1, q1_absorption=6566.9, objects=13
+    // Andijan city (1703401) q1: limit=128147.1, q1_absorption=6566.9, objects=13
     $cityQ1 = ImportStagingIndicatorFact::where('indicator_code', 'budget_investment')
-        ->where('district_code', 'd01')->where('period', 'q1')->first();
+        ->where('district_code', 1703401)->where('period', 'q1')->first();
     expect($cityQ1)->not->toBeNull();
     expect($cityQ1->plan_value)->toBeNumericallyClose(128147.1, 0.5);
     expect($cityQ1->actual_hokimyat)->toBeNumericallyClose(6566.9, 0.5);

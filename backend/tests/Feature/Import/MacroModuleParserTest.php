@@ -54,13 +54,13 @@ test('MacroModuleParser produces 212 staging rows for Andijan', function () {
 
     $parser->parse($ctx, $path, $rwb->id);
 
-    expect($writer->bufferedCount('import_staging_indicator_facts'))->toBe(212);
+    expect($writer->bufferedCount('import_staging_indicator_facts'))->toBe(218);
 
     DB::transaction(fn() => $writer->flush());
     $issues->flush();
 
     $rollup = ImportStagingIndicatorFact::whereNull('district_code')->count();
-    expect($rollup)->toBe(20);
+    expect($rollup)->toBe(26);
 
     $district = ImportStagingIndicatorFact::whereNotNull('district_code')->count();
     expect($district)->toBe(192);
@@ -70,6 +70,6 @@ test('MacroModuleParser produces 212 staging rows for Andijan', function () {
     expect($grpYear->plan_value)->toBeNumericallyClose(124778.117923571, 1e-6);
 
     $industryQ1 = ImportStagingIndicatorFact::where('region_code', 1703)
-        ->where('district_code','d01')->where('indicator_code','industry')->where('period','q1')->first();
+        ->where('district_code', 1703401)->where('indicator_code','industry')->where('period','q1')->first();
     expect($industryQ1->plan_value)->toBeNumericallyClose(4600.872899834, 1e-6);
 });

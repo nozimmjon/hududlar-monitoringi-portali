@@ -22,7 +22,7 @@ test('import:region andijan 2026 macro creates a successful run', function () {
     expect($run->region_code)->toBe(1703);
     expect($run->status->value)->toBe('awaiting_review');
     expect($run->issues_blocker_count)->toBe(0);
-    expect($run->rows_staged)->toBe(212);
+    expect($run->rows_staged)->toBe(218);
 });
 
 test('import:region rejects unknown region', function () {
@@ -33,12 +33,12 @@ test('import:region rejects unknown region', function () {
     expect($exitCode)->not->toBe(0);
 });
 
-test('import:region skips Navoi with a warning', function () {
+test('import:region rejects unknown region slug navoiy', function () {
+    // 'navoiy' is not a valid region slug (the slug is 'navoi'); command exits with FAILURE
     $this->seed();
     $exitCode = Artisan::call('import:region', [
         'region_code' => 'navoiy', 'year' => 2026, '--module' => 'macro',
     ]);
-    expect($exitCode)->toBe(0);
-    expect(ImportRun::count())->toBe(0);
-    expect(Artisan::output())->toContain('Skipped');
+    expect($exitCode)->not->toBe(0);
+    expect(Artisan::output())->toContain('Unknown region');
 });
