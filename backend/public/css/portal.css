@@ -182,6 +182,8 @@
       padding: 18px 12px;
       overflow: auto;
       box-shadow: 16px 0 42px rgba(7, 26, 45, .16);
+      display: flex;
+      flex-direction: column;
     }
 
     .side-title {
@@ -5650,29 +5652,76 @@
 
 /* ── Region Switcher ─────────────────────────────────────────── */
 .region-switcher {
-    padding: 12px 14px 0;
+    margin-top: auto;
+    padding: 14px 10px 4px;
+    border-top: 1px solid rgba(255, 255, 255, .12);
 }
+
 .region-switcher label {
-    display: block;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-left: 2px;
+    color: rgba(255, 255, 255, .55);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    margin-bottom: 4px;
 }
+
+.region-switcher label svg {
+    stroke: #84b8ff;
+}
+
+.region-select-wrap {
+    position: relative;
+}
+
 .region-switcher select {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    color: var(--ink);
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 10px 32px 10px 12px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
 }
+
+.region-switcher select option {
+    background: var(--nav-2);
+    color: #fff;
+}
+
+.region-switcher select:hover {
+    border-color: rgba(132, 184, 255, .55);
+    background: rgba(255, 255, 255, .10);
+}
+
 .region-switcher select:focus {
-    outline: 2px solid var(--blue-2);
-    outline-offset: 1px;
+    outline: none;
+    border-color: #84b8ff;
+    background: rgba(255, 255, 255, .10);
+    box-shadow: 0 0 0 3px rgba(132, 184, 255, .22);
+}
+
+.region-chevron {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    stroke: #84b8ff;
+    pointer-events: none;
+    transition: transform var(--motion);
+}
+
+.region-switcher select:focus ~ .region-chevron {
+    transform: translateY(-50%) rotate(180deg);
 }

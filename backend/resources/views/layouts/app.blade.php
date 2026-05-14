@@ -32,7 +32,6 @@
       <div class="side-title">
         <strong>Бошқарув маркази</strong>
       </div>
-      <livewire:region-switcher />
       <a class="nav-btn {{ Route::is('dashboard') ? 'active' : '' }}"
          href="{{ route('dashboard') }}" title="KPI">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -54,6 +53,7 @@
         </svg>
         <span>Туманлар</span>
       </a>
+      <livewire:region-switcher />
     </aside>
 
     <main class="main">
