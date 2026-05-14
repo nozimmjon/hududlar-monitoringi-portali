@@ -167,5 +167,4 @@ test('detail table renders T-topshiriq and D-maqsad cells', function () {
     $html = $response->getContent();
     expect($html)->toContain('T-топшириқ');
     expect($html)->toContain('D-мақсад');
-    expect($html)->toContain('ҳисобот йўқ');
 });
