@@ -49,3 +49,29 @@ test('collapses whitespace', function () {
 test('preserves Қ as a distinct letter', function () {
     expect(DistrictNameNormalizer::normalize('Қашқадарё'))->toContain('қ');
 });
+
+// Bug F: extended suffix variants used in regional module xlsx workbooks.
+
+test('strips variant city suffix шаҳар (no и)', function () {
+    expect(DistrictNameNormalizer::normalize('Навоий шаҳар'))->toBe('навоий ш.');
+});
+
+test('strips variant city suffix шахри (Х)', function () {
+    expect(DistrictNameNormalizer::normalize('Шаҳрисабз шахри'))->toBe('шахрисабз ш.');
+});
+
+test('strips variant city suffix шахар (Х and no и)', function () {
+    expect(DistrictNameNormalizer::normalize('Жиззах шахар'))->toBe('жиззах ш.');
+});
+
+test('expands bare ш to canonical ш.', function () {
+    expect(DistrictNameNormalizer::normalize('Когон ш'))->toBe('когон ш.');
+});
+
+test('strips variant district suffix туман (no и)', function () {
+    expect(DistrictNameNormalizer::normalize('Кармана туман'))->toBe('кармана');
+});
+
+test('strips variant district suffix т (no dot)', function () {
+    expect(DistrictNameNormalizer::normalize('Бухоро т'))->toBe('бухоро');
+});

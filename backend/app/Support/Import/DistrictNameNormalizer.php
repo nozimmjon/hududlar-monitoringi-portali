@@ -30,12 +30,24 @@ class DistrictNameNormalizer
 
         if (str_ends_with($s, ' шаҳри')) {
             $s = mb_substr($s, 0, -mb_strlen(' шаҳри')) . ' ш.';
+        } elseif (str_ends_with($s, ' шаҳар')) {
+            $s = mb_substr($s, 0, -mb_strlen(' шаҳар')) . ' ш.';
+        } elseif (str_ends_with($s, ' шахри')) {
+            $s = mb_substr($s, 0, -mb_strlen(' шахри')) . ' ш.';
+        } elseif (str_ends_with($s, ' шахар')) {
+            $s = mb_substr($s, 0, -mb_strlen(' шахар')) . ' ш.';
         } elseif (str_ends_with($s, ' ш.')) {
             // already canonical
+        } elseif (str_ends_with($s, ' ш')) {
+            $s = mb_substr($s, 0, -mb_strlen(' ш')) . ' ш.';
         } elseif (str_ends_with($s, ' тумани')) {
             $s = mb_substr($s, 0, -mb_strlen(' тумани'));
+        } elseif (str_ends_with($s, ' туман')) {
+            $s = mb_substr($s, 0, -mb_strlen(' туман'));
         } elseif (str_ends_with($s, ' т.')) {
             $s = mb_substr($s, 0, -mb_strlen(' т.'));
+        } elseif (str_ends_with($s, ' т')) {
+            $s = mb_substr($s, 0, -mb_strlen(' т'));
         }
 
         $s = strtr($s, self::CHAR_MAP);
