@@ -18,6 +18,9 @@ pest()->extend(Tests\TestCase::class)
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/TaskScopeTest.php');
 
+pest()->extend(Tests\TestCase::class)
+    ->in('Unit/Support/CurrentRegionTest.php');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
