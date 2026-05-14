@@ -319,8 +319,16 @@ class DistrictsPage extends Component
         return $out;
     }
 
+    #[Computed]
+    public function mapGeometry(): array
+    {
+        return \App\Support\RegionMapGeometry::forRegion($this->regionCode);
+    }
+
     public function render()
     {
-        return view('livewire.districts-page');
+        return view('livewire.districts-page', [
+            'mapGeometry' => $this->mapGeometry,
+        ]);
     }
 }

@@ -21,6 +21,9 @@ pest()->extend(Tests\TestCase::class)
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/Support/CurrentRegionTest.php');
 
+pest()->extend(Tests\TestCase::class)
+    ->in('Unit/Support/RegionMapGeometryTest.php');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

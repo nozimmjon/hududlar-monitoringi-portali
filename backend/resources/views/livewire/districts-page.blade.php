@@ -1,5 +1,4 @@
 @php
-    use App\Support\AndijanMapGeometry;
     use App\Support\DistrictMetricResolver;
 
     $tableConfig         = $this->tableConfig;
@@ -149,7 +148,7 @@
                 </div>
             </header>
             <div class="districts-map-canvas">
-                <svg viewBox="{{ AndijanMapGeometry::VIEWBOX }}" class="andijan-map" role="img" aria-label="Андижон вилоятининг ҳудудлар харитаси">
+                <svg viewBox="{{ $mapGeometry['viewBox'] }}" class="andijan-map" role="img" aria-label="Ҳудудлар харитаси">
                     <defs>
                         <linearGradient id="mapGradGreen" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stop-color="#d6ecdb"/>
@@ -172,14 +171,14 @@
                         </filter>
                     </defs>
                     <g>
-                        @foreach(AndijanMapGeometry::CELLS as $cell)
+                        @foreach($mapGeometry['cells'] as $cell)
                             @php
-                                $cellDistrict = $districts->firstWhere('name_full', $cell['name']);
-                                $cellCode = $cellDistrict?->code ?? '';
-                                $cellStatus = $cellCode !== '' ? ($statusByDistrict[$cellCode] ?? 'grey') : 'grey';
-                                $cellFact = $cellCode !== '' ? $facts->get($cellCode) : null;
-                                $cellSelected = $cellCode === $selectedCode ? 'selected' : '';
-                                $cellCity = $isCity($cell['name']) ? 'is-city' : '';
+                                $cellCode = $cell['code'] ?? null;
+                                $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
+                                $cellStatus = $cellCode !== null ? ($statusByDistrict[$cellCode] ?? 'grey') : 'grey';
+                                $cellFact = $cellCode !== null ? $facts->get($cellCode) : null;
+                                $cellSelected = $cellCode !== null && (string) $cellCode === (string) $selectedCode ? 'selected' : '';
+                                $cellCity = str_ends_with($cell['name'], ' ш.') ? 'is-city' : '';
                                 $cellValue = $cellFact?->pct_of_plan !== null
                                     ? $fmt($cellFact->pct_of_plan, 1) . '%'
                                     : ($cellFact?->growth_pct !== null ? $fmt($cellFact->growth_pct, 1) . '%' : '—');
@@ -187,22 +186,23 @@
                             <g class="map-cell {{ $cellStatus }} {{ $cellSelected }} {{ $cellCity }}"
                                wire:click="selectDistrict('{{ $cellCode }}')"
                                tabindex="0">
-                                <title>{{ $cell['name'] }} · {{ $cellValue }}</title>
+                                <title>{{ $cellDistrict?->name_full ?? $cell['name'] }} · {{ $cellValue }}</title>
                                 <path class="map-fill" d="{{ $cell['path'] }}"/>
                             </g>
                         @endforeach
                     </g>
                     <g class="map-labels">
-                        @foreach(AndijanMapGeometry::CELLS as $cell)
+                        @foreach($mapGeometry['cells'] as $cell)
                             @php
-                                $cellDistrict = $districts->firstWhere('name_full', $cell['name']);
-                                $cellCode = $cellDistrict?->code ?? '';
-                                $cellSelected = $cellCode === $selectedCode ? 'selected' : '';
-                                $cellCity = $isCity($cell['name']) ? 'is-city' : '';
+                                $cellCode = $cell['code'] ?? null;
+                                $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
+                                $cellSelected = $cellCode !== null && (string) $cellCode === (string) $selectedCode ? 'selected' : '';
+                                $cellCity = str_ends_with($cell['name'], ' ш.') ? 'is-city' : '';
+                                $shortLabel = $cellDistrict?->name_short ?? $cell['name'];
                             @endphp
                             <text class="map-label {{ $cellCity }} {{ $cellSelected }}"
                                   x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 1 }}"
-                                  text-anchor="middle" dominant-baseline="central">{{ $cell['short'] }}</text>
+                                  text-anchor="middle" dominant-baseline="central">{{ $shortLabel }}</text>
                         @endforeach
                     </g>
                 </svg>
