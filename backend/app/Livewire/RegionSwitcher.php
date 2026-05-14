@@ -17,7 +17,7 @@ class RegionSwitcher extends Component
     public function select(int $code): void
     {
         CurrentRegion::set($code);
-        $this->redirect(request()->path(), navigate: false);
+        $this->js('window.location.reload()');
     }
 
     public function render()
