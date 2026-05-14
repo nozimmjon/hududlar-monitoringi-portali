@@ -31,13 +31,15 @@ test('--only=andijan does not iterate other regions', function () {
         '--no-tasks' => true,
     ]);
 
-    $output = Artisan::output();
-
     expect($exit)->toBe(0);
-    // Verify andijan was processed (appears in output or region code 1703)
-    $contains_andijan = str_contains($output, 'andijan') || str_contains($output, '1703');
-    expect($contains_andijan)->toBeTrue();
-    // Summary table must not include other regions
-    expect($output)->not->toContain(' bukhara ');
-    expect($output)->not->toContain(' navoi ');
+
+    // Verify only andijan (1703) was processed — no runs for other regions
+    // (Artisan::output() only captures the last nested sub-call, so we check DB state)
+    $allRunCodes = \App\Models\ImportRun::pluck('region_code')->unique()->toArray();
+    foreach ($allRunCodes as $code) {
+        expect($code)->toBe(1703, "Expected only andijan (1703) runs, found region_code={$code}");
+    }
+    // Bukhara (1706) and Navoi (1712) must NOT have runs
+    expect(\App\Models\ImportRun::where('region_code', 1706)->count())->toBe(0);
+    expect(\App\Models\ImportRun::where('region_code', 1712)->count())->toBe(0);
 });
