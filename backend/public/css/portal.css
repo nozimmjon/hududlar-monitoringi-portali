@@ -9,6 +9,7 @@
       --nav: #062844;
       --nav-2: #08395d;
       --blue: #1769e0;
+      --font-sans: "Manrope", "Segoe UI", Arial, sans-serif;
       --blue-2: #0b4c7a;
       --blue-soft: #eef6ff;
       --green: #15803d;
@@ -40,7 +41,7 @@
       --r: 8px;
       --r-md: 12px;
       --r-lg: 16px;
-      font-family: "Inter", "Inter Tight", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-feature-settings: "ss01", "cv11";
     }
 
@@ -435,7 +436,7 @@
 
     .module-heading h2 {
       margin: 0;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(22px, 2.4vw, 28px);
       line-height: 1.12;
       letter-spacing: -0.018em;
@@ -1629,7 +1630,7 @@
     }
 
     .kpi-monitor-head h3 {
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 19px;
       line-height: 1.2;
       letter-spacing: -0.012em;
@@ -1764,7 +1765,7 @@
 
     .quarter-row .q-hero-value {
       color: var(--ink);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(25px, 2.15vw, 34px);
       line-height: 1;
       font-weight: 800;
@@ -3366,7 +3367,7 @@
       display: block;
       margin-top: 2px;
       color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 800;
       line-height: 1.1;
@@ -3429,7 +3430,7 @@
 
     .poverty-section .poverty-head strong {
       display: block;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(17px, 1.6vw, 20px);
       font-weight: 800;
       letter-spacing: -0.014em;
@@ -3508,7 +3509,7 @@
       align-items: baseline;
       gap: 6px;
       color: var(--ink);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(20px, 1.9vw, 26px);
       font-weight: 800;
       line-height: 1;
@@ -3605,7 +3606,7 @@
       gap: 8px;
       margin-top: 4px;
       color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(28px, 3vw, 38px);
       font-weight: 800;
       line-height: 1;
@@ -3683,7 +3684,7 @@
 
     .districts-head h2 {
       margin: 4px 0 4px;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(20px, 2vw, 26px);
       font-weight: 800;
       letter-spacing: -0.018em;
@@ -3942,7 +3943,7 @@
 
     .districts-map-head strong {
       display: block;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 800;
       letter-spacing: -0.012em;
@@ -4017,7 +4018,7 @@
       stroke-width: 4.5;
       stroke-linejoin: round;
       stroke-opacity: .95;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       opacity: 0;
       transition: opacity var(--motion), fill var(--motion);
     }
@@ -4163,7 +4164,7 @@
     }
 
     .districts-lb-head strong {
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 800;
       letter-spacing: -0.012em;
@@ -4232,7 +4233,7 @@
     .lb-value {
       grid-area: value;
       color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 14px;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
@@ -4326,7 +4327,7 @@
       color: var(--blue);
       font-size: clamp(30px, 3vw, 42px);
       line-height: 1;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       letter-spacing: -0.025em;
     }
 
@@ -4424,7 +4425,7 @@
 
     .dpc-head-titles h3 {
       margin: 4px 0 2px;
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(20px, 2vw, 26px);
       font-weight: 800;
       letter-spacing: -0.018em;
@@ -4442,7 +4443,7 @@
     .dpc-head-stat strong {
       display: block;
       color: var(--blue);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: clamp(24px, 2.4vw, 32px);
       font-weight: 800;
       letter-spacing: -0.022em;
@@ -4491,7 +4492,7 @@
 
     .dpc-metric-value {
       color: var(--ink);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 17px;
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -4526,7 +4527,7 @@
     }
 
     .dpc-cross-head strong {
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 14px;
       font-weight: 800;
       letter-spacing: -0.012em;
@@ -4576,7 +4577,7 @@
 
     .dpc-cross-value {
       color: var(--ink);
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -4608,7 +4609,7 @@
     }
 
     .dpc-task-head strong {
-      font-family: "Inter Tight", "Inter", "Segoe UI", Arial, sans-serif;
+      font-family: var(--font-sans);
       font-size: 13px;
       font-weight: 800;
       letter-spacing: -0.005em;
