@@ -52,6 +52,10 @@ class ForeignInvestModuleParser extends ModuleParser
         $sheet = $this->sheetResolver->resolve($ctx, $book, $regionWorkbookId, 'foreign_invest', 'foreign_invest');
         if ($sheet === null) return 0;
 
+        if ($this->isSoatoCodeLayout($sheet)) {
+            return $this->parseSoatoCodeLayout($ctx, $sheet, $filePath);
+        }
+
         if ($this->isAnnualOnlyLayout($sheet)) {
             return $this->parseAnnualOnly($ctx, $sheet, $filePath);
         }
@@ -235,6 +239,110 @@ class ForeignInvestModuleParser extends ModuleParser
         );
         $this->stagingWriter->buffer('import_staging_indicator_facts', $dto->toStagingRow($ctx->run->id));
         return 1;
+    }
+
+    /**
+     * Detects "кодлар" (SOATO-code) layout used by 7 regions where col B holds
+     * SOATO codes instead of district names. Layout columns: 1=seq, 2=SOATO,
+     * 9=year_forecast (млн долл.), 11=q1_plan.
+     */
+    private function isSoatoCodeLayout(Worksheet $sheet): bool
+    {
+        $rows = $sheet->toArray(null, true, true, false);
+        $limit = min(8, count($rows));
+        for ($i = 0; $i < $limit; $i++) {
+            foreach ($rows[$i] as $cell) {
+                if (is_string($cell) && trim(mb_strtolower($cell)) === 'кодлар') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private function parseSoatoCodeLayout(ImportContext $ctx, Worksheet $sheet, string $filePath): int
+    {
+        $rows = $sheet->toArray(null, true, true, false);
+        $regionCode = $ctx->regionCode();
+        $count = 0;
+
+        for ($i = 0; $i < count($rows); $i++) {
+            $colA = $rows[$i][0] ?? null;
+            $colB = $rows[$i][1] ?? null;
+            if ($colB === null || $colB === '') continue;
+
+            $codeStr = is_string($colB) ? trim($colB) : (string) $colB;
+            if (! ctype_digit($codeStr)) continue;
+
+            $code = (int) $codeStr;
+            $districtCode = null;
+
+            if ($code === $regionCode) {
+                // rollup row — emit with null district
+            } elseif ($code >= $regionCode * 1000 && $code <= ($regionCode + 1) * 1000 - 1) {
+                $districtCode = $code;
+            } else {
+                continue;
+            }
+
+            $count += $this->emitSoatoCodeRow($ctx, $sheet, $i + 1, $districtCode, $filePath);
+        }
+        return $count;
+    }
+
+    private function emitSoatoCodeRow(
+        ImportContext $ctx,
+        Worksheet $sheet,
+        int $row,
+        ?int $districtCode,
+        string $filePath,
+    ): int {
+        $yearPlan = $this->numericOrNull($sheet->getCell([9, $row])->getCalculatedValue());
+        $q1Plan   = $this->numericOrNull($sheet->getCell([11, $row])->getCalculatedValue());
+        $count = 0;
+        $sourceLabel = basename($filePath) . " · {$sheet->getTitle()} · row $row";
+
+        if ($yearPlan !== null) {
+            $dto = new IndicatorFactDto(
+                regionCode:     $ctx->regionCode(),
+                districtCode:   $districtCode,
+                year:           $ctx->year,
+                indicatorCode:  'investment',
+                period:         'year',
+                planValue:      $yearPlan,
+                expectedValue:  null,
+                actualHokimyat: null,
+                pctOfPlan:      null,
+                countExtra:     null,
+                countExtra2:    null,
+                unit:           'млн доллар',
+                sourceLabel:    $sourceLabel,
+            );
+            $this->stagingWriter->buffer('import_staging_indicator_facts', $dto->toStagingRow($ctx->run->id));
+            $count++;
+        }
+
+        if ($q1Plan !== null) {
+            $dto = new IndicatorFactDto(
+                regionCode:     $ctx->regionCode(),
+                districtCode:   $districtCode,
+                year:           $ctx->year,
+                indicatorCode:  'investment',
+                period:         'q1',
+                planValue:      $q1Plan,
+                expectedValue:  null,
+                actualHokimyat: null,
+                pctOfPlan:      null,
+                countExtra:     null,
+                countExtra2:    null,
+                unit:           'млн доллар',
+                sourceLabel:    $sourceLabel,
+            );
+            $this->stagingWriter->buffer('import_staging_indicator_facts', $dto->toStagingRow($ctx->run->id));
+            $count++;
+        }
+
+        return $count;
     }
 
     private function numericOrNull(mixed $value): ?float
