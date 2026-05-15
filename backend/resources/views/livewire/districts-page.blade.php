@@ -144,50 +144,44 @@
             <header class="districts-map-head">
                 <div>
                     <strong>{{ $kpiShort }} — {{ $kpiFull }}</strong>
-                    <span>Ранглар танланган KPI ҳолатини кўрсатади.</span>
+                    <span>Ҳар бир туман ранги вилоятдаги ўрнига нисбатан.</span>
                 </div>
             </header>
-            <div class="districts-map-canvas">
+            @php
+                $regionName = \App\Support\CurrentRegion::current()->name_full;
+                $rollupValue = $rollup?->pct_of_plan !== null
+                    ? $fmt($rollup->pct_of_plan, 1) . '%'
+                    : ($rollup?->growth_pct !== null ? $fmt($rollup->growth_pct, 1) . '%' : '—');
+            @endphp
+            <div class="districts-rollup-banner">
+                <div>
+                    <span class="rollup-label">{{ $regionName }} · {{ $kpiShort }}</span>
+                    <strong class="rollup-value">{{ $rollupValue }}</strong>
+                </div>
+                <span class="chip blue">{{ $period }}</span>
+            </div>
+            <div class="districts-map-canvas" x-data="{hovered:null,x:0,y:0}">
                 <svg viewBox="{{ $mapGeometry['viewBox'] }}" class="andijan-map" role="img" aria-label="Ҳудудлар харитаси">
-                    <defs>
-                        <linearGradient id="mapGradGreen" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#d6ecdb"/>
-                            <stop offset="100%" stop-color="#8fc69f"/>
-                        </linearGradient>
-                        <linearGradient id="mapGradAmber" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#fbe9b6"/>
-                            <stop offset="100%" stop-color="#e3b766"/>
-                        </linearGradient>
-                        <linearGradient id="mapGradRed" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#f5cfcf"/>
-                            <stop offset="100%" stop-color="#d68585"/>
-                        </linearGradient>
-                        <linearGradient id="mapGradGrey" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#e8e6dd"/>
-                            <stop offset="100%" stop-color="#bcb9ac"/>
-                        </linearGradient>
-                        <filter id="mapCellShadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#1b4d5a" flood-opacity="0.18"/>
-                        </filter>
-                    </defs>
                     <g>
                         @foreach($mapGeometry['cells'] as $cell)
                             @php
                                 $cellCode = $cell['code'] ?? null;
                                 $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
-                                $cellStatus = $cellCode !== null ? ($statusByDistrict[$cellCode] ?? 'grey') : 'grey';
-                                $cellFact = $cellCode !== null ? $facts->get($cellCode) : null;
+                                $scaleEntry = $cellCode !== null ? ($colorScale[$cellCode] ?? null) : null;
+                                $cellColor = $scaleEntry['color'] ?? \App\Support\MapColorScale::NO_DATA;
+                                $cellValue = $scaleEntry['value'] ?? null;
+                                $valueText = $cellValue !== null ? $fmt($cellValue, 1) . '%' : '—';
                                 $cellSelected = $cellCode !== null && (string) $cellCode === (string) $selectedCode ? 'selected' : '';
-                                $cellCity = str_ends_with($cell['name'], ' ш.') ? 'is-city' : '';
-                                $cellValue = $cellFact?->pct_of_plan !== null
-                                    ? $fmt($cellFact->pct_of_plan, 1) . '%'
-                                    : ($cellFact?->growth_pct !== null ? $fmt($cellFact->growth_pct, 1) . '%' : '—');
+                                $cellName = $cellDistrict?->name_full ?? $cell['name'];
                             @endphp
-                            <g class="map-cell {{ $cellStatus }} {{ $cellSelected }} {{ $cellCity }}"
+                            <g class="map-cell {{ $cellSelected }}"
                                wire:click="selectDistrict('{{ $cellCode }}')"
+                               x-on:mouseenter="hovered={name:@js($cellName), value:@js($valueText), color:@js($cellColor)}"
+                               x-on:mouseleave="hovered=null"
+                               x-on:mousemove="x=$event.offsetX; y=$event.offsetY"
                                tabindex="0">
-                                <title>{{ $cellDistrict?->name_full ?? $cell['name'] }} · {{ $cellValue }}</title>
-                                <path class="map-fill" d="{{ $cell['path'] }}"/>
+                                <title>{{ $cellName }} · {{ $valueText }}</title>
+                                <path class="map-fill" d="{{ $cell['path'] }}" fill="{{ $cellColor }}"/>
                             </g>
                         @endforeach
                     </g>
@@ -196,22 +190,35 @@
                             @php
                                 $cellCode = $cell['code'] ?? null;
                                 $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
-                                $cellSelected = $cellCode !== null && (string) $cellCode === (string) $selectedCode ? 'selected' : '';
+                                $scaleEntry = $cellCode !== null ? ($colorScale[$cellCode] ?? null) : null;
+                                $cellValue = $scaleEntry['value'] ?? null;
                                 $cellCity = str_ends_with($cell['name'], ' ш.') ? 'is-city' : '';
                                 $shortLabel = $cellDistrict?->name_short ?? $cell['name'];
                             @endphp
-                            <text class="map-label {{ $cellCity }} {{ $cellSelected }}"
-                                  x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 1 }}"
-                                  text-anchor="middle" dominant-baseline="central">{{ $shortLabel }}</text>
+                            <text class="map-label {{ $cellCity }}"
+                                  x="{{ $cell['cx'] }}" y="{{ $cell['cy'] - 4 }}"
+                                  text-anchor="middle">{{ $shortLabel }}</text>
+                            @if($cellValue !== null)
+                                <text class="map-value" x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 10 }}"
+                                      text-anchor="middle">{{ $fmt($cellValue, 1) }}%</text>
+                            @endif
                         @endforeach
                     </g>
                 </svg>
+                <div class="map-tooltip" x-show="hovered" x-cloak
+                     :style="`left:${x + 14}px; top:${y + 14}px; --c:${hovered?.color}`">
+                    <strong x-text="hovered?.name"></strong>
+                    <span x-text="hovered?.value"></span>
+                </div>
             </div>
             <div class="districts-map-legend">
-                <span class="legend-chip green">Яхши</span>
-                <span class="legend-chip amber">Ўртача</span>
-                <span class="legend-chip red">Эътибор</span>
-                <span class="legend-chip grey">Маълумот йўқ</span>
+                @php
+                    $rangeMin = $colorRange['min'] ?? null;
+                    $rangeMax = $colorRange['max'] ?? null;
+                @endphp
+                <span class="legend-bound">{{ $rangeMin !== null ? $fmt($rangeMin, 1) . '%' : '—' }}</span>
+                <span class="legend-bar {{ ($colorRange['lowerIsBetter'] ?? false) ? 'reverse' : '' }}"></span>
+                <span class="legend-bound">{{ $rangeMax !== null ? $fmt($rangeMax, 1) . '%' : '—' }}</span>
             </div>
         </section>
 

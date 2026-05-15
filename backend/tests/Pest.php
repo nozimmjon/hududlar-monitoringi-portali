@@ -24,6 +24,9 @@ pest()->extend(Tests\TestCase::class)
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/Support/RegionMapGeometryTest.php');
 
+pest()->extend(Tests\TestCase::class)
+    ->in('Unit/Support/MapColorScaleTest.php');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

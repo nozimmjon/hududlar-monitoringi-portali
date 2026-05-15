@@ -325,10 +325,52 @@ class DistrictsPage extends Component
         return \App\Support\RegionMapGeometry::forRegion($this->regionCode);
     }
 
+    #[Computed]
+    public function colorScale(): array
+    {
+        $values = [];
+        foreach ($this->facts as $code => $fact) {
+            $v = $fact->pct_of_plan ?? $fact->growth_pct;
+            if ($v !== null) $values[$code] = (float) $v;
+        }
+        if (empty($values)) return [];
+
+        $min = min($values);
+        $max = max($values);
+        $range = $max - $min;
+        $lower = (bool) ($this->indicator?->lower_is_better);
+
+        $out = [];
+        foreach ($values as $code => $v) {
+            $norm = $range > 0 ? ($v - $min) / $range : 0.5;
+            $out[$code] = [
+                'color' => \App\Support\MapColorScale::palette($norm, $lower),
+                'value' => $v,
+            ];
+        }
+        return $out;
+    }
+
+    #[Computed]
+    public function colorRange(): array
+    {
+        $entries = collect($this->colorScale);
+        if ($entries->isEmpty()) {
+            return ['min' => null, 'max' => null, 'lowerIsBetter' => false];
+        }
+        return [
+            'min' => $entries->min('value'),
+            'max' => $entries->max('value'),
+            'lowerIsBetter' => (bool) ($this->indicator?->lower_is_better),
+        ];
+    }
+
     public function render()
     {
         return view('livewire.districts-page', [
             'mapGeometry' => $this->mapGeometry,
+            'colorScale'  => $this->colorScale,
+            'colorRange'  => $this->colorRange,
         ]);
     }
 }

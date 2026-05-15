@@ -3873,61 +3873,111 @@
 
     .map-label.selected { fill: var(--blue); }
 
-    .map-cell.green .map-fill { fill: var(--map-good); stroke: var(--map-good-stroke); }
-    .map-cell.amber .map-fill { fill: var(--map-mid); stroke: var(--map-mid-stroke); }
-    .map-cell.red   .map-fill { fill: var(--map-attn); stroke: var(--map-attn-stroke); }
-    .map-cell.grey  .map-fill { fill: var(--map-nodata); stroke: var(--map-nodata-stroke); }
-
-    .map-cell.is-city .map-fill {
-      stroke-width: 1.8;
-      stroke-dasharray: 3 2.5;
+    .map-cell .map-fill {
+      stroke: rgba(15, 42, 71, .14);
+      stroke-width: 0.9;
+      transition: filter var(--motion), stroke var(--motion);
     }
 
     .map-cell:hover .map-fill,
     .map-cell:focus .map-fill {
-      filter: saturate(1.06);
-      transform: none;
+      filter: brightness(1.06);
+      stroke: rgba(15, 42, 71, .35);
+      stroke-width: 1.4;
     }
 
     .map-cell.selected .map-fill {
       stroke: var(--blue-2);
       stroke-width: 3;
-      filter: drop-shadow(0 3px 8px rgba(11, 76, 122, .28));
+      filter: drop-shadow(0 0 7px rgba(23, 105, 224, .55));
     }
 
+    .map-value {
+      fill: #0f1d22;
+      font-size: 11px;
+      font-weight: 800;
+      pointer-events: none;
+      paint-order: stroke fill;
+      stroke: rgba(255, 255, 255, .85);
+      stroke-width: 2.5;
+      stroke-linejoin: round;
+    }
+
+    .districts-rollup-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin: 0 0 12px;
+    }
+    .districts-rollup-banner .rollup-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .districts-rollup-banner .rollup-value {
+      color: var(--ink);
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .map-tooltip {
+      position: absolute;
+      background: #0f1d22;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(7, 26, 45, .35);
+      border-left: 3px solid var(--c, var(--blue-2));
+      pointer-events: none;
+      z-index: 50;
+      max-width: 220px;
+    }
+    .map-tooltip strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 2px;
+      color: #fff;
+    }
+    .map-tooltip span {
+      display: block;
+      color: rgba(255, 255, 255, .78);
+      font-weight: 700;
+    }
+    [x-cloak] { display: none !important; }
 
     .districts-map-legend {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .legend-chip {
-      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      border: 1px solid var(--line);
-      background: #ffffff;
-      color: var(--muted);
+      gap: 12px;
+      margin-top: 12px;
+      padding: 0 8px;
     }
-
-    .legend-chip::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
+    .legend-bound {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 52px;
+      text-align: center;
     }
-
-    .legend-chip.green::before { background: var(--map-good); border: 1px solid var(--map-good-stroke); }
-    .legend-chip.amber::before { background: var(--map-mid); border: 1px solid var(--map-mid-stroke); }
-    .legend-chip.red::before   { background: var(--map-attn); border: 1px solid var(--map-attn-stroke); }
-    .legend-chip.grey::before  { background: var(--map-nodata); border: 1px solid var(--map-nodata-stroke); }
+    .legend-bar {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #d95757, #f0a356, #e9c63b, #9bcb6f, #4a9b5f);
+    }
+    .legend-bar.reverse {
+      background: linear-gradient(90deg, #4a9b5f, #9bcb6f, #e9c63b, #f0a356, #d95757);
+    }
 
     .districts-leaderboard {
       position: relative;
