@@ -2,16 +2,20 @@
     use App\Support\DashboardCatalog;
 
     $macroPeriods = [
-        ['label' => 'I чорак',  'period' => 'q1',   'state' => 'Амалда', 'cls' => 'actual'],
-        ['label' => 'II чорак', 'period' => 'h1',   'state' => 'Режа',   'cls' => 'planned'],
-        ['label' => 'III чорак', 'period' => 'm9',  'state' => 'Режа',   'cls' => 'planned'],
-        ['label' => 'Йиллик',   'period' => 'year', 'state' => 'Режа',   'cls' => 'planned'],
+        ['label' => 'I чорак',   'period' => 'q1',   'state' => 'Амалда', 'cls' => 'actual'],
+        ['label' => 'II чорак',  'period' => 'h1',   'state' => 'Режа',   'cls' => 'plan'],
+        ['label' => 'III чорак', 'period' => 'm9',   'state' => 'Режа',   'cls' => 'plan'],
+        ['label' => 'Йиллик',    'period' => 'year', 'state' => 'Мақсад', 'cls' => 'target'],
     ];
 
     $yearRow = $rows->get('year');
     $yearGrowth = $yearRow && $yearRow->growth_pct !== null
         ? DashboardCatalog::growthValue($yearRow->growth_pct)
         : '—';
+
+    $rawYearGrowth = $yearRow && $yearRow->growth_pct !== null ? (float) $yearRow->growth_pct : null;
+    $deltaPp = $rawYearGrowth !== null ? round($rawYearGrowth - 100, 1) : null;
+    $showPill = $deltaPp !== null && $deltaPp > 0;
 
     $values = [];
     foreach ($macroPeriods as $item) {
@@ -27,46 +31,76 @@
 @endphp
 
 <section class="macro-growth-panel {{ $showIndustryDrivers ? 'with-side' : 'solo' }}" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
-    <div class="macro-main-panel">
-        <div class="macro-section-title">
-            <strong>{{ $indicator->label_short ?? '' }} ўсиши</strong>
-            <span>(солиштирма нархларда)</span>
-        </div>
-        <div class="macro-hero-card">
-            <div class="macro-hero-copy">
-                <span>Йиллик ўсиш (мақсад)</span>
-                <strong>{{ $yearGrowth }}</strong>
-                <small>2026 йил</small>
+    @if($showIndustryDrivers)
+        <div class="macro-main-panel">
+            <div class="macro-section-title">
+                <strong>{{ $indicator->label_short ?? '' }} ўсиши</strong>
+                <span>(солиштирма нархларда)</span>
+            </div>
+            <div class="macro-hero-card">
+                <div class="macro-hero-copy">
+                    <span>Йиллик ўсиш (мақсад)</span>
+                    <strong>{{ $yearGrowth }}</strong>
+                    <small>2026 йил</small>
+                </div>
+            </div>
+            <div class="macro-period-grid">
+                @foreach($macroPeriods as $item)
+                    @php
+                        $row = $rows->get($item['period']);
+                        $growthText = $row && $row->growth_pct !== null
+                            ? DashboardCatalog::growthValue($row->growth_pct)
+                            : '—';
+                        $rawGrowth = $row && $row->growth_pct !== null ? (float) $row->growth_pct : null;
+                        $delta = $rawGrowth !== null ? abs($rawGrowth - 100) : 0;
+                        $width = max(8, min(100, ($delta / $maxDelta) * 100));
+                        $chipClass = $item['cls'] === 'actual' ? 'blue' : 'grey';
+                        $legacyCls = $item['cls'] === 'actual' ? 'actual' : 'planned';
+                    @endphp
+                    <div class="macro-period-card {{ $legacyCls }}">
+                        <div class="macro-period-head">
+                            <b>{{ $item['label'] }}</b>
+                            <span class="chip {{ $chipClass }}">{{ $item['state'] }}</span>
+                        </div>
+                        <strong>{{ $growthText }}</strong>
+                        <small>ўсиш суръати</small>
+                        <i class="macro-mini-bar" aria-hidden="true"><i style="--w:{{ number_format($width, 1) }}%"></i></i>
+                    </div>
+                @endforeach
             </div>
         </div>
-        <div class="macro-period-grid">
-            @foreach($macroPeriods as $item)
-                @php
-                    $row = $rows->get($item['period']);
-                    $growthText = $row && $row->growth_pct !== null
-                        ? DashboardCatalog::growthValue($row->growth_pct)
-                        : '—';
-                    $rawGrowth = $row && $row->growth_pct !== null ? (float) $row->growth_pct : null;
-                    $delta = $rawGrowth !== null ? abs($rawGrowth - 100) : 0;
-                    $width = max(8, min(100, ($delta / $maxDelta) * 100));
-                    $chipClass = $item['cls'] === 'actual' ? 'blue' : 'grey';
-                @endphp
-                <div class="macro-period-card {{ $item['cls'] }}">
-                    <div class="macro-period-head">
-                        <b>{{ $item['label'] }}</b>
-                        <span class="chip {{ $chipClass }}">{{ $item['state'] }}</span>
-                    </div>
-                    <strong>{{ $growthText }}</strong>
-                    <small>ўсиш суръати</small>
-                    <i class="macro-mini-bar" aria-hidden="true"><i style="--w:{{ number_format($width, 1) }}%"></i></i>
+    @else
+        <section class="macro-hero-strip" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
+            <div class="macro-hero-strip__lead">
+                <div class="macro-hero-strip__caption-row">
+                    <span class="macro-hero-strip__caption">{{ mb_strtoupper($indicator->label_short ?? '') }} ЎСИШИ · СОЛИШТИРМА НАРХЛАРДА</span>
+                    @if($showPill)
+                        <span class="macro-hero-strip__pill">↑ +{{ number_format($deltaPp, 1) }} п.п. 2025-йилдан</span>
+                    @endif
                 </div>
-            @endforeach
-        </div>
-
-        @if(! $showIndustryDrivers && $kpi === 'grp')
+                <strong class="macro-hero-strip__value">{{ $yearGrowth }}</strong>
+                <small class="macro-hero-strip__sub">2026 йил якуни кутилаётган баҳо</small>
+            </div>
+            <div class="macro-hero-strip__chips">
+                @foreach($macroPeriods as $item)
+                    @php
+                        $row = $rows->get($item['period']);
+                        $growthText = $row && $row->growth_pct !== null
+                            ? DashboardCatalog::growthValue($row->growth_pct)
+                            : '—';
+                    @endphp
+                    <div class="macro-hero-strip__chip is-{{ $item['cls'] }}">
+                        <span class="macro-hero-strip__chip-label">{{ $item['label'] }}</span>
+                        <strong class="macro-hero-strip__chip-value">{{ $growthText }}</strong>
+                        <span class="macro-hero-strip__chip-badge">{{ $item['state'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+        @if($kpi === 'grp')
             <livewire:dashboard.macro-composition :key="'macro-comp-inline'" />
         @endif
-    </div>
+    @endif
     @if($showIndustryDrivers)
         <aside class="industry-driver-panel" aria-label="Саноат драйверлари">
             <div class="industry-driver-head">
