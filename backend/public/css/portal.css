@@ -2316,6 +2316,64 @@
         font-weight: 500;
     }
 
+    .macro-hero-strip__chips {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .macro-hero-strip__chip {
+        display: grid;
+        gap: 4px;
+        padding: 12px;
+        border-radius: 10px;
+        justify-items: start;
+        min-width: 0;
+    }
+
+    .macro-hero-strip__chip-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+    }
+
+    .macro-hero-strip__chip-value {
+        font-size: clamp(20px, 1.7vw, 26px);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+
+    .macro-hero-strip__chip-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+    }
+
+    .macro-hero-strip__chip.is-actual {
+        background: #eaf2ff;
+    }
+    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-label { color: #5a7596; }
+    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-value { color: #0f2a52; }
+    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-badge { color: #1f6feb; }
+
+    .macro-hero-strip__chip.is-plan {
+        background: rgba(255, 255, 255, .06);
+        border: 1px solid rgba(255, 255, 255, .08);
+    }
+    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-label { color: #7aa3d6; }
+    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-value { color: #e4ecf7; }
+    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-badge { color: #7aa3d6; }
+
+    .macro-hero-strip__chip.is-target {
+        background: #1f6feb;
+    }
+    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-label { color: rgba(255, 255, 255, .78); }
+    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-value { color: #fff; }
+    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-badge { color: rgba(255, 255, 255, .9); }
+
     .macro-layout-card .macro-composition-panel {
       padding: 12px 14px;
       border: 1px solid var(--line);
