@@ -27,6 +27,9 @@ pest()->extend(Tests\TestCase::class)
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/Support/MapColorScaleTest.php');
 
+pest()->extend(Tests\TestCase::class)
+    ->in('Unit/Support/DashboardCatalogModuleIconTest.php');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

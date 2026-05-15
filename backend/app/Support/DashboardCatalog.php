@@ -17,6 +17,16 @@ class DashboardCatalog
 
     public const MACRO_GROWTH_KPIS = ['grp', 'industry', 'agriculture', 'construction', 'services'];
 
+    public const MODULE_ICONS = [
+        'macro'          => 'trend',
+        'inflation'      => 'price',
+        'budget'         => 'bank',
+        'budget_invest'  => 'briefcase',
+        'foreign_invest' => 'globe',
+        'export'         => 'rocket',
+        'employment'     => 'users',
+    ];
+
     public const MODULES = [
         'macro' => [
             'label' => '1. Макроиқтисодиёт',
@@ -166,6 +176,11 @@ class DashboardCatalog
     public static function isMacroGrowthKpi(string $kpi): bool
     {
         return in_array($kpi, self::MACRO_GROWTH_KPIS, true);
+    }
+
+    public static function moduleIcon(string $code): string
+    {
+        return self::MODULE_ICONS[$code] ?? 'trend';
     }
 
     public static function periodLabel(string $period): string
