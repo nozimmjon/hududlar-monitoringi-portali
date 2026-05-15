@@ -68,7 +68,10 @@ class BudgetModuleParser extends ModuleParser
                 if (! is_string($val)) continue;
                 $trimmed = trim($val);
                 if (mb_strlen($trimmed) > 40) continue;
-                if (str_ends_with($trimmed, 'вилояти') || str_ends_with($trimmed, 'Республикаси')) {
+                if (str_ends_with($trimmed, 'вилояти')
+                    || str_ends_with($trimmed, 'Республикаси')
+                    || str_ends_with($trimmed, 'шаҳри')
+                    || str_ends_with($trimmed, 'шаҳар')) {
                     return $row;
                 }
             }

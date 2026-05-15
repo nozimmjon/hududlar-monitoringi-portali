@@ -99,6 +99,8 @@ class ExportModuleParser extends ModuleParser
         if (mb_strlen($trimmed) > 40) return false;
         return str_ends_with($trimmed, 'вилояти')
             || str_ends_with($trimmed, 'Республикаси')
+            || str_ends_with($trimmed, 'шаҳри')
+            || str_ends_with($trimmed, 'шаҳар')
             || $trimmed === 'Жами';
     }
 
