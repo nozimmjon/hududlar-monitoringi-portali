@@ -329,40 +329,28 @@ class DashboardCatalog
     }
 
     /**
-     * Maps a Cyrillic food name to an emoji that loosely mirrors index.html foodIcon().
-     * Uses single-codepoint emojis (no inline SVG) — close enough for the inflation grid.
+     * Maps a Cyrillic food name to a Phosphor icon name (see partials/icon.blade.php).
+     * Best-effort: returns a specific icon where a close Phosphor equivalent exists,
+     * 'basket' as the generic fallback otherwise.
      */
     public static function foodIcon(string $name): string
     {
         $lower = mb_strtolower($name);
         $patterns = [
-            '/мол\s*гўшт|қорамол/u' => '🐄',
-            '/қўй\s*гўшт|қўзи|эчки/u' => '🐑',
-            '/гўшт/u'   => '🍖',
-            '/тухум/u'  => '🥚',
-            '/сариёғ|маска/u' => '🧈',
-            '/сут/u'    => '🥛',
-            '/картошка/u' => '🥔',
-            '/пиёз/u'   => '🧅',
-            '/сабзи/u'  => '🥕',
-            '/гуруч/u'  => '🍚',
-            '/нон|бўғдой/u' => '🍞',
-            '/ун/u'     => '🌾',
-            '/мева/u'   => '🍎',
-            '/сабзавот/u' => '🥬',
-            '/қалампир/u' => '🌶',
-            '/узум/u'   => '🍇',
-            '/лимон/u'  => '🍋',
-            '/тарвуз/u' => '🍉',
-            '/қовун/u'  => '🍈',
-            '/балиқ/u'  => '🐟',
-            '/мой|ёғ/u' => '🛢',
-            '/шакар|қанд/u' => '🍬',
+            '/тухум/u'                            => 'egg',
+            '/сабзи/u'                            => 'carrot',
+            '/қалампир/u'                         => 'pepper',
+            '/балиқ/u'                            => 'fish',
+            '/сабзавот/u'                         => 'leaf',
+            '/мева|узум|лимон|тарвуз|қовун|олма/u' => 'orange',
+            '/нон|бўғдой/u'                       => 'bread',
+            '/гуруч|ун/u'                         => 'grains',
+            '/мой|ёғ|маска/u'                     => 'drop',
         ];
-        foreach ($patterns as $pattern => $emoji) {
-            if (preg_match($pattern, $lower)) return $emoji;
+        foreach ($patterns as $pattern => $icon) {
+            if (preg_match($pattern, $lower)) return $icon;
         }
-        return '🥗';
+        return 'basket';
     }
 
     /**

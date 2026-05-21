@@ -3228,9 +3228,14 @@
       letter-spacing: 0;
       font-size: inherit;
       font-weight: inherit;
-      color: inherit;
+      color: #6294a2;
       margin: 0;
       transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
+    }
+
+    .product-card .product-icon svg {
+      width: 30px;
+      height: 30px;
     }
 
     .product-card .product-icon .emoji {

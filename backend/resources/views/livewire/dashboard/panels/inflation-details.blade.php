@@ -24,7 +24,7 @@
         <div class="composition-grid">
             @foreach($caps as $cap)
                 <button class="component-card product-card" type="button">
-                    <span class="product-icon" aria-hidden="true">{{ DashboardCatalog::foodIcon($cap['name']) }}</span>
+                    <span class="product-icon" aria-hidden="true">@include('partials.icon', ['name' => DashboardCatalog::foodIcon($cap['name'])])</span>
                     <span class="product-body">
                         <span class="product-name">{{ $cap['name'] }}</span>
                         <strong class="product-value">{{ $cap['cap'] }}</strong>
@@ -48,7 +48,7 @@
                         $resourceVal = DashboardCatalog::fmt((float) $row->resource_total, 1) . ' минг т';
                     @endphp
                     <button class="component-card product-card" type="button">
-                        <span class="product-icon" aria-hidden="true">{{ DashboardCatalog::foodIcon($row->product) }}</span>
+                        <span class="product-icon" aria-hidden="true">@include('partials.icon', ['name' => DashboardCatalog::foodIcon($row->product)])</span>
                         <span class="product-body">
                             <span class="product-name">{{ $row->product }}</span>
                             <strong class="product-value">{{ DashboardCatalog::fmt($ratioPct, 1) }}%</strong>
