@@ -337,6 +337,8 @@ class DashboardCatalog
     {
         $lower = mb_strtolower($name);
         $patterns = [
+            '/мол\s*гўшт|қорамол/u'               => 'cow',
+            '/қўй\s*гўшт|қўзи|эчки/u'             => 'sheep',
             '/гўшт/u'                             => 'meat',
             '/тухум/u'                            => 'egg',
             '/сут/u'                              => 'milk',
