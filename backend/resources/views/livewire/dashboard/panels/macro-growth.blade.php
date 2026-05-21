@@ -99,9 +99,6 @@
                 @endforeach
             </div>
         </section>
-        @if($kpi === 'grp')
-            <livewire:dashboard.macro-composition :key="'macro-comp-inline'" />
-        @endif
     @endif
     @if($showIndustryDrivers)
         <aside class="industry-driver-panel" aria-label="Саноат драйверлари">
