@@ -2222,10 +2222,10 @@
 
     .macro-hero-strip {
         display: grid;
-        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1fr);
         gap: 26px;
         align-items: center;
-        padding: 22px 26px;
+        padding: 38px 30px;
         border-radius: 14px;
         background: #fff;
         border: 1px solid var(--line);
@@ -2246,7 +2246,7 @@
 
     .macro-hero-strip__value {
         color: var(--blue);
-        font-size: clamp(44px, 5vw, 64px);
+        font-size: clamp(56px, 6.6vw, 88px);
         line-height: .95;
         letter-spacing: -.04em;
         font-weight: 900;
@@ -2255,14 +2255,14 @@
 
     .macro-hero-strip__arrow {
         flex: 0 0 auto;
-        width: clamp(26px, 3vw, 36px);
-        height: clamp(26px, 3vw, 36px);
+        width: clamp(32px, 3.8vw, 46px);
+        height: clamp(32px, 3.8vw, 46px);
         color: var(--blue);
     }
 
     .macro-hero-strip__growth-label {
         color: var(--blue);
-        font-size: 14px;
+        font-size: 17px;
         font-weight: 800;
         letter-spacing: .08em;
         text-transform: uppercase;
