@@ -2290,13 +2290,13 @@
 
     .macro-hero-strip__chip-label {
         color: var(--muted);
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
     }
 
     .macro-hero-strip__chip-value {
         color: var(--ink);
-        font-size: clamp(27px, 2.6vw, 36px);
+        font-size: clamp(32px, 3.1vw, 44px);
         font-weight: 800;
         line-height: 1;
         font-variant-numeric: tabular-nums;
@@ -2304,7 +2304,7 @@
 
     .macro-hero-strip__chip-badge {
         color: var(--muted);
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 600;
     }
 
