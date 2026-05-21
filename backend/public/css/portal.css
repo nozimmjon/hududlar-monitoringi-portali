@@ -2222,7 +2222,7 @@
 
     .macro-hero-strip {
         display: grid;
-        grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
         gap: 26px;
         align-items: center;
         padding: 38px 30px;
