@@ -33,3 +33,10 @@ dist/
 build/
 .next/
 coverage/
+
+# Hallmark design skill — install + generated artifacts (per-developer, not shared)
+.agents/
+.claude/skills/
+skills-lock.json
+.hallmark/
+backend/design.md
