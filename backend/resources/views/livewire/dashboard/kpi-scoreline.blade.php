@@ -22,8 +22,4 @@
         <div class="exec-donut" style="--pct:{{ $pct }}"><strong>{{ $pct }}%</strong></div>
         <small>бажарилиш</small>
     </div>
-    <div class="score-actions">
-        <a class="score-action primary" href="{{ route('tasks') }}?module={{ $module }}">Чора-тадбирларни кўриш</a>
-        <a class="score-action" href="{{ route('execution') }}">Ижро журнали</a>
-    </div>
 </div>

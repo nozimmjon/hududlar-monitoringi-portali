@@ -82,10 +82,6 @@
             <div class="exec-donut" style="--pct:{{ $totals['pct'] }}"><strong>{{ $totals['pct'] }}%</strong></div>
             <small>бажарилиш</small>
         </div>
-        <div class="score-actions">
-            <a class="score-action primary" href="{{ route('dashboard') }}">KPI экрани</a>
-            <a class="score-action" href="{{ route('execution') }}">Ижро журнали</a>
-        </div>
     </div>
 
     <div class="task-workspace">
@@ -120,20 +116,5 @@
                 </div>
             </section>
         </div>
-        <aside class="task-focus">
-            <div class="eyebrow">Топшириқлар</div>
-            <h3>KPI → топшириқ</h3>
-            <p>Бу экран KPI карточкасида кўринган ижро ҳолатини номма-ном топшириқларга очиб беради.</p>
-            <div class="task-side-stack">
-                <div class="task-side-row">
-                    <div><strong>Танланган йўналиш</strong><span>{{ $module === 'all' ? 'Барча 7 йўналиш' : ($moduleOptions->firstWhere('code', $module)?->label ?? $module) }}</span></div>
-                    <span class="chip blue">{{ $totals['total'] }} та</span>
-                </div>
-                <div class="task-side-row">
-                    <div><strong>Танланган KPI</strong><span>{{ $indicator === 'all' ? 'Барча KPI' : ($indicatorOptions->firstWhere('code', $indicator)?->label_full ?? $indicator) }}</span></div>
-                    <span class="chip blue">{{ $indicator === 'all' ? 'ҳаммаси' : $indicator }}</span>
-                </div>
-            </div>
-        </aside>
     </div>
 </div>

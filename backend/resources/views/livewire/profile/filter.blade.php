@@ -20,6 +20,5 @@
     </label>
     <div class="action-row" style="margin-top:0">
         <a class="mini-button" href="{{ route('districts') }}?kpi={{ $kpi }}">Туманлар кесимига қайтиш</a>
-        <a class="mini-button primary" href="{{ route('dashboard') }}?module={{ $moduleCode }}&kpi={{ $kpi }}">KPI экрани</a>
     </div>
 </div>

@@ -9,7 +9,7 @@
       --nav: #062844;
       --nav-2: #08395d;
       --blue: #1769e0;
-      --font-sans: "Roboto", "Segoe UI", Arial, sans-serif;
+      --font-sans: 'Inter', sans-serif;
       --blue-2: #0b4c7a;
       --blue-soft: #eef6ff;
       --green: #15803d;
@@ -4888,25 +4888,6 @@
       min-width: 0;
     }
 
-    .task-focus {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      padding: 14px;
-      box-shadow: 0 16px 34px rgba(16, 48, 82, .08);
-    }
-
-    .task-focus h3 {
-      font-size: 19px;
-      line-height: 1.15;
-    }
-
-    .task-focus p {
-      margin-top: 7px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-    }
 
     .task-side-stack {
       display: grid;

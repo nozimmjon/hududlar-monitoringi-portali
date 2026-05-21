@@ -63,7 +63,6 @@
             <div class="profile-side-stat"><span>Туман мақсадлари</span><strong>{{ $districtTargetsCount }}</strong></div>
             <div class="profile-actions" style="margin-top:12px">
                 <a class="mini-button" href="{{ route('districts') }}?kpi={{ $kpi }}">Туманлар жадвали</a>
-                <button class="mini-button" type="button" disabled title="Тез орада">Ижро журнали</button>
             </div>
         </div>
     </article>
