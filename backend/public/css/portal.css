@@ -5744,9 +5744,10 @@
         gap: 6px;
         overflow: visible;
         padding: 10px;
+        box-shadow: 0 4px 12px rgba(7, 26, 45, .12);
       }
       .side-title { display: none; }
-      .nav-btn { min-width: 0; width: auto; margin: 0; gap: 6px; padding: 8px 10px; }
+      .nav-btn { min-width: 0; width: auto; margin: 0; gap: 6px; padding: 8px 10px; grid-template-columns: 26px minmax(0, 1fr); justify-items: start; }
       .nav-btn span { display: block; font-size: 11px; line-height: 1.1; white-space: normal; }
       .main { padding: 14px; min-width: 0; max-width: 100vw; overflow-x: hidden; }
       .toolbar { justify-content: flex-start; }
