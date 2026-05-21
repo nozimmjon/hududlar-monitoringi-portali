@@ -24,22 +24,22 @@
     </div>
     <a class="nav-btn {{ Route::is('dashboard') ? 'active' : '' }}"
        href="{{ route('dashboard') }}" title="KPI">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/>
+      <svg viewBox="0 0 256 256" fill="currentColor">
+        <path d="M224,200h-8V40a8,8,0,0,0-8-8H152a8,8,0,0,0-8,8V80H96a8,8,0,0,0-8,8v40H48a8,8,0,0,0-8,8v64H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16ZM160,48h40V200H160ZM104,96h40V200H104ZM56,144H88v56H56Z"/>
       </svg>
       <span>KPI</span>
     </a>
     <a class="nav-btn {{ Route::is('tasks') ? 'active' : '' }}"
        href="{{ route('tasks') }}" title="Топшириқлар">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M9 11l2 2 4-5M5 4h14v16H5z"/>
+      <svg viewBox="0 0 256 256" fill="currentColor">
+        <path d="M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"/>
       </svg>
       <span>Топшириқлар</span>
     </a>
     <a class="nav-btn {{ Route::is('districts') ? 'active' : '' }}"
        href="{{ route('districts') }}" title="Туманлар">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-7h6v7"/>
+      <svg viewBox="0 0 256 256" fill="currentColor">
+        <path d="M240,208H224V96a16,16,0,0,0-16-16H144V32a16,16,0,0,0-24.88-13.32L39.12,72A16,16,0,0,0,32,85.34V208H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM208,96V208H144V96ZM48,85.34,128,32V208H48ZM112,112v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm-32,0v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm0,56v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Zm32,0v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Z"/>
       </svg>
       <span>Туманлар</span>
     </a>
