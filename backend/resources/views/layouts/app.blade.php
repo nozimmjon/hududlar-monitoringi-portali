@@ -16,6 +16,9 @@
 </head>
 <body>
   <aside class="sidebar">
+    <div class="side-brand">
+      <span class="brand-mark">CERR</span>
+    </div>
     <div class="side-title">
       <strong>Бошқарув маркази</strong>
     </div>
@@ -46,7 +49,6 @@
   <div class="content-col">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark">CERR</div>
         <h1>{{ $currentRegion->name_full }} мониторинг платформаси</h1>
       </div>
     </header>

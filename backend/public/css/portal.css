@@ -150,6 +150,11 @@
       flex-direction: column;
     }
 
+    .side-brand {
+      display: flex;
+      padding: 0 10px 14px;
+    }
+
     .side-title {
       padding: 0 10px 14px;
       border-bottom: 1px solid rgba(255,255,255,.12);
