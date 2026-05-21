@@ -277,106 +277,64 @@
     .dashboard-module-tabs {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 16px;
+      padding: 6px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow-sm);
     }
 
     .module-tab {
-        position: relative;
-        display: grid;
-        grid-template-columns: 22px minmax(0, 1fr);
-        grid-template-rows: auto 3px;
-        column-gap: 10px;
-        row-gap: 6px;
-        align-items: center;
-        padding: 10px 14px;
-        border: 1px solid var(--line);
-        border-radius: var(--r-md);
-        background: #fff;
-        cursor: pointer;
-        transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-    }
-
-    .module-tab__icon {
-        grid-column: 1;
-        grid-row: 1;
-        display: inline-flex;
-        width: 18px;
-        height: 18px;
-        color: var(--muted);
-    }
-
-    .module-tab__icon svg {
-        width: 100%;
-        height: 100%;
-        stroke-width: 1.6;
+      display: grid;
+      place-items: center;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 15px;
+      background: #eef0f3;
+      cursor: pointer;
+      transition: background .15s ease;
     }
 
     .module-tab__body {
-        grid-column: 2;
-        grid-row: 1;
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 10px;
-        min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      min-width: 0;
+      text-align: center;
     }
 
     .module-tab__body strong {
-        color: var(--ink);
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.18;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .module-tab__count {
-        color: #718199;
-        font-size: 11px;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
-    }
-
-    .module-tab__bar {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        height: 3px;
-        border-radius: 2px;
-        background: rgba(23, 105, 224, .10);
-        overflow: hidden;
-    }
-
-    .module-tab__bar i {
-        display: block;
-        height: 100%;
-        width: var(--w, 0%);
-        background: var(--blue);
-        transition: width .25s ease;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
     }
 
     .module-tab:hover {
-        transform: translateY(-1px);
-        border-color: rgba(23, 105, 224, .30);
-        box-shadow: var(--shadow-sm);
+      background: #e4e7ec;
     }
 
     .module-tab.active {
-        background: #fff;
-        border-color: rgba(23, 105, 224, .50);
-        box-shadow: inset 0 -4px 0 var(--blue), var(--shadow-sm);
+      background: var(--accent-grad);
+      box-shadow: 0 6px 16px rgba(23, 105, 224, .28);
     }
 
-    .module-tab.active .module-tab__icon { color: var(--blue); }
-    .module-tab.active .module-tab__body strong { color: var(--ink); font-weight: 800; }
-    .module-tab.active .module-tab__bar { background: rgba(23, 105, 224, .18); }
+    .module-tab.active .module-tab__body strong {
+      color: #fff;
+      font-weight: 800;
+    }
 
-    .module-tab[data-dashboard-module] { --module-color: var(--blue); }
-
-    .module-tab__bar:has(i[style*="--w:0%"]) {
-        background: rgba(120, 120, 120, .14);
+    .module-tab.active .module-tab__count {
+      color: rgba(255, 255, 255, .82);
     }
 
     .module-heading {
