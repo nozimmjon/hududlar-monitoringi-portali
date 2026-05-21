@@ -6,7 +6,9 @@
             $fact = $facts->get($code);
             $active = $code === $selectedKpi ? 'active' : '';
             $parent = ($code === 'grp' && $isMacro) ? 'parent' : '';
-            $meta = $code === $selectedKpi ? 'Танланган KPI' : 'Кўрсаткични очиш';
+            $growth = $fact && $fact->growth_pct !== null
+                ? \App\Support\DashboardCatalog::growthValue($fact->growth_pct)
+                : null;
         @endphp
         <button class="front-kpi {{ $active }} {{ $parent }}"
                 wire:click="selectKpi('{{ $code }}')"
@@ -17,10 +19,12 @@
             </div>
             <div class="front-kpi-copy">
                 <h3>{{ $ind->label_short }}</h3>
-                <p>{{ $ind->label_full }}</p>
-                <span class="front-kpi-meta">
-                    <i class="front-kpi-dot" aria-hidden="true"></i>{{ $meta }}
-                </span>
+                @if($growth !== null)
+                    <strong class="front-kpi-value">{{ $growth }}</strong>
+                    <span class="front-kpi-note">йиллик ўсиш</span>
+                @else
+                    <p>{{ $ind->label_full }}</p>
+                @endif
             </div>
         </button>
     @endforeach
