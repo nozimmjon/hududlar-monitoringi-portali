@@ -15,46 +15,41 @@
   @livewireStyles
 </head>
 <body>
-  <header class="topbar">
-    <div class="mast">
+  <aside class="sidebar">
+    <div class="side-title">
+      <strong>Бошқарув маркази</strong>
+    </div>
+    <a class="nav-btn {{ Route::is('dashboard') ? 'active' : '' }}"
+       href="{{ route('dashboard') }}" title="KPI">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/>
+      </svg>
+      <span>KPI</span>
+    </a>
+    <a class="nav-btn {{ Route::is('tasks') ? 'active' : '' }}"
+       href="{{ route('tasks') }}" title="Топшириқлар">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M9 11l2 2 4-5M5 4h14v16H5z"/>
+      </svg>
+      <span>Топшириқлар</span>
+    </a>
+    <a class="nav-btn {{ Route::is('districts') ? 'active' : '' }}"
+       href="{{ route('districts') }}" title="Туманлар">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-7h6v7"/>
+      </svg>
+      <span>Туманлар</span>
+    </a>
+    <livewire:region-switcher />
+  </aside>
+
+  <div class="content-col">
+    <header class="topbar">
       <div class="brand">
         <div class="brand-mark">CERR</div>
-        <div>
-          <h1>{{ $currentRegion->name_full }} мониторинг платформаси</h1>
-          <p>KPI · туманлар · ижро мониторинги</p>
-        </div>
+        <h1>{{ $currentRegion->name_full }} мониторинг платформаси</h1>
       </div>
-    </div>
-  </header>
-
-  <div class="shell">
-    <aside class="sidebar">
-      <div class="side-title">
-        <strong>Бошқарув маркази</strong>
-      </div>
-      <a class="nav-btn {{ Route::is('dashboard') ? 'active' : '' }}"
-         href="{{ route('dashboard') }}" title="KPI">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/>
-        </svg>
-        <span>KPI</span>
-      </a>
-      <a class="nav-btn {{ Route::is('tasks') ? 'active' : '' }}"
-         href="{{ route('tasks') }}" title="Топшириқлар">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M9 11l2 2 4-5M5 4h14v16H5z"/>
-        </svg>
-        <span>Топшириқлар</span>
-      </a>
-      <a class="nav-btn {{ Route::is('districts') ? 'active' : '' }}"
-         href="{{ route('districts') }}" title="Туманлар">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-7h6v7"/>
-        </svg>
-        <span>Туманлар</span>
-      </a>
-      <livewire:region-switcher />
-    </aside>
+    </header>
 
     <main class="main">
       @yield('content')
