@@ -2221,126 +2221,90 @@
     }
 
     .macro-hero-strip {
-        position: relative;
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(420px, 1fr);
-        gap: 24px;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        gap: 26px;
         align-items: center;
         padding: 22px 26px;
         border-radius: 14px;
-        background:
-            radial-gradient(circle at top right, rgba(120, 160, 220, .18), transparent 60%),
-            linear-gradient(135deg, #0b1f3b 0%, #11294d 100%);
-        color: #e4ecf7;
-        box-shadow: 0 6px 24px rgba(11, 31, 59, .18);
-        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-sm);
     }
 
     .macro-hero-strip__lead {
         display: grid;
-        gap: 10px;
+        gap: 4px;
         min-width: 0;
     }
 
-    .macro-hero-strip__caption-row {
+    .macro-hero-strip__value-row {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
         gap: 10px;
     }
 
-    .macro-hero-strip__caption {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: #7aa3d6;
-    }
-
-    .macro-hero-strip__pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(46, 160, 67, .16);
-        color: #4ac46c;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1;
-    }
-
     .macro-hero-strip__value {
-        color: #4ad17a;
-        font-size: clamp(56px, 6vw, 88px);
-        line-height: .9;
+        color: var(--blue);
+        font-size: clamp(44px, 5vw, 64px);
+        line-height: .95;
         letter-spacing: -.04em;
         font-weight: 900;
         font-variant-numeric: tabular-nums;
     }
 
-    .macro-hero-strip__sub {
-        color: #8aa5c8;
-        font-size: 13px;
-        font-weight: 500;
+    .macro-hero-strip__arrow {
+        flex: 0 0 auto;
+        width: clamp(26px, 3vw, 36px);
+        height: clamp(26px, 3vw, 36px);
+        color: var(--blue);
+    }
+
+    .macro-hero-strip__growth-label {
+        color: var(--blue);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
     }
 
     .macro-hero-strip__chips {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 8px;
+        gap: 12px;
     }
 
     .macro-hero-strip__chip {
         display: grid;
-        gap: 4px;
-        padding: 12px;
-        border-radius: 10px;
-        justify-items: start;
+        gap: 5px;
+        justify-items: center;
+        text-align: center;
+        padding: 14px 12px;
+        border-radius: 12px;
+        background: #f3f5f8;
+        border: 1px solid var(--line);
         min-width: 0;
     }
 
     .macro-hero-strip__chip-label {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        text-transform: uppercase;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
     }
 
     .macro-hero-strip__chip-value {
-        font-size: clamp(20px, 1.7vw, 26px);
+        color: var(--ink);
+        font-size: clamp(20px, 1.9vw, 26px);
         font-weight: 800;
-        font-variant-numeric: tabular-nums;
         line-height: 1;
+        font-variant-numeric: tabular-nums;
     }
 
     .macro-hero-strip__chip-badge {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        text-transform: uppercase;
+        color: var(--muted);
+        font-size: 11.5px;
+        font-weight: 600;
     }
-
-    .macro-hero-strip__chip.is-actual {
-        background: #eaf2ff;
-    }
-    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-label { color: #5a7596; }
-    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-value { color: #0f2a52; }
-    .macro-hero-strip__chip.is-actual .macro-hero-strip__chip-badge { color: #1f6feb; }
-
-    .macro-hero-strip__chip.is-plan {
-        background: rgba(255, 255, 255, .06);
-        border: 1px solid rgba(255, 255, 255, .08);
-    }
-    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-label { color: #7aa3d6; }
-    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-value { color: #e4ecf7; }
-    .macro-hero-strip__chip.is-plan .macro-hero-strip__chip-badge { color: #7aa3d6; }
-
-    .macro-hero-strip__chip.is-target {
-        background: #1f6feb;
-    }
-    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-label { color: rgba(255, 255, 255, .78); }
-    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-value { color: #fff; }
-    .macro-hero-strip__chip.is-target .macro-hero-strip__chip-badge { color: rgba(255, 255, 255, .9); }
 
     .macro-layout-card .macro-composition-panel {
       padding: 12px 14px;

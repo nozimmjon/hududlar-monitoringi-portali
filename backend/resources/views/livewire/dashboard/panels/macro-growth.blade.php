@@ -72,14 +72,16 @@
     @else
         <section class="macro-hero-strip" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
             <div class="macro-hero-strip__lead">
-                <div class="macro-hero-strip__caption-row">
-                    <span class="macro-hero-strip__caption">{{ mb_strtoupper($indicator->label_short ?? '') }} ЎСИШИ · СОЛИШТИРМА НАРХЛАРДА</span>
-                    @if($showPill)
-                        <span class="macro-hero-strip__pill">↑ +{{ number_format($deltaPp, 1) }} п.п. 2025-йилдан</span>
-                    @endif
+                <div class="macro-hero-strip__value-row">
+                    <strong class="macro-hero-strip__value">{{ $yearGrowth }}</strong>
+                    <svg class="macro-hero-strip__arrow" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.6" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 17 9 11 13 15 21 7"/>
+                        <polyline points="15 7 21 7 21 13"/>
+                    </svg>
                 </div>
-                <strong class="macro-hero-strip__value">{{ $yearGrowth }}</strong>
-                <small class="macro-hero-strip__sub">2026 йил якуни кутилаётган баҳо</small>
+                <span class="macro-hero-strip__growth-label">Ўсиш</span>
             </div>
             <div class="macro-hero-strip__chips">
                 @foreach($macroPeriods as $item)
@@ -89,10 +91,10 @@
                             ? DashboardCatalog::growthValue($row->growth_pct)
                             : '—';
                     @endphp
-                    <div class="macro-hero-strip__chip is-{{ $item['cls'] }}">
-                        <span class="macro-hero-strip__chip-label">{{ $item['label'] }}</span>
+                    <div class="macro-hero-strip__chip">
+                        <span class="macro-hero-strip__chip-label">{{ $item['label'] }}:</span>
                         <strong class="macro-hero-strip__chip-value">{{ $growthText }}</strong>
-                        <span class="macro-hero-strip__chip-badge">{{ $item['state'] }}</span>
+                        <span class="macro-hero-strip__chip-badge">({{ $item['state'] }})</span>
                     </div>
                 @endforeach
             </div>
