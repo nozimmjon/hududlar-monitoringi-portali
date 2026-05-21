@@ -52,11 +52,11 @@ test('dashboard inflation panel renders price caps', function () {
     $response->assertSee('Тухум', false);
 });
 
-test('dashboard macro module renders module composition dropdown', function () {
+test('dashboard macro module renders macro hero strip', function () {
     $this->seed();
     $response = $this->get('/dashboard?module=macro');
     $response->assertStatus(200);
-    $response->assertSee('macro-composition-panel', false);
+    $response->assertSee('macro-hero-strip', false);
 });
 
 test('dashboard employment module renders front cards layout', function () {

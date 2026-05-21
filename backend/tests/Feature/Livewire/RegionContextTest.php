@@ -4,7 +4,6 @@ use App\Livewire\DistrictsPage;
 use App\Livewire\Dashboard\KpiFrontCards;
 use App\Livewire\Dashboard\KpiScoreline;
 use App\Livewire\Dashboard\KpiWorkspaceCard;
-use App\Livewire\Dashboard\MacroComposition;
 use App\Livewire\ExecutionPage;
 use App\Livewire\RegionProfile;
 use App\Livewire\TasksBoard;
@@ -26,7 +25,6 @@ test('region-aware components read session for region context', function () {
         KpiFrontCards::class,
         KpiScoreline::class,
         KpiWorkspaceCard::class,
-        MacroComposition::class,
         ExecutionPage::class,
         RegionProfile::class,
         TasksBoard::class,
