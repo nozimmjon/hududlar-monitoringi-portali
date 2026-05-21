@@ -2224,7 +2224,7 @@
         display: grid;
         grid-template-columns: minmax(0, auto) minmax(0, 1fr);
         gap: 26px;
-        align-items: center;
+        align-items: stretch;
         padding: 38px 30px;
         border-radius: 14px;
         background: #fff;
@@ -2235,6 +2235,7 @@
     .macro-hero-strip__lead {
         display: grid;
         gap: 4px;
+        align-content: center;
         min-width: 0;
     }
 
@@ -2276,10 +2277,11 @@
 
     .macro-hero-strip__chip {
         display: grid;
-        gap: 5px;
+        gap: 8px;
         justify-items: center;
+        align-content: center;
         text-align: center;
-        padding: 14px 12px;
+        padding: 18px 14px;
         border-radius: 12px;
         background: #f3f5f8;
         border: 1px solid var(--line);
@@ -2288,13 +2290,13 @@
 
     .macro-hero-strip__chip-label {
         color: var(--muted);
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 600;
     }
 
     .macro-hero-strip__chip-value {
         color: var(--ink);
-        font-size: clamp(20px, 1.9vw, 26px);
+        font-size: clamp(27px, 2.6vw, 36px);
         font-weight: 800;
         line-height: 1;
         font-variant-numeric: tabular-nums;
@@ -2302,7 +2304,7 @@
 
     .macro-hero-strip__chip-badge {
         color: var(--muted);
-        font-size: 11.5px;
+        font-size: 13px;
         font-weight: 600;
     }
 
