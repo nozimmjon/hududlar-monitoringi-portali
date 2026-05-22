@@ -99,9 +99,9 @@ test('dashboard non-macro module is wrapped in a module card', function () {
     $response->assertSee('class="module-card"', false);
 });
 
-test('macro scoreline carries the is-macro modifier', function () {
+test('non-macro module renders the scoreline strip', function () {
     $this->seed();
-    $response = $this->get('/dashboard?module=macro');
+    $response = $this->get('/dashboard?module=budget');
     $response->assertStatus(200);
-    $response->assertSee('scoreline execution-strip is-macro', false);
+    $response->assertSee('scoreline execution-strip', false);
 });

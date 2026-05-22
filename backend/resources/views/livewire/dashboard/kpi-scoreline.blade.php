@@ -1,4 +1,4 @@
-<div class="{{ trim('scoreline execution-strip '.($module === 'macro' ? 'is-macro' : '')) }}">
+<div class="scoreline execution-strip">
     <div class="scoreline-copy">
         <span>Чора-тадбирлар ижроси</span>
         <strong>{{ $scope }} ҳолати</strong>
