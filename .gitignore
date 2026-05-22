@@ -40,3 +40,6 @@ coverage/
 skills-lock.json
 .hallmark/
 backend/design.md
+
+# Brainstorming visual-companion mockups (local, per-developer)
+.superpowers/
