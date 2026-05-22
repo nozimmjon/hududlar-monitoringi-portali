@@ -2337,70 +2337,7 @@
       min-width: 0;
     }
 
-    .macro-section-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
 
-    .macro-section-title strong {
-      color: var(--ink);
-      font-size: 18px;
-      font-weight: 850;
-      letter-spacing: -0.012em;
-    }
-
-    .macro-section-title span {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .macro-hero-card {
-      position: relative;
-      min-height: 120px;
-      display: grid;
-      grid-template-columns: 1fr;
-      align-items: center;
-      padding: 16px 34px;
-      border: 1px solid rgba(19, 126, 61, .18);
-      border-radius: 12px;
-      background:
-        linear-gradient(180deg, #f5fbf7 0%, #eff8f3 100%),
-        repeating-linear-gradient(90deg, transparent 0 56px, rgba(15, 135, 58, .035) 56px 57px);
-      overflow: hidden;
-    }
-
-    .macro-hero-copy {
-      min-width: 0;
-      display: grid;
-      gap: 6px;
-      align-content: center;
-      text-align: center;
-      justify-items: center;
-    }
-
-    .macro-hero-copy span {
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    .macro-hero-copy strong {
-      color: #08742d;
-      font-size: clamp(48px, 5vw, 72px);
-      line-height: .9;
-      letter-spacing: -0.055em;
-      font-weight: 950;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .macro-hero-copy small {
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 700;
-    }
 
     .macro-layout-card .macro-growth-overview {
       display: grid;
@@ -2408,42 +2345,6 @@
       gap: 14px;
     }
 
-    .macro-layout-card .macro-period-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .macro-layout-card .macro-period-card {
-      min-height: 128px;
-      justify-items: center;
-      text-align: center;
-      background: #f9fbfd;
-    }
-
-    .macro-layout-card .macro-period-card.actual {
-      background: #f2fbf5;
-      border-color: rgba(15, 135, 58, .18);
-    }
-
-    .macro-layout-card .macro-period-card strong {
-      color: var(--blue);
-      font-size: clamp(28px, 2.5vw, 38px);
-    }
-
-    .macro-layout-card .macro-period-card.actual strong {
-      color: #08742d;
-    }
-
-    .macro-layout-card .macro-period-head {
-      width: 100%;
-      display: grid;
-      justify-items: center;
-      gap: 6px;
-    }
-
-    .macro-layout-card .macro-mini-bar {
-      display: none;
-    }
 
     .macro-period-row {
         display: grid;
@@ -2697,14 +2598,6 @@
     }
 
 
-    .industry-driver-panel .mini-button {
-      width: 100%;
-      justify-content: center;
-      min-height: 38px;
-      color: var(--blue-dark);
-      border-color: var(--blue);
-      background: #fff;
-    }
 
     .budget-invest-panel {
       padding: 18px 20px 20px;
@@ -5903,8 +5796,6 @@
       .budget-invest-summary,
       .budget-invest-body,
       .budget-periods-grid { grid-template-columns: 1fr; }
-      .macro-hero-card { grid-template-columns: 1fr; text-align: center; }
-      .macro-hero-copy { text-align: center; justify-items: center; }
       .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
       .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
       .industry-driver-arrow { display: none; }
