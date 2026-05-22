@@ -782,37 +782,37 @@
       min-height: 150px;
       padding: 20px;
       border-radius: 15px;
-      grid-template-columns: 50px minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 17px;
       align-items: center;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
+      width: 64px;
+      height: 64px;
+      border-radius: 17px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon svg {
-      width: 29px;
-      height: 29px;
+      width: 39px;
+      height: 39px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) h3 {
-      font-size: 12.5px;
+      font-size: 15px;
       letter-spacing: 0.05em;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-copy {
-      gap: 6px;
+      gap: 8px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value {
-      font-size: clamp(24px, 2.4vw, 33px);
+      font-size: clamp(31px, 3vw, 42px);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-note {
-      font-size: 12px;
+      font-size: 13.5px;
     }
 
     /* ЯҲМ hero panel */
