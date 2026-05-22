@@ -802,10 +802,10 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent {
       grid-column: 1;
       grid-row: 1 / span 2;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 6px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-content: center;
+      gap: 8px 14px;
       padding: 24px;
       min-height: 0;
       border: 0;
@@ -824,42 +824,53 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent::before {
       content: "";
       position: absolute;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 124px;
-      height: 124px;
-      background: rgba(255, 255, 255, .13);
-      clip-path: polygon(50% 0, 100% 50%, 72% 50%, 72% 100%, 28% 100%, 28% 50%, 0 50%);
+      right: -24px;
+      bottom: -34px;
+      width: 196px;
+      height: 196px;
+      background: no-repeat center / contain
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='17' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M50 87 L50 25'/%3E%3Cpath d='M22 49 L50 21 L78 49'/%3E%3C/g%3E%3C/svg%3E");
+      opacity: .24;
       pointer-events: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
-      display: none;
-    }
-
-    .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-copy {
-      gap: 8px;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--blue);
       position: relative;
       z-index: 1;
     }
 
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-copy {
+      display: contents;
+    }
+
     .front-kpis.module-kpis.macro-layout .front-kpi.parent h3 {
-      justify-self: start;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, .16);
+      align-self: center;
+      position: relative;
+      z-index: 1;
       color: #fff;
-      font-size: 13px;
-      letter-spacing: 0.08em;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: none;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-value {
+      grid-column: 1 / -1;
+      position: relative;
+      z-index: 1;
       color: #fff;
       font-size: clamp(40px, 4.6vw, 60px);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-note {
+      grid-column: 1 / -1;
+      position: relative;
+      z-index: 1;
       color: rgba(255, 255, 255, .82);
       font-size: 13px;
     }
@@ -2392,10 +2403,7 @@
     .macro-period-row {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: var(--surface);
-        overflow: hidden;
+        background: #fff;
     }
 
     .macro-period-cell {
@@ -2427,12 +2435,6 @@
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
     }
-
-    .macro-period-cell.actual .macro-period-cell__value {
-        color: var(--blue);
-    }
-
-    /* .macro-period-cell.plan and .macro-period-cell.target intentionally unstyled — reserved for future use */
 
     .macro-period-cell__state {
         color: var(--muted);
