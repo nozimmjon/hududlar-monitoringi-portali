@@ -2582,13 +2582,14 @@
 
     .industry-driver-head strong {
       color: var(--ink);
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 850;
       letter-spacing: -0.012em;
     }
 
     .industry-driver-list {
       display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
 
@@ -2618,6 +2619,8 @@
       border-radius: 14px;
       display: grid;
       place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
     }
 
     .driver-icon svg {
@@ -2626,9 +2629,6 @@
       stroke-width: 2;
     }
 
-    .driver-icon.green { color: #08742d; background: #eef9f1; }
-    .driver-icon.blue { color: var(--blue); background: #eef5ff; }
-    .driver-icon.orange { color: #d35a0f; background: #fff3ea; }
 
     .industry-driver-arrow {
       color: var(--muted);
@@ -2696,8 +2696,6 @@
       line-height: 1.25;
     }
 
-    .industry-driver-card.green .industry-driver-metric strong { color: #08742d; }
-    .industry-driver-card.orange .industry-driver-metric strong { color: #d35a0f; }
 
     .industry-driver-panel .mini-button {
       width: 100%;
