@@ -782,20 +782,20 @@
       min-height: 150px;
       padding: 20px;
       border-radius: 15px;
-      grid-template-columns: 64px minmax(0, 1fr);
-      gap: 17px;
+      grid-template-columns: 80px minmax(0, 1fr);
+      gap: 18px;
       align-items: center;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 17px;
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon svg {
-      width: 39px;
-      height: 39px;
+      width: 48px;
+      height: 48px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) h3 {
@@ -808,7 +808,8 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value {
-      font-size: clamp(31px, 3vw, 42px);
+      font-size: clamp(40px, 3.7vw, 54px);
+      font-weight: 700;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-note {
