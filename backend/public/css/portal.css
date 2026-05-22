@@ -527,6 +527,41 @@
     .exec-status-pill.green strong { color: #16a34a; }
     .exec-status-pill.red strong { color: #ef4444; }
 
+    .execution-strip .exec-status-grid { gap: 10px; }
+
+    .execution-strip .exec-status-pill {
+      min-height: 52px;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      justify-items: start;
+      text-align: left;
+      gap: 4px;
+    }
+
+    .execution-strip .exec-status-pill:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: transparent;
+    }
+
+    .execution-strip .exec-status-pill span {
+      color: rgba(255, 255, 255, .9);
+      font-size: 11px;
+    }
+
+    .execution-strip .exec-status-pill strong {
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .execution-strip .exec-status-grid .exec-status-pill:first-child { background: var(--score-blue); }
+    .execution-strip .exec-status-pill.green { background: var(--score-green); }
+    .execution-strip .exec-status-pill.red { background: var(--score-red); }
+    .execution-strip .exec-status-pill.green strong,
+    .execution-strip .exec-status-pill.red strong { color: #fff; }
+
     .exec-progress-box {
       min-width: 0;
       display: grid;
