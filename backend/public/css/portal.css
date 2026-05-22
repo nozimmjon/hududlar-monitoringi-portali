@@ -5701,7 +5701,7 @@
       .grid-3, .grid-2, .profile-top { grid-template-columns: 1fr; }
       .profile-filter { align-items: stretch; flex-direction: column; }
       .district-workspace, .district-context { grid-template-columns: 1fr; }
-      .task-workspace, .task-filter, .task-filter.report-filter, .task-summary-strip, .workflow-strip { grid-template-columns: 1fr; }
+      .task-filter, .task-filter.report-filter, .tasks-layout, .task-stat-row, .workflow-strip { grid-template-columns: 1fr; }
       .execution-command, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
       .execution-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .modal-grid, .report-context { grid-template-columns: 1fr; }
@@ -5715,7 +5715,6 @@
       .scoreline.execution-strip { grid-template-columns: 1fr; }
       .scoreline-copy, .score-actions { grid-column: 1 / -1; }
       .exec-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .task-summary-strip.execution-overview .exec-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis.module-kpis.employment-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -5750,8 +5749,6 @@
       .toolbar { justify-content: flex-start; }
       .dashboard-module-tabs, .module-heading, .scoreline, .front-kpis, .front-kpis.module-kpis.macro-layout, .front-kpis.module-kpis.employment-layout, .workflow, .task-board, .cards-3, .command-summary, .context-strip, .district-controls, .link-grid, .district-kpis { grid-template-columns: 1fr; }
       .execution-command, .execution-status-grid, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
-      .task-summary-strip.execution-overview .exec-status-grid, .task-advanced-grid { grid-template-columns: 1fr; }
-      .task-group .task-list { max-height: none; overflow: visible; padding-right: 0; }
       .profile-grid, .profile-bottom-grid, .profile-metrics, .profile-secondary .district-kpis { grid-template-columns: 1fr; }
       .profile-hero { grid-template-columns: 1fr; }
       .profile-main-value { text-align: left; }
@@ -5792,8 +5789,6 @@
       .module-card { padding: 14px; }
       .district-card { grid-template-columns: 1fr; }
       .metric-cell, .debt-cell { border-left: 0; border-top: 1px solid var(--line); padding: 8px 0 0; justify-items: start; }
-      .task-card.compact { grid-template-columns: 1fr; }
-      .task-card.compact .task-actions { justify-items: start; }
       .modal-bg { padding: 10px; align-items: flex-end; }
       .modal { max-height: 92vh; }
       .modal-head { padding: 14px; }
