@@ -2432,6 +2432,8 @@
         color: var(--blue);
     }
 
+    /* .macro-period-cell.plan and .macro-period-cell.target intentionally unstyled — reserved for future use */
+
     .macro-period-cell__state {
         color: var(--muted);
         font-size: 12px;
