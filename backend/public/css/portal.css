@@ -840,7 +840,6 @@
       border-radius: 16px;
       background: linear-gradient(160deg, #2360d6 0%, #1e59cc 100%);
       box-shadow: none;
-      overflow: hidden;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent:hover {
@@ -852,13 +851,13 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent::before {
       content: "";
       position: absolute;
-      right: -18px;
-      bottom: -26px;
-      width: 224px;
-      height: 224px;
+      right: -8px;
+      bottom: -12px;
+      width: 250px;
+      height: 250px;
       background: no-repeat center / contain
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ffffff' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 84 C 40 78 52 56 84 20'/%3E%3Cpath d='M60 20 L84 20 L84 44'/%3E%3C/svg%3E");
-      opacity: .32;
+      opacity: .4;
       pointer-events: none;
     }
 
