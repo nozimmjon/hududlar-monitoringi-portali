@@ -3398,12 +3398,10 @@
     }
 
     .poverty-section {
-      padding: 18px 20px 22px;
+      padding: 0;
       display: grid;
-      gap: 16px;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(98, 148, 162, .07), transparent 45%),
-        #fafdfd;
+      gap: 22px;
+      background: transparent;
     }
 
     .poverty-section .poverty-head {
@@ -3416,7 +3414,7 @@
     .poverty-section .poverty-head strong {
       display: block;
       font-family: var(--font-sans);
-      font-size: clamp(17px, 1.6vw, 20px);
+      font-size: clamp(19px, 1.7vw, 22px);
       font-weight: 800;
       letter-spacing: -0.014em;
       color: var(--ink);
@@ -3424,8 +3422,8 @@
 
     .poverty-section .poverty-head p {
       margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 12.5px;
+      color: var(--ink);
+      font-size: 14px;
       line-height: 1.4;
       max-width: 60ch;
     }
@@ -3433,7 +3431,7 @@
     .poverty-stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
 
     .employment-driver-section .poverty-stats {
@@ -3443,11 +3441,11 @@
     .poverty-stat {
       position: relative;
       display: grid;
-      grid-template-columns: 44px minmax(0, 1fr);
-      gap: 14px;
-      padding: 16px 18px 14px;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 16px;
+      padding: 18px;
       background: #ffffff;
-      border: 1px solid rgba(20, 30, 35, .07);
+      border: 1px solid var(--line);
       border-radius: 14px;
       box-shadow: var(--shadow-sm);
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
@@ -3460,20 +3458,19 @@
     }
 
     .poverty-stat-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(145deg, rgba(98, 148, 162, .18), rgba(98, 148, 162, .08));
-      color: #4a7280;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: var(--blue-soft);
+      color: var(--blue);
       display: grid;
       place-items: center;
       align-self: start;
-      box-shadow: inset 0 0 0 1px rgba(98, 148, 162, .18);
     }
 
     .poverty-stat-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       stroke-width: 1.7;
     }
 
@@ -3481,9 +3478,9 @@
 
     .poverty-stat-label {
       display: block;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
       line-height: 1.32;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -3495,8 +3492,8 @@
       gap: 6px;
       color: var(--ink);
       font-family: var(--font-sans);
-      font-size: clamp(20px, 1.9vw, 26px);
-      font-weight: 800;
+      font-size: clamp(26px, 2.2vw, 34px);
+      font-weight: 900;
       line-height: 1;
       letter-spacing: -0.022em;
       font-variant-numeric: tabular-nums;
@@ -3504,10 +3501,10 @@
     }
 
     .poverty-stat-value em {
-      color: var(--muted);
+      color: var(--ink);
       font-style: normal;
       font-weight: 600;
-      font-size: 12.5px;
+      font-size: 14px;
       letter-spacing: 0;
     }
 
@@ -3516,8 +3513,8 @@
       align-items: baseline;
       gap: 6px;
       flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 11.5px;
+      color: var(--ink);
+      font-size: 13px;
       font-weight: 500;
     }
 
@@ -3532,8 +3529,8 @@
 
     .poverty-progress {
       margin-top: 4px;
-      height: 5px;
-      background: rgba(98, 148, 162, .15);
+      height: 8px;
+      background: var(--line);
       border-radius: 999px;
       overflow: hidden;
     }
@@ -3541,15 +3538,15 @@
     .poverty-progress i {
       display: block;
       height: 100%;
-      background: linear-gradient(90deg, #6294a2, #88b4c0);
+      background: var(--blue);
       border-radius: 999px;
       transition: width var(--motion-slow);
     }
 
     .poverty-progress-label {
       display: block;
-      color: var(--muted);
-      font-size: 10.5px;
+      color: var(--ink);
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.02em;
     }
@@ -3559,10 +3556,8 @@
       display: grid;
       gap: 12px;
       padding: 18px 20px 20px;
-      background:
-        radial-gradient(circle at 100% 0%, rgba(98, 148, 162, .14), transparent 55%),
-        #ffffff;
-      border: 1px solid rgba(20, 30, 35, .07);
+      background: #fff;
+      border: 1px solid var(--line);
       border-radius: 14px;
       box-shadow: var(--shadow-sm);
     }
@@ -3578,9 +3573,9 @@
 
     .poverty-territory-eyebrow {
       display: block;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
@@ -3593,24 +3588,24 @@
       color: var(--blue);
       font-family: var(--font-sans);
       font-size: clamp(28px, 3vw, 38px);
-      font-weight: 800;
+      font-weight: 900;
       line-height: 1;
       letter-spacing: -0.022em;
       font-variant-numeric: tabular-nums;
     }
 
     .poverty-territory-head strong em {
-      color: var(--muted);
+      color: var(--ink);
       font-style: normal;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 14px;
       letter-spacing: 0;
     }
 
     .poverty-territory p {
       margin: 0;
-      color: var(--muted);
-      font-size: 12.5px;
+      color: var(--ink);
+      font-size: 13.5px;
       line-height: 1.45;
       max-width: 62ch;
     }
@@ -3624,12 +3619,12 @@
     .poverty-territory-chip {
       display: inline-flex;
       align-items: center;
-      padding: 5px 10px;
+      padding: 7px 13px;
       border-radius: 999px;
-      background: rgba(98, 148, 162, .1);
-      border: 1px solid rgba(98, 148, 162, .22);
-      color: #2f5560;
-      font-size: 11.5px;
+      background: var(--blue-soft);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 0;
       text-transform: none;
