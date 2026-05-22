@@ -1411,45 +1411,46 @@
     }
 
     .task-card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      background: #fff;
       display: grid;
-      gap: 8px;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
       min-width: 0;
-      cursor: pointer;
     }
 
-    .task-card:hover {
-      border-color: var(--blue);
-      background: var(--surface);
+    .task-num {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--blue-soft);
+      color: var(--task-blue);
+      font-size: 15px;
+      font-weight: 900;
     }
 
-    .task-card header {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: flex-start;
+    .task-body {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
     }
 
-    .task-card strong {
-      font-size: 13px;
-      line-height: 1.3;
+    .task-body strong {
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--ink);
       overflow-wrap: anywhere;
     }
 
-    .task-code {
-      display: inline-flex;
-      align-items: center;
-      width: fit-content;
-      margin-bottom: 6px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: #eaf3ff;
-      color: var(--blue);
-      font-size: 11px;
-      font-weight: 900;
+    .task-chips {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
     }
 
     .callout-note {
