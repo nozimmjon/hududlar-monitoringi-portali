@@ -2,13 +2,6 @@
     <livewire:dashboard.kpi-module-tabs :module="$module" :key="'tabs-'.$module" />
 
     <div class="module-card">
-        <div class="module-heading">
-            <div>
-                <h2>{{ $moduleLabel }}</h2>
-                <p>{{ $moduleIntro }}</p>
-            </div>
-        </div>
-
         @if($hasFrontCards)
             <livewire:dashboard.kpi-front-cards :module="$module" :kpi="$kpi" :key="'front-'.$module.'-'.$kpi" />
         @else
