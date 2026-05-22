@@ -1,8 +1,7 @@
 <div class="{{ trim('scoreline execution-strip '.($module === 'macro' ? 'is-macro' : '')) }}">
     <div class="scoreline-copy">
         <span>Чора-тадбирлар ижроси</span>
-        <strong>{{ $scope }}</strong>
-        <small>Ушбу йўналишга тегишли чора-тадбирлар ҳолати.</small>
+        <strong>{{ $scope }} ҳолати</strong>
     </div>
     <div class="exec-status-grid">
         <a class="exec-status-pill" href="{{ route('tasks') }}?module={{ $module }}">
