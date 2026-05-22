@@ -840,6 +840,7 @@
       border-radius: 16px;
       background: linear-gradient(160deg, #2360d6 0%, #1e59cc 100%);
       box-shadow: none;
+      overflow: hidden;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent:hover {
