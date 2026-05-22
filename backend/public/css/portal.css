@@ -2611,11 +2611,11 @@
 
 
     .budget-invest-panel {
-      padding: 18px 20px 20px;
+      padding: 0;
       display: grid;
-      gap: 16px;
-      background: linear-gradient(180deg, #fbfdff 0%, #fff 45%);
-      border-top: 1px solid var(--line);
+      gap: 18px;
+      background: transparent;
+      border-top: 0;
     }
 
     .budget-invest-summary {
@@ -2639,8 +2639,8 @@
     .budget-period-card span,
     .budget-dynamics-card span {
       display: block;
-      color: var(--muted);
-      font-size: 12px;
+      color: var(--ink);
+      font-size: 13px;
       font-weight: 800;
     }
 
@@ -2648,9 +2648,9 @@
       display: block;
       margin-top: 6px;
       color: var(--ink);
-      font-size: clamp(21px, 2vw, 31px);
+      font-size: clamp(26px, 2.3vw, 36px);
       line-height: 1;
-      font-weight: 850;
+      font-weight: 900;
       letter-spacing: -0.018em;
       font-variant-numeric: tabular-nums;
     }
@@ -2658,8 +2658,8 @@
     .budget-invest-summary small {
       display: block;
       margin-top: 5px;
-      color: var(--muted);
-      font-size: 11px;
+      color: var(--ink);
+      font-size: 12.5px;
     }
 
     .budget-invest-body {
@@ -2679,9 +2679,9 @@
     .budget-period-card,
     .budget-dynamics-card {
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 14px;
       background: #fff;
-      padding: 14px;
+      padding: 16px;
       min-width: 0;
     }
 
@@ -2700,15 +2700,15 @@
 
     .budget-period-top b {
       color: var(--ink);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 850;
     }
 
     .budget-period-card strong {
       color: var(--ink);
-      font-size: clamp(22px, 2vw, 30px);
+      font-size: clamp(26px, 2.3vw, 34px);
       line-height: 1;
-      font-weight: 850;
+      font-weight: 900;
       letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
     }
@@ -2730,21 +2730,21 @@
       align-items: baseline;
       justify-content: space-between;
       gap: 10px;
-      color: var(--muted);
-      font-size: 12px;
+      color: var(--ink);
+      font-size: 13px;
     }
 
     .budget-period-meta b {
       color: var(--ink);
-      font-size: 19px;
-      font-weight: 850;
+      font-size: 22px;
+      font-weight: 900;
       font-variant-numeric: tabular-nums;
     }
 
     .budget-progress {
-      height: 8px;
+      height: 9px;
       border-radius: 999px;
-      background: #e8eef6;
+      background: var(--line);
       overflow: hidden;
     }
 
@@ -2757,8 +2757,8 @@
     }
 
     .budget-period-note {
-      color: var(--muted);
-      font-size: 11.5px;
+      color: var(--ink);
+      font-size: 12.5px;
       line-height: 1.25;
     }
 
@@ -2766,7 +2766,7 @@
       display: grid;
       gap: 12px;
       align-content: start;
-      background: #fcfdff;
+      background: #fff;
     }
 
     .budget-dynamics-head {
@@ -2778,7 +2778,7 @@
 
     .budget-dynamics-head strong {
       color: var(--ink);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 850;
     }
 
@@ -2798,14 +2798,14 @@
       grid-template-columns: 68px minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
-      color: var(--muted);
-      font-size: 11.5px;
+      color: var(--ink);
+      font-size: 12.5px;
     }
 
     .budget-dynamics-list i {
       height: 5px;
       border-radius: 999px;
-      background: #e8eef6;
+      background: var(--line);
       overflow: hidden;
     }
 
