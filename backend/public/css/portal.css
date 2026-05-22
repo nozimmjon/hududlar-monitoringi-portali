@@ -8,7 +8,7 @@
       --line-strong: #c5d2e0;
       --nav: #062844;
       --nav-2: #08395d;
-      --blue: #1769e0;
+      --blue: #2b61af;
       --font-sans: 'Inter', sans-serif;
       --blue-2: #0b4c7a;
       --blue-soft: #eef6ff;
@@ -33,7 +33,7 @@
       --shadow-md: 0 6px 18px rgba(15, 42, 71, .08), 0 18px 44px rgba(15, 42, 71, .08);
       --shadow-lg: 0 12px 26px rgba(15, 42, 71, .10), 0 24px 60px rgba(15, 42, 71, .12);
       --ring-blue: 0 0 0 1px rgba(23, 105, 224, .20), 0 0 0 4px rgba(23, 105, 224, .08);
-      --accent-grad: linear-gradient(135deg, #1769e0 0%, #0b4c7a 100%);
+      --accent-grad: linear-gradient(135deg, #2b61af 0%, #0b4c7a 100%);
       --accent-grad-soft: linear-gradient(135deg, rgba(23, 105, 224, .08) 0%, rgba(11, 76, 122, .10) 100%);
       --motion: 180ms cubic-bezier(.2, .7, .2, 1);
       --motion-slow: 280ms cubic-bezier(.2, .7, .2, 1);
@@ -320,7 +320,7 @@
     }
 
     .module-tab:hover {
-      background: #1257bd;
+      background: #234f8f;
     }
 
     .module-tab.active {
@@ -799,8 +799,9 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) h3 {
-      font-size: 17px;
-      letter-spacing: 0.05em;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-copy {
@@ -814,6 +815,7 @@
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-note {
       font-size: 15px;
+      color: var(--ink);
     }
 
     /* ЯҲМ hero panel */
@@ -2445,7 +2447,7 @@
     }
 
     .macro-period-cell__label {
-        color: var(--muted);
+        color: var(--ink);
         font-size: 14px;
         font-weight: 700;
     }
@@ -2460,7 +2462,7 @@
     }
 
     .macro-period-cell__state {
-        color: var(--muted);
+        color: var(--ink);
         font-size: 13px;
         font-weight: 600;
     }
