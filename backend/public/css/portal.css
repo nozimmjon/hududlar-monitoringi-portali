@@ -871,9 +871,9 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
+      width: 78px;
+      height: 78px;
+      border-radius: 20px;
       background: #fff;
       color: var(--blue);
       position: relative;
@@ -883,8 +883,8 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon svg {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-copy {
@@ -896,7 +896,7 @@
       position: relative;
       z-index: 1;
       color: #fff;
-      font-size: 33px;
+      font-size: 42px;
       font-weight: 800;
       letter-spacing: 0.02em;
       text-transform: none;
@@ -908,7 +908,7 @@
       position: relative;
       z-index: 1;
       color: #fff;
-      font-size: clamp(52px, 5.4vw, 78px);
+      font-size: clamp(64px, 6.2vw, 94px);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-note {
@@ -917,7 +917,7 @@
       position: relative;
       z-index: 1;
       color: rgba(255, 255, 255, .82);
-      font-size: 15px;
+      font-size: 18px;
     }
 
     .front-kpi {
@@ -2459,7 +2459,7 @@
         text-align: center;
         padding: 34px 14px;
         background-image: linear-gradient(var(--blue), var(--blue));
-        background-size: 1px 56%;
+        background-size: 5px 75%;
         background-position: left center;
         background-repeat: no-repeat;
         min-width: 0;
@@ -2471,13 +2471,13 @@
 
     .macro-period-cell__label {
         color: var(--ink);
-        font-size: 14px;
+        font-size: 21px;
         font-weight: 700;
     }
 
     .macro-period-cell__value {
         color: var(--ink);
-        font-size: clamp(26px, 2.5vw, 36px);
+        font-size: clamp(40px, 3.6vw, 56px);
         font-weight: 900;
         line-height: 1;
         letter-spacing: -0.02em;
@@ -2486,7 +2486,7 @@
 
     .macro-period-cell__state {
         color: var(--ink);
-        font-size: 13px;
+        font-size: 18px;
         font-weight: 600;
     }
 
