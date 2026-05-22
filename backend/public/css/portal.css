@@ -781,36 +781,37 @@
 
     .front-kpis.module-kpis.employment-layout {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 12px;
     }
 
     .front-kpis.module-kpis.employment-layout .front-kpi {
-      min-height: 60px;
-      padding: 10px 12px;
-      grid-template-columns: 34px minmax(0, 1fr);
-      gap: 10px;
-      border-radius: 12px;
+      min-height: 96px;
+      padding: 16px;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 14px;
+      border-radius: 14px;
     }
 
     .front-kpis.module-kpis.employment-layout .front-kpi .kpi-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
     }
 
     .front-kpis.module-kpis.employment-layout .front-kpi .kpi-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 32px;
+      height: 32px;
     }
 
     .front-kpis.module-kpis.employment-layout .front-kpi h3 {
-      font-size: 12px;
+      font-size: 14px;
       letter-spacing: 0.04em;
-      line-height: 1.15;
+      line-height: 1.18;
+      color: var(--ink);
     }
 
-    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy { gap: 2px; }
-    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy p { font-size: 11px; line-height: 1.15; }
+    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy { gap: 5px; }
+    .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-copy p { font-size: 12.5px; line-height: 1.25; color: var(--ink); }
     .front-kpis.module-kpis.employment-layout .front-kpi .front-kpi-meta { display: none; }
 
     /* Sector cards (industry / agriculture / construction / services) */
