@@ -277,8 +277,8 @@
     .dashboard-module-tabs {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 8px;
+      margin-bottom: 14px;
       padding: 0;
       background: transparent;
       border: 0;
@@ -289,9 +289,9 @@
     .module-tab {
       display: grid;
       place-items: center;
-      padding: 18px 14px;
+      padding: 14px 14px;
       border: 0;
-      border-radius: 14px;
+      border-radius: 13px;
       background: var(--blue);
       cursor: pointer;
       transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
@@ -300,21 +300,21 @@
     .module-tab__body {
       display: grid;
       justify-items: center;
-      gap: 5px;
+      gap: 4px;
       min-width: 0;
       text-align: center;
     }
 
     .module-tab__body strong {
       color: #fff;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 1.2;
     }
 
     .module-tab__count {
       color: rgba(255, 255, 255, .78);
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
@@ -344,13 +344,18 @@
       border: 1px solid var(--line);
       border-radius: 18px;
       box-shadow: var(--shadow);
-      padding: 28px;
-      margin-bottom: 20px;
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+
+    .module-card.module-panel-card {
+      padding: 0;
+      overflow: hidden;
     }
 
     .module-card .module-heading {
       display: block;
-      margin: 0 0 22px;
+      margin: 0 0 16px;
     }
 
     .module-card .module-heading > div {
@@ -362,14 +367,14 @@
     }
 
     .module-card .module-heading h2 {
-      font-size: 25px;
+      font-size: 21px;
       letter-spacing: -0.01em;
       font-weight: 800;
     }
 
     .module-card .module-heading p {
-      margin-top: 5px;
-      font-size: 15px;
+      margin-top: 4px;
+      font-size: 13.5px;
     }
 
     .module-heading {
@@ -565,15 +570,15 @@
 
     .scoreline.execution-strip.is-macro {
       grid-template-columns: minmax(240px, 1fr) auto minmax(320px, 1.1fr);
-      gap: 18px;
-      padding: 24px;
+      gap: 16px;
+      padding: 18px;
     }
 
     .is-macro .scoreline-copy { order: 1; }
     .is-macro .exec-progress-box { order: 2; }
     .is-macro .exec-status-grid { order: 3; }
-    .is-macro .scoreline-copy strong { font-size: 22px; }
-    .is-macro .scoreline-copy small { font-size: 13.5px; }
+    .is-macro .scoreline-copy strong { font-size: 19px; }
+    .is-macro .scoreline-copy small { font-size: 12.5px; }
 
     .is-macro .exec-donut {
       width: auto;
@@ -584,19 +589,19 @@
     }
 
     .is-macro .exec-donut strong {
-      font-size: 56px;
+      font-size: 44px;
       font-weight: 900;
       letter-spacing: -0.03em;
       color: var(--ink);
     }
 
     .is-macro .exec-status-pill {
-      min-height: 110px;
+      min-height: 104px;
       border: 0;
       align-content: center;
       justify-items: center;
       text-align: center;
-      gap: 7px;
+      gap: 6px;
     }
 
     .is-macro .exec-status-pill:hover {
@@ -604,8 +609,8 @@
       box-shadow: none;
     }
 
-    .is-macro .exec-status-pill span { color: rgba(255, 255, 255, .85); font-size: 12.5px; }
-    .is-macro .exec-status-pill strong { color: #fff; font-size: 40px; }
+    .is-macro .exec-status-pill span { color: rgba(255, 255, 255, .85); font-size: 11.5px; }
+    .is-macro .exec-status-pill strong { color: #fff; font-size: 31px; }
     .is-macro .exec-status-pill.green strong { color: #fff; }
     .is-macro .exec-status-pill.red strong { color: #fff; }
     .is-macro .exec-status-grid .exec-status-pill:first-child { background: var(--blue); }
@@ -734,8 +739,8 @@
     .front-kpis.module-kpis.macro-layout {
       grid-template-columns: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr));
       grid-auto-rows: 1fr;
-      gap: 16px;
-      margin-bottom: 18px;
+      gap: 13px;
+      margin-bottom: 0;
     }
 
     .front-kpis.module-kpis.employment-layout {
@@ -774,40 +779,40 @@
 
     /* Sector cards (industry / agriculture / construction / services) */
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) {
-      min-height: 165px;
-      padding: 22px;
-      border-radius: 16px;
-      grid-template-columns: 56px minmax(0, 1fr);
-      gap: 16px;
+      min-height: 150px;
+      padding: 20px;
+      border-radius: 15px;
+      grid-template-columns: 50px minmax(0, 1fr);
+      gap: 14px;
       align-items: center;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon svg {
-      width: 33px;
-      height: 33px;
+      width: 29px;
+      height: 29px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) h3 {
-      font-size: 13.5px;
+      font-size: 12.5px;
       letter-spacing: 0.05em;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-copy {
-      gap: 8px;
+      gap: 6px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value {
-      font-size: clamp(30px, 2.8vw, 42px);
+      font-size: clamp(24px, 2.4vw, 33px);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-note {
-      font-size: 13px;
+      font-size: 12px;
     }
 
     /* ЯҲМ hero panel */
@@ -817,11 +822,11 @@
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
       align-content: center;
-      gap: 14px 22px;
-      padding: 38px;
+      gap: 12px 18px;
+      padding: 30px;
       min-height: 0;
       border: 0;
-      border-radius: 18px;
+      border-radius: 16px;
       background: var(--accent-grad);
       box-shadow: none;
       overflow: hidden;
@@ -836,10 +841,10 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent::before {
       content: "";
       position: absolute;
-      right: -34px;
-      bottom: -46px;
-      width: 264px;
-      height: 264px;
+      right: -28px;
+      bottom: -38px;
+      width: 216px;
+      height: 216px;
       background: no-repeat center / contain
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 25 L83 79 L17 79 Z' fill='%23ffffff' stroke='%23ffffff' stroke-width='15' stroke-linejoin='round'/%3E%3C/svg%3E");
       opacity: .26;
@@ -847,9 +852,9 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon {
-      width: 66px;
-      height: 66px;
-      border-radius: 18px;
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
       background: #fff;
       color: var(--blue);
       position: relative;
@@ -857,8 +862,8 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .kpi-icon svg {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-copy {
@@ -870,7 +875,7 @@
       position: relative;
       z-index: 1;
       color: #fff;
-      font-size: 38px;
+      font-size: 31px;
       font-weight: 800;
       letter-spacing: 0.02em;
       text-transform: none;
@@ -881,7 +886,7 @@
       position: relative;
       z-index: 1;
       color: #fff;
-      font-size: clamp(56px, 5.5vw, 84px);
+      font-size: clamp(46px, 5vw, 70px);
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-note {
@@ -889,7 +894,7 @@
       position: relative;
       z-index: 1;
       color: rgba(255, 255, 255, .82);
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .front-kpi {
@@ -2425,11 +2430,11 @@
 
     .macro-period-cell {
         display: grid;
-        gap: 8px;
+        gap: 7px;
         justify-items: center;
         align-content: center;
         text-align: center;
-        padding: 38px 14px;
+        padding: 34px 14px;
         border-left: 1px solid var(--line);
         min-width: 0;
     }
@@ -2440,13 +2445,13 @@
 
     .macro-period-cell__label {
         color: var(--muted);
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
     }
 
     .macro-period-cell__value {
         color: var(--ink);
-        font-size: clamp(32px, 2.8vw, 46px);
+        font-size: clamp(26px, 2.5vw, 36px);
         font-weight: 900;
         line-height: 1;
         letter-spacing: -0.02em;
@@ -2455,7 +2460,7 @@
 
     .macro-period-cell__state {
         color: var(--muted);
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
     }
 
