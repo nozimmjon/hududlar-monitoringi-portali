@@ -563,6 +563,50 @@
       line-height: 1.3;
     }
 
+    .scoreline.execution-strip.is-macro {
+      grid-template-columns: minmax(240px, 1fr) auto minmax(320px, 1.1fr);
+      gap: 16px;
+    }
+
+    .is-macro .scoreline-copy { order: 1; }
+    .is-macro .exec-progress-box { order: 2; }
+    .is-macro .exec-status-grid { order: 3; }
+
+    .is-macro .exec-donut {
+      width: auto;
+      height: auto;
+      background: none;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .is-macro .exec-donut strong {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+
+    .is-macro .exec-status-pill {
+      min-height: 70px;
+      border: 0;
+      align-content: center;
+      justify-items: center;
+      text-align: center;
+      gap: 5px;
+    }
+
+    .is-macro .exec-status-pill:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .is-macro .exec-status-pill span { color: rgba(255, 255, 255, .85); }
+    .is-macro .exec-status-pill strong { color: #fff; }
+    .is-macro .exec-status-pill:first-child { background: var(--blue); }
+    .is-macro .exec-status-pill.green { background: var(--green); }
+    .is-macro .exec-status-pill.red { background: var(--red); }
+
     .score {
       min-width: 0;
       padding: 13px;
