@@ -5798,6 +5798,7 @@
       .budget-periods-grid { grid-template-columns: 1fr; }
       .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
       .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
+      .industry-driver-list { grid-template-columns: 1fr; }
       .industry-driver-arrow { display: none; }
       .industry-driver-metrics { grid-template-columns: 1fr; gap: 10px; }
       .industry-driver-divider { display: none; }
