@@ -283,11 +283,11 @@
       grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 14px;
-      padding: 0;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      box-shadow: none;
+      padding: 6px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
     }
 
     .module-tab {
@@ -353,7 +353,7 @@
 
     .module-card {
       background: #fff;
-      border: 1px solid var(--line);
+      border: 1px solid var(--blue);
       border-radius: 18px;
       box-shadow: var(--shadow);
       padding: 22px;
@@ -750,7 +750,7 @@
     }
 
     .front-kpis.module-kpis.macro-layout {
-      grid-template-columns: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
       grid-auto-rows: 1fr;
       gap: 13px;
       margin-bottom: 0;
@@ -838,7 +838,7 @@
       display: grid;
       position: relative;
       grid-template-columns: auto minmax(0, 1fr);
-      align-content: center;
+      grid-template-rows: auto 1fr auto auto;
       gap: 10px 20px;
       padding: 32px;
       min-height: 0;
@@ -858,13 +858,13 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent::before {
       content: "";
       position: absolute;
-      right: -8px;
-      bottom: -12px;
-      width: 250px;
-      height: 250px;
+      right: 30px;
+      bottom: -56px;
+      width: 292px;
+      height: 292px;
       background: no-repeat center / contain
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ffffff' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 84 C 40 78 52 56 84 20'/%3E%3Cpath d='M60 20 L84 20 L84 44'/%3E%3C/svg%3E");
-      opacity: .4;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 12 L88 54 L70 54 L70 94 L30 94 L30 54 L12 54 Z' fill='%23ffffff' stroke='%23ffffff' stroke-width='11' stroke-linejoin='round'/%3E%3C/svg%3E");
+      opacity: .34;
       pointer-events: none;
     }
 
@@ -902,6 +902,7 @@
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-value {
       grid-column: 1 / -1;
+      grid-row: 3;
       position: relative;
       z-index: 1;
       color: #fff;
@@ -910,6 +911,7 @@
 
     .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-note {
       grid-column: 1 / -1;
+      grid-row: 4;
       position: relative;
       z-index: 1;
       color: rgba(255, 255, 255, .82);
@@ -3787,6 +3789,11 @@
 
     .district-module-tabs {
       margin-bottom: 12px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .district-kpi-selector {
