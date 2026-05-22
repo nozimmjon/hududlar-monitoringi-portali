@@ -2343,91 +2343,51 @@
       display: none;
     }
 
-    .macro-hero-strip {
-        display: grid;
-        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-        gap: 26px;
-        align-items: stretch;
-        padding: 38px 30px;
-        border-radius: 14px;
-        background: #fff;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .macro-hero-strip__lead {
-        display: grid;
-        gap: 4px;
-        align-content: center;
-        min-width: 0;
-    }
-
-    .macro-hero-strip__value-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .macro-hero-strip__value {
-        color: var(--blue);
-        font-size: clamp(56px, 6.6vw, 88px);
-        line-height: .95;
-        letter-spacing: -.04em;
-        font-weight: 900;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .macro-hero-strip__arrow {
-        flex: 0 0 auto;
-        width: clamp(32px, 3.8vw, 46px);
-        height: clamp(32px, 3.8vw, 46px);
-        color: var(--blue);
-    }
-
-    .macro-hero-strip__growth-label {
-        color: var(--blue);
-        font-size: 17px;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .macro-hero-strip__chips {
+    .macro-period-row {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        overflow: hidden;
     }
 
-    .macro-hero-strip__chip {
+    .macro-period-cell {
         display: grid;
-        gap: 8px;
+        gap: 5px;
         justify-items: center;
-        align-content: center;
         text-align: center;
-        padding: 18px 14px;
-        border-radius: 12px;
-        background: #f3f5f8;
-        border: 1px solid var(--line);
+        padding: 16px 12px;
+        border-left: 1px solid var(--line);
         min-width: 0;
     }
 
-    .macro-hero-strip__chip-label {
-        color: var(--muted);
-        font-size: 16px;
-        font-weight: 600;
+    .macro-period-cell:first-child {
+        border-left: 0;
     }
 
-    .macro-hero-strip__chip-value {
+    .macro-period-cell__label {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .macro-period-cell__value {
         color: var(--ink);
-        font-size: clamp(32px, 3.1vw, 44px);
-        font-weight: 800;
+        font-size: clamp(22px, 2.2vw, 30px);
+        font-weight: 900;
         line-height: 1;
+        letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
     }
 
-    .macro-hero-strip__chip-badge {
+    .macro-period-cell.actual .macro-period-cell__value {
+        color: var(--blue);
+    }
+
+    .macro-period-cell__state {
         color: var(--muted);
-        font-size: 15px;
+        font-size: 12px;
         font-weight: 600;
     }
 
@@ -5862,24 +5822,6 @@
       .modal-body { padding: 14px; }
       table { min-width: 720px; }
       .table-scroll { overflow-x: auto; }
-    }
-
-    @media (max-width: 980px) {
-      .macro-hero-strip {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 18px 20px;
-      }
-
-      .macro-hero-strip__chips {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 560px) {
-      .macro-hero-strip__chips {
-        grid-template-columns: 1fr;
-      }
     }
 
 /* ── Region Switcher ─────────────────────────────────────────── */

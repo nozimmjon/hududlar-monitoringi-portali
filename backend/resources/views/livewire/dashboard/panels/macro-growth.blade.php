@@ -70,35 +70,21 @@
             </div>
         </div>
     @else
-        <section class="macro-hero-strip" aria-label="{{ $indicator->label_full ?? '' }} ўсиш мониторинги">
-            <div class="macro-hero-strip__lead">
-                <div class="macro-hero-strip__value-row">
-                    <strong class="macro-hero-strip__value">{{ $yearGrowth }}</strong>
-                    <svg class="macro-hero-strip__arrow" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.6" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="3 17 9 11 13 15 21 7"/>
-                        <polyline points="15 7 21 7 21 13"/>
-                    </svg>
+        <div class="macro-period-row" aria-label="{{ $indicator->label_full ?? '' }} давр кесими">
+            @foreach($macroPeriods as $item)
+                @php
+                    $row = $rows->get($item['period']);
+                    $growthText = $row && $row->growth_pct !== null
+                        ? DashboardCatalog::growthValue($row->growth_pct)
+                        : '—';
+                @endphp
+                <div class="macro-period-cell {{ $item['cls'] }}">
+                    <span class="macro-period-cell__label">{{ $item['label'] }}</span>
+                    <strong class="macro-period-cell__value">{{ $growthText }}</strong>
+                    <span class="macro-period-cell__state">({{ $item['state'] }})</span>
                 </div>
-                <span class="macro-hero-strip__growth-label">Ўсиш</span>
-            </div>
-            <div class="macro-hero-strip__chips">
-                @foreach($macroPeriods as $item)
-                    @php
-                        $row = $rows->get($item['period']);
-                        $growthText = $row && $row->growth_pct !== null
-                            ? DashboardCatalog::growthValue($row->growth_pct)
-                            : '—';
-                    @endphp
-                    <div class="macro-hero-strip__chip">
-                        <span class="macro-hero-strip__chip-label">{{ $item['label'] }}:</span>
-                        <strong class="macro-hero-strip__chip-value">{{ $growthText }}</strong>
-                        <span class="macro-hero-strip__chip-badge">({{ $item['state'] }})</span>
-                    </div>
-                @endforeach
-            </div>
-        </section>
+            @endforeach
+        </div>
     @endif
     @if($showIndustryDrivers)
         <aside class="industry-driver-panel" aria-label="Саноат драйверлари">
