@@ -386,7 +386,7 @@ class DashboardCatalog
             [
                 'id'       => 'energy_electricity',
                 'cls'      => 'blue',
-                'icon'     => 'trend',
+                'icon'     => 'lightning',
                 'title'    => 'Электр тежаш',
                 'desc'     => 'Тежаладиган электр энергияси',
                 'h1'       => self::fmt($d['energy_electricity_h1'], 1) . ' млн кВт·соат',
@@ -397,7 +397,7 @@ class DashboardCatalog
             [
                 'id'       => 'energy_gas',
                 'cls'      => 'orange',
-                'icon'     => 'rocket',
+                'icon'     => 'flame',
                 'title'    => 'Газ тежаш',
                 'desc'     => 'Тежаладиган табиий газ',
                 'h1'       => self::fmt($d['energy_gas_h1'], 1) . ' млн м³',
@@ -446,7 +446,7 @@ class DashboardCatalog
             [
                 'id'       => 'energy_electricity',
                 'cls'      => 'blue',
-                'icon'     => 'trend',
+                'icon'     => 'lightning',
                 'title'    => 'Электр тежаш',
                 'desc'     => 'Тежаладиган электр энергияси',
                 'h1'       => $kwh($elH1),
@@ -457,7 +457,7 @@ class DashboardCatalog
             [
                 'id'       => 'energy_gas',
                 'cls'      => 'orange',
-                'icon'     => 'rocket',
+                'icon'     => 'flame',
                 'title'    => 'Газ тежаш',
                 'desc'     => 'Тежаладиган табиий газ',
                 'h1'       => $m3($gasH1),

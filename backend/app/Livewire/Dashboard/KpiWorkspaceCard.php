@@ -149,21 +149,9 @@ class KpiWorkspaceCard extends Component
             ->get()
             ->keyBy('code');
 
-        $industryDriverFacts = collect();
-        if ($this->kpi === 'industry') {
-            $industryDriverFacts = IndicatorFact::where('region_code', $this->regionCode)
-                ->where('year', 2026)
-                ->whereNull('district_code')
-                ->whereIn('indicator_code', ['localization', 'energy_electricity', 'energy_gas'])
-                ->whereIn('period', ['h1', 'year'])
-                ->get()
-                ->groupBy('indicator_code');
-        }
-
         return [
-            'macroFacts'           => $facts,
-            'macroIndicators'      => $indicators,
-            'industryDriverFacts'  => $industryDriverFacts,
+            'macroFacts'      => $facts,
+            'macroIndicators' => $indicators,
         ];
     }
 }

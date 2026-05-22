@@ -24,5 +24,9 @@
         </div>
     @endif
 
+    @if($module === 'macro' && $kpi === 'industry')
+        <livewire:dashboard.industry-driver-panel :key="'industry-drivers'" />
+    @endif
+
     <livewire:dashboard.kpi-scoreline :module="$module" :kpi="$kpi" :key="'score-'.$module.'-'.$kpi" />
 </div>

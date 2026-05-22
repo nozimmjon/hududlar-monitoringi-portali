@@ -2350,6 +2350,10 @@
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         background: #fff;
+        border: 1px solid var(--blue);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
     }
 
     .macro-period-cell {
@@ -2377,7 +2381,7 @@
     }
 
     .macro-period-cell__value {
-        color: var(--ink);
+        color: var(--blue-2);
         font-size: clamp(40px, 3.6vw, 56px);
         font-weight: 900;
         line-height: 1;
@@ -2472,6 +2476,7 @@
       padding: 24px 22px;
       display: grid;
       gap: 16px;
+      margin-bottom: 14px;
     }
 
     .industry-driver-head {
@@ -2496,7 +2501,7 @@
 
     .industry-driver-card {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) 18px;
+      grid-template-columns: 72px minmax(0, 1fr);
       gap: 14px;
       align-items: start;
       padding: 20px;
@@ -2504,20 +2509,12 @@
       border-radius: 12px;
       background: #fff;
       text-align: left;
-      cursor: pointer;
-      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
-    }
-
-    .industry-driver-card:hover {
-      border-color: rgba(23, 105, 224, .25);
-      background: #f9fbfd;
-      box-shadow: var(--shadow-sm);
     }
 
     .driver-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
       display: grid;
       place-items: center;
       color: var(--blue);
@@ -2525,17 +2522,9 @@
     }
 
     .driver-icon svg {
-      width: 30px;
-      height: 30px;
+      width: 40px;
+      height: 40px;
       stroke-width: 2;
-    }
-
-
-    .industry-driver-arrow {
-      color: var(--muted);
-      font-size: 24px;
-      line-height: 1;
-      padding-top: 5px;
     }
 
     .industry-driver-body {
@@ -2560,16 +2549,15 @@
 
     .industry-driver-metrics {
       display: grid;
-      grid-template-columns: 1fr 1px 1fr;
-      gap: 16px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       align-items: start;
     }
 
     .industry-driver-divider {
-      width: 1px;
-      height: 48px;
+      width: 100%;
+      height: 1px;
       background: var(--line);
-      align-self: center;
     }
 
     .industry-driver-metric {
@@ -2586,9 +2574,10 @@
     .industry-driver-metric strong {
       color: var(--blue);
       font-size: 26px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: -0.012em;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .industry-driver-metric small {
@@ -5797,9 +5786,8 @@
       .budget-invest-body,
       .budget-periods-grid { grid-template-columns: 1fr; }
       .macro-layout-card .macro-composition-card { grid-template-columns: 36px minmax(0, .7fr) minmax(110px, 1fr) auto; }
-      .industry-driver-card { grid-template-columns: 48px minmax(0, 1fr); }
+      .industry-driver-card { grid-template-columns: 60px minmax(0, 1fr); }
       .industry-driver-list { grid-template-columns: 1fr; }
-      .industry-driver-arrow { display: none; }
       .industry-driver-metrics { grid-template-columns: 1fr; gap: 10px; }
       .industry-driver-divider { display: none; }
       .budget-invest-summary > div { border-right: 0; border-bottom: 1px solid var(--line); }
