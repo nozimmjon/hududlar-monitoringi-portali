@@ -2402,6 +2402,7 @@
         display: grid;
         gap: 5px;
         justify-items: center;
+        align-content: center;
         text-align: center;
         padding: 16px 12px;
         border-left: 1px solid var(--line);
@@ -5858,6 +5859,11 @@
       .budget-invest-summary > div:last-child { border-bottom: 0; }
       .composition-grid, .driver-grid { grid-template-columns: 1fr; }
       .front-kpi { border-right: 0; border-bottom: 1px solid var(--line); }
+      .front-kpis.module-kpis.macro-layout .front-kpi.parent { grid-column: auto; grid-row: auto; }
+      .macro-period-row { grid-template-columns: 1fr; }
+      .macro-period-cell { border-left: 0; border-top: 1px solid var(--line); }
+      .macro-period-cell:first-child { border-top: 0; }
+      .module-card { padding: 14px; }
       .district-card { grid-template-columns: 1fr; }
       .metric-cell, .debt-cell { border-left: 0; border-top: 1px solid var(--line); padding: 8px 0 0; justify-items: start; }
       .task-card.compact { grid-template-columns: 1fr; }
