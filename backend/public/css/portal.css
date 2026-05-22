@@ -571,7 +571,7 @@
     .scoreline.execution-strip.is-macro {
       grid-template-columns: minmax(240px, 1fr) auto minmax(320px, 1.1fr);
       gap: 16px;
-      padding: 18px;
+      padding: 14px;
     }
 
     .is-macro .scoreline-copy { order: 1; }
@@ -596,12 +596,12 @@
     }
 
     .is-macro .exec-status-pill {
-      min-height: 104px;
+      min-height: 74px;
       border: 0;
       align-content: center;
       justify-items: center;
       text-align: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     .is-macro .exec-status-pill:hover {
@@ -794,17 +794,17 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon svg {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) h3 {
-      font-size: 15px;
+      font-size: 17px;
       letter-spacing: 0.05em;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-copy {
-      gap: 8px;
+      gap: 9px;
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value {
@@ -813,7 +813,7 @@
     }
 
     .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-note {
-      font-size: 13.5px;
+      font-size: 15px;
     }
 
     /* ЯҲМ hero panel */
