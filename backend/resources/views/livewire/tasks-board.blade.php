@@ -3,7 +3,6 @@
     $tasks = $this->tasks;
     $moduleOptions = $this->moduleOptions;
     $indicatorOptions = $this->indicatorOptions;
-    $districtOptions = $this->districtOptions;
     $shownScope = $status === 'done' ? 'Бажарилган' : ($status === 'open' ? 'Бажарилмаган' : 'Барчаси');
 @endphp
 
@@ -37,55 +36,26 @@
         </label>
     </div>
 
-    <details class="task-advanced-filters" @if($period !== 'all' || $district !== 'all') open @endif>
-        <summary>Қўшимча фильтрлар</summary>
-        <div class="task-advanced-grid">
-            <label>Муддат
-                <select wire:model.live="period">
-                    <option value="all">Барча муддатлар</option>
-                    <option value="h1">II чорак / I ярим йиллик</option>
-                    <option value="year">Йил якуни / давомида</option>
-                </select>
-            </label>
-            <label>Туман/шаҳар
-                <select wire:model.live="district">
-                    <option value="all">Барча ҳудудлар</option>
-                    @foreach($districtOptions as $d)
-                        <option value="{{ $d->id }}">{{ $d->name_full }}</option>
-                    @endforeach
-                </select>
-            </label>
-        </div>
-    </details>
+    <div class="tasks-layout">
+        <div class="tasks-main">
+            <div class="task-stat-row">
+                <button class="task-stat-box blue {{ $status === 'all' ? 'is-active' : '' }}" type="button" wire:click="selectStatus('all')">
+                    <span class="task-stat-num">{{ $totals['total'] }}</span>
+                    <span class="task-stat-label">Жами</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'users'])</span>
+                </button>
+                <button class="task-stat-box green {{ $status === 'done' ? 'is-active' : '' }}" type="button" wire:click="selectStatus('done')">
+                    <span class="task-stat-num">{{ $totals['done'] }}</span>
+                    <span class="task-stat-label">Бажарилди</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'check'])</span>
+                </button>
+                <button class="task-stat-box red {{ $status === 'open' ? 'is-active' : '' }}" type="button" wire:click="selectStatus('open')">
+                    <span class="task-stat-num">{{ $totals['open'] }}</span>
+                    <span class="task-stat-label">Бажарилмади</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'x'])</span>
+                </button>
+            </div>
 
-    <div class="task-summary-strip execution-overview">
-        <div class="task-summary-copy">
-            <span>Ижро ҳолати</span>
-            <strong>{{ $totals['total'] }} та топшириқ</strong>
-            <small>{{ $shownScope }} топшириқлар кўрсатилмоқда.</small>
-        </div>
-        <div class="exec-status-grid">
-            <button class="exec-status-pill {{ $status === 'all' ? 'active' : '' }}" type="button" wire:click="selectStatus('all')">
-                <span>Жами</span>
-                <strong>{{ $totals['total'] }}</strong>
-            </button>
-            <button class="exec-status-pill green {{ $status === 'done' ? 'active' : '' }}" type="button" wire:click="selectStatus('done')">
-                <span>Бажарилди</span>
-                <strong>{{ $totals['done'] }}</strong>
-            </button>
-            <button class="exec-status-pill red {{ $status === 'open' ? 'active' : '' }}" type="button" wire:click="selectStatus('open')">
-                <span>Бажарилмади</span>
-                <strong>{{ $totals['open'] }}</strong>
-            </button>
-        </div>
-        <div class="exec-progress-box">
-            <div class="exec-donut" style="--pct:{{ $totals['pct'] }}"><strong>{{ $totals['pct'] }}%</strong></div>
-            <small>бажарилиш</small>
-        </div>
-    </div>
-
-    <div class="task-workspace">
-        <div class="task-groups">
             <section class="task-group">
                 <div class="task-group-head">
                     <h3>{{ $shownScope }} топшириқлар</h3>
@@ -93,17 +63,17 @@
                 </div>
                 <div class="task-list">
                     @forelse($tasks as $task)
-                        <article class="task-card compact" data-task-id="{{ $task->id }}">
-                            <header>
-                                <span class="task-code">{{ $task->task_number }}</span>
+                        <article class="task-card" data-task-id="{{ $task->id }}">
+                            <span class="task-num">{{ $loop->iteration }}</span>
+                            <div class="task-body">
                                 <strong>{{ $task->title }}</strong>
                                 <div class="task-meta">
                                     <span>{{ $task->deadline_text }}</span>
                                     <span>{{ $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят' }}</span>
                                     <span>{{ $task->module?->label ?? $task->section_label }}</span>
                                 </div>
-                            </header>
-                            <div class="task-actions">
+                            </div>
+                            <div class="task-chips">
                                 <span class="chip grey">{{ $task->kind === 'kpi' ? 'KPI' : 'Чора-тадбир' }}</span>
                                 @if($task->indicator)
                                     <span class="chip blue">{{ $task->indicator->label_short }}</span>
@@ -116,5 +86,31 @@
                 </div>
             </section>
         </div>
+
+        <aside class="tasks-side">
+            <div class="task-donut-card">
+                <div class="task-donut" style="--pct:{{ $totals['pct'] }}">
+                    <strong>{{ $totals['pct'] }}%</strong>
+                    <span>бажарилиш</span>
+                </div>
+            </div>
+            <div class="task-stat-stack">
+                <div class="task-stat-box blue">
+                    <span class="task-stat-num">{{ $totals['total'] }}</span>
+                    <span class="task-stat-label">Жами</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'users'])</span>
+                </div>
+                <div class="task-stat-box green">
+                    <span class="task-stat-num">{{ $totals['done'] }}</span>
+                    <span class="task-stat-label">Бажарилди</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'check'])</span>
+                </div>
+                <div class="task-stat-box red">
+                    <span class="task-stat-num">{{ $totals['open'] }}</span>
+                    <span class="task-stat-label">Бажарилмади</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'x'])</span>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
