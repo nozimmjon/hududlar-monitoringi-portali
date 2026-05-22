@@ -535,20 +535,20 @@
     }
 
     .exec-donut {
-      width: 54px;
-      height: 54px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       display: grid;
       place-items: center;
       background:
-        radial-gradient(circle at center, #fff 0 56%, transparent 57%),
-        conic-gradient(#16a34a calc(var(--pct) * 1%), #eef2f6 0);
-      border: 1px solid var(--line);
+        radial-gradient(circle at center, #fff 0 83%, transparent 84%),
+        conic-gradient(var(--score-green) calc(var(--pct) * 1%), var(--score-track) 0);
+      border: 0;
     }
 
     .exec-donut strong {
-      font-size: 14px;
-      font-weight: 950;
+      font-size: 22px;
+      font-weight: 800;
       color: var(--ink);
     }
 
@@ -558,6 +558,8 @@
       font-weight: 800;
       text-align: center;
     }
+
+    .execution-strip .exec-progress-box small { display: none; }
 
     .scoreline-copy {
       min-width: 0;
