@@ -30,7 +30,7 @@ class DashboardCatalog
     public const MODULES = [
         'macro' => [
             'label' => '1. Макроиқтисодиёт',
-            'intro' => 'ЯҲМ ва асосий таркибий кўрсаткичлар',
+            'intro' => 'ЯҲМ ва асосий тармоқлар кўрсаткичлари',
             'kpis'  => ['grp', 'industry', 'agriculture', 'construction', 'services'],
             'has_front_cards' => true,
             'layout_class' => 'macro-layout',

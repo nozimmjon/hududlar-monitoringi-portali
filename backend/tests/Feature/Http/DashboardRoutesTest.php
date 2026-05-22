@@ -84,3 +84,18 @@ test('dashboard module tabs render all 7 modules', function () {
     $response->assertSee('Экспорт', false);
     $response->assertSee('Бандлик', false);
 });
+
+test('dashboard macro module wraps content in a module card', function () {
+    $this->seed();
+    $response = $this->get('/dashboard?module=macro');
+    $response->assertStatus(200);
+    $response->assertSee('class="module-card"', false);
+});
+
+test('dashboard non-macro module uses the flow wrapper, not the card', function () {
+    $this->seed();
+    $response = $this->get('/dashboard?module=budget');
+    $response->assertStatus(200);
+    $response->assertSee('class="module-flow"', false);
+    $response->assertDontSee('class="module-card"', false);
+});
