@@ -351,6 +351,17 @@
 
     .module-flow { display: contents; }
 
+    .module-card .kpi-monitor-grid { gap: 0; }
+
+    .module-card > .kpi-monitor-card,
+    .module-card .kpi-monitor-grid > .kpi-monitor-card {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
+    }
+
     .module-card {
       background: #fff;
       border: 1px solid var(--line);

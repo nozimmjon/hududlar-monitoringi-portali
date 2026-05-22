@@ -1,7 +1,7 @@
 <div>
     <livewire:dashboard.kpi-module-tabs :module="$module" :key="'tabs-'.$module" />
 
-    <div class="{{ $module === 'macro' ? 'module-card' : 'module-flow' }}">
+    <div class="module-card">
         <div class="module-heading">
             <div>
                 <h2>{{ $moduleLabel }}</h2>
@@ -11,14 +11,12 @@
 
         @if($hasFrontCards)
             <livewire:dashboard.kpi-front-cards :module="$module" :kpi="$kpi" :key="'front-'.$module.'-'.$kpi" />
-        @endif
-
-        @if($module !== 'macro')
+        @else
             <livewire:dashboard.kpi-workspace-card :module="$module" :kpi="$kpi" :key="'work-'.$module.'-'.$kpi" />
         @endif
     </div>
 
-    @if($module === 'macro')
+    @if($hasFrontCards)
         <div class="module-card module-panel-card">
             <livewire:dashboard.kpi-workspace-card :module="$module" :kpi="$kpi" :key="'work-'.$module.'-'.$kpi" />
         </div>

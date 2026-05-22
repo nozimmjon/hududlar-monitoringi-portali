@@ -92,12 +92,11 @@ test('dashboard macro module wraps content in a module card', function () {
     $response->assertSee('class="module-card"', false);
 });
 
-test('dashboard non-macro module uses the flow wrapper, not the card', function () {
+test('dashboard non-macro module is wrapped in a module card', function () {
     $this->seed();
     $response = $this->get('/dashboard?module=budget');
     $response->assertStatus(200);
-    $response->assertSee('class="module-flow"', false);
-    $response->assertDontSee('class="module-card"', false);
+    $response->assertSee('class="module-card"', false);
 });
 
 test('macro scoreline carries the is-macro modifier', function () {
