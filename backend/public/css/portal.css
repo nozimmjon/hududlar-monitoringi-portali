@@ -290,11 +290,11 @@
       display: grid;
       place-items: center;
       padding: 14px 14px;
-      border: 0;
+      border: 1px solid var(--line);
       border-radius: 13px;
-      background: var(--blue);
+      background: #e9edf3;
       cursor: pointer;
-      transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
     }
 
     .module-tab__body {
@@ -306,25 +306,33 @@
     }
 
     .module-tab__body strong {
-      color: #fff;
+      color: var(--ink);
       font-size: 14px;
       font-weight: 700;
       line-height: 1.2;
     }
 
     .module-tab__count {
-      color: rgba(255, 255, 255, .78);
+      color: var(--muted);
       font-size: 12px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
     .module-tab:hover {
-      background: #234f8f;
+      background: #fff;
+      border-color: rgba(43, 97, 175, .45);
+      box-shadow: 0 4px 12px rgba(8, 57, 93, .12);
+    }
+
+    .module-tab:hover .module-tab__body strong,
+    .module-tab:hover .module-tab__count {
+      color: var(--blue);
     }
 
     .module-tab.active {
       background: var(--blue-2);
+      border-color: var(--blue-2);
       box-shadow: 0 6px 16px rgba(8, 57, 93, .32);
     }
 
@@ -844,13 +852,13 @@
     .front-kpis.module-kpis.macro-layout .front-kpi.parent::before {
       content: "";
       position: absolute;
-      right: -28px;
-      bottom: -38px;
-      width: 216px;
-      height: 216px;
+      right: -18px;
+      bottom: -26px;
+      width: 224px;
+      height: 224px;
       background: no-repeat center / contain
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 25 L83 79 L17 79 Z' fill='%23ffffff' stroke='%23ffffff' stroke-width='15' stroke-linejoin='round'/%3E%3C/svg%3E");
-      opacity: .26;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ffffff' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 84 C 40 78 52 56 84 20'/%3E%3Cpath d='M60 20 L84 20 L84 44'/%3E%3C/svg%3E");
+      opacity: .32;
       pointer-events: none;
     }
 
