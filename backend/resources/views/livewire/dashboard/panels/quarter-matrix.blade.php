@@ -4,7 +4,7 @@
     $periodLabels = DashboardCatalog::PERIOD_LABELS;
 @endphp
 
-<div class="quarter-matrix">
+<div class="{{ trim('quarter-matrix '.(in_array($kpi, ['budget','investment','export'], true) ? 'is-monetary' : '')) }}">
     @foreach($periods as $period)
         @php
             $row = $rows->get($period);
