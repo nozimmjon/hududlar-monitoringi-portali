@@ -8,7 +8,7 @@
                 <h3>{{ $indicator->label_short ?? $kpi }}</h3>
                 <p>{{ $indicator->label_full ?? '' }}</p>
             </div>
-            @if($kpi !== 'grp')
+            @if(! in_array($kpi, ['grp', 'budget', 'investment', 'export'], true))
                 <a class="mini-button primary kpi-head-district"
                    href="{{ route('districts') }}?indicatorCode={{ $kpi }}">Туманлар кесими</a>
             @endif
