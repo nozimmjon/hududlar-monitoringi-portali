@@ -1425,12 +1425,12 @@
     .task-num {
       display: grid;
       place-items: center;
-      width: 30px;
-      height: 30px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       background: var(--blue-soft);
       color: var(--task-blue);
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 900;
     }
 
@@ -1441,7 +1441,7 @@
     }
 
     .task-body strong {
-      font-size: 14px;
+      font-size: 17px;
       line-height: 1.35;
       color: var(--ink);
       overflow-wrap: anywhere;
@@ -1468,7 +1468,7 @@
       gap: 6px;
       flex-wrap: wrap;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
     }
 
     .district-card {
@@ -2077,6 +2077,58 @@
     .quarter-row .q-trend.down::before { border-top: 5px solid var(--red); }
     .quarter-row .q-trend.flat { color: var(--muted); }
     .quarter-row .q-trend.flat::before { width: 7px; height: 1.5px; border: 0; background: currentColor; align-self: center; }
+
+    .quarter-matrix.is-monetary .quarter-row.actual,
+    .quarter-matrix.is-monetary .quarter-row.planned {
+      --row-accent: var(--amber);
+      background: linear-gradient(160deg, #2360d6 0%, #1e59cc 100%);
+      border: 0;
+      box-shadow: 0 10px 24px rgba(8, 57, 93, .22);
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual:hover,
+    .quarter-matrix.is-monetary .quarter-row.planned:hover {
+      transform: none;
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(8, 57, 93, .26);
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-period,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-period {
+      color: #fff;
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-hero-value,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-hero-value,
+    .quarter-matrix.is-monetary .quarter-row.actual .q-hero .q-trend,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-hero .q-trend {
+      color: #fff;
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-hero-label,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-hero-label {
+      color: rgba(255, 255, 255, .78);
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-aux,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-aux {
+      border-top-color: rgba(255, 255, 255, .18);
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-aux-row,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-aux-row {
+      color: rgba(255, 255, 255, .78);
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.actual .q-aux-row b,
+    .quarter-matrix.is-monetary .quarter-row.planned .q-aux-row b {
+      color: #fff;
+    }
+
+    .quarter-matrix.is-monetary .quarter-row.empty {
+      background: #eef2f7;
+      border: 1px solid var(--line);
+    }
 
     .quarter-main {
       display: block;
@@ -4757,7 +4809,7 @@
       display: grid;
       gap: 4px;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 950;
       text-transform: uppercase;
       min-width: 0;
@@ -4767,6 +4819,8 @@
     .task-filter input {
       width: 100%;
       min-width: 0;
+      font-size: 15px;
+      padding: 8px 10px;
     }
 
     .task-filter.report-filter {
@@ -4802,6 +4856,17 @@
       color: var(--ink);
     }
 
+    .task-group .task-list {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      max-height: calc(100vh - 320px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
     .tasks-layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, .36fr);
@@ -4819,12 +4884,6 @@
       display: grid;
       gap: 14px;
       min-width: 0;
-    }
-
-    .task-stat-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
     }
 
     .task-stat-box {
@@ -4886,16 +4945,61 @@
     .task-stat-stack .task-stat-box {
       min-height: 76px;
       cursor: default;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+    }
+
+    .task-stat-stack .task-stat-icon {
+      position: static;
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      width: 56px;
+      height: 56px;
+    }
+
+    .task-stat-stack .task-stat-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .task-stat-stack .task-stat-num {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      text-align: right;
+    }
+
+    .task-stat-stack .task-stat-label {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: end;
+      text-align: right;
     }
 
     .task-donut-card {
       display: grid;
       justify-items: center;
-      padding: 22px;
+      gap: 14px;
+      padding: 18px 22px 22px;
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 16px;
       box-shadow: var(--shadow-sm);
+    }
+
+    .task-donut-head {
+      justify-self: stretch;
+      width: 100%;
+      text-align: left;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.005em;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
     }
 
     .task-donut {
@@ -4905,7 +5009,7 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: conic-gradient(var(--blue-2) calc(var(--pct, 0) * 1%), var(--task-blue) 0);
+      background: conic-gradient(var(--task-blue) calc(var(--pct, 0) * 1%), var(--score-track) 0);
     }
 
     .task-donut::before {
@@ -4922,14 +5026,6 @@
       font-weight: 900;
       line-height: 1;
       color: var(--ink);
-    }
-
-    .task-donut span {
-      position: relative;
-      margin-top: 2px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
     }
 
 
@@ -5701,7 +5797,7 @@
       .grid-3, .grid-2, .profile-top { grid-template-columns: 1fr; }
       .profile-filter { align-items: stretch; flex-direction: column; }
       .district-workspace, .district-context { grid-template-columns: 1fr; }
-      .task-filter, .task-filter.report-filter, .tasks-layout, .task-stat-row, .workflow-strip { grid-template-columns: 1fr; }
+      .task-filter, .task-filter.report-filter, .tasks-layout, .workflow-strip { grid-template-columns: 1fr; }
       .execution-command, .execution-flow, .execution-workspace { grid-template-columns: 1fr; }
       .execution-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .modal-grid, .report-context { grid-template-columns: 1fr; }
