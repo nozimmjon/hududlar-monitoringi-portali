@@ -48,5 +48,4 @@
             @endforeach
         </div>
     </div>
-    <p class="finance-source">Манба: 6-жадвал ва кафолат хати.</p>
 </div>

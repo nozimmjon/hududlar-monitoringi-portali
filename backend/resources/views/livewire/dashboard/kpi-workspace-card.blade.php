@@ -18,9 +18,5 @@
         </div>
 
         @include('livewire.dashboard.panels.' . $panel, get_defined_vars())
-
-        @if(in_array($kpi, ['budget', 'budget_investment', 'investment'], true))
-            <p class="finance-source">Манба: 4-жадвал ва кафолат хати.</p>
-        @endif
     </article>
 </div>
