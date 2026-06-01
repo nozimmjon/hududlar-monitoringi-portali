@@ -103,7 +103,9 @@
                                         : collect();
                                     // Breakdown shows sub-metrics only; the headline (line_no 0) is on the card face.
                                     $subLines = $latestLines->where('line_no', '>', 0);
-                                    // Per-line tier, same thresholds as the card face.
+                                    // Per-line tier by raw pct (red <50, amber 50–99, green ≥100). Unlike the
+                                    // card face, sub-lines have no done-gating or 99% cap — a sub-metric can
+                                    // genuinely be ≥100% even when the parent task isn't "done".
                                     $tlTier = fn ($p) => $p === null ? 'none'
                                         : ((float) $p >= 100 ? 'green' : ((float) $p >= 50 ? 'amber' : 'red'));
                                 @endphp

@@ -135,6 +135,33 @@ test('card detail shows sub-metrics, scope, cadence and districts; drops the hea
         ->assertDontSee('йирик корхона сони');             // headline (line_no 0) dropped from breakdown
 });
 
+test('detail sub-metric pills use the per-line tier (red, amber, none)', function () {
+    $task = Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '8', 'title' => 'Кўп тоифали кўрсаткичлар',
+        'module_code' => 'macro', 'indicator_code' => null,
+        'cadence' => 'monthly', 'status' => 'open',
+        'headline_unit' => 'дона', 'headline_plan' => 10, 'headline_actual' => 4,
+        'headline_pct' => 40, 'latest_period' => '2026-Q1',
+    ]);
+    $task->progress()->createMany([
+        ['line_no' => 0, 'metric_label' => 'бош кўрсаткич', 'unit' => 'дона',
+         'report_period' => '2026-Q1', 'period_type' => 'quarter', 'plan_value' => 10, 'actual_value' => 4, 'pct_of_plan' => 40],
+        ['line_no' => 1, 'metric_label' => 'орқада кўрсаткич', 'unit' => 'дона',
+         'report_period' => '2026-Q1', 'period_type' => 'quarter', 'plan_value' => 100, 'actual_value' => 30, 'pct_of_plan' => 30],
+        ['line_no' => 2, 'metric_label' => 'ярим кўрсаткич', 'unit' => 'дона',
+         'report_period' => '2026-Q1', 'period_type' => 'quarter', 'plan_value' => 100, 'actual_value' => 70, 'pct_of_plan' => 70],
+        ['line_no' => 3, 'metric_label' => 'маълумотсиз кўрсаткич', 'unit' => 'дона',
+         'report_period' => '2026-Q1', 'period_type' => 'quarter', 'plan_value' => 50, 'actual_value' => null, 'pct_of_plan' => null],
+    ]);
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->set('search', 'Кўп тоифали')
+        ->assertSeeHtml('tl-pill--red')      // 30% sub-line
+        ->assertSeeHtml('tl-pill--amber')    // 70% sub-line
+        ->assertSeeHtml('tl-pill--none');    // null-pct sub-line
+});
+
 test('task without progress data renders without errors', function () {
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '3', 'title' => 'Маълумотсиз топшириқ',
