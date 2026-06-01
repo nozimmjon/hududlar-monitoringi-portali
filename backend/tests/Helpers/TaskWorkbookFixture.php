@@ -86,7 +86,38 @@ class TaskWorkbookFixture
         $set(19, 9, 55);   // actual
         $set(20, 9, 100);  // pct (done)
 
+        // Row 10: TASK 3 (Чора-тадбир, monthly, year, single metric, pct cell EMPTY -> parser must derive it).
+        $set(1, 10, 3);
+        $set(3, 10, 'Экспорт ҳажмини ошириш');
+        $set(4, 10, 'экспорт ҳажми');
+        $set(5, 10, 'млн долл');
+        $set(6, 10, '2026 йил якуни билан');
+        $set(8, 10, 'Чора-тадбирлар');
+        $set(10, 10, 'Ҳар ой');
+        $set(17, 10, 'Андижон вилояти ҳокимлиги');
+        $set(18, 10, 10);   // plan
+        $set(19, 10, 12);   // actual
+        // col 20 (pct) intentionally NOT set -> parser derives 120%
+
         $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_' . uniqid('', true) . '.xlsx';
+        (IOFactory::createWriter($book, 'Xlsx'))->save($path);
+        $book->disconnectWorksheets();
+
+        return $path;
+    }
+
+    /** A workbook whose region block headers are missing/wrong — for layout-guard tests. */
+    public static function makeMissingHeaders(): string
+    {
+        $book = new Spreadsheet();
+        $sheet = $book->getActiveSheet();
+        $sheet->setCellValue('A3', '№');
+        $sheet->setCellValue('C3', 'Кўрсаткич номи');
+        // No region headers at cols 13/17.
+        $sheet->setCellValue('A7', 1);
+        $sheet->setCellValue('C7', 'Тест');
+
+        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_broken_' . uniqid('', true) . '.xlsx';
         (IOFactory::createWriter($book, 'Xlsx'))->save($path);
         $book->disconnectWorksheets();
 

@@ -6,10 +6,13 @@ use Tests\Helpers\TaskWorkbookFixture;
 
 test('parses tasks, sections, regions and multi-metric lines', function () {
     $path = TaskWorkbookFixture::make();
-    $tasks = (new TaskWorkbookParser())->parse($path);
-    @unlink($path);
+    try {
+        $tasks = (new TaskWorkbookParser())->parse($path);
+    } finally {
+        @unlink($path);
+    }
 
-    expect($tasks)->toHaveCount(2);
+    expect($tasks)->toHaveCount(3);
 
     $t1 = $tasks[0];
     expect($t1['task_number'])->toBe('1');
@@ -37,4 +40,21 @@ test('parses tasks, sections, regions and multi-metric lines', function () {
     expect($t2['regions'][1703]['metrics'][1]['pct'])->toBeNumericallyClose(100);
     // Qoraqalpoq has no data for task 2 -> region absent.
     expect($t2['regions'])->not->toHaveKey(1735);
+
+    // Task 3: pct cell empty -> derived from actual/plan (12/10 = 120%).
+    $t3 = $tasks[2];
+    expect($t3['task_number'])->toBe('3');
+    expect($t3['regions'][1703]['metrics'][0]['plan'])->toBeNumericallyClose(10);
+    expect($t3['regions'][1703]['metrics'][0]['actual'])->toBeNumericallyClose(12);
+    expect($t3['regions'][1703]['metrics'][0]['pct'])->toBeNumericallyClose(120);
+});
+
+test('throws on workbook with shifted/missing region headers', function () {
+    $path = TaskWorkbookFixture::makeMissingHeaders();
+    try {
+        expect(fn () => (new TaskWorkbookParser())->parse($path))
+            ->toThrow(RuntimeException::class, 'Unexpected workbook layout');
+    } finally {
+        @unlink($path);
+    }
 });

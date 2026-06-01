@@ -55,7 +55,8 @@ class TaskWorkbookParser
                 } elseif (preg_match($numericRe, $a, $m)) {
                     $key       = $m[1] . '.' . $m[2];
                     $indicator = TasksTaxonomy::NUMERIC_TO_INDICATOR[$key] ?? null;
-                    $path0     = ($path0 !== '' ? explode('.', $path0)[0] : '') . '.' . $key;
+                    $prefix    = $path0 !== '' ? explode('.', $path0)[0] : '';
+                    $path0     = ($prefix !== '' ? $prefix . '.' : '') . $key;
                     $label     = $a;
                 } else {
                     $label = $a; // free-text sub-label, keep module/indicator
@@ -65,11 +66,12 @@ class TaskWorkbookParser
 
             // New task row: integer col A + non-empty title.
             if ($this->isIntToken($a) && $c !== '') {
+                $deadline = $this->str($sheet, 6, $row);
                 $tasks[] = [
                     'task_number'          => (string) (int) (float) $a,
                     'title'                => $c,
-                    'deadline_text'        => $this->normWs($this->str($sheet, 6, $row)) ?: null,
-                    'period_code'          => TaskPeriod::deadlineToPeriodCode($this->str($sheet, 6, $row)),
+                    'deadline_text'        => $this->normWs($deadline) ?: null,
+                    'period_code'          => TaskPeriod::deadlineToPeriodCode($deadline),
                     'kind'                 => str_starts_with($this->str($sheet, 8, $row), 'KPI') ? 'kpi' : 'measure',
                     'data_source'          => $this->str($sheet, 9, $row) ?: null,
                     'report_schedule_text' => $this->str($sheet, 10, $row) ?: null,
@@ -167,7 +169,7 @@ class TaskWorkbookParser
     private function str(Worksheet $sheet, int $col, int $row): string
     {
         $v = $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue();
-        return $v === null ? '' : trim((string) $v);
+        return $v === null ? '' : trim(str_replace("\u{00A0}", ' ', (string) $v));
     }
 
     private function num(Worksheet $sheet, int $col, int $row): ?float
