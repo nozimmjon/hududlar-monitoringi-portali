@@ -42,8 +42,8 @@ test('imports tasks, progress, districts and status for a period', function () {
     expect($t2->progress()->where('report_period', '2026-Q1')->count())->toBe(2);
     expect($t2->districts->pluck('name_full')->all())->toContain('Шахрихон тумани');
 
-    // Andijan task 3: derived pct 120 -> done
-    $t3 = Task::where('region_code', 1703)->where('task_number', '3')->first();
+    // Andijan task 3: derived pct 120 -> done (task_number comes from col B = 5)
+    $t3 = Task::where('region_code', 1703)->where('task_number', '5')->first();
     expect($t3->status)->toBe('done');
     expect((float) $t3->headline_pct)->toBeNumericallyClose(120);
     expect((float) $t3->headline_actual)->toBeNumericallyClose(12);
@@ -117,8 +117,8 @@ test('records per-region rows_promoted on import runs', function () {
     $andijanRun = ImportRun::where('region_code', 1703)->where('year', 2026)->latest('id')->first();
     $karakalpakRun = ImportRun::where('region_code', 1735)->where('year', 2026)->latest('id')->first();
 
-    // Andijan: task1 (1 line) + task2 (2 lines) + task3 (1 line) = 4 progress rows.
-    expect($andijanRun->rows_promoted)->toBe(4);
+    // Andijan: task1 (1 line) + task2 (2 lines) + task3 (2 lines) = 5 progress rows.
+    expect($andijanRun->rows_promoted)->toBe(5);
     // Qoraqalpoq: task1 only (1 line).
     expect($karakalpakRun->rows_promoted)->toBe(1);
 });

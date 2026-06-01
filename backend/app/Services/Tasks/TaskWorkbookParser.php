@@ -26,7 +26,7 @@ class TaskWorkbookParser
     public function parse(string $path): array
     {
         $reader = IOFactory::createReaderForFile($path);
-        $reader->setReadDataOnly(true);
+        // Full read mode required for getCalculatedValue() to resolve formula cells.
         $book = $reader->load($path);
         $sheet = $book->getActiveSheet();
 
@@ -44,6 +44,7 @@ class TaskWorkbookParser
             $a = $this->str($sheet, 1, $row);
             $c = $this->str($sheet, 3, $row);
             $d = $this->str($sheet, 4, $row);
+            $e = $this->str($sheet, 5, $row);
 
             // Section header rows (col A carries a marker, col C empty).
             if ($a !== '' && $c === '' && ! $this->isIntToken($a)) {
@@ -67,8 +68,12 @@ class TaskWorkbookParser
             // New task row: integer col A + non-empty title.
             if ($this->isIntToken($a) && $c !== '') {
                 $deadline = $this->str($sheet, 6, $row);
+                // Col B (the second № column) is the unique task identifier in the source;
+                // col A restarts/duplicates in places. Fall back to A when B is unusable.
+                $b = $this->str($sheet, 2, $row);
+                $taskNumber = $this->isIntToken($b) ? $b : $a;
                 $tasks[] = [
-                    'task_number'          => (string) (int) (float) $a,
+                    'task_number'          => (string) (int) (float) $taskNumber,
                     'title'                => $c,
                     'deadline_text'        => $this->normWs($deadline) ?: null,
                     'period_code'          => TaskPeriod::deadlineToPeriodCode($deadline),
@@ -90,8 +95,8 @@ class TaskWorkbookParser
                 continue;
             }
 
-            // Continuation metric line (col A empty, col D present) for the current task.
-            if ($a === '' && $d !== '' && $current !== null) {
+            // Continuation metric line (col A empty, col D label OR col E unit present).
+            if ($a === '' && ($d !== '' || $e !== '') && $current !== null) {
                 $nextLine = $this->maxLineNo($tasks[$current]) + 1;
                 $this->captureRegions($sheet, $row, $tasks[$current], $nextLine, false);
                 continue;
@@ -166,15 +171,30 @@ class TaskWorkbookParser
         }
     }
 
+    /** Raw cell value with formula evaluation; falls back to cached/null when calc fails. */
+    private function cellValue(Worksheet $sheet, int $col, int $row): mixed
+    {
+        $cell = $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row);
+        try {
+            return $cell->getCalculatedValue();
+        } catch (\Throwable) {
+            try {
+                return $cell->getOldCalculatedValue();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+    }
+
     private function str(Worksheet $sheet, int $col, int $row): string
     {
-        $v = $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue();
+        $v = $this->cellValue($sheet, $col, $row);
         return $v === null ? '' : trim(str_replace("\u{00A0}", ' ', (string) $v));
     }
 
     private function num(Worksheet $sheet, int $col, int $row): ?float
     {
-        $v = $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue();
+        $v = $this->cellValue($sheet, $col, $row);
         if ($v === null) return null;
         if (is_int($v) || is_float($v)) return (float) $v;
         $s = trim((string) $v);

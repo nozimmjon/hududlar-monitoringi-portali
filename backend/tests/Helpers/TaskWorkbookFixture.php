@@ -51,6 +51,7 @@ class TaskWorkbookFixture
 
         // Row 7: TASK 1 (KPI, quarterly, h1, single metric).
         $set(1, 7, 1);
+        $set(2, 7, 1);   // col B (global №) same as col A
         $set(3, 7, 'ЯҲМ ўсишини таъминлаш');
         $set(4, 7, 'ЯҲМ ўсиш суръати');
         $set(5, 7, 'фоиз');
@@ -66,7 +67,9 @@ class TaskWorkbookFixture
         $set(18, 7, 7.2);
 
         // Row 8: TASK 2 (Чора-тадбир, monthly, year, multi-metric, district executor).
-        $set(1, 8, 2);
+        // Col A and col B are both formulas — defect-1 regression: getValue() returns formula string.
+        $set(1, 8, '=A7+1');   // col A formula -> calculated = 2
+        $set(2, 8, '=B7+1');   // col B formula -> calculated = 2
         $set(3, 8, 'Йирик корхоналарни ишга тушириш');
         $set(4, 8, 'йирик корхона сони');
         $set(5, 8, 'дона');
@@ -87,7 +90,9 @@ class TaskWorkbookFixture
         $set(20, 9, 100);  // pct (done)
 
         // Row 10: TASK 3 (Чора-тадбир, monthly, year, single metric, pct cell EMPTY -> parser must derive it).
+        // Col B = 5, DIFFERENT from col A = 3 -> locks "col B wins as task_number".
         $set(1, 10, 3);
+        $set(2, 10, 5);   // col B (unique global №) wins over col A
         $set(3, 10, 'Экспорт ҳажмини ошириш');
         $set(4, 10, 'экспорт ҳажми');
         $set(5, 10, 'млн долл');
@@ -98,6 +103,12 @@ class TaskWorkbookFixture
         $set(18, 10, 10);   // plan
         $set(19, 10, 12);   // actual
         // col 20 (pct) intentionally NOT set -> parser derives 120%
+
+        // Row 11: continuation for TASK 3 with NO label (col D empty) but a unit + values.
+        $set(5, 11, 'дона');
+        $set(18, 11, 300);   // plan
+        $set(19, 11, 150);   // actual
+        // pct empty -> derived 50
 
         $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_' . uniqid('', true) . '.xlsx';
         (IOFactory::createWriter($book, 'Xlsx'))->save($path);

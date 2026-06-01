@@ -28,7 +28,7 @@ test('parses tasks, sections, regions and multi-metric lines', function () {
     expect($t1['regions'][1703]['metrics'][0]['actual'])->toBeNull();
 
     $t2 = $tasks[1];
-    expect($t2['task_number'])->toBe('2');
+    expect($t2['task_number'])->toBe('2'); // '2' comes from formula =B7+1 -> calculated
     expect($t2['kind'])->toBe('measure');
     expect($t2['cadence'])->toBe('monthly');
     expect($t2['period_code'])->toBe('year');
@@ -42,11 +42,19 @@ test('parses tasks, sections, regions and multi-metric lines', function () {
     expect($t2['regions'])->not->toHaveKey(1735);
 
     // Task 3: pct cell empty -> derived from actual/plan (12/10 = 120%).
+    // col B (unique global №) wins over col A.
     $t3 = $tasks[2];
-    expect($t3['task_number'])->toBe('3');
+    expect($t3['task_number'])->toBe('5'); // col B (unique) wins over col A
     expect($t3['regions'][1703]['metrics'][0]['plan'])->toBeNumericallyClose(10);
     expect($t3['regions'][1703]['metrics'][0]['actual'])->toBeNumericallyClose(12);
     expect($t3['regions'][1703]['metrics'][0]['pct'])->toBeNumericallyClose(120);
+
+    expect($t3['regions'][1703]['metrics'])->toHaveCount(2);
+    // Unit-only continuation (no label): captured with null label, derived pct 50.
+    expect($t3['regions'][1703]['metrics'][1]['metric_label'])->toBeNull();
+    expect($t3['regions'][1703]['metrics'][1]['unit'])->toBe('дона');
+    expect($t3['regions'][1703]['metrics'][1]['plan'])->toBeNumericallyClose(300);
+    expect($t3['regions'][1703]['metrics'][1]['pct'])->toBeNumericallyClose(50);
 });
 
 test('throws on workbook with shifted/missing region headers', function () {
