@@ -52,6 +52,9 @@ test('done task shows done badge and green progress', function () {
         ->set('status', 'done')
         ->assertSee('Бажарилди')
         ->assertSee('Экспорт ҳажми')
+        ->assertSeeHtml('--task-green')
+        // Safe negative assertion: the full title can't appear elsewhere; the seeder
+        // string 'ЯҲМ' (indicator label) is never rendered because indicator_code is null.
         ->assertDontSee('ЯҲМ ўсиши'); // open task filtered out in done view
 });
 
