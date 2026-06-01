@@ -198,3 +198,23 @@ test('open task just under 100 percent shows 99 and amber, never 100 or green', 
         ->assertSeeHtml('task-pct--amber')
         ->assertDontSeeHtml('task-pct--green');
 });
+
+test('plan-only task shows an empty 0 percent track but keeps em-dash, not 0 percent', function () {
+    // Plan loaded, actual not yet reported -> headline_pct null. Bar must still render
+    // as an empty grey 0% track; the percent cell stays '—' (not '0%').
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '12', 'title' => 'Режа бор амал йўқ топшириқ',
+        'module_code' => 'macro', 'indicator_code' => null,
+        'cadence' => 'monthly', 'status' => 'open',
+        'headline_unit' => 'дона', 'headline_plan' => 50,
+        'headline_actual' => null, 'headline_pct' => null, 'latest_period' => '2026-Q1',
+    ]);
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->set('search', 'Режа бор амал йўқ')
+        ->assertSeeHtml('--w:0%')           // empty progress track is rendered
+        ->assertSeeHtml('var(--grey)')      // neutral colour for the no-data tier
+        ->assertSeeHtml('task-pct--none')   // percent cell is neutral
+        ->assertSee('—');                   // percent shows em-dash, not "0%"
+});

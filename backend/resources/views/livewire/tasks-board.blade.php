@@ -86,9 +86,10 @@
                                     </div>
                                 </div>
 
-                                @if($pct !== null)
+                                @if($task->headline_plan !== null)
+                                    {{-- Plan exists -> always show the bar. No actual/pct yet -> empty 0% grey track. --}}
                                     <div class="task-foot">
-                                        <div class="progress"><i style="--w:{{ max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
+                                        <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
                                         @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
                                     </div>
                                 @endif
