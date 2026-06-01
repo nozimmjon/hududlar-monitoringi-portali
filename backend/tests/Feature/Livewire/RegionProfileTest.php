@@ -45,6 +45,7 @@ test('taskCounts reflects tasks linked to district and KPI', function () {
     $task = Task::factory()->create([
         'region_code' => 1703, 'module_code' => 'macro',
         'indicator_code' => 'industry', 'status' => 'open',
+        'headline_plan' => 6, // carry a plan so the hasPlan() count filter keeps it
     ]);
     $districtId = \DB::table('districts')->where('code', 1703401)->value('id');
     \DB::table('task_districts')->insert(['task_id' => $task->id, 'district_id' => $districtId]);
@@ -67,6 +68,7 @@ test('districtTaskCounts shows tasks across all KPIs for the district', function
     foreach (['industry', 'industry', 'grp', 'services'] as $code) {
         $t = Task::factory()->create([
             'region_code' => 1703, 'module_code' => 'macro', 'indicator_code' => $code, 'status' => 'open',
+            'headline_plan' => 6, // carry a plan so the hasPlan() count filter keeps it
         ]);
         \DB::table('task_districts')->insert(['task_id' => $t->id, 'district_id' => $districtId]);
     }
