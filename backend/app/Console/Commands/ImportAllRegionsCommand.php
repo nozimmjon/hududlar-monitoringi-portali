@@ -15,10 +15,11 @@ class ImportAllRegionsCommand extends Command
     protected $signature = 'import:all-regions
         {year=2026 : Reporting year, passed through to import:region}
         {--only= : Comma-separated region slugs or SOATO codes to limit the batch}
-        {--no-tasks : Skip import:tasks calls}
+        {--no-tasks : Skip import:task-progress calls}
+        {--period= : Report period (e.g. 2026-Q1) for import:task-progress; required to import tasks}
         {--no-promote : Stop at staging; do not auto-promote}';
 
-    protected $description = 'Run import:region + import:promote + import:tasks for every region.';
+    protected $description = 'Run import:region + import:promote + import:task-progress for every region.';
 
     public function handle(): int
     {
@@ -133,17 +134,21 @@ class ImportAllRegionsCommand extends Command
             $row['note'] = $this->truncate($e->getMessage(), 120);
         }
 
-        if ($this->option('no-tasks')) {
+        $period = (string) $this->option('period');
+        if ($this->option('no-tasks') || $period === '') {
             $row['tasks'] = 'skipped';
         } else {
             try {
-                $tasksExit = Artisan::call('import:tasks', ['region' => $slug]);
+                $tasksExit = Artisan::call('import:task-progress', [
+                    '--region' => $slug,
+                    '--period' => $period,
+                ]);
                 if ($tasksExit === 0) {
                     $row['tasks'] = 'ok';
                     $row['tasks_count'] = Task::where('region_code', $regionCode)->count();
                 } else {
                     $row['tasks'] = 'fail';
-                    $row['note'] = trim($row['note'] . " import:tasks exit={$tasksExit}");
+                    $row['note'] = trim($row['note'] . " import:task-progress exit={$tasksExit}");
                 }
             } catch (\Throwable $e) {
                 $row['tasks'] = 'error';
