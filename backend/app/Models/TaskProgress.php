@@ -15,8 +15,11 @@ class TaskProgress extends Model
     ];
 
     protected $casts = [
-        'line_no'     => 'integer',
-        'reported_at' => 'date',
+        'line_no'      => 'integer',
+        'reported_at'  => 'date',
+        'plan_value'   => 'decimal:6',
+        'actual_value' => 'decimal:6',
+        'pct_of_plan'  => 'decimal:4',
     ];
 
     public function task(): BelongsTo

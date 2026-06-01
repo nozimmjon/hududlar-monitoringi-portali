@@ -24,7 +24,10 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'region_code' => 'integer',
+        'region_code'     => 'integer',
+        'headline_plan'   => 'decimal:6',
+        'headline_actual' => 'decimal:6',
+        'headline_pct'    => 'decimal:4',
     ];
 
     public function region(): BelongsTo
