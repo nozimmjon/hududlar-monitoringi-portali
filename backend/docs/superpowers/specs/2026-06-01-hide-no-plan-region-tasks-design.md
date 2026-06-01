@@ -108,10 +108,14 @@ No other logic changes at these sites — just chain `->hasPlan()` onto the base
 
 ## Edge cases & accepted simplifications
 
-- **Headline-only signal.** The rule keys on `headline_plan` (the `line_no 0`
-  metric). A task whose headline has no plan but whose sub-metrics do carry a plan
-  is still hidden. This matches the literal "the Режа кўрсаткичи column is empty"
-  intent and the value shown on the card. Accepted.
+- **Plan on any line counts (AMENDED 2026-06-01).** The rule originally keyed only
+  on `headline_plan` (the `line_no 0` metric). Real Andijan data has multi-metric
+  tasks whose line-0 is a category header with no plan while the real targets sit on
+  sub-metric lines (e.g. #70 food prices, #111 shadow economy) — those were wrongly
+  hidden (Andijan showed 79 of 81 planned tasks). The shipped rule now counts a task
+  as planned if `headline_plan` is set **OR** any progress line has a non-null
+  `plan_value`. See commit `e5b2ae6`. The scope definition in §1 below shows the
+  original headline-only form; the implemented scope is the broadened OR.
 - **No-plan but has-actual.** Stakeholder chose "hide whole task" over "hide only
   if no actual too." Therefore a task is hidden even if it reported an Амалда
   (actual) value with no plan. Accepted as intended.
