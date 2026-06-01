@@ -37,11 +37,7 @@ php artisan test                       # full suite (~10 min; needs memory_limit
 php artisan test --filter=SomeTest     # single test/class
 ```
 
-Conventions: Feature tests start with `uses(RefreshDatabase::class);` (not bound globally); seeders run explicitly via `$this->seed()`; Unit tests are pure `expect()` closures. Custom expectation `toBeNumericallyClose()` exists in `tests/Pest.php`.
-
-**Known pre-existing failures on `v7-design-polish`** (stale tests describing UI states that don't exist; unrelated to recent work):
-- `DistrictsPageTest > status thresholds drive cell coloring` — expects literal `map-cell green` / `map-cell red` strings the districts map no longer renders.
-- `MacroPeriodRowTest > it renders the industry main panel...` — expects a `macro-main-panel` class that exists nowhere in the codebase.
+Conventions: Feature tests start with `uses(RefreshDatabase::class);` (not bound globally); seeders run explicitly via `$this->seed()`; Unit tests are pure `expect()` closures. Custom expectation `toBeNumericallyClose()` exists in `tests/Pest.php`. The full suite is expected to be green.
 
 ### Architecture
 

@@ -85,5 +85,6 @@ php artisan db:seed --class=ReportingYearSeeder
   *region-level* plan/actual with the district flagged as co-responsible.
 - **Formula evaluation**: the parser evaluates workbook formulas
   (`getCalculatedValue`), so the file must come from the trusted partner channel.
-- The two pre-existing test failures on this branch (`DistrictsPageTest` cell
-  coloring, `MacroPeriodRowTest` industry panel) are unrelated to task import.
+- **Region column order is enforced**: the import refuses any file whose 14 region
+  blocks are not in the expected columns (shifted or reordered), reporting exactly
+  which columns mismatch.

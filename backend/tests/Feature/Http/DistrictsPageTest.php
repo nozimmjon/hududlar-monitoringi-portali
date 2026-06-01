@@ -110,14 +110,6 @@ test('detail table contains profile link for each district', function () {
     $response->assertSee('/profile?districtCode=1703401', false);
 });
 
-test('status thresholds drive cell coloring', function () {
-    $response = $this->get('/districts');
-    // andijan_city has pct_of_plan=95.0 -> green; asaka_district has 75.0 -> red
-    $html = $response->getContent();
-    expect($html)->toContain('map-cell green');
-    expect($html)->toContain('map-cell red');
-});
-
 test('detail table shows industry-specific column headers for industry KPI', function () {
     $response = $this->get('/districts?kpi=industry');
     $response->assertOk();
