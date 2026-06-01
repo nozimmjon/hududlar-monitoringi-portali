@@ -14,8 +14,19 @@
     <div class="panel-body">
         <div class="profile-task-list">
             @forelse($tasks as $task)
+                @php
+                    $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
+                    $tStatusChip = $task->status === 'done' ? 'green' : 'grey';
+                    $tStatusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
+                    $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
+                @endphp
                 <article class="profile-task">
                     <p class="profile-task-title">{{ $task->title }}</p>
+                    <div class="task-meta">
+                        <span>Режа: <b>{{ $fmt($task->headline_plan) }}</b> {{ $task->headline_unit }}</span>
+                        <span>Амалда: <b>{{ $fmt($task->headline_actual) }}</b> {{ $task->headline_unit }}</span>
+                        <span class="chip {{ $tStatusChip }}">{{ $tStatusLabel }}{{ $pct !== null ? ' · ' . round($pct) . '%' : '' }}</span>
+                    </div>
                     @if($task->deadline_text)
                         <span class="profile-task-deadline">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
