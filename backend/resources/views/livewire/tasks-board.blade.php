@@ -47,12 +47,16 @@
                     @forelse($tasks as $task)
                         @php
                             $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
-                            $statusChip = $task->status === 'done' ? 'green' : 'grey';
-                            $statusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
+                            $isDone = $task->status === 'done';
+                            // Percent text and its colour tier come from the SAME value so they can never disagree.
+                            // A not-done task never shows 100% (capped at 99); green is reserved for genuinely done tasks.
+                            $pctShown = $pct === null ? null : ($isDone ? (int) round($pct) : min(99, (int) round($pct)));
+                            $tier = $pct === null ? 'none' : ($isDone ? 'green' : ($pctShown >= 50 ? 'amber' : 'red'));
+                            $tierVar = ['none' => '--grey', 'red' => '--task-red', 'amber' => '--task-amber', 'green' => '--task-green'][$tier];
+                            $statusChip = $isDone ? 'green' : 'grey';
+                            $statusLabel = $isDone ? 'Бажарилди' : 'Бажарилмаган';
                             $cadenceLabel = $task->cadence === 'monthly' ? 'Ойлик' : ($task->cadence === 'quarterly' ? 'Чорак' : '');
                             $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
-                            $tier = $pct === null ? 'none' : ($pct >= 100 ? 'green' : ($pct >= 50 ? 'amber' : 'red'));
-                            $tierVar = ['none' => '--grey', 'red' => '--task-red', 'amber' => '--task-amber', 'green' => '--task-green'][$tier];
                             $srok = $task->deadline_text;
                             $yonalish = $task->module?->label ?? $task->section_label;
                             $scopeText = $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят';
@@ -78,7 +82,7 @@
                                     </div>
                                     <div class="cell">
                                         <span class="clab">Бажарилиш</span>
-                                        <span class="val task-pct task-pct--{{ $tier }}">{{ $pct === null ? '—' : round($pct) . '%' }}</span>
+                                        <span class="val task-pct task-pct--{{ $tier }}">{{ $pctShown === null ? '—' : $pctShown . '%' }}</span>
                                     </div>
                                 </div>
 

@@ -39,6 +39,7 @@ test('board card shows labeled plan, actual, percent and context', function () {
         ->assertSee('7.2')                 // plan value
         ->assertSee('3.6')                 // actual value
         ->assertSee('50')                  // pct value (50%)
+        ->assertSeeHtml('task-pct--amber')
         ->assertSee('Срок')                // context label
         ->assertSee('2026 йил якунигача')  // deadline value
         ->assertSee('Йўналиш')             // module label heading
@@ -178,4 +179,22 @@ test('a no-plan task does not contribute its module to the filter options', func
         ->set('status', 'all')
         ->assertSeeHtml('value="macro"')      // macro has a planned task -> offered
         ->assertDontSeeHtml('value="export"'); // export only has a no-plan task -> not offered
+});
+
+test('open task just under 100 percent shows 99 and amber, never 100 or green', function () {
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '11', 'title' => 'Деярли тайёр топшириқ',
+        'module_code' => 'macro', 'indicator_code' => null,
+        'cadence' => 'monthly', 'status' => 'open',
+        'headline_unit' => 'дона', 'headline_plan' => 100, 'headline_actual' => 99.6,
+        'headline_pct' => 99.6, 'latest_period' => '2026-Q1',
+    ]);
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->set('search', 'Деярли')
+        ->assertSee('99%')
+        ->assertDontSee('100%')
+        ->assertSeeHtml('task-pct--amber')
+        ->assertDontSeeHtml('task-pct--green');
 });
