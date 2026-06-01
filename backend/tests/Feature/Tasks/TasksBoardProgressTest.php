@@ -135,7 +135,8 @@ test('task without progress data renders without errors', function () {
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '3', 'title' => 'Маълумотсиз топшириқ',
         'module_code' => 'macro', 'indicator_code' => null,
-        // no cadence/headline/latest_period at all (all null)
+        // headline_plan set so the card passes hasPlan() filter; actual/pct/cadence null -> em-dash
+        'headline_plan' => 6,
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)

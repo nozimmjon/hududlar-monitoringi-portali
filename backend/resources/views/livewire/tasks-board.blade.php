@@ -51,26 +51,44 @@
                             $statusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
                             $cadenceLabel = $task->cadence === 'monthly' ? 'Ойлик' : ($task->cadence === 'quarterly' ? 'Чорак' : '');
                             $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
+                            $tier = $pct === null ? 'none' : ($pct >= 100 ? 'green' : ($pct >= 50 ? 'amber' : 'red'));
+                            $tierVar = ['none' => '--grey', 'red' => '--task-red', 'amber' => '--task-amber', 'green' => '--task-green'][$tier];
+                            $srok = $task->deadline_text;
+                            $yonalish = $task->module?->label ?? $task->section_label;
+                            $scopeText = $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят';
                         @endphp
                         <article class="task-card" data-task-id="{{ $task->id }}">
                             <span class="task-num">{{ $loop->iteration }}</span>
                             <div class="task-body">
                                 <strong>{{ $task->title }}</strong>
-                                <div class="task-meta">
-                                    <span>{{ $task->deadline_text }}</span>
-                                    <span>{{ $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят' }}</span>
-                                    <span>{{ $task->module?->label ?? $task->section_label }}</span>
-                                    @if($cadenceLabel)<span>{{ $cadenceLabel }}</span>@endif
-                                    @if($task->latest_period)<span>Сўнгги: {{ $task->latest_period }}</span>@endif
+
+                                <div class="task-ctx">
+                                    @if($srok)<span><span class="k">Срок</span> <span class="v">{{ $srok }}</span></span>@endif
+                                    @if($yonalish)<span><span class="k">Йўналиш</span> <span class="v">{{ $yonalish }}</span></span>@endif
                                 </div>
-                                <div class="task-meta">
-                                    <span>Режа: <b>{{ $fmt($task->headline_plan) }}</b> {{ $task->headline_unit }}</span>
-                                    <span>Амалда: <b>{{ $fmt($task->headline_actual) }}</b> {{ $task->headline_unit }}</span>
-                                    <span>Бажарилиши: <b>{{ $pct === null ? '—' : round($pct) . '%' }}</b></span>
+
+                                <div class="task-strip">
+                                    <div class="cell">
+                                        <span class="clab">Режа</span>
+                                        <span class="val">{{ $fmt($task->headline_plan) }}<small>{{ $task->headline_unit }}</small></span>
+                                    </div>
+                                    <div class="cell">
+                                        <span class="clab">Амалда</span>
+                                        <span class="val">{{ $fmt($task->headline_actual) }}<small>{{ $task->headline_unit }}</small></span>
+                                    </div>
+                                    <div class="cell">
+                                        <span class="clab">Бажарилиш</span>
+                                        <span class="val task-pct task-pct--{{ $tier }}">{{ $pct === null ? '—' : round($pct) . '%' }}</span>
+                                    </div>
                                 </div>
+
                                 @if($pct !== null)
-                                    <div class="progress"><i style="--w:{{ max(0, min(100, $pct)) }}%;--c:var(--task-{{ $task->status === 'done' ? 'green' : 'blue' }})"></i></div>
+                                    <div class="task-foot">
+                                        <div class="progress"><i style="--w:{{ max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
+                                        @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
+                                    </div>
                                 @endif
+
                                 @php
                                     $latestLines = $task->latest_period
                                         ? $task->progress->where('report_period', $task->latest_period)
@@ -79,6 +97,10 @@
                                 @if($latestLines->count() > 1 || $task->districts->isNotEmpty())
                                     <details class="task-detail">
                                         <summary class="muted">Батафсил ({{ $latestLines->count() }} кўрсаткич{{ $task->districts->isNotEmpty() ? ', ' . $task->districts->count() . ' ҳудуд' : '' }})</summary>
+                                        <div class="task-meta">
+                                            <span>Қамров: {{ $scopeText }}</span>
+                                            @if($cadenceLabel)<span>Даврийлик: {{ $cadenceLabel }}</span>@endif
+                                        </div>
                                         @foreach($latestLines as $line)
                                             <div class="task-meta">
                                                 <span>{{ $line->metric_label ?? '—' }}</span>
