@@ -101,30 +101,49 @@
                                     $latestLines = $task->latest_period
                                         ? $task->progress->where('report_period', $task->latest_period)
                                         : collect();
+                                    // Breakdown shows sub-metrics only; the headline (line_no 0) is on the card face.
+                                    $subLines = $latestLines->where('line_no', '>', 0);
+                                    // Per-line tier, same thresholds as the card face.
+                                    $tlTier = fn ($p) => $p === null ? 'none'
+                                        : ((float) $p >= 100 ? 'green' : ((float) $p >= 50 ? 'amber' : 'red'));
                                 @endphp
-                                @if($latestLines->count() > 1 || $task->districts->isNotEmpty())
+                                @if($subLines->isNotEmpty() || $task->districts->isNotEmpty())
                                     <details class="task-detail">
-                                        <summary class="muted">Батафсил ({{ $latestLines->count() }} кўрсаткич{{ $task->districts->isNotEmpty() ? ', ' . $task->districts->count() . ' ҳудуд' : '' }})</summary>
-                                        <div class="task-meta">
-                                            <span>Қамров: {{ $scopeText }}</span>
-                                            @if($cadenceLabel)<span>Даврийлик: {{ $cadenceLabel }}</span>@endif
+                                        <summary>
+                                            <span class="chev" aria-hidden="true"></span>
+                                            <span class="lab">Батафсил</span>
+                                            <span class="ct">
+                                                @if($subLines->isNotEmpty())<span class="pill">{{ $subLines->count() }} кўрсаткич</span>@endif
+                                                @if($task->districts->isNotEmpty())<span class="pill">{{ $task->districts->count() }} ҳудуд</span>@endif
+                                            </span>
+                                        </summary>
+                                        <div class="task-detail-body">
+                                            <div class="task-detail-cap">Қамров: <b>{{ $scopeText }}</b>@if($cadenceLabel) · Даврийлик: <b>{{ $cadenceLabel }}</b>@endif</div>
+                                            @if($subLines->isNotEmpty())
+                                                <div class="task-detail-lines">
+                                                    @foreach($subLines as $line)
+                                                        @php $lt = $tlTier($line->pct_of_plan); @endphp
+                                                        <div class="tl-row">
+                                                            <div class="tl-main">
+                                                                <div class="tl-name">{{ $line->metric_label ?? '—' }}</div>
+                                                                <div class="tl-sub">Режа <b>{{ $fmt($line->plan_value) }}</b> {{ $line->unit }} · Амалда <b>{{ $fmt($line->actual_value) }}</b> {{ $line->unit }}</div>
+                                                            </div>
+                                                            <span class="tl-pill tl-pill--{{ $lt }}">{{ $line->pct_of_plan !== null ? round((float) $line->pct_of_plan) . '%' : '—' }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                            @if($task->districts->isNotEmpty())
+                                                <div class="task-detail-dist">
+                                                    <span class="clab">Ижрочи ҳудудлар</span>
+                                                    <div class="task-detail-chips">
+                                                        @foreach($task->districts as $d)
+                                                            <span class="chip blue">{{ $d->name_full }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
-                                        @foreach($latestLines as $line)
-                                            <div class="task-meta">
-                                                <span>{{ $line->metric_label ?? '—' }}</span>
-                                                <span>Режа: <b>{{ $fmt($line->plan_value) }}</b> {{ $line->unit }}</span>
-                                                <span>Амалда: <b>{{ $fmt($line->actual_value) }}</b> {{ $line->unit }}</span>
-                                                <span><b>{{ $line->pct_of_plan !== null ? round((float) $line->pct_of_plan) . '%' : '—' }}</b></span>
-                                            </div>
-                                        @endforeach
-                                        @if($task->districts->isNotEmpty())
-                                            <div class="task-meta">
-                                                <span>Ижрочи ҳудудлар:</span>
-                                                @foreach($task->districts as $d)
-                                                    <span class="chip blue">{{ $d->name_full }}</span>
-                                                @endforeach
-                                            </div>
-                                        @endif
                                     </details>
                                 @endif
                             </div>
