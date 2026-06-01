@@ -96,10 +96,14 @@ Status / kind / indicator chips stay in `.task-chips`.
 
 ## Files touched
 
-- `backend/resources/views/livewire/tasks-board.blade.php` — rewrite card-body data zone (lines ~59–99).
-- `backend/resources/css/app.css` — new classes for the stat strip, context line, micro-labels, color tiers.
-- `backend/public/css/portal.css` — rebuilt artifact via `npm run build` (do not hand-edit).
+- `backend/resources/views/livewire/tasks-board.blade.php` — rewrite card-body data zone (lines ~48–99).
+- `backend/public/css/portal.css` — add `--task-amber` var + new classes (stat strip, context line, micro-labels, color tiers), **edited directly**.
 - No PHP/`TasksBoard.php` change required (all fields already provided).
+
+**Build note (corrects CLAUDE.md):** `portal.css` is a hand-maintained stylesheet linked directly in
+`layouts/app.blade.php` (`<link href="/css/portal.css">`), NOT built from `resources/css/app.css`. Vite
+builds `app.css` → `public/build/`, which portal styling does not use. Edit `public/css/portal.css`
+directly; do **not** run `npm run build` for this change.
 
 ## Tests
 
@@ -114,7 +118,7 @@ Markup changes will break feature tests asserting the old text/structure.
 ## Conventions
 
 - UI language stays Cyrillic Uzbek (labels above are final wording).
-- Reuse existing palette/classes where possible; new CSS only where needed, then rebuild.
+- Reuse existing palette/classes where possible; new CSS only where needed, added directly to `public/css/portal.css`.
 - `data/` untouched; nothing committed from it.
 
 ## Open questions
