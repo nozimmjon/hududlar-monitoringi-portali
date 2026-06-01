@@ -496,3 +496,25 @@ Scroll the task list; the three strip columns should line up vertically from car
 - **Spec said "edit app.css + npm run build."** Corrected: portal.css is edited directly (see build-mechanics box). The spec file's "Files touched" section is updated to match.
 - **Cadence on the face → demoted.** The old test asserted `Чорак` on the face; cadence now lives only inside `<details>`, which renders only when a task has >1 metric line or ≥1 district. On a card with no detail, cadence is not shown — accepted trade-off of the demotion. Test updated: face assertion removed; cadence asserted inside the detail test instead.
 - **Type/name consistency:** `$tier` ∈ {none,red,amber,green}; `$tierVar` maps each to an existing CSS var (`--grey`, `--task-red`, `--task-amber`, `--task-green`). Class names `task-pct--{tier}` and `.task-pct--{tier}` selectors match. `--task-amber` is the only new var.
+
+---
+
+## Implementation amendments (2026-06-01, during execution)
+
+These deviations from the task blocks above were made during implementation and are the source of truth:
+
+1. **`hasPlan()` interaction (concurrent feature).** A separately-developed feature ("hide plan-less tasks") had already chained `->hasPlan()` (= `whereNotNull('headline_plan')`) onto `TasksBoard::tasks()`. The plan's Task 1 fixture for *"task without progress data"* used `headline_plan => null`, which `hasPlan()` filters out — so it was given `headline_plan => 6` (actual/pct/cadence/period stay null and still render `—`).
+
+2. **Restored board-level coverage.** Replacing `TasksBoardProgressTest.php` wholesale (Task 1) dropped two board tests that the concurrent feature owned (`'a task with no plan is hidden…'`, `'a no-plan task does not contribute its module…'`). They were restored verbatim into the file (commit `0336d93`).
+
+3. **Percent text ↔ colour tier consistency (code-review fix).** The Task 2 `@php` block computed the tier from raw `$pct` while the cell printed `round($pct)`, so `99.6` rendered "100%" in amber and `49.6` "50%" in red. Final logic (commit `acd341b`) derives both from one value and reserves green for genuinely-done tasks:
+
+   ```php
+   $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
+   $isDone = $task->status === 'done';
+   $pctShown = $pct === null ? null : ($isDone ? (int) round($pct) : min(99, (int) round($pct)));
+   $tier = $pct === null ? 'none' : ($isDone ? 'green' : ($pctShown >= 50 ? 'amber' : 'red'));
+   ```
+   The percent cell prints `$pctShown . '%'`; the progress-bar width still uses raw `$pct`. A not-done task therefore never displays 100%, and a green strip always matches the "Бажарилди" chip. Pinned by a new test (`'open task just under 100 percent shows 99 and amber…'`) and an amber-at-50 boundary assertion.
+
+4. **Suite state at completion.** `php artisan test`: 328 passed, 7 failed. The card-redesign files are all green (`TasksBoardProgressTest` 9/9, `TasksPageTest` 4/4). The 7 failures are pre-existing and unrelated: 2 real `RegionProfileTest` count assertions (untouched file; likely the "2 known" failures / concurrent-feature scope), and 5 `Console` failures that are PostgreSQL transaction-cascade/teardown flakiness (mostly pass when the class is run in isolation). No regression traces to this change.
