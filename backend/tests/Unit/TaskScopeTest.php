@@ -78,3 +78,19 @@ test('District has tasks() relationship', function () {
     $district = District::find($this->districtId);
     expect($district->tasks()->count())->toBe(1);
 });
+
+test('hasPlan keeps only tasks that have a headline plan', function () {
+    // beforeEach created 2 region-1703 tasks, both with headline_plan = null.
+    expect(Task::forRegion(1703)->hasPlan()->count())->toBe(0);
+
+    Task::create([
+        'region_code' => 1703, 'task_number' => '9',
+        'title' => 'planned task', 'executor_text' => 'хокимлик',
+        'kind' => 'kpi', 'module_code' => 'macro',
+        'section_path' => 'I', 'section_label' => 'I',
+        'source_paragraph_index' => 9, 'headline_plan' => 6,
+    ]);
+
+    expect(Task::forRegion(1703)->count())->toBe(3);            // unfiltered: all 3
+    expect(Task::forRegion(1703)->hasPlan()->count())->toBe(1); // only the planned one
+});

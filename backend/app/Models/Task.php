@@ -77,6 +77,12 @@ class Task extends Model
         return $q->where('region_code', $code);
     }
 
+    /** Only tasks that carry a plan value for the active region (Режа кўрсаткичи not empty/«x»). */
+    public function scopeHasPlan(Builder $q): Builder
+    {
+        return $q->whereNotNull('headline_plan');
+    }
+
     public function scopeForModule(Builder $q, string $code): Builder
     {
         return $q->where('module_code', $code);
