@@ -18,8 +18,8 @@ beforeEach(function () {
         ['code' => 'export', 'label' => 'E', 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
     ]);
 
-    Task::create(['region_code'=>1703,'task_number'=>'1','title'=>'macro one','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>1]);
-    Task::create(['region_code'=>1703,'task_number'=>'2','title'=>'export two','executor_text'=>'хокимлик','kind'=>'measure','module_code'=>'export','section_path'=>'VI','section_label'=>'VI','source_paragraph_index'=>2]);
+    Task::create(['region_code'=>1703,'task_number'=>'1','title'=>'macro one','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>1,'headline_plan'=>100]);
+    Task::create(['region_code'=>1703,'task_number'=>'2','title'=>'export two','executor_text'=>'хокимлик','kind'=>'measure','module_code'=>'export','section_path'=>'VI','section_label'=>'VI','source_paragraph_index'=>2,'headline_plan'=>100]);
 });
 
 test('GET /tasks returns 200 and contains task-card markup', function () {

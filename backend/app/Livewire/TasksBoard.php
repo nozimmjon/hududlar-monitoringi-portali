@@ -80,7 +80,8 @@ class TasksBoard extends Component
             ->with(['progress' => function ($p) {
                 $p->orderBy('line_no');
             }])
-            ->forRegion($this->regionCode);
+            ->forRegion($this->regionCode)
+            ->hasPlan();
 
         if ($this->module !== 'all')   $q->forModule($this->module);
         if ($this->indicator !== 'all') $q->forIndicator($this->indicator);
@@ -99,6 +100,7 @@ class TasksBoard extends Component
     public function moduleOptions()
     {
         $codes = Task::forRegion($this->regionCode)
+            ->hasPlan()
             ->whereNotNull('module_code')
             ->distinct()
             ->pluck('module_code');
@@ -109,7 +111,7 @@ class TasksBoard extends Component
     #[Computed]
     public function indicatorOptions()
     {
-        $q = Task::forRegion($this->regionCode)->whereNotNull('indicator_code');
+        $q = Task::forRegion($this->regionCode)->hasPlan()->whereNotNull('indicator_code');
         if ($this->module !== 'all') $q->forModule($this->module);
         $codes = $q->distinct()->pluck('indicator_code');
 
@@ -119,7 +121,7 @@ class TasksBoard extends Component
     #[Computed]
     public function districtOptions()
     {
-        $taskIds = Task::forRegion($this->regionCode)->pluck('id');
+        $taskIds = Task::forRegion($this->regionCode)->hasPlan()->pluck('id');
 
         return District::whereHas('tasks', fn ($q) => $q->whereIn('tasks.id', $taskIds))
             ->orderBy('sort_order')
@@ -129,7 +131,7 @@ class TasksBoard extends Component
     #[Computed]
     public function totals(): array
     {
-        $base = Task::forRegion($this->regionCode);
+        $base = Task::forRegion($this->regionCode)->hasPlan();
         if ($this->module !== 'all')    $base->forModule($this->module);
         if ($this->indicator !== 'all') $base->forIndicator($this->indicator);
         if ($this->period !== 'all')    $base->forPeriod($this->period);
