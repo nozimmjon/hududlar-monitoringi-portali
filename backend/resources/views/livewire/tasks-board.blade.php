@@ -45,6 +45,13 @@
                 </div>
                 <div class="task-list">
                     @forelse($tasks as $task)
+                        @php
+                            $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
+                            $statusChip = $task->status === 'done' ? 'green' : 'grey';
+                            $statusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
+                            $cadenceLabel = $task->cadence === 'monthly' ? 'Ойлик' : ($task->cadence === 'quarterly' ? 'Чорак' : '');
+                            $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
+                        @endphp
                         <article class="task-card" data-task-id="{{ $task->id }}">
                             <span class="task-num">{{ $loop->iteration }}</span>
                             <div class="task-body">
@@ -53,9 +60,20 @@
                                     <span>{{ $task->deadline_text }}</span>
                                     <span>{{ $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят' }}</span>
                                     <span>{{ $task->module?->label ?? $task->section_label }}</span>
+                                    @if($cadenceLabel)<span>{{ $cadenceLabel }}</span>@endif
+                                    @if($task->latest_period)<span>Сўнгги: {{ $task->latest_period }}</span>@endif
                                 </div>
+                                <div class="task-meta">
+                                    <span>Режа: <b>{{ $fmt($task->headline_plan) }}</b> {{ $task->headline_unit }}</span>
+                                    <span>Амалда: <b>{{ $fmt($task->headline_actual) }}</b> {{ $task->headline_unit }}</span>
+                                    <span>Бажарилиши: <b>{{ $pct === null ? '—' : round($pct) . '%' }}</b></span>
+                                </div>
+                                @if($pct !== null)
+                                    <div class="progress"><i style="--w:{{ max(0, min(100, $pct)) }}%;--c:var(--task-{{ $task->status === 'done' ? 'green' : 'blue' }})"></i></div>
+                                @endif
                             </div>
                             <div class="task-chips">
+                                <span class="chip {{ $statusChip }}">{{ $statusLabel }}</span>
                                 <span class="chip grey">{{ $task->kind === 'kpi' ? 'KPI' : 'Чора-тадбир' }}</span>
                                 @if($task->indicator)
                                     <span class="chip blue">{{ $task->indicator->label_short }}</span>

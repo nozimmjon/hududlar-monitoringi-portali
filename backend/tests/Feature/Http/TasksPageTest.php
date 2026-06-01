@@ -27,7 +27,7 @@ test('GET /tasks returns 200 and contains task-card markup', function () {
 
     $response->assertOk();
     $response->assertSee('task-filter', false);
-    $response->assertSee('task-summary-strip', false);
+    $response->assertSee('task-stat-stack', false);
     $response->assertSee('task-card', false);
     $response->assertSee('macro one', false);
     $response->assertSee('export two', false);
