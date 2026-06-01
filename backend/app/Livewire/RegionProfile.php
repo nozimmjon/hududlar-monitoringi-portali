@@ -113,6 +113,7 @@ class RegionProfile extends Component
         return Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
             ->forDistrict($this->district->id)
+            ->hasPlan()
             ->limit(4)
             ->get();
     }
@@ -123,7 +124,8 @@ class RegionProfile extends Component
         if (! $this->district) return ['total' => 0, 'unfinished' => 0];
         $base = Task::forRegion($this->regionCode)
             ->forIndicator($this->kpi)
-            ->forDistrict($this->district->id);
+            ->forDistrict($this->district->id)
+            ->hasPlan();
         $total = (clone $base)->count();
         $done  = (clone $base)->where('status', 'done')->count();
         return ['total' => $total, 'unfinished' => $total - $done];
@@ -135,6 +137,7 @@ class RegionProfile extends Component
         if (! $this->district) return collect();
         return Task::forRegion($this->regionCode)
             ->forDistrict($this->district->id)
+            ->hasPlan()
             ->with('indicator')
             ->orderBy('section_path')
             ->orderBy('task_number')
@@ -145,7 +148,7 @@ class RegionProfile extends Component
     public function districtTaskCounts(): array
     {
         if (! $this->district) return ['total' => 0, 'unfinished' => 0];
-        $base = Task::forRegion($this->regionCode)->forDistrict($this->district->id);
+        $base = Task::forRegion($this->regionCode)->forDistrict($this->district->id)->hasPlan();
         $total = (clone $base)->count();
         $done  = (clone $base)->where('status', 'done')->count();
         return ['total' => $total, 'unfinished' => $total - $done];
