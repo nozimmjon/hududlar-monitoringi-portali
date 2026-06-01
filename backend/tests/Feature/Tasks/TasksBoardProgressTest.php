@@ -99,7 +99,7 @@ test('done task shows done badge and green tier', function () {
         ->assertDontSee('ЯҲМ ўсиши');
 });
 
-test('card detail shows cadence and scope demoted from the face', function () {
+test('card detail shows sub-metrics, scope, cadence and districts; drops the headline line', function () {
     DB::table('districts')->insert([
         'region_id' => 1, 'region_code' => 1703, 'code' => 1703230,
         'name_short' => 'Шаҳрихон т.', 'name_full' => 'Шаҳрихон тумани',
@@ -124,12 +124,15 @@ test('card detail shows cadence and scope demoted from the face', function () {
     Livewire::test(TasksBoard::class)
         ->set('status', 'all')
         ->assertSee('Батафсил')
-        ->assertSee('қайта тикланадиган ишлаб чиқариш')
+        ->assertSee('Қамров')                              // scope/cadence caption
+        ->assertSee('Даврийлик')
+        ->assertSee('Ойлик')                               // monthly cadence
+        ->assertSee('Ижрочи ҳудудлар')                     // districts group label
+        ->assertSee('Шаҳрихон тумани')                     // district chip
+        ->assertSee('қайта тикланадиган ишлаб чиқариш')    // sub-metric (line_no 1) shown
         ->assertSee('млрд сўм')
-        ->assertSee('Шаҳрихон тумани')
-        ->assertSee('Қамров')           // scope demoted into the detail
-        ->assertSee('Даврийлик')        // cadence label demoted into the detail
-        ->assertSee('Ойлик');           // monthly cadence value, now inside detail
+        ->assertSeeHtml('tl-pill--green')                  // its 100% pill is the green tier
+        ->assertDontSee('йирик корхона сони');             // headline (line_no 0) dropped from breakdown
 });
 
 test('task without progress data renders without errors', function () {
