@@ -79,18 +79,35 @@ test('District has tasks() relationship', function () {
     expect($district->tasks()->count())->toBe(1);
 });
 
-test('hasPlan keeps only tasks that have a headline plan', function () {
-    // beforeEach created 2 region-1703 tasks, both with headline_plan = null.
+test('hasPlan keeps tasks with a plan on the headline OR any sub-metric line', function () {
+    // beforeEach created 2 region-1703 tasks: no headline_plan, no progress -> excluded.
     expect(Task::forRegion(1703)->hasPlan()->count())->toBe(0);
 
+    // (a) plan on the headline snapshot
     Task::create([
         'region_code' => 1703, 'task_number' => '9',
-        'title' => 'planned task', 'executor_text' => 'хокимлик',
+        'title' => 'headline-planned task', 'executor_text' => 'хокимлик',
         'kind' => 'kpi', 'module_code' => 'macro',
         'section_path' => 'I', 'section_label' => 'I',
         'source_paragraph_index' => 9, 'headline_plan' => 6,
     ]);
 
-    expect(Task::forRegion(1703)->count())->toBe(3);            // unfiltered: all 3
-    expect(Task::forRegion(1703)->hasPlan()->count())->toBe(1); // only the planned one
+    // (b) headline empty but a sub-metric line carries the plan — the real Andijan
+    //     shape: line 0 is a category header with no plan, line 1 has the target.
+    $subPlanned = Task::create([
+        'region_code' => 1703, 'task_number' => '10',
+        'title' => 'sub-metric-planned task', 'executor_text' => 'хокимлик',
+        'kind' => 'kpi', 'module_code' => 'macro',
+        'section_path' => 'I', 'section_label' => 'I',
+        'source_paragraph_index' => 10, 'headline_plan' => null,
+    ]);
+    $subPlanned->progress()->createMany([
+        ['line_no' => 0, 'metric_label' => 'категория', 'report_period' => '2026-Q1',
+         'period_type' => 'quarter', 'plan_value' => null, 'actual_value' => null],
+        ['line_no' => 1, 'metric_label' => 'кўрсаткич', 'report_period' => '2026-Q1',
+         'period_type' => 'quarter', 'plan_value' => 5, 'actual_value' => null],
+    ]);
+
+    expect(Task::forRegion(1703)->count())->toBe(4);            // all 4 in region 1703
+    expect(Task::forRegion(1703)->hasPlan()->count())->toBe(2); // both planned; the 2 plan-less stay out
 });

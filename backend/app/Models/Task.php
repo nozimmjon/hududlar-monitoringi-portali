@@ -77,10 +77,19 @@ class Task extends Model
         return $q->where('region_code', $code);
     }
 
-    /** Only tasks that carry a plan value for the active region (Режа кўрсаткичи not empty/«x»). */
+    /**
+     * Tasks that carry a plan value (Режа кўрсаткичи) — either on the headline
+     * snapshot OR on any sub-metric progress line. Multi-metric tasks whose
+     * line-0 header has no plan but whose sub-lines do (real Andijan shape) still
+     * count as planned. Only tasks with no plan anywhere (empty/«x») are excluded.
+     * The OR is wrapped so it does not escape the surrounding region/status filters.
+     */
     public function scopeHasPlan(Builder $q): Builder
     {
-        return $q->whereNotNull('headline_plan');
+        return $q->where(function (Builder $w) {
+            $w->whereNotNull('headline_plan')
+              ->orWhereHas('progress', fn ($p) => $p->whereNotNull('plan_value'));
+        });
     }
 
     public function scopeForModule(Builder $q, string $code): Builder
