@@ -28,7 +28,8 @@ test('district panel shows task plan/actual/% and status chip', function () {
         ->set('districtCode', (string) $district->code)
         ->assertSee('Йирик корхона')
         ->assertSee('Режа')
-        ->assertSee('100%')
+        ->assertSee('дона')
+        ->assertSeeHtml('Бажарилди · 100%')
         ->assertSee('Бажарилди');
 });
 
@@ -47,5 +48,7 @@ test('district panel handles tasks without progress data', function () {
         ->set('districtCode', (string) $district->code)
         ->assertSee('Маълумотсиз туман топшириғи')
         ->assertSee('Бажарилмаган')
-        ->assertSee('—');
+        ->assertSee('—')
+        ->assertDontSee('· %')
+        ->assertDontSee('· 0%');
 });
