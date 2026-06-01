@@ -218,3 +218,27 @@ test('plan-only task shows an empty 0 percent track but keeps em-dash, not 0 per
         ->assertSeeHtml('task-pct--none')   // percent cell is neutral
         ->assertSee('—');                   // percent shows em-dash, not "0%"
 });
+
+test('task planned only via a sub-metric line still shows an empty 0% track', function () {
+    // Real Andijan shape: headline snapshot empty, plan lives on a sub-metric line.
+    // hasPlan() keeps it in the list, so the card must still render a (grey, empty) track.
+    $task = Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '13', 'title' => 'Фақат ост-сатр режа топшириғи',
+        'module_code' => 'macro', 'indicator_code' => null, 'status' => 'open',
+        'headline_plan' => null, 'headline_actual' => null, 'headline_pct' => null,
+        'latest_period' => '2026-Q1',
+    ]);
+    $task->progress()->create([
+        'line_no' => 1, 'metric_label' => 'ост-сатр кўрсаткич', 'unit' => 'дона',
+        'report_period' => '2026-Q1', 'period_type' => 'quarter',
+        'plan_value' => 12, 'actual_value' => null, 'pct_of_plan' => null,
+    ]);
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->set('search', 'Фақат ост-сатр')
+        ->assertSee('Фақат ост-сатр режа топшириғи')  // visible (planned via sub-line)
+        ->assertSeeHtml('--w:0%')                       // empty track now rendered for it
+        ->assertSeeHtml('var(--grey)')                  // neutral colour
+        ->assertSee('—');                               // empty headline cells
+});

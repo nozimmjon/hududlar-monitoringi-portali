@@ -60,6 +60,9 @@
                             $srok = $task->deadline_text;
                             $yonalish = $task->module?->label ?? $task->section_label;
                             $scopeText = $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят';
+                            // "Planned" mirrors Task::scopeHasPlan: a headline plan OR a plan on any sub-metric line.
+                            $hasAnyPlan = $task->headline_plan !== null
+                                || $task->progress->contains(fn ($p) => $p->plan_value !== null);
                         @endphp
                         <article class="task-card" data-task-id="{{ $task->id }}">
                             <span class="task-num">{{ $loop->iteration }}</span>
@@ -86,8 +89,8 @@
                                     </div>
                                 </div>
 
-                                @if($task->headline_plan !== null)
-                                    {{-- Plan exists -> always show the bar. No actual/pct yet -> empty 0% grey track. --}}
+                                @if($hasAnyPlan)
+                                    {{-- Planned (headline or sub-line) -> always show the bar. No actual/pct yet -> empty 0% grey track. --}}
                                     <div class="task-foot">
                                         <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
                                         @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
