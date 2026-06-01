@@ -115,7 +115,7 @@ test('a task with no plan is hidden from the board list and the count', function
         ->set('status', 'all')
         ->assertSee('ЯҲМ ўсиши')             // planned task (from beforeEach) still visible
         ->assertDontSee('Режасиз топшириқ')   // no-plan task hidden from the list
-        ->assertSee('1 та');                  // list count chip excludes the no-plan task
+        ->assertSeeHtml('<span class="chip grey">1 та</span>'); // count chip excludes the no-plan task
 });
 
 test('a no-plan task does not contribute its module to the filter options', function () {
