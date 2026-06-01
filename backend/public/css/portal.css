@@ -1534,7 +1534,7 @@
       align-items: center;
       gap: 10px;
     }
-    .task-foot .progress { flex: 1; }
+    .task-foot .progress { flex: 1; margin-top: 0; }
     .task-foot-cap {
       font-size: 10px;
       font-weight: 800;
