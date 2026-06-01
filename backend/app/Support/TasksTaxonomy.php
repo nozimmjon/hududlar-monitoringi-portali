@@ -24,6 +24,27 @@ class TasksTaxonomy
         '7.2' => 'poverty',
     ];
 
+    /**
+     * 1-based start column index of each region's 4-col block (Ижрочи/Режа/Амалда/Фоиз)
+     * => SOATO region code. Order matches the real workbook header row 3.
+     */
+    public const REGION_BLOCKS = [
+        13 => 1735, // Қорақалпоғистон
+        17 => 1703, // Андижон
+        21 => 1706, // Бухоро
+        25 => 1708, // Жиззах
+        29 => 1710, // Қашқадарё
+        33 => 1712, // Навоий
+        37 => 1714, // Наманган
+        41 => 1718, // Самарқанд
+        45 => 1724, // Сирдарё
+        49 => 1722, // Сурхондарё
+        53 => 1727, // Тошкент вилояти
+        57 => 1730, // Фарғона
+        61 => 1733, // Хоразм
+        65 => 1726, // Тошкент шаҳри
+    ];
+
     public const REGION_FILENAMES = [
         'andijan'      => '00_Чора_тадбир_Андижон.docx',
         'bukhara'      => '00_Чора_тадбир_Бухоро.docx',
