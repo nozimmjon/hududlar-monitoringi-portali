@@ -21,7 +21,7 @@ class TaskWorkbookFixture
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $row, $val);
         };
 
-        // Row 3: descriptor headers + two region block headers (cols 13, 17).
+        // Row 3: descriptor headers + all 14 region block headers.
         $set(1, 3, '№');
         $set(3, 3, 'Кўрсаткич номи');
         $set(4, 3, 'Индикатор номи');
@@ -33,8 +33,18 @@ class TaskWorkbookFixture
         $set(10, 3, 'Ҳисобот шакилланадиган сана');
         $set(11, 3, 'Амалга ошириш механизми');
         $set(12, 3, 'Интеграция ҳолати');
-        $set(13, 3, 'Қорақалпоғистон Республикаси');
-        $set(17, 3, 'Андижон вилояти');
+
+        // Row 3 region block headers — all 14 must be present for the layout guard.
+        $regionHeaders = [
+            13 => 'Қорақалпоғистон Республикаси', 17 => 'Андижон вилояти',
+            21 => 'Бухоро вилояти', 25 => 'Жиззах вилояти', 29 => 'Қашқадарё вилояти',
+            33 => 'Навоий вилояти', 37 => 'Наманган вилояти', 41 => 'Самарқанд вилояти',
+            45 => 'Сирдарё вилояти', 49 => 'Сурхондарё вилояти', 53 => 'Тошкент филояти',
+            57 => 'Фарғона вилояти', 61 => 'Хоразм вилояти', 65 => 'Тошкент шаҳри',
+        ];
+        foreach ($regionHeaders as $col => $header) {
+            $set($col, 3, $header);
+        }
 
         // Row 4: per-block sub-headers (fidelity only; parser ignores them).
         foreach ([13, 17] as $b) {
@@ -111,6 +121,36 @@ class TaskWorkbookFixture
         // pct empty -> derived 50
 
         $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_' . uniqid('', true) . '.xlsx';
+        (IOFactory::createWriter($book, 'Xlsx'))->save($path);
+        $book->disconnectWorksheets();
+
+        return $path;
+    }
+
+    /** A workbook where two region blocks are swapped — must be rejected by the layout guard. */
+    public static function makeSwappedRegions(): string
+    {
+        $book = new Spreadsheet();
+        $sheet = $book->getActiveSheet();
+        $set = function (int $col, int $row, $val) use ($sheet) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $row, $val);
+        };
+
+        $headers = [
+            13 => 'Қорақалпоғистон Республикаси', 17 => 'Андижон вилояти',
+            21 => 'Жиззах вилояти', 25 => 'Бухоро вилояти', // <-- swapped
+            29 => 'Қашқадарё вилояти', 33 => 'Навоий вилояти', 37 => 'Наманган вилояти',
+            41 => 'Самарқанд вилояти', 45 => 'Сирдарё вилояти', 49 => 'Сурхондарё вилояти',
+            53 => 'Тошкент филояти', 57 => 'Фарғона вилояти', 61 => 'Хоразм вилояти',
+            65 => 'Тошкент шаҳри',
+        ];
+        foreach ($headers as $col => $header) {
+            $set($col, 3, $header);
+        }
+        $set(1, 7, 1);
+        $set(3, 7, 'Тест');
+
+        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_swapped_' . uniqid('', true) . '.xlsx';
         (IOFactory::createWriter($book, 'Xlsx'))->save($path);
         $book->disconnectWorksheets();
 

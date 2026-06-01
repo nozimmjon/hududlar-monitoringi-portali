@@ -25,6 +25,30 @@ class TasksTaxonomy
     ];
 
     /**
+     * Distinctive substring expected in each region block's row-3 header.
+     * Used by TaskWorkbookParser::assertLayout() to refuse files whose
+     * region columns moved or were reordered.
+     * NOTE: substrings chosen to be unambiguous: "Тошкент шаҳри" vs "Тошкент"
+     * (вилояти) are distinguished by checking the city LAST after the longer match.
+     */
+    public const REGION_HEADER_ANCHORS = [
+        13 => 'Қорақалпоғистон',
+        17 => 'Андижон',
+        21 => 'Бухоро',
+        25 => 'Жиззах',
+        29 => 'Қашқадарё',
+        33 => 'Навоий',
+        37 => 'Наманган',
+        41 => 'Самарқанд',
+        45 => 'Сирдарё',
+        49 => 'Сурхондарё',
+        53 => 'Тошкент',          // Тошкент вилояти (real header has a typo: "филояти")
+        57 => 'Фарғона',
+        61 => 'Хоразм',
+        65 => 'Тошкент шаҳри',    // city must contain the full "Тошкент шаҳри"
+    ];
+
+    /**
      * 1-based start column index of each region's 4-col block (Ижрочи/Режа/Амалда/Фоиз)
      * => SOATO region code. Order matches the real workbook header row 3.
      */

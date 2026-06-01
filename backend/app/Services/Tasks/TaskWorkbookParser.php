@@ -156,18 +156,28 @@ class TaskWorkbookParser
         return $max;
     }
 
-    /** Anchor sanity check: two known block headers (cols 13, 17) must match. */
+    /** Every region block header must be in its expected column — refuse reordered/shifted files. */
     private function assertLayout(Worksheet $sheet): void
     {
-        $anchors = [13 => 'Қорақалпоғистон', 17 => 'Андижон'];
-        foreach ($anchors as $col => $needle) {
+        $problems = [];
+        foreach (TasksTaxonomy::REGION_HEADER_ANCHORS as $col => $needle) {
             $h = $this->str($sheet, $col, 3);
             if (mb_strpos($h, $needle) === false) {
-                throw new \RuntimeException(
-                    "Unexpected workbook layout: column {$col} header is '{$h}', expected to contain '{$needle}'. ".
-                    'The region block columns may have shifted.'
-                );
+                $problems[] = "column {$col}: expected '{$needle}', found '{$h}'";
             }
+        }
+        // Distinguish Тошкент вилояти (col 53) from Тошкент шаҳри (col 65):
+        // col 53 must NOT contain "шаҳри".
+        $col53 = $this->str($sheet, 53, 3);
+        if (mb_strpos($col53, 'шаҳри') !== false) {
+            $problems[] = "column 53: expected Тошкент вилояти, found '{$col53}'";
+        }
+
+        if ($problems !== []) {
+            throw new \RuntimeException(
+                'Unexpected workbook layout — the region block columns may have shifted or been reordered: '
+                . implode('; ', $problems)
+            );
         }
     }
 

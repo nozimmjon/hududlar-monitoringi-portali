@@ -66,3 +66,13 @@ test('throws on workbook with shifted/missing region headers', function () {
         @unlink($path);
     }
 });
+
+test('throws when any two region columns are swapped', function () {
+    $path = TaskWorkbookFixture::makeSwappedRegions();
+    try {
+        expect(fn () => (new TaskWorkbookParser())->parse($path))
+            ->toThrow(RuntimeException::class, 'region block columns');
+    } finally {
+        @unlink($path);
+    }
+});
