@@ -144,3 +144,38 @@ test('task without progress data renders without errors', function () {
         ->assertSee('Маълумотсиз топшириқ')
         ->assertSee('—'); // null plan/actual/pct render as em-dash
 });
+
+test('a task with no plan is hidden from the board list and the count', function () {
+    // No-plan task in the active region — must not appear, must not be counted.
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '99', 'title' => 'Режасиз топшириқ',
+        'module_code' => 'macro', 'indicator_code' => null, 'status' => 'open',
+        'headline_plan' => null, 'latest_period' => '2026-Q1',
+    ]);
+
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->assertSee('ЯҲМ ўсиши')             // planned task (from beforeEach) still visible
+        ->assertDontSee('Режасиз топшириқ')   // no-plan task hidden from the list
+        ->assertSee('1 та');                  // list count chip excludes the no-plan task
+});
+
+test('a no-plan task does not contribute its module to the filter options', function () {
+    DB::table('modules')->insert([
+        'code' => 'export', 'label' => 'Экспорт', 'sort_order' => 20,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // Only this (hidden) task uses the export module; export must not appear in the filter.
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '98', 'title' => 'Режасиз экспорт',
+        'module_code' => 'export', 'indicator_code' => null, 'status' => 'open',
+        'headline_plan' => null, 'latest_period' => '2026-Q1',
+    ]);
+
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('status', 'all')
+        ->assertSeeHtml('value="macro"')      // macro has a planned task -> offered
+        ->assertDontSeeHtml('value="export"'); // export only has a no-plan task -> not offered
+});
