@@ -86,7 +86,7 @@ class TaskWorkbookFixture
         $set(19, 9, 55);   // actual
         $set(20, 9, 100);  // pct (done)
 
-        $path = tempnam(sys_get_temp_dir(), 'taskwb_') . '.xlsx';
+        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_' . uniqid('', true) . '.xlsx';
         (IOFactory::createWriter($book, 'Xlsx'))->save($path);
         $book->disconnectWorksheets();
 
