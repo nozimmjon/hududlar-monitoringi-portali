@@ -114,14 +114,23 @@ class TaskWorkbookParser
         $unit        = $this->str($sheet, 5, $row) ?: null; // col E
 
         foreach (TasksTaxonomy::REGION_BLOCKS as $col => $code) {
-            $executor = $this->str($sheet, $col + 0, $row);
-            $plan     = $this->num($sheet, $col + 1, $row);
-            $actual   = $this->num($sheet, $col + 2, $row);
-            $pctCell  = $this->num($sheet, $col + 3, $row);
+            $executor  = $this->str($sheet, $col + 0, $row);
+            $planRaw   = $this->str($sheet, $col + 1, $row);
+            $actualRaw = $this->str($sheet, $col + 2, $row);
+            $pctRaw    = $this->str($sheet, $col + 3, $row);
+            $plan      = $this->num($sheet, $col + 1, $row);
+            $actual    = $this->num($sheet, $col + 2, $row);
+            $pctCell   = $this->num($sheet, $col + 3, $row);
 
-            $hasExecutor = $isTaskRow && $executor !== '' && ! $this->isSentinel($executor);
-            $hasValue    = $plan !== null || $actual !== null || $pctCell !== null;
-            if (! $hasExecutor && ! $hasValue) continue;
+            // A region is listed for a task when ANY cell in its task-row block is
+            // filled — a real executor/value OR a deliberate «х»/«-» N/A marker in any
+            // of the four cells (partner files mark N/A in the executor cell, the plan
+            // cell, or both). A fully blank block means the region is not listed for
+            // this task and stays absent.
+            $blockFilled     = $isTaskRow && ($executor !== '' || $planRaw !== '' || $actualRaw !== '' || $pctRaw !== '');
+            $hasRealExecutor = $isTaskRow && $executor !== '' && ! $this->isSentinel($executor);
+            $hasValue        = $plan !== null || $actual !== null || $pctCell !== null;
+            if (! $blockFilled && ! $hasValue) continue;
 
             $pct = $pctCell;
             if ($pct === null && $plan !== null && $actual !== null && $plan != 0.0) {
@@ -131,7 +140,7 @@ class TaskWorkbookParser
             if (! isset($task['regions'][$code])) {
                 $task['regions'][$code] = ['executor_text' => '', 'metrics' => []];
             }
-            if ($hasExecutor && $task['regions'][$code]['executor_text'] === '') {
+            if ($hasRealExecutor && $task['regions'][$code]['executor_text'] === '') {
                 $task['regions'][$code]['executor_text'] = $executor;
             }
             $task['regions'][$code]['metrics'][] = [

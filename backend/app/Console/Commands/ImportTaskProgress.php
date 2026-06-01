@@ -65,6 +65,31 @@ class ImportTaskProgress extends Command
         $tasks = (new TaskWorkbookParser())->parse($file);
         $this->info('Parsed ' . count($tasks) . ' task definitions.');
 
+        // Per-region coverage check — a task row must not be silently dropped for a
+        // region. Report any region that is not listed for every parsed task row so
+        // an operator can tell a genuine "not applicable here" from a parsing gap.
+        $totalDefs = count($tasks);
+        $gapsByRegion = [];
+        foreach (TasksTaxonomy::REGION_BLOCKS as $code) {
+            $missing = [];
+            foreach ($tasks as $t) {
+                if (! isset($t['regions'][$code])) {
+                    $missing[] = $t['task_number'];
+                }
+            }
+            if ($missing !== []) {
+                $gapsByRegion[$code] = $missing;
+            }
+        }
+        if ($gapsByRegion === []) {
+            $this->info("Coverage: all 14 regions list every one of {$totalDefs} task rows.");
+        } else {
+            foreach ($gapsByRegion as $code => $missing) {
+                $present = $totalDefs - count($missing);
+                $this->warn("Coverage: region {$code} lists only {$present}/{$totalDefs} task rows — not listed for: " . implode(', ', $missing));
+            }
+        }
+
         if ($this->option('dry-run')) {
             $regionCodes = [];
             $lineCount = 0;

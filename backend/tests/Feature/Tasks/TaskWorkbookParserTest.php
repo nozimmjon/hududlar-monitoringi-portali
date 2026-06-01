@@ -76,3 +76,32 @@ test('throws when any two region columns are swapped', function () {
         @unlink($path);
     }
 });
+
+test('a region marked «х» (N/A) is still captured as a plan-less entry', function () {
+    // Real partner files mark a region N/A with «х» in its executor + plan cells
+    // (e.g. Andijan on task #21). Such a region must still be captured — as a
+    // plan-less task — not silently dropped. A truly blank block stays absent.
+    $path = TaskWorkbookFixture::makeSentinelRegionTask();
+    try {
+        $tasks = (new TaskWorkbookParser())->parse($path);
+    } finally {
+        @unlink($path);
+    }
+
+    expect($tasks)->toHaveCount(1);
+    $t = $tasks[0];
+
+    // Andijan was «х»/«х» (sentinel in executor + plan) -> still listed, plan-less.
+    expect($t['regions'])->toHaveKey(1703);
+    expect($t['regions'][1703]['executor_text'])->toBe('');
+    expect($t['regions'][1703]['metrics'])->toHaveCount(1);
+    expect($t['regions'][1703]['metrics'][0]['plan'])->toBeNull();
+
+    // Bukhara had «х» only in the plan cell, executor blank -> also still listed, plan-less.
+    expect($t['regions'])->toHaveKey(1706);
+    expect($t['regions'][1706]['executor_text'])->toBe('');
+    expect($t['regions'][1706]['metrics'][0]['plan'])->toBeNull();
+
+    // The region with real data is unaffected.
+    expect($t['regions'][1735]['metrics'][0]['plan'])->toBeNumericallyClose(157);
+});

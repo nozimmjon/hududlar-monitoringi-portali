@@ -174,4 +174,67 @@ class TaskWorkbookFixture
 
         return $path;
     }
+
+    /**
+     * One task where Qoraqalpoq has real data but Andijan's block is the «х» N/A
+     * sentinel (executor + plan both «х»). Mirrors real task #21 in the partner file.
+     */
+    public static function makeSentinelRegionTask(): string
+    {
+        $book = new Spreadsheet();
+        $sheet = $book->getActiveSheet();
+        $set = function (int $col, int $row, $val) use ($sheet) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $row, $val);
+        };
+
+        // Row 3: descriptor headers + all 14 region block headers (layout guard).
+        $set(1, 3, '№');
+        $set(3, 3, 'Кўрсаткич номи');
+        $set(4, 3, 'Индикатор номи');
+        $set(5, 3, 'Ўлчов бирлиги');
+        $set(6, 3, 'Муддати');
+        $set(7, 3, 'Ижрочи');
+        $set(8, 3, 'Топшириқ тури');
+        $set(9, 3, 'Маълумот манбаи');
+        $set(10, 3, 'Ҳисобот шакилланадиган сана');
+        $set(11, 3, 'Амалга ошириш механизми');
+        $set(12, 3, 'Интеграция ҳолати');
+        $regionHeaders = [
+            13 => 'Қорақалпоғистон Республикаси', 17 => 'Андижон вилояти',
+            21 => 'Бухоро вилояти', 25 => 'Жиззах вилояти', 29 => 'Қашқадарё вилояти',
+            33 => 'Навоий вилояти', 37 => 'Наманган вилояти', 41 => 'Самарқанд вилояти',
+            45 => 'Сирдарё вилояти', 49 => 'Сурхондарё вилояти', 53 => 'Тошкент филояти',
+            57 => 'Фарғона вилояти', 61 => 'Хоразм вилояти', 65 => 'Тошкент шаҳри',
+        ];
+        foreach ($regionHeaders as $col => $header) {
+            $set($col, 3, $header);
+        }
+
+        $set(1, 5, 'I. Макроиқтисодий кўрсаткичлар');
+        $set(1, 6, '1.1. Ялпи ҳудудий маҳсулот бўйича мақсадлар');
+
+        // Task row 7.
+        $set(1, 7, 1);
+        $set(2, 7, 1);
+        $set(3, 7, 'Аукцион савдолари');
+        $set(4, 7, 'аукцион сони');
+        $set(5, 7, 'дона');
+        $set(6, 7, '2026 йил якуни билан');
+        $set(8, 7, 'Чора-тадбирлар');
+        // Qoraqalpoq (13): real executor + plan.
+        $set(13, 7, 'Қорақалпоғистон Республикаси Вазирлар Кенгаши');
+        $set(14, 7, 157);
+        // Andijan (17): «х» N/A sentinel in the executor cell + plan cell.
+        $set(17, 7, 'х');
+        $set(18, 7, 'х');
+        // Bukhara (21): N/A marked only in the plan cell, executor blank — the other
+        // real shape (e.g. Tashkent-city tasks #54/#56 in the partner file).
+        $set(22, 7, 'х');
+
+        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_sentinel_' . uniqid('', true) . '.xlsx';
+        (IOFactory::createWriter($book, 'Xlsx'))->save($path);
+        $book->disconnectWorksheets();
+
+        return $path;
+    }
 }
