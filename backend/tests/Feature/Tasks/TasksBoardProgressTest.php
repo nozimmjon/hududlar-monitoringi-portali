@@ -22,7 +22,7 @@ beforeEach(function () {
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '1', 'title' => 'ЯҲМ ўсиши',
         'module_code' => 'macro', 'indicator_code' => null,
-        'deadline_text' => '2026 йил якунигача',   // feeds the Срок context field
+        'deadline_text' => '2026 йил якунигача',   // feeds the Муддат context field
         'cadence' => 'quarterly', 'status' => 'open',
         'headline_unit' => 'фоиз', 'headline_plan' => 7.2, 'headline_actual' => 3.6,
         'headline_pct' => 50, 'latest_period' => '2026-Q1',
@@ -40,7 +40,7 @@ test('board card shows labeled plan, actual, percent and context', function () {
         ->assertSee('3.6')                 // actual value
         ->assertSee('50')                  // pct value (50%)
         ->assertSeeHtml('task-pct--amber')
-        ->assertSee('Срок')                // context label
+        ->assertSee('Муддат')              // context label
         ->assertSee('2026 йил якунигача')  // deadline value
         ->assertSee('Йўналиш')             // module label heading
         ->assertSee('Макро иқтисодиёт')    // module value

@@ -70,7 +70,7 @@
                                 <strong>{{ $task->title }}</strong>
 
                                 <div class="task-ctx">
-                                    @if($srok)<span><span class="k">Срок</span> <span class="v">{{ $srok }}</span></span>@endif
+                                    @if($srok)<span><span class="k">Муддат</span> <span class="v">{{ $srok }}</span></span>@endif
                                     @if($yonalish)<span><span class="k">Йўналиш</span> <span class="v">{{ $yonalish }}</span></span>@endif
                                 </div>
 
