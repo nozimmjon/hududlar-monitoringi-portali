@@ -4,87 +4,79 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A prototype of the Andijan regional monitoring portal ("Худудлар мониторинги портали"). The deliverable is a **single static HTML page** (`index.html` at the repo root) with all data embedded inline. There is no backend, no build step, no bundler, no test suite, and no third-party JS dependencies — only Inter loaded from Google Fonts.
+The Andijan/regional monitoring portal ("Худудлар мониторинги портали") in two generations:
 
-The current generation is **v7** (`<title>… · v7</title>`). Older versions live in branches/history; the repo intentionally keeps only the current prototype on disk.
+1. **`backend/` — the real application (work here).** Laravel 12 + Livewire 3, PostgreSQL. All new features go here.
+2. **`index.html` — the legacy static prototype (v7).** A single self-contained HTML file with inline data. Kept for reference; do not modify unless explicitly asked.
 
-## How to run / develop
+## Backend (`backend/`)
 
-There is no build. Open `index.html` in a browser, or serve the directory statically:
+### How to run / develop
 
 ```powershell
-python -m http.server 8000
+cd backend
+composer setup        # first time: install, .env, key, migrate, npm build
+composer dev          # serve + queue + logs + vite concurrently
+# or just:
+php artisan serve
 ```
 
-Then open `http://localhost:8000/`. There are no install, lint, or test commands.
+Database: PostgreSQL. Dev DB per `.env`; test DB `hududlar_monitoringi_test` (configured in `phpunit.xml`).
+Seed reference data (regions, districts, modules, indicators, reporting year):
 
-A static server (rather than `file://`) is needed only if/when `districts.json` is wired in via `fetch` — currently it is not, so opening the file directly also works.
-
-## Architecture
-
-### Single-file structure
-
-`index.html` (~6900 lines) contains:
-
-- CSS in one `<style>` block at the top (design tokens via CSS custom properties on `:root`).
-- Markup for the topbar, sidebar nav (4 buttons), shared `page-head` toolbar, and 5 empty `<section id="…Page">` containers that JS fills in.
-- One JS block at the bottom. **Line 3749 is a single ~394KB line containing the entire embedded `DATA` object** (regional macro/budget/foreign_investment/export/employment/food_balance + per-district rows). Treat that line as data, not code — do not try to read or edit it inline; modify via the source workbooks under `data/` and re-derive, or use targeted Edits with unique surrounding context.
-
-### Pages and routing
-
-State-based, **not hash-routed**. `state.page` drives a `render()` function (~line 6840) that toggles `.hidden` on five sections:
-
-| `state.page`  | Section id        | Renderer                       | Purpose                                                          |
-| ------------- | ----------------- | ------------------------------ | ---------------------------------------------------------------- |
-| `dashboard`   | `#dashboardPage`  | `renderDashboard` (~4632)      | KPI overview — entry screen                                      |
-| `tasks`       | `#tasksPage`      | `renderTasksPage` (~5656)      | Guarantee-letter task board                                      |
-| `districts`   | `#districtsPage`  | `renderDistrictsPage` (~6445)  | 14-region / district comparison views                            |
-| `profile`     | `#profilePage`    | `renderProfilePage` (~6539)    | District drilldown profile (entered via `data-page-jump` jumps)  |
-| `execution`   | `#executionPage`  | `renderExecutionPage` (~6694)  | Ижро мониторинги — execution monitoring                          |
-
-Navigation: `.nav-btn[data-page="…"]` clicks set `state.page` and call `render()`. Cross-page jumps inside content use `[data-page-jump]` buttons. Every `render()` re-runs all five page renderers but only the active section is visible.
-
-The shared toolbar (`#periodTabs`, `#sectorFilter`, `#searchBox`) is shown/hidden per-page inside `render()` — see the `.toggle("hidden", […].includes(state.page))` lines around 6845-6847 when adding a new page or repurposing controls.
-
-### Conceptual model (drives all UX decisions)
-
-The portal answers one question: *"Кафолат хатидаги ваъдалар бажариляптими?"* (Are the promises in the guarantee letter being kept?). Every screen surfaces the chain:
-
-```
-Guarantee letter (macro KPI promise)
-  → Driver KPI (industry, investment, localization, …)
-  → District contribution (16 districts)
-  → Task (executor, deadline, status)
-  → Result feeds back to macro
+```powershell
+php artisan db:seed
 ```
 
-Tile/page changes that break the promise vs fact comparison or hide the driver chain regress the core concept.
+### Tests
 
-### Data sources
+Pest 3 + PHPUnit 11 on PostgreSQL (a running local Postgres is required).
 
-- `data/` (gitignored) — raw `.xlsx` and `.docx` source workbooks for **all 14 regions of Uzbekistan**, organized by region folder (`1. Қорақалпоғистон Республикаси/` … `14. Тошкент ш/`). The Andijan folder (`2. Андижон/`) is what the current prototype is derived from.
-- `districts.json` — real GeoJSON (FeatureCollection of MultiPolygons) for all 14 regions, at the repo root. **Currently unreferenced by `index.html`** — staged for future map work to replace any synthesized hex layout. When wiring it in, prefer `fetch("./districts.json")` and serve via a local HTTP server.
-- The DATA blob on line 3749 of `index.html` is hand-derived from the Andijan workbooks. There is no automated pipeline anymore; updating data means editing that line directly (or a small helper you write ad hoc).
+```powershell
+php artisan test                       # full suite (~10 min; needs memory_limit=2G, set in phpunit.xml)
+php artisan test --filter=SomeTest     # single test/class
+```
 
-## HTML/CSS rendering pitfall
+Conventions: Feature tests start with `uses(RefreshDatabase::class);` (not bound globally); seeders run explicitly via `$this->seed()`; Unit tests are pure `expect()` closures. Custom expectation `toBeNumericallyClose()` exists in `tests/Pest.php`.
 
-A `<button>` containing block-level `<div>` children is HTML-invalid and breaks Edge headless rendering (KPI grid collapses to 1 column). Use `<div role="button" tabindex="0">` for clickable card patterns. The codebase already follows this — preserve it when adding new clickable cards.
+**Known pre-existing failures on `v7-design-polish`** (stale tests describing UI states that don't exist; unrelated to recent work):
+- `DistrictsPageTest > status thresholds drive cell coloring` — expects literal `map-cell green` / `map-cell red` strings the districts map no longer renders.
+- `MacroPeriodRowTest > it renders the industry main panel...` — expects a `macro-main-panel` class that exists nowhere in the codebase.
 
-## What the prototype intentionally does NOT have
+### Architecture
 
-These are documented compromises, not bugs:
+Pages are Livewire components, one per nav item, mounted from `resources/views/pages/*.blade.php`:
 
-- A real interactive map (the GeoJSON is present but not wired up; current views use grids/tables).
-- Real workflow status / executor names (synthesized; source data has neither).
-- Real per-region macro data for the 13 non-Andijan regions in `index.html` (mocked; only Andijan is fully derived from `data/`).
-- Local Inter font (loaded from Google Fonts).
-- PDF/Excel export (print CSS only).
+| Route | Livewire component | Purpose |
+| --- | --- | --- |
+| `/dashboard` | `KpiDashboard` (+ `Dashboard/*` panels) | KPI overview per region |
+| `/tasks` | `TasksBoard` | Task monitoring board (plan/actual/% per task) |
+| `/districts` | `DistrictsPage` | District comparison (map + table) |
+| `/profile` | `RegionProfile` | District drilldown (incl. "Туман топшириқлари" panel) |
+| `/execution` | `ExecutionPage` | Execution monitoring |
 
-When the user asks for these, treat them as net-new work, not regressions.
+The active region is session state (`App\Support\CurrentRegion`, default 1703 = Andijan, switchable via `RegionSwitcher`). Region/district reference data uses SOATO codes.
+
+Styling: prebuilt `public/css/portal.css` (built via Vite/Tailwind from `resources/css/app.css`). When changing UI, prefer reusing existing classes; new CSS requires `npm run build`.
+
+### Data import pipelines
+
+Two separate pipelines, both Artisan commands using PhpSpreadsheet:
+
+1. **Indicator facts (KPI dashboard data):** `import:region` / `import:promote` / `import:all-regions` — staging→promote pipeline reading the per-region workbooks under `data/<region>/`.
+2. **Task monitoring (tasks board + district tasks):** `import:task-progress --period=2026-Q1` — reads the all-regions workbook `data/tasks/Ҳудудий_кўрсаткичлар_назорати_бўйича.xlsx` sent monthly by the partner organisation. Operator runbook: **`backend/docs/task-import.md`** (workflow, options, one-time legacy cleanup, known limitations). Key behaviors: idempotent per-period upserts, history kept in `task_progress`, binary done/open status (≥100% of plan), districts linked from the Ижрочи column, refuses files whose region columns shifted/reordered (all 14 verified).
+
+### Conceptual model (drives UX decisions)
+
+The portal answers: *"Кафолат хатидаги ваъдалар бажариляптими?"* — promise (plan) vs fact (actual), drilled from macro KPI → driver → district → task. Changes that hide the plan-vs-actual comparison or the driver chain regress the core concept.
+
+## Legacy prototype (`index.html`)
+
+Single ~900KB HTML file, all data inline (one giant `DATA` line — treat as data, not code), state-based routing, no build step. Open directly or `python -m http.server 8000`. Only touch when explicitly asked; the HTML/CSS pitfall to preserve: clickable cards use `<div role="button">`, never `<button>` with block children (breaks Edge rendering).
 
 ## Conventions
 
-- Cyrillic Uzbek throughout the UI; do not translate labels to Latin script or English unless asked.
-- Single-file HTML is a constraint, not an accident. Do not split assets out (no separate CSS/JS files, no bundler, no npm) without explicit user direction.
-- The repo is expected to stay private until source documents are cleared for sharing — do not add CI that publishes artifacts.
-- `data/` content stays local and out of git. Don't commit raw workbooks.
+- **UI language:** Cyrillic Uzbek throughout. Do not translate labels to Latin script or English unless asked.
+- **`data/` stays local and out of git** (raw workbooks from regions + the partner tasks file). Never commit them.
+- The repo stays private until source documents are cleared for sharing — no CI that publishes artifacts.
+- Commits: Conventional Commits style (`feat(tasks): …`, `fix(import): …`).
