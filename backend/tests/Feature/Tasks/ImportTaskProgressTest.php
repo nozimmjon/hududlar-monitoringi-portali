@@ -100,3 +100,36 @@ test('dry run writes nothing', function () {
     expect(TaskProgress::count())->toBe(0);
     expect(ImportRun::count())->toBe(0);
 });
+
+test('rejects missing file and unknown region cleanly', function () {
+    $this->artisan('import:task-progress', ['--file' => 'C:\\nonexistent\\nope.xlsx', '--period' => '2026-Q1'])
+        ->assertFailed();
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1', '--region' => 'atlantis'])
+        ->assertFailed();
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1', '--region' => '9999'])
+        ->assertFailed();
+});
+
+test('records per-region rows_promoted on import runs', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    $andijanRun = ImportRun::where('region_code', 1703)->where('year', 2026)->latest('id')->first();
+    $karakalpakRun = ImportRun::where('region_code', 1735)->where('year', 2026)->latest('id')->first();
+
+    // Andijan: task1 (1 line) + task2 (2 lines) + task3 (1 line) = 4 progress rows.
+    expect($andijanRun->rows_promoted)->toBe(4);
+    // Qoraqalpoq: task1 only (1 line).
+    expect($karakalpakRun->rows_promoted)->toBe(1);
+});
+
+test('importing an older period does not regress the headline snapshot', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-04'])->assertSuccessful();
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])->assertSuccessful();
+
+    $t2 = Task::where('region_code', 1703)->where('task_number', '2')->first();
+    // Q1 (ends March) is older than April; headline must still point at 2026-04.
+    expect($t2->latest_period)->toBe('2026-04');
+    // But the older period's history rows are still stored.
+    expect($t2->progress()->where('report_period', '2026-Q1')->count())->toBe(2);
+});
