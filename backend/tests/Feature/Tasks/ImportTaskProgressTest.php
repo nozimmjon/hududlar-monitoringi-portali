@@ -93,6 +93,12 @@ test('rejects invalid or missing period', function () {
         ->assertFailed();
 });
 
+test('rejects a period whose year is not configured', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2031-Q1'])
+        ->assertFailed();
+    expect(Task::count())->toBe(0);
+});
+
 test('dry run writes nothing', function () {
     $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1', '--dry-run' => true])
         ->assertSuccessful();

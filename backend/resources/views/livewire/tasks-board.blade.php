@@ -71,6 +71,32 @@
                                 @if($pct !== null)
                                     <div class="progress"><i style="--w:{{ max(0, min(100, $pct)) }}%;--c:var(--task-{{ $task->status === 'done' ? 'green' : 'blue' }})"></i></div>
                                 @endif
+                                @php
+                                    $latestLines = $task->latest_period
+                                        ? $task->progress->where('report_period', $task->latest_period)
+                                        : collect();
+                                @endphp
+                                @if($latestLines->count() > 1 || $task->districts->isNotEmpty())
+                                    <details class="task-detail">
+                                        <summary class="muted">Батафсил ({{ $latestLines->count() }} кўрсаткич{{ $task->districts->isNotEmpty() ? ', ' . $task->districts->count() . ' ҳудуд' : '' }})</summary>
+                                        @foreach($latestLines as $line)
+                                            <div class="task-meta">
+                                                <span>{{ $line->metric_label ?? '—' }}</span>
+                                                <span>Режа: <b>{{ $fmt($line->plan_value) }}</b> {{ $line->unit }}</span>
+                                                <span>Амалда: <b>{{ $fmt($line->actual_value) }}</b> {{ $line->unit }}</span>
+                                                <span><b>{{ $line->pct_of_plan !== null ? round((float) $line->pct_of_plan) . '%' : '—' }}</b></span>
+                                            </div>
+                                        @endforeach
+                                        @if($task->districts->isNotEmpty())
+                                            <div class="task-meta">
+                                                <span>Ижрочи ҳудудлар:</span>
+                                                @foreach($task->districts as $d)
+                                                    <span class="chip blue">{{ $d->name_full }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </details>
+                                @endif
                             </div>
                             <div class="task-chips">
                                 <span class="chip {{ $statusChip }}">{{ $statusLabel }}</span>

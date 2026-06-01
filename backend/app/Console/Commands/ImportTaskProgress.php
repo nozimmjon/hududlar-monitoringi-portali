@@ -36,6 +36,11 @@ class ImportTaskProgress extends Command
         $periodType = TaskPeriod::periodType($period);
         $year       = TaskPeriod::yearFromPeriod($period);
 
+        if (! DB::table('reporting_years')->where('year', $year)->exists()) {
+            $this->error("Reporting year {$year} is not configured (reporting_years table). Seed it before importing.");
+            return self::FAILURE;
+        }
+
         $file = $this->option('file')
             ?: base_path('../data/tasks/Ҳудудий_кўрсаткичлар_назорати_бўйича.xlsx');
         if (! is_file($file)) {

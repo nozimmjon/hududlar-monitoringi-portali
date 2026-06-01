@@ -77,6 +77,9 @@ class TasksBoard extends Component
     public function tasks()
     {
         $q = Task::with(['module', 'indicator', 'districts'])
+            ->with(['progress' => function ($p) {
+                $p->orderBy('line_no');
+            }])
             ->forRegion($this->regionCode);
 
         if ($this->module !== 'all')   $q->forModule($this->module);
