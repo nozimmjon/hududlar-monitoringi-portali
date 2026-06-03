@@ -3880,7 +3880,6 @@
     .districts-hero-value strong.up { color:var(--map-good-stroke); }
     .districts-hero-value strong.down { color:var(--map-attn-stroke); }
     .districts-hero-value small { font-size:11.5px; color:var(--muted); }
-    .districts-hero-period { align-self:center; }
     .kpi-switch { display:flex; gap:6px; flex-wrap:wrap; padding:8px 10px 10px; border-top:1px solid var(--line); }
     .kpi-switch-btn { border:1px solid var(--line); background:#fff; font:inherit; font-size:12px; font-weight:650; color:var(--muted); padding:5px 12px; border-radius:999px; cursor:pointer; transition:border-color var(--motion), background var(--motion), color var(--motion); }
     .kpi-switch-btn:hover { border-color:rgba(23,105,224,.4); }

@@ -73,7 +73,6 @@
                 <strong class="{{ $heroKind === 'growth' && $heroVal !== null ? ($statUp($heroVal, $heroKind) ? 'up' : 'down') : '' }}">{{ $statText($heroVal, $heroKind) }}</strong>
                 <small>вилоят бўйича</small>
             </div>
-            <span class="chip blue districts-hero-period">{{ $period }}</span>
         </div>
 
         @if($kpiOptions->count() > 1)
