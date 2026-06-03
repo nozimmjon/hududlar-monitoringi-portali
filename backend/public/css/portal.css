@@ -3827,57 +3827,6 @@
       .poverty-section .poverty-head { grid-template-columns: 1fr; }
     }
 
-    .districts-head {
-      display: block;
-      margin-bottom: 16px;
-    }
-
-    .districts-head .eyebrow {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .districts-head h2 {
-      margin: 4px 0 4px;
-      font-family: var(--font-sans);
-      font-size: clamp(20px, 2vw, 26px);
-      font-weight: 800;
-      letter-spacing: -0.018em;
-      color: var(--ink);
-    }
-
-    .districts-head p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.4;
-      max-width: 70ch;
-    }
-
-    .districts-head-actions {
-      display: grid;
-      grid-template-columns: minmax(170px, .45fr) minmax(240px, .65fr);
-      gap: 10px;
-      align-items: end;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .district-module-tabs {
-      margin-bottom: 12px;
-      padding: 0;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
     .districts-control {
       display: grid;
       gap: 4px;
@@ -4506,8 +4455,6 @@
     }
 
     @media (max-width: 720px) {
-      .districts-head { grid-template-columns: 1fr; }
-      .districts-head-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
       .districts-control select, .districts-control input { min-width: 0; width: 100%; }
       .dpc-head { grid-template-columns: 1fr; }
       .districts-grid, .districts-map, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }

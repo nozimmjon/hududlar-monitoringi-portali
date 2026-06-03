@@ -142,6 +142,8 @@
                             @endphp
                             <g class="map-cell {{ $cellSelected }}"
                                wire:click="selectDistrict('{{ $cellCode }}')"
+                               x-on:keydown.enter="$wire.selectDistrict('{{ $cellCode }}')"
+                               x-on:keydown.space.prevent="$wire.selectDistrict('{{ $cellCode }}')"
                                x-on:mouseenter="hovered={name:@js($cellName), value:@js($valueText), color:@js($cellColor)}"
                                x-on:mouseleave="hovered=null"
                                x-on:mousemove="x=$event.offsetX; y=$event.offsetY"
