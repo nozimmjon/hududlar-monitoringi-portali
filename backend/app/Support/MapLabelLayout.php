@@ -11,10 +11,9 @@ class MapLabelLayout
      * @param  array<int|string,array{name:string,value:string,color:string}>  $labels  keyed by cell code.
      * @return array{viewBox:string,mapTranslate:int,pills:array<int,array<string,mixed>>}
      */
-    public static function build(array $geometry, array $labels, int $gutter = 230): array
+    public static function build(array $geometry, array $labels, int $gutter = 24): array
     {
         [$vw, $vh] = self::viewDims($geometry['viewBox'] ?? '0 0 600 500');
-        $outerW  = $vw + 2 * $gutter;
         $centerX = $vw / 2;
         $top     = 20.0;
         $padX    = 9.0;
@@ -22,14 +21,20 @@ class MapLabelLayout
         $nameCharW = 6.4;
         $valCharW  = 6.6;
         $h = 20.0;
+        $inset = 8.0; // gap between a pill and the map box edge
+
+        $widthOf = fn (array $lbl): float =>
+            2 * $padX + mb_strlen($lbl['name']) * $nameCharW + $gap + mb_strlen($lbl['value']) * $valCharW;
 
         $left = [];
         $right = [];
+        $maxW = 0.0;
         foreach ($geometry['cells'] ?? [] as $cell) {
             $code = $cell['code'] ?? null;
             if ($code === null || ! isset($labels[$code])) {
                 continue;
             }
+            $maxW = max($maxW, $widthOf($labels[$code]));
             if ($cell['cx'] < $centerX) {
                 $left[] = $cell;
             } else {
@@ -39,6 +44,11 @@ class MapLabelLayout
         usort($left,  fn ($a, $b) => $a['cy'] <=> $b['cy']);
         usort($right, fn ($a, $b) => $a['cy'] <=> $b['cy']);
 
+        // Gutter just wide enough to hold the widest pill against the map edge
+        // (caller may force a wider one). Keeps pills hugging the map.
+        $gutter = max($gutter, (int) ceil($maxW) + (int) $inset + 8);
+        $outerW = $vw + 2 * $gutter;
+
         $pills = [];
         foreach (['L' => $left, 'R' => $right] as $side => $list) {
             $n = count($list);
@@ -47,8 +57,9 @@ class MapLabelLayout
                 $code = $cell['code'];
                 $lbl  = $labels[$code];
                 $py   = $n > 1 ? $top + $i * $step : $vh / 2;
-                $w    = 2 * $padX + mb_strlen($lbl['name']) * $nameCharW + $gap + mb_strlen($lbl['value']) * $valCharW;
-                $px   = $side === 'L' ? 6.0 : $outerW - 6.0 - $w;
+                $w    = $widthOf($lbl);
+                // Pin pills to the INNER edge so they hug the map box.
+                $px   = $side === 'L' ? $gutter - $inset - $w : $vw + $gutter + $inset;
                 $dotX = $cell['cx'] + $gutter;
                 $dotY = $cell['cy'];
                 $startX = $side === 'L' ? $px + $w : $px;
