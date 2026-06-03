@@ -3897,7 +3897,6 @@
     }
     .mapstage-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin: 2px 6px 6px; }
     .mapstage-head strong { color: #eaf1ff; font-size: 13.5px; }
-    .mapstage-head span { display: block; color: #8ea0c8; font-size: 11px; margin-top: 1px; }
     .mapstage-canvas { position: relative; }
     .region-map { width: 100%; height: auto; display: block; margin: 0 auto; max-height: calc(100vh - 300px); }
     .map-cell { cursor: pointer; outline: none; }

@@ -90,7 +90,6 @@
         <header class="mapstage-head">
             <div>
                 <strong>Ҳудудлар харитаси</strong>
-                <span>Яшил — режада, қизил — эътибор талаб. Туман устига босинг.</span>
             </div>
         </header>
         <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
