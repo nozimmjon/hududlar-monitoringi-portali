@@ -45,18 +45,32 @@ Replace the 5 saturated `STOPS` with a muted, sophisticated ramp that preserves 
 - `.districts-map-canvas` background: replace the blue gradient (`linear-gradient(180deg,#f8fbff,#eef4fa)`) with a refined warm neutral (`#fbfaf7`); keep the rounded border and subtle inset.
 - `.andijan-map`: add elevation — `filter: drop-shadow(0 10px 16px rgba(40,55,80,.14));` (lifts the whole silhouette off the canvas).
 
-### 3. Separators + labels
+### 3. Separators
 
 - `.map-cell .map-fill`: change the stroke from dark (`rgba(15,42,71,.14)`) to crisp **white** `#ffffff`, `stroke-width: 1.6` — gives clean premium separation between districts. NOTE: `.map-cell .map-fill` is declared twice in `portal.css` (around lines 4039 and 4076); the **second** block wins for `stroke`, so update that one (and reconcile the first so they don't conflict).
-- `.map-label` (district names): make **always visible** (`opacity: 1` instead of 0), keep the white halo (`paint-order: stroke fill`, refined `stroke-width`). Names + the existing `.map-value` % render stacked (the geometry already positions name at `cy-4`, value at `cy+10`). `.map-label.is-city` keeps its smaller size for the tiny city cells.
-- `.map-label.selected` keeps the blue emphasis.
 
-### 4. Hover + selection
+### 4. Adaptive labels (small-cell solution)
+
+Always-on names overflow the tiny cells (the cities — `Андижон ш.`, `Хонобод ш.` — which are small/point-sized). Strategy **A — Adaptive**: label districts in-cell; cities fall back to a dot, with the name never lost (hover tooltip + the rank list always lists every district).
+
+In the map-labels `@foreach` (view), branch on city vs district (cities are already detected via `str_ends_with($cell['name'], ' ш.')`, today used for `.is-city`):
+
+- **District cells:** render the always-on name label (`.map-label`, `opacity: 1`) with the white halo (`paint-order: stroke fill`), plus the existing always-on `.map-value` (%) below it (geometry already positions name at `cy-4`, value at `cy+10`).
+- **City cells:** render a small **dot** marker `<circle class="map-dot" cx=cy=… r=3>` at the centroid **instead of** an always-on name/value. Render the city's `.map-label.is-city` text too but keep it hidden by default — it appears only when that cell is selected (the `<g class="map-cell selected">` already gets `selected` when chosen). The hover tooltip (Alpine, already shows name + value for every cell) covers the on-hover name.
+
+CSS:
+- `.map-label` → `opacity: 1` (districts always visible); keep `.map-label.selected { fill: var(--blue); }`.
+- `.map-label.is-city` → `opacity: 0` by default; `.map-cell.selected .map-label.is-city { opacity: 1; }` (city name on selection).
+- `.map-dot { fill:#fff; stroke: rgba(60,70,90,.55); stroke-width:1.3; }` and `.map-cell.selected .map-dot { stroke: var(--blue); stroke-width:2; }`.
+
+(Rule: city → dot, district → in-cell label. Among the 16 cells only the two cities are too small; districts' short names fit. If a future non-city district is also tiny, the same city-style fallback can be extended to it.)
+
+### 5. Hover + selection
 
 - Hover (`.map-cell:hover .map-fill`): a gentle lift — `filter: brightness(1.03) drop-shadow(0 4px 8px rgba(40,55,80,.20));` plus a slightly stronger white stroke. (Replaces the current brightness+dark-stroke treatment.)
 - Selection (`.map-cell.selected .map-fill`): keep the existing blue outline + glow (consistent with the app accent and the rank-list/peek selection).
 
-### 5. Legend (`public/css/portal.css`)
+### 6. Legend (`public/css/portal.css`)
 
 Update `.legend-bar` gradient (and `.legend-bar.reverse`) to the new muted palette so the legend matches the cells:
 `linear-gradient(90deg, #cf7e6b, #e0a878, #e8cf8e, #a9c79a, #6fa888)` (reverse = mirror).
