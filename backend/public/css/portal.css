@@ -4033,6 +4033,10 @@
     .districts-table tr.amber .dt-status { background: var(--map-mid-stroke); }
     .districts-table tr.red   .dt-status { background: var(--map-attn-stroke); }
 
+    /* Keep the status dot and district name on one line (overrides the
+       base .row-title strong { display: block } used by other tables). */
+    .districts-table .row-title strong { display: inline; vertical-align: middle; }
+
     .districts-table .dt-exec strong {
       display: block;
       font-variant-numeric: tabular-nums;
@@ -4065,12 +4069,6 @@
       gap: 14px;
       margin-bottom: 16px;
       align-items: start;
-    }
-
-    .districts-side {
-      display: grid;
-      gap: 14px;
-      min-width: 0;
     }
 
     .districts-map {
