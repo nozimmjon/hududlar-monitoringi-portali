@@ -207,32 +207,6 @@ class DistrictsPage extends Component
     }
 
     /**
-     * Region-level value per KPI in the current module, for the header stat-cards.
-     *
-     * @return array<string, array{indicator:\App\Models\Indicator, value:?float, kind:string}>
-     */
-    #[Computed]
-    public function moduleKpiStats(): array
-    {
-        $out = [];
-        foreach ($this->kpiOptions as $ind) {
-            $period = DistrictTableConfig::for($ind->code)['primary_period'];
-            $fact = IndicatorFact::where('region_code', $this->regionCode)
-                ->where('indicator_code', $ind->code)
-                ->where('period', $period)
-                ->whereNull('district_code')
-                ->first();
-            $val = $fact?->pct_of_plan ?? $fact?->growth_pct;
-            $out[$ind->code] = [
-                'indicator' => $ind,
-                'value'     => $val !== null ? (float) $val : null,
-                'kind'      => $fact?->pct_of_plan !== null ? 'execution' : 'growth',
-            ];
-        }
-        return $out;
-    }
-
-    /**
      * @return array<string, array{unfinished:int,total:int}>
      */
     #[Computed]

@@ -1,8 +1,6 @@
 @php
     $taskCountByDistrict   = $this->taskCountByDistrict;
     $targetCountByDistrict = $this->targetCountByDistrict;
-    $moduleKpiStats        = $this->moduleKpiStats;
-
     $statusLabel = [
         'green' => 'Яхши', 'amber' => 'Ўртача', 'red' => 'Эътибор', 'grey' => 'Маълумот йўқ',
     ];
@@ -79,25 +77,11 @@
         </div>
 
         @if($kpiOptions->count() > 1)
-            <div class="kpi-stats">
+            <div class="kpi-switch">
                 @foreach($kpiOptions as $i)
-                    @php
-                        $st = $moduleKpiStats[$i->code] ?? null;
-                        $sv = $st['value'] ?? null;
-                        $sk = $st['kind'] ?? 'growth';
-                    @endphp
-                    <button class="kpi-stat-card {{ $i->code === $kpi ? 'on' : '' }}"
+                    <button class="kpi-switch-btn {{ $i->code === $kpi ? 'on' : '' }}"
                             wire:click="selectKpi('{{ $i->code }}')" type="button"
-                            title="{{ $i->label_full }}">
-                        <span class="kpi-stat-icon" aria-hidden="true">@include('partials.icon', ['name' => $i->icon ?? 'trend'])</span>
-                        <span class="kpi-stat-body">
-                            <small>{{ $i->label_short }}</small>
-                            <strong>{{ $statText($sv, $sk) }}</strong>
-                        </span>
-                        @if($sv !== null)
-                            <span class="kpi-stat-trend {{ $statUp($sv, $sk) ? 'up' : 'down' }}" aria-hidden="true">{{ $statUp($sv, $sk) ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
+                            title="{{ $i->label_full }}">{{ $i->label_short }}</button>
                 @endforeach
             </div>
         @endif
@@ -111,11 +95,6 @@
             </div>
         </header>
         <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
-            <div class="map-legend">
-                <span><i class="ok"></i>Режада</span>
-                <span><i class="bad"></i>Эътибор</span>
-                <span><i class="nd"></i>Маълумот йўқ</span>
-            </div>
             <svg viewBox="{{ $mapLayout['viewBox'] }}" class="region-map" role="img" aria-label="Ҳудудлар харитаси">
                 <g transform="translate({{ $mapLayout['mapTranslate'] }},0)">
                     @foreach($mapGeometry['cells'] as $cell)
