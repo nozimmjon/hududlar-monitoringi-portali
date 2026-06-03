@@ -157,27 +157,17 @@
                         @foreach($mapGeometry['cells'] as $cell)
                             @php
                                 $cellCode = $cell['code'] ?? null;
-                                $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
                                 $scaleEntry = $cellCode !== null ? ($colorScale[$cellCode] ?? null) : null;
                                 $cellValue = $scaleEntry['value'] ?? null;
                                 $isCity = str_ends_with($cell['name'], ' ш.');
-                                $shortLabel = $cellDistrict?->name_short ?? $cell['name'];
                                 $cellSel = $cellCode !== null && (string) $cellCode === (string) $selectedCode;
                             @endphp
                             @if($isCity)
                                 <circle class="map-dot {{ $cellSel ? 'selected' : '' }}"
                                         cx="{{ $cell['cx'] }}" cy="{{ $cell['cy'] }}" r="3"/>
-                                <text class="map-label is-city {{ $cellSel ? 'selected' : '' }}"
-                                      x="{{ $cell['cx'] }}" y="{{ $cell['cy'] - 6 }}"
-                                      text-anchor="middle">{{ $shortLabel }}</text>
-                            @else
-                                <text class="map-label {{ $cellSel ? 'selected' : '' }}"
-                                      x="{{ $cell['cx'] }}" y="{{ $cell['cy'] - 4 }}"
-                                      text-anchor="middle">{{ $shortLabel }}</text>
-                                @if($cellValue !== null)
-                                    <text class="map-value" x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 10 }}"
-                                          text-anchor="middle">{{ $fmt($cellValue, 1) }}%</text>
-                                @endif
+                            @elseif($cellValue !== null)
+                                <text class="map-value" x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 4 }}"
+                                      text-anchor="middle">{{ $fmt($cellValue, 1) }}%</text>
                             @endif
                         @endforeach
                     </g>

@@ -51,6 +51,8 @@ Replace the 5 saturated `STOPS` with a muted, sophisticated ramp that preserves 
 
 ### 4. Adaptive labels (small-cell solution)
 
+> **Update (later decision):** district names are **no longer shown on the map** at all. Cells now render only the `%` value (centered); cities render a dot. Names come from the hover tooltip, the rank list, and the selected-district peek. The adaptive-label scheme below is retained for history but is not the shipped behavior.
+
 Always-on names overflow the tiny cells (the cities — `Андижон ш.`, `Хонобод ш.` — which are small/point-sized). Strategy **A — Adaptive**: label districts in-cell; cities fall back to a dot, with the name never lost (hover tooltip + the rank list always lists every district).
 
 In the map-labels `@foreach` (view), branch on city vs district (cities are already detected via `str_ends_with($cell['name'], ' ш.')`, today used for `.is-city`):
