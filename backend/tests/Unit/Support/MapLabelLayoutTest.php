@@ -31,24 +31,21 @@ test('produces one pill per labeled cell', function () {
     expect(MapLabelLayout::build(mll_geometry(), mll_labels())['pills'])->toHaveCount(4);
 });
 
-test('buckets each cell to the edge its centroid points toward', function () {
-    $side = collect(MapLabelLayout::build(mll_geometry(), mll_labels())['pills'])->keyBy('code')->map(fn ($p) => $p['side']);
-    expect($side[1])->toBe('top');
-    expect($side[2])->toBe('right');
-    expect($side[3])->toBe('bottom');
-    expect($side[4])->toBe('left');
+test('orders pills around the ring by geographic angle, starting at the top', function () {
+    $codes = collect(MapLabelLayout::build(mll_geometry(), mll_labels())['pills'])->pluck('code')->all();
+    expect($codes)->toBe([1, 2, 3, 4]); // T, R, B, L — clockwise from the top
 });
 
-test('crops the viewBox height to the map bbox plus two thin bands', function () {
-    // mapH 420 + 2*V_BAND(34) = 488
+test('crops the viewBox height to the map bbox plus the ring band', function () {
+    // mapH 420 + 2*(RAD_Y 40 + PILL_H 20 + 6) = 552
     $vb = MapLabelLayout::build(mll_geometry(), mll_labels())['viewBox'];
-    expect((int) explode(' ', $vb)[3])->toBe(488);
+    expect((int) explode(' ', $vb)[3])->toBe(552);
 });
 
-test('map offset shifts the bbox top into the top band', function () {
+test('map offset places the bbox inside the ring band', function () {
     $r = MapLabelLayout::build(mll_geometry(), mll_labels());
-    // ty = V_BAND(34) - minY(40) = -6
-    expect($r['mapOffsetY'])->toBe(-6.0);
+    // ty = gy(66) - minY(40) = 26
+    expect($r['mapOffsetY'])->toBe(26.0);
     expect($r['mapTransform'])->toContain('translate(');
 });
 

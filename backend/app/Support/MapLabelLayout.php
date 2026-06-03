@@ -4,8 +4,9 @@ namespace App\Support;
 
 class MapLabelLayout
 {
-    private const V_BAND = 34.0;  // top/bottom pill-row band height
-    private const INSET  = 8.0;   // gap between a pill and the map edge
+    private const RAD_X  = 40.0;  // pill-ring radius beyond the map, x
+    private const RAD_Y  = 40.0;  // pill-ring radius beyond the map, y
+    private const INSET  = 8.0;
     private const PAD_X  = 8.0;
     private const GAP    = 7.0;
     private const NAME_CW = 6.4;
@@ -13,19 +14,18 @@ class MapLabelLayout
     private const PILL_H = 20.0;
 
     /**
-     * Place name+value pills around all four edges of the map (top/right/bottom/left)
-     * with curved leader lines. The frame is cropped to the map's bounding box plus a
-     * thin band on each side, so the container stays short.
+     * Place name+value pills on an ellipse around the map (evenly spaced by angle,
+     * ordered geographically) with curved leader lines to each district. The frame
+     * is cropped to the map bbox plus a ring band, so the container stays compact.
      *
      * @param  array{viewBox?:string,cells?:array}  $geometry  RegionMapGeometry output.
      * @param  array<int|string,array{name:string,value:string,color:string}>  $labels  keyed by cell code.
      * @return array{viewBox:string,mapTransform:string,mapOffsetX:float,mapOffsetY:float,pills:array<int,array<string,mixed>>}
      */
-    public static function build(array $geometry, array $labels, int $sideGutterMin = 24): array
+    public static function build(array $geometry, array $labels): array
     {
         [$vw, $vh] = self::viewDims($geometry['viewBox'] ?? '0 0 600 500');
 
-        // Labeled cells + map bounding box + widest pill.
         $cells = [];
         $maxW = 0.0;
         $minX = INF; $maxX = -INF; $minY = INF; $maxY = -INF;
@@ -57,50 +57,58 @@ class MapLabelLayout
 
         $mapW = max(1.0, $maxX - $minX);
         $mapH = max(1.0, $maxY - $minY);
-        $vBand = self::V_BAND;
-        $inset = self::INSET;
+        $h = self::PILL_H;
 
-        $sg = max((float) $sideGutterMin, ceil($maxW) + $inset + 8.0);
-        $outerW = $mapW + 2 * $sg;
-        $outerH = $mapH + 2 * $vBand;
-        $tx = $sg - $minX;           // map group translate
-        $ty = $vBand - $minY;
-        $cxc = $minX + $mapW / 2;    // bbox centre, for angle bucketing
+        // Frame: map bbox + a ring band wide enough for the widest pill.
+        $gx = self::RAD_X + ceil($maxW / 2) + 8.0;
+        $gy = self::RAD_Y + $h + 6.0;
+        $outerW = $mapW + 2 * $gx;
+        $outerH = $mapH + 2 * $gy;
+        $tx = $gx - $minX;
+        $ty = $gy - $minY;
+        $ocx = $outerW / 2;
+        $ocy = $outerH / 2;
+        $cxc = $minX + $mapW / 2;
         $cyc = $minY + $mapH / 2;
+        $aRad = $mapW / 2 + self::RAD_X;
+        $bRad = $mapH / 2 + self::RAD_Y;
 
-        $buckets = ['top' => [], 'right' => [], 'bottom' => [], 'left' => []];
-        foreach ($cells as $cell) {
-            $a = atan2($cell['cy'] - $cyc, $cell['cx'] - $cxc) * 180 / M_PI;
-            if ($a >= -45 && $a < 45)       $s = 'right';
-            elseif ($a >= 45 && $a < 135)   $s = 'bottom';
-            elseif ($a >= -135 && $a < -45) $s = 'top';
-            else                            $s = 'left';
-            $buckets[$s][] = $cell;
-        }
+        // Order districts around the ring by their true angle, then place at even
+        // angular steps so the labels form a clean oval ring.
+        usort($cells, fn ($a, $b) =>
+            atan2($a['cy'] - $cyc, $a['cx'] - $cxc) <=> atan2($b['cy'] - $cyc, $b['cx'] - $cxc));
+        $n = count($cells);
 
         $pills = [];
-        $place = function (array $cell, string $side, float $px, float $py)
-            use (&$pills, $labels, $tx, $ty) {
+        foreach ($cells as $i => $cell) {
             $code = $cell['code'];
             $lbl  = $labels[$code];
             $w    = self::pillWidth($lbl);
-            $h    = self::PILL_H;
+            $th   = -M_PI / 2 + $i * 2 * M_PI / $n;     // start at top, go clockwise
+            $ex   = $ocx + $aRad * cos($th);
+            $ey   = $ocy + $bRad * sin($th);
+            $topbot = abs(sin($th)) > 0.7;
+            $right  = cos($th) >= 0;
+
+            $px = $topbot ? $ex - $w / 2 : ($right ? $ex : $ex - $w);
+            $px = min($outerW - 6 - $w, max(6.0, $px));
+            $py = $ey;
+
             $dotX = $cell['cx'] + $tx;
             $dotY = $cell['cy'] + $ty;
 
-            // Leader start = the pill edge facing the map.
-            if ($side === 'top')         { $sx = $px + $w / 2; $sy = $py + $h / 2; $vert = true; }
-            elseif ($side === 'bottom')  { $sx = $px + $w / 2; $sy = $py - $h / 2; $vert = true; }
-            elseif ($side === 'left')    { $sx = $px + $w;     $sy = $py;          $vert = false; }
-            else                         { $sx = $px;          $sy = $py;          $vert = false; }
-
-            $leader = $vert
-                ? sprintf('M %.1f %.1f C %.1f %.1f %.1f %.1f %.1f %.1f', $sx, $sy, $sx, ($sy + $dotY) / 2, $dotX, ($sy + $dotY) / 2, $dotX, $dotY)
-                : sprintf('M %.1f %.1f C %.1f %.1f %.1f %.1f %.1f %.1f', $sx, $sy, ($sx + $dotX) / 2, $sy, ($sx + $dotX) / 2, $dotY, $dotX, $dotY);
+            if ($topbot) {
+                $sx = $px + $w / 2;
+                $sy = sin($th) > 0 ? $py - $h / 2 : $py + $h / 2;
+                $leader = sprintf('M %.1f %.1f C %.1f %.1f %.1f %.1f %.1f %.1f', $sx, $sy, $sx, ($sy + $dotY) / 2, $dotX, ($sy + $dotY) / 2, $dotX, $dotY);
+            } else {
+                $sx = $right ? $px : $px + $w;
+                $sy = $py;
+                $leader = sprintf('M %.1f %.1f C %.1f %.1f %.1f %.1f %.1f %.1f', $sx, $sy, ($sx + $dotX) / 2, $sy, ($sx + $dotX) / 2, $dotY, $dotX, $dotY);
+            }
 
             $pills[] = [
                 'code'   => $code,
-                'side'   => $side,
                 'x'      => round($px, 1),
                 'y'      => round($py, 1),
                 'w'      => round($w, 1),
@@ -112,35 +120,6 @@ class MapLabelLayout
                 'dotX'   => round($dotX, 1),
                 'dotY'   => round($dotY, 1),
             ];
-        };
-
-        // Top / bottom rows: spread by cx across the width.
-        foreach (['top', 'bottom'] as $side) {
-            $list = $buckets[$side];
-            usort($list, fn ($a, $b) => $a['cx'] <=> $b['cx']);
-            $n = count($list);
-            foreach ($list as $i => $cell) {
-                $w    = self::pillWidth($labels[$cell['code']]);
-                $slot = $n > 0 ? $outerW / $n : $outerW;
-                $px   = min($outerW - 6 - $w, max(6.0, $slot * $i + ($slot - $w) / 2));
-                $py   = $side === 'top' ? $vBand / 2 : $outerH - $vBand / 2;
-                $place($cell, $side, $px, $py);
-            }
-        }
-
-        // Left / right columns: spread by cy down the map height.
-        foreach (['left', 'right'] as $side) {
-            $list = $buckets[$side];
-            usort($list, fn ($a, $b) => $a['cy'] <=> $b['cy']);
-            $n = count($list);
-            $t = $vBand + 8; $b = $outerH - $vBand - 8;
-            $step = $n > 1 ? ($b - $t) / ($n - 1) : 0.0;
-            foreach ($list as $i => $cell) {
-                $w  = self::pillWidth($labels[$cell['code']]);
-                $py = $n > 1 ? $t + $i * $step : $outerH / 2;
-                $px = $side === 'left' ? $sg - $inset - $w : $mapW + $sg + $inset;
-                $place($cell, $side, $px, $py);
-            }
         }
 
         return [
