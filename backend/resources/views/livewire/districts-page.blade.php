@@ -96,7 +96,7 @@
         </header>
         <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
             <svg viewBox="{{ $mapLayout['viewBox'] }}" class="region-map" role="img" aria-label="Ҳудудлар харитаси">
-                <g transform="translate({{ $mapLayout['mapTranslate'] }},0)">
+                <g transform="{{ $mapLayout['mapTransform'] }}">
                     @foreach($mapGeometry['cells'] as $cell)
                         @php
                             $cellCode = $cell['code'] ?? null;
