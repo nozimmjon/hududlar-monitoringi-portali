@@ -153,6 +153,37 @@
                             </g>
                         @endforeach
                     </g>
+                    @php
+                        // De-clutter the on-map % numbers: bigger cells get priority, and a
+                        // number is dropped on any cell whose centroid is too close to one
+                        // already placed — so labels never overlap. Dropped cells keep their
+                        // value on hover + in the rank list. Cities (dots) never get a number.
+                        $bboxArea = function (string $path): float {
+                            preg_match_all('/-?\d+(?:\.\d+)?/', $path, $mm);
+                            $ns = $mm[0]; $xs = []; $ys = [];
+                            for ($i = 0; $i + 1 < count($ns); $i += 2) { $xs[] = (float) $ns[$i]; $ys[] = (float) $ns[$i + 1]; }
+                            return $xs ? (max($xs) - min($xs)) * (max($ys) - min($ys)) : 0.0;
+                        };
+                        $numByArea = collect($mapGeometry['cells'])
+                            ->sortByDesc(fn ($c) => $bboxArea($c['path']));
+                        $placedPts = [];
+                        $showNum = [];
+                        $minD2 = 34 * 34;
+                        foreach ($numByArea as $c) {
+                            $cc = $c['code'] ?? null;
+                            $entry = $cc !== null ? ($colorScale[$cc] ?? null) : null;
+                            if ($cc === null || str_ends_with($c['name'], ' ш.') || ($entry['value'] ?? null) === null) {
+                                $showNum[$cc] = false;
+                                continue;
+                            }
+                            $ok = true;
+                            foreach ($placedPts as $p) {
+                                if ((($p[0] - $c['cx']) ** 2 + ($p[1] - $c['cy']) ** 2) < $minD2) { $ok = false; break; }
+                            }
+                            $showNum[$cc] = $ok;
+                            if ($ok) $placedPts[] = [$c['cx'], $c['cy']];
+                        }
+                    @endphp
                     <g class="map-labels">
                         @foreach($mapGeometry['cells'] as $cell)
                             @php
@@ -165,7 +196,7 @@
                             @if($isCity)
                                 <circle class="map-dot {{ $cellSel ? 'selected' : '' }}"
                                         cx="{{ $cell['cx'] }}" cy="{{ $cell['cy'] }}" r="3"/>
-                            @elseif($cellValue !== null)
+                            @elseif($cellValue !== null && ($showNum[$cellCode] ?? false))
                                 <text class="map-value" x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 4 }}"
                                       text-anchor="middle">{{ $fmt($cellValue, 1) }}%</text>
                             @endif
