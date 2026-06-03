@@ -53,8 +53,10 @@ class MapLabelLayout
                 $dotY = $cell['cy'];
                 $startX = $side === 'L' ? $px + $w : $px;
                 $midX   = ($startX + $dotX) / 2;
+                // Smooth S-curve (cubic bezier) from the pill edge to the district —
+                // control points share the mid-x at each end's y, giving a soft horizontal ease.
                 $leader = sprintf(
-                    'M %.1f %.1f L %.1f %.1f L %.1f %.1f L %.1f %.1f',
+                    'M %.1f %.1f C %.1f %.1f %.1f %.1f %.1f %.1f',
                     $startX, $py, $midX, $py, $midX, $dotY, $dotX, $dotY
                 );
 
