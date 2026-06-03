@@ -3936,7 +3936,7 @@
     .district-peek-pf small { display:block; font-size:10.5px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
     .district-peek-pf strong { font-size:15px; }
     .district-peek-chips { display:flex; gap:8px; flex-wrap:wrap; }
-    .district-peek-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:auto; }
+    .district-peek-actions { display:grid; grid-template-columns:1fr; gap:8px; margin-top:auto; }
     .district-peek-actions .mini-button { min-height:40px; text-align:center; }
 
     .map-tooltip {
