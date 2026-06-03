@@ -74,12 +74,12 @@ beforeEach(function () {
     ]);
 });
 
-test('GET /districts returns 200 with map and table markup', function () {
+test('GET /districts returns 200 with map and merged table markup', function () {
     $response = $this->get('/districts');
 
     $response->assertOk();
     $response->assertSee('districts-map', false);
-    $response->assertSee('districts-side', false);
+    $response->assertSee('districts-table', false);
     $response->assertSee('district-detail-table', false);
     $response->assertSee('Андижон шаҳри', false);
     $response->assertSee('Асака тумани', false);
@@ -141,22 +141,25 @@ test('detail table shows budget-specific column headers when budget KPI active',
         ->assertDontSee('I чорак амалда');
 });
 
-test('side aside renders T/D count chips, metric tiles, and leaderboard markup', function () {
+test('merged table renders ranked rows and detail panel, no leaderboard', function () {
     $response = $this->get('/districts');
     $response->assertOk();
     $html = $response->getContent();
+    expect($html)->toContain('districts-table');
+    expect($html)->toContain('dt-rank');
+    expect($html)->toContain('dt-exec');
     expect($html)->toContain('district-count-split');
     expect($html)->toContain('district-summary-metrics');
     expect($html)->toContain('district-summary-actions');
-    expect($html)->toContain('districts-leaderboard');
-    expect($html)->toContain('districts-lb-list');
-    expect($html)->toContain('lb-row');
-    expect($html)->toContain('lb-rank');
+    expect($html)->not->toContain('districts-leaderboard');
+    expect($html)->not->toContain('lb-row');
 });
 
-test('detail table renders T-topshiriq and D-maqsad cells', function () {
+test('district list uses plain task and target labels, not D-/T- codes', function () {
     $response = $this->get('/districts');
     $html = $response->getContent();
-    expect($html)->toContain('T-топшириқ');
-    expect($html)->toContain('D-мақсад');
+    expect($html)->toContain('Топшириқлар');
+    expect($html)->toContain('Кафолат мажбурияти');
+    expect($html)->not->toContain('T-топшириқ');
+    expect($html)->not->toContain('D-мақсад');
 });

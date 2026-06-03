@@ -3915,142 +3915,6 @@
       box-shadow: none;
     }
 
-    .district-kpi-selector {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .district-kpi-option {
-      display: grid;
-      grid-template-columns: 38px minmax(0, 1fr);
-      gap: 10px;
-      align-items: center;
-      min-height: 74px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      padding: 11px 12px;
-      text-align: left;
-      color: var(--ink);
-      cursor: pointer;
-      transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
-    }
-
-    .district-kpi-option:hover,
-    .district-kpi-option.active {
-      border-color: rgba(23, 105, 224, .44);
-      background: #f7fbff;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .district-kpi-option.active {
-      box-shadow: inset 0 -3px 0 var(--blue), var(--shadow-sm);
-    }
-
-    .district-kpi-option .kpi-mini-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      color: var(--blue);
-      background: var(--blue-soft);
-    }
-
-    .district-kpi-option svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 1.9;
-    }
-
-    .district-kpi-option strong,
-    .district-kpi-option small {
-      display: block;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .district-kpi-option strong {
-      color: var(--ink);
-      font-size: 13.5px;
-      font-weight: 850;
-      line-height: 1.18;
-      white-space: nowrap;
-    }
-
-    .district-kpi-option small {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 11.5px;
-      line-height: 1.25;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .district-data-layers {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      width: 100%;
-    }
-
-    .district-data-layer {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      padding: 12px;
-      min-width: 0;
-    }
-
-    .district-data-layer span,
-    .district-layer-note span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .district-data-layer strong {
-      display: block;
-      margin-top: 5px;
-      color: var(--ink);
-      font-size: 18px;
-      font-weight: 850;
-      line-height: 1.05;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .district-data-layer small {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: 11.5px;
-      line-height: 1.3;
-    }
-
-    .district-layer-note {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--surface);
-      padding: 12px;
-      grid-column: 1 / -1;
-    }
-
-    .district-layer-note strong {
-      display: block;
-      margin-top: 5px;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
     .district-count-split {
       display: flex;
       flex-wrap: wrap;
@@ -4093,6 +3957,107 @@
     }
 
     .districts-control--search input { min-width: 0; }
+
+    .districts-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .districts-toolbar .district-module-tabs { margin-bottom: 0; }
+
+    .district-kpi-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .district-kpi-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 7px 14px 7px 9px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
+    }
+
+    .district-kpi-pill:hover,
+    .district-kpi-pill.active {
+      border-color: rgba(23, 105, 224, .44);
+      background: #f7fbff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .district-kpi-pill.active { box-shadow: inset 0 -2px 0 var(--blue), var(--shadow-sm); }
+
+    .district-kpi-pill .kpi-mini-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .district-kpi-pill .kpi-mini-icon svg { width: 15px; height: 15px; stroke-width: 1.9; }
+
+    /* Merged district table (extends .district-table) */
+    .districts-table .dt-rank {
+      width: 34px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .districts-table .row-title .dt-status {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+      background: var(--map-nodata-stroke);
+    }
+
+    .districts-table tr.green .dt-status { background: var(--map-good-stroke); }
+    .districts-table tr.amber .dt-status { background: var(--map-mid-stroke); }
+    .districts-table tr.red   .dt-status { background: var(--map-attn-stroke); }
+
+    .districts-table .dt-exec strong {
+      display: block;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .districts-table .dt-bar {
+      display: block;
+      height: 4px;
+      margin-top: 4px;
+      border-radius: 999px;
+      background: rgba(98, 148, 162, .14);
+      overflow: hidden;
+    }
+
+    .districts-table .dt-bar i {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--map-nodata-stroke);
+      transition: width var(--motion-slow);
+    }
+
+    .districts-table tr.green .dt-bar i { background: var(--map-good-stroke); }
+    .districts-table tr.amber .dt-bar i { background: var(--map-mid-stroke); }
+    .districts-table tr.red   .dt-bar i { background: var(--map-attn-stroke); }
 
     .districts-grid {
       display: grid;
@@ -4339,137 +4304,6 @@
     }
     .legend-bar.reverse {
       background: linear-gradient(90deg, #4a9b5f, #9bcb6f, #e9c63b, #f0a356, #d95757);
-    }
-
-    .districts-leaderboard {
-      position: relative;
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow-sm);
-      padding: 14px;
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-
-    .districts-leaderboard::before { display: none; }
-
-    .districts-lb-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 10px;
-      gap: 8px;
-    }
-
-    .districts-lb-head strong {
-      font-family: var(--font-sans);
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -0.012em;
-      color: var(--ink);
-    }
-
-    .districts-lb-head span {
-      color: var(--muted);
-      font-size: 11.5px;
-      font-weight: 500;
-    }
-
-    .districts-lb-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 4px;
-      max-height: 318px;
-      overflow-y: auto;
-    }
-
-    .lb-row {
-      display: grid;
-      grid-template-columns: 24px minmax(0, 1fr) auto;
-      grid-template-areas: "rank name value" "bar bar bar";
-      align-items: center;
-      gap: 4px 10px;
-      padding: 9px 12px 10px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      background: #fbfdff;
-      cursor: pointer;
-      transition: background var(--motion), border-color var(--motion), box-shadow var(--motion);
-      outline: none;
-    }
-
-    .lb-row:hover { background: var(--blue-soft); }
-
-    .lb-row.selected {
-      background: #ffffff;
-      border-color: rgba(23, 105, 224, .50);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .lb-rank {
-      grid-area: rank;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      text-align: center;
-    }
-
-    .lb-name {
-      grid-area: name;
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: -0.005em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .lb-value {
-      grid-area: value;
-      color: var(--blue);
-      font-family: var(--font-sans);
-      font-size: 14px;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.005em;
-      white-space: nowrap;
-    }
-
-    .lb-bar {
-      grid-area: bar;
-      height: 4px;
-      background: rgba(98, 148, 162, .14);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-
-    .lb-bar i {
-      display: block;
-      height: 100%;
-      border-radius: 999px;
-      transition: width var(--motion-slow);
-    }
-
-    .lb-row.green .lb-bar i { background: var(--map-good-stroke); }
-    .lb-row.amber .lb-bar i { background: var(--map-mid-stroke); }
-    .lb-row.red .lb-bar i   { background: var(--map-attn-stroke); }
-    .lb-row.grey .lb-bar i  { background: var(--map-nodata-stroke); }
-
-    .lb-empty {
-      padding: 18px 12px;
-      border: 1px dashed var(--line);
-      border-radius: 12px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-      background: #fbfdff;
     }
 
     .district-summary-card {
@@ -4901,9 +4735,8 @@
       .districts-head-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
       .districts-control select, .districts-control input { min-width: 0; width: 100%; }
       .dpc-head { grid-template-columns: 1fr; }
-      .district-data-layers { grid-template-columns: 1fr; }
       .district-summary-metrics, .district-summary-actions { grid-template-columns: 1fr; }
-      .districts-grid, .districts-map, .districts-side, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }
+      .districts-grid, .districts-map, .district-profile-card { width: 100%; max-width: 100%; min-width: 0; }
       .districts-map { padding: 14px; }
       .districts-map-head { display: block; }
       .districts-map-head strong { font-size: 15px; line-height: 1.18; }

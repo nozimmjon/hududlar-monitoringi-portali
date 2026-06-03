@@ -202,36 +202,6 @@ class DistrictsPage extends Component
     }
 
     #[Computed]
-    public function coverage(): array
-    {
-        $count = $this->facts->count();
-        $periods = IndicatorFact::where('region_code', $this->regionCode)
-            ->where('indicator_code', $this->kpi)
-            ->whereNotNull('district_code')
-            ->distinct()
-            ->pluck('period')
-            ->all();
-        return ['count' => $count, 'periods' => $periods];
-    }
-
-    #[Computed]
-    public function targetCount(): int
-    {
-        return PromiseTarget::where('region_code', $this->regionCode)
-            ->where('indicator_code', $this->kpi)
-            ->whereNotNull('target_districts')
-            ->count();
-    }
-
-    #[Computed]
-    public function taskCount(): int
-    {
-        return Task::forRegion($this->regionCode)
-            ->forIndicator($this->kpi)
-            ->count();
-    }
-
-    #[Computed]
     public function tableConfig(): array
     {
         return DistrictTableConfig::for($this->kpi);
