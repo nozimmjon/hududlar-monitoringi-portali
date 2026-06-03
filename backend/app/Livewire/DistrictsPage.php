@@ -277,58 +277,63 @@ class DistrictsPage extends Component
         return $out;
     }
 
+    /**
+     * Binary fill color per district code: 'ok' | 'bad' | 'nd'.
+     *
+     * @return array<int|string,string>
+     */
+    #[Computed]
+    public function mapColors(): array
+    {
+        $out = [];
+        foreach ($this->statusByDistrict as $code => $status) {
+            $out[$code] = match ($status) {
+                'green'        => 'ok',
+                'amber', 'red' => 'bad',
+                default        => 'nd',
+            };
+        }
+        return $out;
+    }
+
+    /**
+     * Perimeter pill layout for the map (name + value + color per district).
+     */
+    #[Computed]
+    public function mapLayout(): array
+    {
+        $fmt = fn ($v) => number_format((float) $v, 1, ',', ' ');
+        $colors = $this->mapColors;
+        $labels = [];
+        foreach ($this->districts as $code => $district) {
+            $fact   = $this->facts->get($code);
+            $pct    = $fact?->pct_of_plan;
+            $growth = $fact?->growth_pct;
+            $value  = $pct !== null
+                ? $fmt($pct) . '%'
+                : ($growth !== null ? $fmt($growth) . '%' : '—');
+            $labels[$code] = [
+                'name'  => $district->name_short,
+                'value' => $value,
+                'color' => $colors[$code] ?? 'nd',
+            ];
+        }
+
+        return \App\Support\MapLabelLayout::build($this->mapGeometry, $labels);
+    }
+
     #[Computed]
     public function mapGeometry(): array
     {
         return \App\Support\RegionMapGeometry::forRegion($this->regionCode);
     }
 
-    #[Computed]
-    public function colorScale(): array
-    {
-        $values = [];
-        foreach ($this->facts as $code => $fact) {
-            $v = $fact->pct_of_plan ?? $fact->growth_pct;
-            if ($v !== null) $values[$code] = (float) $v;
-        }
-        if (empty($values)) return [];
-
-        $min = min($values);
-        $max = max($values);
-        $range = $max - $min;
-        $lower = (bool) ($this->indicator?->lower_is_better);
-
-        $out = [];
-        foreach ($values as $code => $v) {
-            $norm = $range > 0 ? ($v - $min) / $range : 0.5;
-            $out[$code] = [
-                'color' => \App\Support\MapColorScale::palette($norm, $lower),
-                'value' => $v,
-            ];
-        }
-        return $out;
-    }
-
-    #[Computed]
-    public function colorRange(): array
-    {
-        $entries = collect($this->colorScale);
-        if ($entries->isEmpty()) {
-            return ['min' => null, 'max' => null, 'lowerIsBetter' => false];
-        }
-        return [
-            'min' => $entries->min('value'),
-            'max' => $entries->max('value'),
-            'lowerIsBetter' => (bool) ($this->indicator?->lower_is_better),
-        ];
-    }
-
     public function render()
     {
         return view('livewire.districts-page', [
             'mapGeometry' => $this->mapGeometry,
-            'colorScale'  => $this->colorScale,
-            'colorRange'  => $this->colorRange,
+            'mapColors'   => $this->mapColors,
+            'mapLayout'   => $this->mapLayout,
         ]);
     }
 }

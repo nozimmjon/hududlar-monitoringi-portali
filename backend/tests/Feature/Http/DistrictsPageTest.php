@@ -74,19 +74,19 @@ beforeEach(function () {
     ]);
 });
 
-test('GET /districts renders header card, map, and rank list without pre-selection', function () {
+test('GET /districts renders the navy map stage with pills, no rank list, no pre-selection', function () {
     $response = $this->get('/districts');
 
     $response->assertOk();
     $response->assertSee('districts-header', false);
     $response->assertSee('module-seg', false);
-    $response->assertSee('districts-map', false);
-    $response->assertSee('districts-ranklist', false);
+    $response->assertSee('districts-mapstage', false);
+    $response->assertSee('map-pill', false);
     $response->assertSee('Андижон шаҳри', false);
     $response->assertSee('Асака тумани', false);
+    $response->assertDontSee('districts-ranklist', false);
     $response->assertDontSee('Танланган ҳудуд', false);
     $response->assertDontSee('district-peek open', false);
-    $response->assertDontSee('districts-table', false);
 });
 
 test('selectModule sets module property', function () {

@@ -25,7 +25,7 @@ pest()->extend(Tests\TestCase::class)
     ->in('Unit/Support/RegionMapGeometryTest.php');
 
 pest()->extend(Tests\TestCase::class)
-    ->in('Unit/Support/MapColorScaleTest.php');
+    ->in('Unit/Support/MapLabelLayoutTest.php');
 
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/Support/DashboardCatalogModuleIconTest.php');

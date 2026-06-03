@@ -63,21 +63,6 @@
                     </button>
                 @endforeach
             </div>
-            <div class="districts-tools">
-                <label class="districts-control districts-control--search">
-                    <span>Қидириш</span>
-                    <input wire:model.live.debounce.300ms="search" placeholder="Туман қидириш">
-                </label>
-                <label class="districts-control">
-                    <span>Саралаш</span>
-                    <select wire:model.live="sort">
-                        <option value="attention">Эътибор талаб</option>
-                        <option value="execution">Юқоридан</option>
-                        <option value="plan">Режа каттадан</option>
-                        <option value="name">Алифбо бўйича</option>
-                    </select>
-                </label>
-            </div>
         </div>
 
         <div class="districts-hero">
@@ -118,139 +103,73 @@
         @endif
     </header>
 
-    <div class="districts-grid">
-        <section class="districts-map">
-            <header class="districts-map-head">
-                <div>
-                    <strong>Ҳудудлар харитаси</strong>
-                    <span>Ҳар туман ранги вилоятдаги ўрнига нисбатан. Туман устига босинг.</span>
-                </div>
-            </header>
-            <div class="districts-map-canvas" x-data="{hovered:null,x:0,y:0}">
-                <svg viewBox="{{ $mapGeometry['viewBox'] }}" class="andijan-map" role="img" aria-label="Ҳудудлар харитаси">
-                    <g>
-                        @foreach($mapGeometry['cells'] as $cell)
-                            @php
-                                $cellCode = $cell['code'] ?? null;
-                                $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
-                                $scaleEntry = $cellCode !== null ? ($colorScale[$cellCode] ?? null) : null;
-                                $cellColor = $scaleEntry['color'] ?? \App\Support\MapColorScale::NO_DATA;
-                                $cellValue = $scaleEntry['value'] ?? null;
-                                $valueText = $cellValue !== null ? $fmt($cellValue, 1) . '%' : '—';
-                                $cellSelected = $cellCode !== null && (string) $cellCode === (string) $selectedCode ? 'selected' : '';
-                                $cellName = $cellDistrict?->name_full ?? $cell['name'];
-                            @endphp
-                            <g class="map-cell {{ $cellSelected }}"
+    <section class="districts-mapstage">
+        <header class="mapstage-head">
+            <div>
+                <strong>Ҳудудлар харитаси</strong>
+                <span>Яшил — режада, қизил — эътибор талаб. Туман устига босинг.</span>
+            </div>
+            <div class="map-legend">
+                <span><i class="ok"></i>Режада</span>
+                <span><i class="bad"></i>Эътибор</span>
+                <span><i class="nd"></i>Маълумот йўқ</span>
+            </div>
+        </header>
+        <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
+            <svg viewBox="{{ $mapLayout['viewBox'] }}" class="region-map" role="img" aria-label="Ҳудудлар харитаси">
+                <g transform="translate({{ $mapLayout['mapTranslate'] }},0)">
+                    @foreach($mapGeometry['cells'] as $cell)
+                        @php
+                            $cellCode = $cell['code'] ?? null;
+                            $cellDistrict = $cellCode !== null ? $districts->get($cellCode) : null;
+                            $cellColor = $cellCode !== null ? ($mapColors[$cellCode] ?? 'nd') : 'nd';
+                            $cellSel = $cellCode !== null && (string) $cellCode === (string) $selectedCode;
+                            $cellName = $cellDistrict?->name_full ?? $cell['name'];
+                        @endphp
+                        <g class="map-cell {{ $cellColor }} {{ $cellSel ? 'selected' : '' }}"
+                           @if($cellCode !== null)
                                wire:click="selectDistrict('{{ $cellCode }}')"
                                x-on:keydown.enter="$wire.selectDistrict('{{ $cellCode }}')"
                                x-on:keydown.space.prevent="$wire.selectDistrict('{{ $cellCode }}')"
-                               x-on:mouseenter="hovered={name:@js($cellName), value:@js($valueText), color:@js($cellColor)}"
+                               x-on:mouseenter="hovered=@js($cellName)"
                                x-on:mouseleave="hovered=null"
                                x-on:mousemove="x=$event.offsetX; y=$event.offsetY"
-                               tabindex="0">
-                                <title>{{ $cellName }} · {{ $valueText }}</title>
-                                <path class="map-fill" d="{{ $cell['path'] }}" fill="{{ $cellColor }}"/>
-                            </g>
-                        @endforeach
-                    </g>
-                    @php
-                        // De-clutter the on-map % numbers: bigger cells get priority, and a
-                        // number is dropped on any cell whose centroid is too close to one
-                        // already placed — so labels never overlap. Dropped cells keep their
-                        // value on hover + in the rank list. Cities (dots) never get a number.
-                        $bboxArea = function (string $path): float {
-                            preg_match_all('/-?\d+(?:\.\d+)?/', $path, $mm);
-                            $ns = $mm[0]; $xs = []; $ys = [];
-                            for ($i = 0; $i + 1 < count($ns); $i += 2) { $xs[] = (float) $ns[$i]; $ys[] = (float) $ns[$i + 1]; }
-                            return $xs ? (max($xs) - min($xs)) * (max($ys) - min($ys)) : 0.0;
-                        };
-                        $numByArea = collect($mapGeometry['cells'])
-                            ->sortByDesc(fn ($c) => $bboxArea($c['path']));
-                        $placedPts = [];
-                        $showNum = [];
-                        $minD2 = 34 * 34;
-                        foreach ($numByArea as $c) {
-                            $cc = $c['code'] ?? null;
-                            $entry = $cc !== null ? ($colorScale[$cc] ?? null) : null;
-                            if ($cc === null || str_ends_with($c['name'], ' ш.') || ($entry['value'] ?? null) === null) {
-                                $showNum[$cc] = false;
-                                continue;
-                            }
-                            $ok = true;
-                            foreach ($placedPts as $p) {
-                                if ((($p[0] - $c['cx']) ** 2 + ($p[1] - $c['cy']) ** 2) < $minD2) { $ok = false; break; }
-                            }
-                            $showNum[$cc] = $ok;
-                            if ($ok) $placedPts[] = [$c['cx'], $c['cy']];
-                        }
-                    @endphp
-                    <g class="map-labels">
-                        @foreach($mapGeometry['cells'] as $cell)
-                            @php
-                                $cellCode = $cell['code'] ?? null;
-                                $scaleEntry = $cellCode !== null ? ($colorScale[$cellCode] ?? null) : null;
-                                $cellValue = $scaleEntry['value'] ?? null;
-                                $isCity = str_ends_with($cell['name'], ' ш.');
-                                $cellSel = $cellCode !== null && (string) $cellCode === (string) $selectedCode;
-                            @endphp
-                            @if($isCity)
-                                <circle class="map-dot {{ $cellSel ? 'selected' : '' }}"
-                                        cx="{{ $cell['cx'] }}" cy="{{ $cell['cy'] }}" r="3"/>
-                            @elseif($cellValue !== null && ($showNum[$cellCode] ?? false))
-                                <text class="map-value" x="{{ $cell['cx'] }}" y="{{ $cell['cy'] + 4 }}"
-                                      text-anchor="middle">{{ $fmt($cellValue, 1) }}%</text>
-                            @endif
-                        @endforeach
-                    </g>
-                </svg>
-                <div class="map-tooltip" x-show="hovered" x-cloak
-                     :style="`left:${x + 14}px; top:${y + 14}px; --c:${hovered?.color}`">
-                    <strong x-text="hovered?.name"></strong>
-                    <span x-text="hovered?.value"></span>
-                </div>
+                               tabindex="0"
+                           @endif>
+                            <title>{{ $cellName }}</title>
+                            <path class="map-fill" d="{{ $cell['path'] }}"/>
+                        </g>
+                    @endforeach
+                </g>
+                <g class="map-leaders">
+                    @foreach($mapLayout['pills'] as $pill)
+                        <path class="map-leader" d="{{ $pill['leader'] }}"/>
+                        <circle class="map-anchor" cx="{{ $pill['dotX'] }}" cy="{{ $pill['dotY'] }}" r="2.2"/>
+                    @endforeach
+                </g>
+                <g class="map-pills">
+                    @foreach($mapLayout['pills'] as $pill)
+                        @php $psel = (string) $pill['code'] === (string) $selectedCode; @endphp
+                        <g class="map-pill {{ $pill['color'] }} {{ $psel ? 'selected' : '' }}"
+                           wire:click="selectDistrict('{{ $pill['code'] }}')"
+                           x-on:keydown.enter="$wire.selectDistrict('{{ $pill['code'] }}')"
+                           x-on:keydown.space.prevent="$wire.selectDistrict('{{ $pill['code'] }}')"
+                           tabindex="0">
+                            <rect class="pill-bg" x="{{ $pill['x'] }}" y="{{ $pill['y'] - $pill['h'] / 2 }}"
+                                  width="{{ $pill['w'] }}" height="{{ $pill['h'] }}" rx="9"/>
+                            <text class="pill-name" x="{{ $pill['x'] + 9 }}" y="{{ $pill['y'] + 4 }}">{{ $pill['name'] }}</text>
+                            <text class="pill-value" x="{{ $pill['x'] + $pill['w'] - 9 }}" y="{{ $pill['y'] + 4 }}"
+                                  text-anchor="end">{{ $pill['value'] }}</text>
+                        </g>
+                    @endforeach
+                </g>
+            </svg>
+            <div class="map-tooltip" x-show="hovered" x-cloak
+                 :style="`left:${x + 14}px; top:${y + 14}px`">
+                <strong x-text="hovered"></strong>
             </div>
-            <div class="districts-map-legend">
-                @php
-                    $rangeMin = $colorRange['min'] ?? null;
-                    $rangeMax = $colorRange['max'] ?? null;
-                @endphp
-                <span class="legend-bound">{{ $rangeMin !== null ? $fmt($rangeMin, 1) . '%' : '—' }}</span>
-                <span class="legend-bar {{ ($colorRange['lowerIsBetter'] ?? false) ? 'reverse' : '' }}"></span>
-                <span class="legend-bound">{{ $rangeMax !== null ? $fmt($rangeMax, 1) . '%' : '—' }}</span>
-            </div>
-        </section>
-
-        <section class="districts-ranklist">
-            <header class="ranklist-head">
-                <strong>Туманлар рейтинги</strong>
-                <span>{{ count($rankedDistricts) }} та</span>
-            </header>
-            <ol class="ranklist-rows">
-                @foreach($rankedDistricts as $idx => $row)
-                    @php
-                        $rd = $row['district']; $code = $rd->code; $rf = $row['fact']; $rs = $row['status'];
-                        $rPct = $rf?->pct_of_plan !== null ? (float) $rf->pct_of_plan : null;
-                        $rGrowth = $rf?->growth_pct !== null ? (float) $rf->growth_pct : null;
-                        $primary = $rPct !== null ? $fmt($rPct, 1) . '%' : ($rGrowth !== null ? $fmt($rGrowth, 1) . '%' : '—');
-                        $barW = $rPct !== null ? max(0, min(100, $rPct)) : 0;
-                    @endphp
-                    <li class="rank-row {{ $rs }} {{ $code === $selectedCode ? 'selected' : '' }}"
-                        wire:click="selectDistrict('{{ $code }}')"
-                        tabindex="0"
-                        x-on:keydown.enter="$wire.selectDistrict('{{ $code }}')"
-                        x-on:keydown.space.prevent="$wire.selectDistrict('{{ $code }}')">
-                        <span class="rank-rk">{{ $idx + 1 }}</span>
-                        <span class="rank-dot" aria-hidden="true"></span>
-                        <span class="rank-nm">{{ $rd->name_full }}</span>
-                        <span class="rank-vbar">
-                            <span class="rank-bar"><i style="width:{{ number_format($barW, 1, '.', '') }}%"></i></span>
-                            <span class="rank-vv">{{ $primary }}</span>
-                        </span>
-                    </li>
-                @endforeach
-            </ol>
-        </section>
-    </div>
+        </div>
+    </section>
 
     <div class="district-peek-backdrop {{ $selectedDistrict ? 'open' : '' }}" wire:click="clearDistrict"></div>
     <aside class="district-peek {{ $selectedDistrict ? 'open' : '' }}" aria-hidden="{{ $selectedDistrict ? 'false' : 'true' }}">
