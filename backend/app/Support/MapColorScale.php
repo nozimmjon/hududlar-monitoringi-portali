@@ -4,13 +4,13 @@ namespace App\Support;
 
 class MapColorScale
 {
-    /** 5-stop palette: red → orange → yellow → light green → green */
+    /** 5-stop muted palette: terracotta → sand → wheat → sage → eucalyptus */
     private const STOPS = [
-        [0.00, [217,  87,  87]],
-        [0.25, [240, 163,  86]],
-        [0.50, [233, 198,  59]],
-        [0.75, [155, 203, 111]],
-        [1.00, [ 74, 155,  95]],
+        [0.00, [207, 126, 107]],
+        [0.25, [224, 168, 120]],
+        [0.50, [232, 207, 142]],
+        [0.75, [169, 199, 154]],
+        [1.00, [111, 168, 136]],
     ];
 
     public const NO_DATA = '#e8e6dd';

@@ -4006,7 +4006,7 @@
       position: relative;
       display: grid;
       place-items: center;
-      background: linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+      background: #fbfaf7;
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 18px 12px;
@@ -4031,7 +4031,7 @@
       min-width: 0;
       position: relative;
       z-index: 1;
-      filter: none;
+      filter: drop-shadow(0 10px 16px rgba(40, 55, 80, .14));
     }
 
     .map-cell { cursor: pointer; outline: none; }
@@ -4057,13 +4057,14 @@
       stroke-linejoin: round;
       stroke-opacity: .95;
       font-family: var(--font-sans);
-      opacity: 0;
+      opacity: 1;
       transition: opacity var(--motion), fill var(--motion);
     }
 
     .map-label.is-city {
       font-size: 11px;
       stroke-width: 3.2;
+      opacity: 0;
     }
 
     .map-label.selected,
@@ -4073,17 +4074,28 @@
 
     .map-label.selected { fill: var(--blue); }
 
+    .map-dot {
+      fill: #ffffff;
+      stroke: rgba(60, 70, 90, .55);
+      stroke-width: 1.3;
+      transition: stroke var(--motion), stroke-width var(--motion);
+    }
+    .map-dot.selected {
+      stroke: var(--blue);
+      stroke-width: 2;
+    }
+
     .map-cell .map-fill {
-      stroke: rgba(15, 42, 71, .14);
-      stroke-width: 0.9;
-      transition: filter var(--motion), stroke var(--motion);
+      stroke: #ffffff;
+      stroke-width: 1.6;
+      transition: filter var(--motion), stroke var(--motion), stroke-width var(--motion);
     }
 
     .map-cell:hover .map-fill,
     .map-cell:focus .map-fill {
-      filter: brightness(1.06);
-      stroke: rgba(15, 42, 71, .35);
-      stroke-width: 1.4;
+      filter: brightness(1.03) drop-shadow(0 4px 8px rgba(40, 55, 80, .20));
+      stroke: #ffffff;
+      stroke-width: 1.9;
     }
 
     .map-cell.selected .map-fill {
@@ -4147,10 +4159,10 @@
       flex: 1;
       height: 10px;
       border-radius: 999px;
-      background: linear-gradient(90deg, #d95757, #f0a356, #e9c63b, #9bcb6f, #4a9b5f);
+      background: linear-gradient(90deg, #cf7e6b, #e0a878, #e8cf8e, #a9c79a, #6fa888);
     }
     .legend-bar.reverse {
-      background: linear-gradient(90deg, #4a9b5f, #9bcb6f, #e9c63b, #f0a356, #d95757);
+      background: linear-gradient(90deg, #6fa888, #a9c79a, #e8cf8e, #e0a878, #cf7e6b);
     }
 
     .district-profile-card {
