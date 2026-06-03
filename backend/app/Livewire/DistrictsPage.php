@@ -65,6 +65,11 @@ class DistrictsPage extends Component
         $this->district = $code;
     }
 
+    public function clearDistrict(): void
+    {
+        $this->district = '';
+    }
+
     public function setSort(string $value): void
     {
         $this->sort = $value;
@@ -163,15 +168,15 @@ class DistrictsPage extends Component
     #[Computed]
     public function selectedDistrict(): ?array
     {
-        $rows = $this->rankedDistricts;
-        if ($this->district !== '') {
-            foreach ($rows as $row) {
-                if ((string) $row['district']->code === $this->district) {
-                    return $row;
-                }
+        if ($this->district === '') {
+            return null;
+        }
+        foreach ($this->rankedDistricts as $row) {
+            if ((string) $row['district']->code === $this->district) {
+                return $row;
             }
         }
-        return $rows[0] ?? null;
+        return null;
     }
 
     #[Computed]
@@ -201,45 +206,28 @@ class DistrictsPage extends Component
         return Indicator::whereIn('code', $codes)->orderBy('label_short')->get();
     }
 
-    #[Computed]
-    public function tableConfig(): array
-    {
-        return DistrictTableConfig::for($this->kpi);
-    }
-
     /**
-     * Build [$kpi][$district_code][$period] => IndicatorFact|null lookup
-     * for every (kpi, period) pair referenced by the current tableConfig.
+     * Region-level value per KPI in the current module, for the header stat-cards.
+     *
+     * @return array<string, array{indicator:\App\Models\Indicator, value:?float, kind:string}>
      */
     #[Computed]
-    public function factMatrix(): array
+    public function moduleKpiStats(): array
     {
-        $cfg = $this->tableConfig;
-        $pairs = [];
-        foreach ($cfg['columns'] as $col) {
-            if ($col['metric'] === null) continue;
-            $pairs[$col['metric']['kpi'] . '|' . $col['metric']['period']] = [
-                $col['metric']['kpi'],
-                $col['metric']['period'],
-            ];
-        }
-        if (empty($pairs)) return [];
-
-        $query = IndicatorFact::where('region_code', $this->regionCode)
-            ->whereNotNull('district_code');
-
-        $query->where(function ($q) use ($pairs) {
-            foreach ($pairs as [$k, $p]) {
-                $q->orWhere(function ($w) use ($k, $p) {
-                    $w->where('indicator_code', $k)->where('period', $p);
-                });
-            }
-        });
-
         $out = [];
-        foreach ($query->get() as $row) {
-            $periodKey = $row->period instanceof \BackedEnum ? $row->period->value : (string) $row->period;
-            $out[$row->indicator_code][$row->district_code][$periodKey] = $row;
+        foreach ($this->kpiOptions as $ind) {
+            $period = DistrictTableConfig::for($ind->code)['primary_period'];
+            $fact = IndicatorFact::where('region_code', $this->regionCode)
+                ->where('indicator_code', $ind->code)
+                ->where('period', $period)
+                ->whereNull('district_code')
+                ->first();
+            $val = $fact?->pct_of_plan ?? $fact?->growth_pct;
+            $out[$ind->code] = [
+                'indicator' => $ind,
+                'value'     => $val !== null ? (float) $val : null,
+                'kind'      => $fact?->pct_of_plan !== null ? 'execution' : 'growth',
+            ];
         }
         return $out;
     }

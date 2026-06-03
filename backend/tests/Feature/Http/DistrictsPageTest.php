@@ -74,15 +74,19 @@ beforeEach(function () {
     ]);
 });
 
-test('GET /districts returns 200 with map and merged table markup', function () {
+test('GET /districts renders header card, map, and rank list without pre-selection', function () {
     $response = $this->get('/districts');
 
     $response->assertOk();
+    $response->assertSee('districts-header', false);
+    $response->assertSee('module-seg', false);
     $response->assertSee('districts-map', false);
-    $response->assertSee('districts-table', false);
-    $response->assertSee('district-detail-table', false);
+    $response->assertSee('districts-ranklist', false);
     $response->assertSee('Андижон шаҳри', false);
     $response->assertSee('Асака тумани', false);
+    $response->assertDontSee('Танланган ҳудуд', false);
+    $response->assertDontSee('district-peek open', false);
+    $response->assertDontSee('districts-table', false);
 });
 
 test('selectModule sets module property', function () {
@@ -104,59 +108,29 @@ test('selectDistrict updates state', function () {
         ->assertSet('district', '1703224');
 });
 
-test('detail table contains profile link for each district', function () {
-    $response = $this->get('/districts');
-    $response->assertSee('/profile?districtCode=1703224', false);
-    $response->assertSee('/profile?districtCode=1703401', false);
+test('clearDistrict resets the selection', function () {
+    Livewire::test(DistrictsPage::class)
+        ->set('district', '1703224')
+        ->call('clearDistrict')
+        ->assertSet('district', '');
 });
 
-test('detail table shows industry-specific column headers for industry KPI', function () {
-    $response = $this->get('/districts?kpi=industry');
-    $response->assertOk();
-    $response->assertSee('I чорак амалда', false);
-    $response->assertSee('I ярим йиллик прогноз', false);
-    $response->assertSee('Йиллик прогноз', false);
-});
 
-test('detail table shows budget-specific column headers when budget KPI active', function () {
-    DB::table('indicators')->insert([
-        'code' => 'budget', 'label_full' => 'Бюджет', 'label_short' => 'Бюджет',
-        'scope' => 'both', 'default_unit' => 'млрд', 'module_code' => 'macro',
-        'lower_is_better' => false, 'has_growth_pct' => false, 'has_pct_of_plan' => true,
-        'has_sentinel' => false, 'sort_order' => 3,
-        'created_at' => now(), 'updated_at' => now(),
-    ]);
-    \App\Models\IndicatorFact::create([
-        'region_code' => 1703, 'district_code' => 1703401,
-        'indicator_code' => 'budget', 'period' => 'h1', 'year' => 2026,
-        'unit' => 'млрд', 'source_label' => 'test',
-        'plan_value' => 200, 'actual_hokimyat' => 180,
-        'pct_of_plan' => 90.0,
-    ]);
-
-    \Livewire\Livewire::test(\App\Livewire\DistrictsPage::class)
-        ->set('kpi', 'budget')
-        ->assertSee('II чорак ижро')
-        ->assertSee('I ярим йиллик ижро')
-        ->assertDontSee('I чорак амалда');
-});
-
-test('merged table renders ranked rows and detail panel, no leaderboard', function () {
-    $response = $this->get('/districts');
+test('clicking a district opens the slide-over peek with stats and profile link', function () {
+    $response = $this->get('/districts?district=1703224');
     $response->assertOk();
     $html = $response->getContent();
-    expect($html)->toContain('districts-table');
-    expect($html)->toContain('dt-rank');
-    expect($html)->toContain('dt-exec');
-    expect($html)->toContain('district-count-split');
-    expect($html)->toContain('district-summary-metrics');
-    expect($html)->toContain('district-summary-actions');
+    expect($html)->toContain('district-peek');
+    expect($html)->toContain('Танланган ҳудуд');
+    expect($html)->toContain('Режа');
+    expect($html)->toContain('Факт');
+    expect($html)->toContain('/profile?districtCode=1703224');
+    expect($html)->not->toContain('districts-table');
     expect($html)->not->toContain('districts-leaderboard');
-    expect($html)->not->toContain('lb-row');
 });
 
-test('district list uses plain task and target labels, not D-/T- codes', function () {
-    $response = $this->get('/districts');
+test('peek uses plain task and target labels, not D-/T- codes', function () {
+    $response = $this->get('/districts?district=1703224');
     $html = $response->getContent();
     expect($html)->toContain('Топшириқлар');
     expect($html)->toContain('Кафолат мажбурияти');

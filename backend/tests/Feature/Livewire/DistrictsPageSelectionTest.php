@@ -26,6 +26,11 @@ test('selectDistrict updates selectedDistrict when code matches', function () {
     expect($selected['district']->code)->toBe($district->code);
 });
 
+test('selectedDistrict is null when nothing is selected', function () {
+    $component = Livewire::test(DistrictsPage::class);
+    expect(invade($component->instance())->selectedDistrict())->toBeNull();
+});
+
 test('every map geometry cell name matches a District row', function () {
     foreach (AndijanMapGeometry::CELLS as $cell) {
         $match = District::where('region_code', 1703)

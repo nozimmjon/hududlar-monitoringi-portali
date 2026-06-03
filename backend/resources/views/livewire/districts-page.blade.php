@@ -1,16 +1,12 @@
 @php
-    use App\Support\DistrictMetricResolver;
-
-    $tableConfig           = $this->tableConfig;
-    $factMatrix            = $this->factMatrix;
     $taskCountByDistrict   = $this->taskCountByDistrict;
     $targetCountByDistrict = $this->targetCountByDistrict;
+    $moduleKpiStats        = $this->moduleKpiStats;
 
     $statusLabel = [
         'green' => 'Яхши', 'amber' => 'Ўртача', 'red' => 'Эътибор', 'grey' => 'Маълумот йўқ',
     ];
 
-    // Tasks shown as done/total (flip from the old unfinished/total).
     $taskDone      = fn (array $t): int => max(0, $t['total'] - $t['unfinished']);
     $taskChipClass = function (array $t): string {
         if ($t['total'] > 0 && $t['unfinished'] > 0) return 'red';
@@ -19,16 +15,18 @@
     };
     $targetChipClass = fn (int $n): string => $n > 0 ? 'blue' : 'grey';
 
-    $resolveCell = function ($col, string $code) use ($factMatrix) {
-        if ($col['metric'] === null) {
-            return ['value' => '—', 'note' => ''];
-        }
-        $fact = $factMatrix[$col['metric']['kpi']][$code][$col['metric']['period']] ?? null;
-        return [
-            'value' => DistrictMetricResolver::value($fact, $col['metric']['kind']),
-            'note'  => DistrictMetricResolver::note($fact, $col['note'] ?? null),
-        ];
+    $fmt = function ($v, int $decimals = 1): string {
+        if ($v === null || $v === '') return '—';
+        return number_format((float) $v, $decimals, ',', ' ');
     };
+
+    // KPI value text: execution -> "NN,N%"; growth -> "+/−NN,N%"
+    $statText = function (?float $v, string $kind) use ($fmt): string {
+        if ($v === null) return '—';
+        if ($kind === 'growth') return ($v >= 0 ? '+' : '−') . $fmt(abs($v), 1) . '%';
+        return $fmt($v, 1) . '%';
+    };
+    $statUp = fn (?float $v, string $kind): bool => $v !== null && ($kind === 'execution' ? $v >= 100 : $v >= 0);
 
     $districts       = $this->districts;
     $rollup          = $this->rollup;
@@ -45,30 +43,31 @@
     $selectedTasks       = $selectedRow ? ($taskCountByDistrict[$selectedCode] ?? ['unfinished' => 0, 'total' => 0]) : ['unfinished' => 0, 'total' => 0];
     $selectedTargetCount = $selectedRow ? ($targetCountByDistrict[$selectedCode] ?? 0) : 0;
 
-    $fmt = function ($v, int $decimals = 1): string {
-        if ($v === null || $v === '') return '—';
-        return number_format((float) $v, $decimals, ',', ' ');
-    };
-
     $kpiShort = $indicator?->label_short ?? $kpi;
     $kpiFull  = $indicator?->label_full  ?? $kpi;
+
+    $regionName = \App\Support\CurrentRegion::current()->name_full;
+    $heroVal    = $rollup?->pct_of_plan ?? $rollup?->growth_pct;
+    $heroVal    = $heroVal !== null ? (float) $heroVal : null;
+    $heroKind   = $rollup?->pct_of_plan !== null ? 'execution' : 'growth';
 @endphp
 
 <div>
-    <header class="districts-head">
-        <div class="districts-toolbar">
-            <div class="dashboard-module-tabs district-module-tabs">
+    <header class="districts-header">
+        <div class="districts-header-top">
+            <div class="module-seg">
                 @foreach($moduleOptions as $m)
-                    <button class="module-tab {{ $m->code === $module ? 'active' : '' }}"
-                            wire:click="selectModule('{{ $m->code }}')"
-                            type="button">
-                        <span class="module-dot" aria-hidden="true"></span>
-                        <strong>{{ preg_replace('/^\d+\.\s*/u', '', $m->label) }}</strong>
+                    <button class="module-seg-btn {{ $m->code === $module ? 'on' : '' }}"
+                            wire:click="selectModule('{{ $m->code }}')" type="button">
+                        {{ preg_replace('/^\d+\.\s*/u', '', $m->label) }}
                     </button>
                 @endforeach
             </div>
-
-            <div class="districts-head-actions">
+            <div class="districts-tools">
+                <label class="districts-control districts-control--search">
+                    <span>Қидириш</span>
+                    <input wire:model.live.debounce.300ms="search" placeholder="Туман қидириш">
+                </label>
                 <label class="districts-control">
                     <span>Саралаш</span>
                     <select wire:model.live="sort">
@@ -78,22 +77,41 @@
                         <option value="name">Алифбо бўйича</option>
                     </select>
                 </label>
-                <label class="districts-control districts-control--search">
-                    <span>Қидириш</span>
-                    <input wire:model.live.debounce.300ms="search" placeholder="Туман қидириш">
-                </label>
             </div>
         </div>
 
+        <div class="districts-hero">
+            <span class="districts-hero-icon" aria-hidden="true">@include('partials.icon', ['name' => $indicator?->icon ?? 'trend'])</span>
+            <div class="districts-hero-title">
+                <h2>{{ $kpiFull }}</h2>
+                <span>{{ $regionName }} · туманлар кесими</span>
+            </div>
+            <div class="districts-hero-value">
+                <strong class="{{ $heroKind === 'growth' && $heroVal !== null ? ($statUp($heroVal, $heroKind) ? 'up' : 'down') : '' }}">{{ $statText($heroVal, $heroKind) }}</strong>
+                <small>вилоят бўйича</small>
+            </div>
+            <span class="chip blue districts-hero-period">{{ $period }}</span>
+        </div>
+
         @if($kpiOptions->count() > 1)
-            <div class="district-kpi-pills">
+            <div class="kpi-stats">
                 @foreach($kpiOptions as $i)
-                    <button class="district-kpi-pill {{ $i->code === $kpi ? 'active' : '' }}"
-                            wire:click="selectKpi('{{ $i->code }}')"
-                            type="button"
-                            title="{{ $i->label_full }} · {{ \App\Support\DistrictTableConfig::for($i->code)['source'] }}">
-                        <span class="kpi-mini-icon" aria-hidden="true">@include('partials.icon', ['name' => $i->icon ?? 'trend'])</span>
-                        <strong>{{ $i->label_short }}</strong>
+                    @php
+                        $st = $moduleKpiStats[$i->code] ?? null;
+                        $sv = $st['value'] ?? null;
+                        $sk = $st['kind'] ?? 'growth';
+                    @endphp
+                    <button class="kpi-stat-card {{ $i->code === $kpi ? 'on' : '' }}"
+                            wire:click="selectKpi('{{ $i->code }}')" type="button"
+                            title="{{ $i->label_full }}">
+                        <span class="kpi-stat-icon" aria-hidden="true">@include('partials.icon', ['name' => $i->icon ?? 'trend'])</span>
+                        <span class="kpi-stat-body">
+                            <small>{{ $i->label_short }}</small>
+                            <strong>{{ $statText($sv, $sk) }}</strong>
+                        </span>
+                        @if($sv !== null)
+                            <span class="kpi-stat-trend {{ $statUp($sv, $sk) ? 'up' : 'down' }}" aria-hidden="true">{{ $statUp($sv, $sk) ? '▲' : '▼' }}</span>
+                        @endif
                     </button>
                 @endforeach
             </div>
@@ -104,23 +122,10 @@
         <section class="districts-map">
             <header class="districts-map-head">
                 <div>
-                    <strong>{{ $kpiShort }} — {{ $kpiFull }}</strong>
-                    <span>Ҳар бир туман ранги вилоятдаги ўрнига нисбатан.</span>
+                    <strong>Ҳудудлар харитаси</strong>
+                    <span>Ҳар туман ранги вилоятдаги ўрнига нисбатан. Туман устига босинг.</span>
                 </div>
             </header>
-            @php
-                $regionName = \App\Support\CurrentRegion::current()->name_full;
-                $rollupValue = $rollup?->pct_of_plan !== null
-                    ? $fmt($rollup->pct_of_plan, 1) . '%'
-                    : ($rollup?->growth_pct !== null ? $fmt($rollup->growth_pct, 1) . '%' : '—');
-            @endphp
-            <div class="districts-rollup-banner">
-                <div>
-                    <span class="rollup-label">{{ $regionName }} · {{ $kpiShort }}</span>
-                    <strong class="rollup-value">{{ $rollupValue }}</strong>
-                </div>
-                <span class="chip blue">{{ $period }}</span>
-            </div>
             <div class="districts-map-canvas" x-data="{hovered:null,x:0,y:0}">
                 <svg viewBox="{{ $mapGeometry['viewBox'] }}" class="andijan-map" role="img" aria-label="Ҳудудлар харитаси">
                     <g>
@@ -183,110 +188,63 @@
             </div>
         </section>
 
-        <section class="district-summary-card {{ $selectedDistrict ? '' : 'empty' }}">
-            <header class="district-summary-head">
-                <div>
-                    <span>Танланган ҳудуд</span>
-                    <h3>{{ $selectedDistrict?->name_full ?? 'Туман танланмаган' }}</h3>
-                </div>
-                @if($selectedDistrict)
-                    <span class="chip {{ $selectedStatus }}">{{ $statusLabel[$selectedStatus] ?? '—' }}</span>
-                @endif
+        <section class="districts-ranklist">
+            <header class="ranklist-head">
+                <strong>Туманлар рейтинги</strong>
+                <span>{{ count($rankedDistricts) }} та</span>
             </header>
-            @if($selectedDistrict)
-                <div class="district-summary-value">
-                    <div>
-                        <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : '—' }}</strong>
-                        <span>Ижро бажарилиши · {{ $kpiShort }}</span>
-                    </div>
-                    <div class="district-count-split">
-                        <span class="chip {{ $taskChipClass($selectedTasks) }}">Топшириқлар {{ $taskDone($selectedTasks) }}/{{ $selectedTasks['total'] }}</span>
-                        <span class="chip {{ $targetChipClass($selectedTargetCount) }}">Кафолат мажбурияти {{ $selectedTargetCount }}</span>
-                    </div>
-                </div>
-                <div class="district-summary-metrics">
-                    @foreach($tableConfig['columns'] as $col)
-                        @php $cell = $resolveCell($col, $selectedCode); @endphp
-                        <div class="district-summary-metric">
-                            <span>{{ $col['label'] }}</span>
-                            <strong>{{ $cell['value'] }}</strong>
-                            <small>{{ $cell['note'] }}</small>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="district-summary-actions">
-                    <a class="mini-button primary" href="{{ route('profile') }}?districtCode={{ $selectedCode }}">Профил</a>
-                    <a class="mini-button" href="{{ route('execution') }}?indicator={{ $kpi }}&district={{ $selectedCode }}&period={{ $period }}">Журнал</a>
-                </div>
-            @else
-                <p class="muted">Харита ёки жадвалдан туман танланг.</p>
-            @endif
+            <ol class="ranklist-rows">
+                @foreach($rankedDistricts as $idx => $row)
+                    @php
+                        $rd = $row['district']; $code = $rd->code; $rf = $row['fact']; $rs = $row['status'];
+                        $rPct = $rf?->pct_of_plan !== null ? (float) $rf->pct_of_plan : null;
+                        $rGrowth = $rf?->growth_pct !== null ? (float) $rf->growth_pct : null;
+                        $primary = $rPct !== null ? $fmt($rPct, 1) . '%' : ($rGrowth !== null ? $fmt($rGrowth, 1) . '%' : '—');
+                        $barW = $rPct !== null ? max(0, min(100, $rPct)) : 0;
+                    @endphp
+                    <li class="rank-row {{ $rs }} {{ $code === $selectedCode ? 'selected' : '' }}"
+                        wire:click="selectDistrict('{{ $code }}')"
+                        tabindex="0"
+                        x-on:keydown.enter="$wire.selectDistrict('{{ $code }}')"
+                        x-on:keydown.space.prevent="$wire.selectDistrict('{{ $code }}')">
+                        <span class="rank-rk">{{ $idx + 1 }}</span>
+                        <span class="rank-dot" aria-hidden="true"></span>
+                        <span class="rank-nm">{{ $rd->name_full }}</span>
+                        <span class="rank-vbar">
+                            <span class="rank-bar"><i style="width:{{ number_format($barW, 1, '.', '') }}%"></i></span>
+                            <span class="rank-vv">{{ $primary }}</span>
+                        </span>
+                    </li>
+                @endforeach
+            </ol>
         </section>
     </div>
 
-    <section class="panel district-detail-table">
-        <div class="panel-head">
-            <div>
-                <h3>Туманлар рейтинги</h3>
-                <p>{{ $tableConfig['title'] }}. {{ $tableConfig['description'] }}</p>
+    <div class="district-peek-backdrop {{ $selectedDistrict ? 'open' : '' }}" wire:click="clearDistrict"></div>
+    <aside class="district-peek {{ $selectedDistrict ? 'open' : '' }}" aria-hidden="{{ $selectedDistrict ? 'false' : 'true' }}">
+        @if($selectedDistrict)
+            <button class="district-peek-x" wire:click="clearDistrict" type="button" aria-label="Ёпиш">×</button>
+            <div class="district-peek-head">
+                <span class="district-peek-eyebrow">Танланган ҳудуд</span>
+                <h2>{{ $selectedDistrict->name_full }}</h2>
+                <span class="chip {{ $selectedStatus }}">{{ $statusLabel[$selectedStatus] ?? '—' }}</span>
             </div>
-            <span class="chip grey">{{ $tableConfig['source'] }}</span>
-        </div>
-        <div class="district-table-wrap">
-            <table class="district-table districts-table">
-                <thead>
-                    <tr>
-                        <th class="num">#</th>
-                        <th>Туман/шаҳар</th>
-                        <th class="num">Ижро %</th>
-                        <th class="num">Режа</th>
-                        <th class="num">Факт</th>
-                        <th class="num">Топшириқлар</th>
-                        <th class="num">Мажбурият</th>
-                        <th>Амал</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($rankedDistricts as $idx => $row)
-                        @php
-                            $rd      = $row['district'];
-                            $code    = $rd->code;
-                            $rf      = $row['fact'];
-                            $rs      = $row['status'];
-                            $tasks   = $taskCountByDistrict[$code] ?? ['unfinished' => 0, 'total' => 0];
-                            $targets = $targetCountByDistrict[$code] ?? 0;
-                            $rPct    = $rf?->pct_of_plan !== null ? (float) $rf->pct_of_plan : null;
-                            $barW    = $rPct !== null ? max(0, min(100, $rPct)) : 0;
-                            $execText = $rPct !== null ? $fmt($rPct, 1) . '%' : '—';
-                            $planText = $rf?->plan_value !== null ? $fmt($rf->plan_value, 1) : '—';
-                            $factRaw  = $rf?->actual_hokimyat ?? $rf?->actual_statkom ?? null;
-                            $factText = $factRaw !== null ? $fmt($factRaw, 1) : '—';
-                        @endphp
-                        <tr class="clickable {{ $rs }} {{ $code === $selectedCode ? 'active-row' : '' }}"
-                            wire:click="selectDistrict('{{ $code }}')"
-                            tabindex="0"
-                            x-on:keydown.enter="$wire.selectDistrict('{{ $code }}')"
-                            x-on:keydown.space.prevent="$wire.selectDistrict('{{ $code }}')">
-                            <td class="num dt-rank">{{ $idx + 1 }}</td>
-                            <td class="row-title"><span class="dt-status" aria-hidden="true"></span><strong>{{ $rd->name_full }}</strong></td>
-                            <td class="num dt-exec">
-                                <strong>{{ $execText }}</strong>
-                                <span class="dt-bar"><i style="width:{{ number_format($barW, 1, '.', '') }}%"></i></span>
-                            </td>
-                            <td class="num">{{ $planText }}</td>
-                            <td class="num">{{ $factText }}</td>
-                            <td class="num"><span class="chip {{ $taskChipClass($tasks) }}">{{ $taskDone($tasks) }}/{{ $tasks['total'] }}</span></td>
-                            <td class="num"><span class="chip {{ $targetChipClass($targets) }}">{{ $targets }}</span></td>
-                            <td>
-                                <div class="action-row compact">
-                                    <a class="mini-button profile" href="{{ route('profile') }}?districtCode={{ $code }}">Профил</a>
-                                    <a class="mini-button" href="{{ route('execution') }}?indicator={{ $kpi }}&district={{ $code }}&period={{ $period }}">Журнал</a>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </section>
+            <div class="district-peek-value">
+                <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : ($selectedFact?->growth_pct !== null ? $fmt($selectedFact->growth_pct, 1) . '%' : '—') }}</strong>
+                <span>Ижро бажарилиши · {{ $kpiShort }}</span>
+            </div>
+            <div class="district-peek-pf">
+                <div><small>Режа</small><strong>{{ $selectedFact?->plan_value !== null ? $fmt($selectedFact->plan_value, 1) : '—' }}</strong></div>
+                <div><small>Факт</small><strong>{{ ($selectedFact?->actual_hokimyat ?? $selectedFact?->actual_statkom) !== null ? $fmt($selectedFact->actual_hokimyat ?? $selectedFact->actual_statkom, 1) : '—' }}</strong></div>
+            </div>
+            <div class="district-peek-chips">
+                <span class="chip {{ $taskChipClass($selectedTasks) }}">Топшириқлар {{ $taskDone($selectedTasks) }}/{{ $selectedTasks['total'] }}</span>
+                <span class="chip {{ $targetChipClass($selectedTargetCount) }}">Кафолат мажбурияти {{ $selectedTargetCount }}</span>
+            </div>
+            <div class="district-peek-actions">
+                <a class="mini-button primary" href="{{ route('profile') }}?districtCode={{ $selectedCode }}">Профил</a>
+                <a class="mini-button" href="{{ route('execution') }}?indicator={{ $kpi }}&district={{ $selectedCode }}&period={{ $period }}">Журнал</a>
+            </div>
+        @endif
+    </aside>
 </div>
