@@ -3900,7 +3900,7 @@
     .mapstage-head strong { color: #eaf1ff; font-size: 13.5px; }
     .mapstage-head span { display: block; color: #8ea0c8; font-size: 11px; margin-top: 1px; }
     .mapstage-canvas { position: relative; }
-    .region-map { width: 100%; height: auto; display: block; margin: 0 auto; max-height: calc(100vh - 264px); }
+    .region-map { width: 100%; height: auto; display: block; margin: 0 auto; max-height: calc(100vh - 300px); }
     .map-cell { cursor: pointer; outline: none; }
     .map-cell .map-fill { stroke: #0e1c3f; stroke-width: 1.2; stroke-linejoin: round; transition: filter var(--motion); }
     .map-cell.ok .map-fill { fill: #37a34a; }

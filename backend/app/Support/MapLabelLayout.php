@@ -4,19 +4,20 @@ namespace App\Support;
 
 class MapLabelLayout
 {
-    private const RAD_X  = 40.0;  // pill-ring radius beyond the map, x
-    private const RAD_Y  = 40.0;  // pill-ring radius beyond the map, y
-    private const INSET  = 8.0;
+    private const RAD_X  = 50.0;  // pill-ring radius beyond the map, x
+    private const RAD_Y  = 38.0;  // pill-ring radius beyond the map, y
     private const PAD_X  = 8.0;
     private const GAP    = 7.0;
     private const NAME_CW = 6.4;
     private const VAL_CW  = 6.6;
     private const PILL_H = 20.0;
+    private const MIN_GAP = 7.0;  // min space between adjacent pills
 
     /**
-     * Place name+value pills on an ellipse around the map (evenly spaced by angle,
-     * ordered geographically) with curved leader lines to each district. The frame
-     * is cropped to the map bbox plus a ring band, so the container stays compact.
+     * Place name+value pills on an ellipse around the map, ordered by geographic
+     * angle, then iteratively repel overlapping pills apart along the ring so none
+     * collide. Curved leaders connect each pill to its district. The frame crops to
+     * the map bbox plus the ring band.
      *
      * @param  array{viewBox?:string,cells?:array}  $geometry  RegionMapGeometry output.
      * @param  array<int|string,array{name:string,value:string,color:string}>  $labels  keyed by cell code.
@@ -59,8 +60,7 @@ class MapLabelLayout
         $mapH = max(1.0, $maxY - $minY);
         $h = self::PILL_H;
 
-        // Frame: map bbox + a ring band wide enough for the widest pill.
-        $gx = self::RAD_X + ceil($maxW / 2) + 8.0;
+        $gx = self::RAD_X + ceil($maxW / 2) + 10.0;
         $gy = self::RAD_Y + $h + 6.0;
         $outerW = $mapW + 2 * $gx;
         $outerH = $mapH + 2 * $gy;
@@ -73,27 +73,61 @@ class MapLabelLayout
         $aRad = $mapW / 2 + self::RAD_X;
         $bRad = $mapH / 2 + self::RAD_Y;
 
-        // Order districts around the ring by their true angle, then place at even
-        // angular steps so the labels form a clean oval ring.
+        // Order around the ring by true angle, seed at even angular steps.
         usort($cells, fn ($a, $b) =>
             atan2($a['cy'] - $cyc, $a['cx'] - $cxc) <=> atan2($b['cy'] - $cyc, $b['cx'] - $cxc));
         $n = count($cells);
 
-        $pills = [];
+        $items = [];
         foreach ($cells as $i => $cell) {
-            $code = $cell['code'];
-            $lbl  = $labels[$code];
-            $w    = self::pillWidth($lbl);
-            $th   = -M_PI / 2 + $i * 2 * M_PI / $n;     // start at top, go clockwise
-            $ex   = $ocx + $aRad * cos($th);
-            $ey   = $ocy + $bRad * sin($th);
-            $topbot = abs(sin($th)) > 0.7;
+            $th = -M_PI / 2 + $i * 2 * M_PI / $n;
+            $items[] = [
+                'cell' => $cell,
+                'w'    => self::pillWidth($labels[$cell['code']]),
+                'th'   => $th,
+                'x'    => $ocx + $aRad * cos($th),
+                'y'    => $ocy + $bRad * sin($th),
+            ];
+        }
+
+        // Repel overlapping pills apart along the ring (rotate + reproject).
+        for ($iter = 0; $iter < 300; $iter++) {
+            $moved = false;
+            for ($i = 0; $i < $n; $i++) {
+                for ($j = $i + 1; $j < $n; $j++) {
+                    $ox = ($items[$i]['w'] + $items[$j]['w']) / 2 + self::MIN_GAP - abs($items[$i]['x'] - $items[$j]['x']);
+                    $oy = $h + self::MIN_GAP - abs($items[$i]['y'] - $items[$j]['y']);
+                    if ($ox > 0 && $oy > 0) {
+                        $d = $items[$j]['th'] - $items[$i]['th'];
+                        if ($d > M_PI)  $d -= 2 * M_PI;
+                        if ($d < -M_PI) $d += 2 * M_PI;
+                        $s = $d >= 0 ? 1 : -1;
+                        $items[$i]['th'] -= 0.015 * $s;
+                        $items[$j]['th'] += 0.015 * $s;
+                        $items[$i]['x'] = $ocx + $aRad * cos($items[$i]['th']);
+                        $items[$i]['y'] = $ocy + $bRad * sin($items[$i]['th']);
+                        $items[$j]['x'] = $ocx + $aRad * cos($items[$j]['th']);
+                        $items[$j]['y'] = $ocy + $bRad * sin($items[$j]['th']);
+                        $moved = true;
+                    }
+                }
+            }
+            if (! $moved) {
+                break;
+            }
+        }
+
+        $pills = [];
+        foreach ($items as $it) {
+            $cell = $it['cell'];
+            $lbl  = $labels[$cell['code']];
+            $w    = $it['w'];
+            $th   = $it['th'];
             $right  = cos($th) >= 0;
+            $topbot = abs(sin($th)) > 0.6;
 
-            $px = $topbot ? $ex - $w / 2 : ($right ? $ex : $ex - $w);
-            $px = min($outerW - 6 - $w, max(6.0, $px));
-            $py = $ey;
-
+            $px = min($outerW - 6 - $w, max(6.0, $it['x'] - $w / 2));
+            $py = $it['y'];
             $dotX = $cell['cx'] + $tx;
             $dotY = $cell['cy'] + $ty;
 
@@ -108,7 +142,7 @@ class MapLabelLayout
             }
 
             $pills[] = [
-                'code'   => $code,
+                'code'   => $cell['code'],
                 'x'      => round($px, 1),
                 'y'      => round($py, 1),
                 'w'      => round($w, 1),
