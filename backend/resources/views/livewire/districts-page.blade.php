@@ -109,13 +109,13 @@
                 <strong>Ҳудудлар харитаси</strong>
                 <span>Яшил — режада, қизил — эътибор талаб. Туман устига босинг.</span>
             </div>
+        </header>
+        <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
             <div class="map-legend">
                 <span><i class="ok"></i>Режада</span>
                 <span><i class="bad"></i>Эътибор</span>
                 <span><i class="nd"></i>Маълумот йўқ</span>
             </div>
-        </header>
-        <div class="mapstage-canvas" x-data="{hovered:null,x:0,y:0}">
             <svg viewBox="{{ $mapLayout['viewBox'] }}" class="region-map" role="img" aria-label="Ҳудудлар харитаси">
                 <g transform="translate({{ $mapLayout['mapTranslate'] }},0)">
                     @foreach($mapGeometry['cells'] as $cell)
