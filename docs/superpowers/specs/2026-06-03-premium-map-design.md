@@ -60,8 +60,8 @@ In the map-labels `@foreach` (view), branch on city vs district (cities are alre
 
 CSS:
 - `.map-label` → `opacity: 1` (districts always visible); keep `.map-label.selected { fill: var(--blue); }`.
-- `.map-label.is-city` → `opacity: 0` by default; `.map-cell.selected .map-label.is-city { opacity: 1; }` (city name on selection).
-- `.map-dot { fill:#fff; stroke: rgba(60,70,90,.55); stroke-width:1.3; }` and `.map-cell.selected .map-dot { stroke: var(--blue); stroke-width:2; }`.
+- `.map-label.is-city` → `opacity: 0` by default. Reveal on selection by stamping a `selected` class **on the label element** (the labels live in a separate `<g class="map-labels">`, not inside `<g class="map-cell">`, so a `.map-cell.selected …` descendant selector would never match). The existing `.map-label.selected { opacity:1 }` rule (declared after `.map-label.is-city`, equal specificity) then wins and re-shows the city name.
+- `.map-dot { fill:#fff; stroke: rgba(60,70,90,.55); stroke-width:1.3; pointer-events:none; }` and `.map-dot.selected { stroke: var(--blue); stroke-width:2; }` (class stamped on the `<circle>` element, same reason). `pointer-events:none` so the centered dot never intercepts the cell's hover tooltip.
 
 (Rule: city → dot, district → in-cell label. Among the 16 cells only the two cities are too small; districts' short names fit. If a future non-city district is also tiny, the same city-style fallback can be extended to it.)
 
