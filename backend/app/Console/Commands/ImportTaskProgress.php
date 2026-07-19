@@ -187,7 +187,7 @@ class ImportTaskProgress extends Command
                     // Only advance the headline snapshot if this period is not older
                     // than what the task already shows.
                     $shouldAdvance = $task->latest_period === null
-                        || $this->periodSortKey($period) >= $this->periodSortKey($task->latest_period);
+                        || TaskPeriod::sortKey($period) >= TaskPeriod::sortKey($task->latest_period);
                     if ($shouldAdvance) {
                         $task->update([
                             'latest_period'   => $period,
@@ -226,17 +226,5 @@ class ImportTaskProgress extends Command
         }
 
         return self::SUCCESS;
-    }
-
-    /** Sortable key: quarters/halves map to their closing month (Q1->03, ..., H1->06, H2->12). */
-    private function periodSortKey(string $period): string
-    {
-        if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $m)) {
-            return $m[1] . '-' . str_pad((string) ((int) $m[2] * 3), 2, '0', STR_PAD_LEFT);
-        }
-        if (preg_match('/^(\d{4})-H([12])$/', $period, $m)) {
-            return $m[1] . '-' . ($m[2] === '1' ? '06' : '12');
-        }
-        return $period;
     }
 }

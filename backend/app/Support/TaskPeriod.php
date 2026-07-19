@@ -26,6 +26,18 @@ class TaskPeriod
         return (int) substr($reportPeriod, 0, 4);
     }
 
+    /** Sortable key: quarters/halves map to their closing month (Q1->03, ..., H1->06, H2->12). */
+    public static function sortKey(string $period): string
+    {
+        if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $m)) {
+            return $m[1] . '-' . str_pad((string) ((int) $m[2] * 3), 2, '0', STR_PAD_LEFT);
+        }
+        if (preg_match('/^(\d{4})-H([12])$/', $period, $m)) {
+            return $m[1] . '-' . ($m[2] === '1' ? '06' : '12');
+        }
+        return $period;
+    }
+
     private const MONTHS = [
         'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
         'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр',
