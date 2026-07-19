@@ -17,6 +17,8 @@ class KpiWorkspaceCard extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public string $period = 'h1';
+
     public int $regionCode;
 
     public function mount(): void
@@ -52,6 +54,7 @@ class KpiWorkspaceCard extends Component
             'kpi'       => $this->kpi,
             'rows'      => $rows,
             'panel'     => $panel,
+            'period'    => $this->period,
         ], $extra));
     }
 

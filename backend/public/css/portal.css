@@ -4353,6 +4353,33 @@
       padding: 8px 10px;
     }
 
+    .topbar-period {
+      display: inline-flex;
+      gap: 4px;
+      margin-left: auto;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+    }
+
+    .topbar-period__btn {
+      border: 0;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .topbar-period__btn.active {
+      background: var(--blue);
+      color: #fff;
+    }
+
     .task-filter.report-filter {
       grid-template-columns: minmax(220px, 1fr) minmax(150px, .55fr) minmax(170px, .65fr) minmax(220px, .9fr);
     }

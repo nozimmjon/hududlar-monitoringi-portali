@@ -16,6 +16,8 @@ class KpiScoreline extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public string $period = 'year';
+
     public int $regionCode;
 
     public function mount(): void
@@ -31,8 +33,17 @@ class KpiScoreline extends Component
             $base->forIndicator($this->kpi);
         }
 
-        $total = (clone $base)->count();
-        $done  = (clone $base)->where('status', 'done')->count();
+        $tasks = $base->get(['status', 'period_code', 'deadline_text']);
+
+        // Год якуни = full annual picture (all tasks); I ярим йиллик = h1-bucket only.
+        if ($this->period === 'h1') {
+            $tasks = $tasks->filter(
+                fn ($t) => \App\Support\TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === 'h1'
+            );
+        }
+
+        $total = $tasks->count();
+        $done  = $tasks->where('status', 'done')->count();
         $open  = $total - $done;
         $pct   = $total > 0 ? (int) round(($done / $total) * 100) : 0;
 

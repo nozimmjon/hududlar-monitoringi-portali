@@ -16,6 +16,8 @@ class KpiFrontCards extends Component
     #[Reactive]
     public string $kpi = 'grp';
 
+    public string $period = 'h1';
+
     public int $regionCode;
 
     public function mount(): void
@@ -35,7 +37,7 @@ class KpiFrontCards extends Component
         $facts = IndicatorFact::where('region_code', $this->regionCode)
             ->where('year', 2026)
             ->whereNull('district_code')
-            ->where('period', 'year')
+            ->where('period', $this->period)
             ->whereIn('indicator_code', $codes)
             ->get()
             ->keyBy('indicator_code');

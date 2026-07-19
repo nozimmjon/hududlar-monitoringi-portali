@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard;
 use App\Models\Task;
 use App\Support\CurrentRegion;
 use App\Support\DashboardCatalog;
+use App\Support\TaskPeriod;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
@@ -12,6 +13,8 @@ class KpiModuleTabs extends Component
 {
     #[Reactive]
     public string $module = 'macro';
+
+    public string $period = 'year';
 
     public int $regionCode;
 
@@ -32,16 +35,21 @@ class KpiModuleTabs extends Component
             $taskCounts[$code] = ['done' => 0, 'total' => 0];
         }
 
-        $rows = Task::forRegion($this->regionCode)
-            ->selectRaw("module_code, COUNT(*) AS total, SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done")
+        $tasks = Task::forRegion($this->regionCode)
             ->whereNotNull('module_code')
-            ->groupBy('module_code')
-            ->get();
+            ->get(['module_code', 'status', 'period_code', 'deadline_text']);
 
-        foreach ($rows as $row) {
-            $taskCounts[$row->module_code] = [
-                'done'  => (int) $row->done,
-                'total' => (int) $row->total,
+        // Год якуни = full annual picture (all tasks); I ярим йиллик = h1-bucket only.
+        if ($this->period === 'h1') {
+            $tasks = $tasks->filter(
+                fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === 'h1'
+            );
+        }
+
+        foreach ($tasks->groupBy('module_code') as $code => $group) {
+            $taskCounts[$code] = [
+                'done'  => $group->where('status', 'done')->count(),
+                'total' => $group->count(),
             ];
         }
 

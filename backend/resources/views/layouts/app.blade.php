@@ -51,6 +51,9 @@
       <div class="brand">
         <h1>{{ $currentRegion->name_full }} мониторинг платформаси</h1>
       </div>
+      @if(request()->routeIs('dashboard'))
+        <livewire:period-switcher />
+      @endif
     </header>
 
     <main class="main">

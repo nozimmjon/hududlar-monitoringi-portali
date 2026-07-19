@@ -15,8 +15,14 @@ class KpiDashboard extends Component
     #[Url]
     public string $kpi = 'grp';
 
+    #[Url]
+    public string $period = 'h1';
+
     public function mount(): void
     {
+        if (! in_array($this->period, ['h1', 'year'], true)) {
+            $this->period = 'h1';
+        }
         if (! DashboardCatalog::module($this->module)) {
             $this->module = 'macro';
         }
@@ -42,11 +48,21 @@ class KpiDashboard extends Component
         $this->module = DashboardCatalog::moduleForKpi($kpi);
     }
 
+    #[On('period-selected')]
+    public function selectPeriod(string $period): void
+    {
+        if (! in_array($period, ['h1', 'year'], true)) {
+            return;
+        }
+        $this->period = $period;
+    }
+
     public function render()
     {
         return view('livewire.kpi-dashboard', [
             'module'      => $this->module,
             'kpi'         => $this->kpi,
+            'period'      => $this->period,
             'moduleLabel' => DashboardCatalog::moduleLabel($this->module),
             'moduleIntro' => DashboardCatalog::moduleIntro($this->module),
             'hasFrontCards' => DashboardCatalog::hasFrontCards($this->module),
