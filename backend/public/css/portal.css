@@ -164,6 +164,13 @@
       padding: 0 10px 14px;
     }
 
+    /* logo.svg is all-white — sits directly on the navy sidebar. */
+    .brand-logo {
+      height: 34px;
+      width: auto;
+      display: block;
+    }
+
     .side-title {
       padding: 0 10px 14px;
       border-bottom: 1px solid rgba(255,255,255,.12);
@@ -5380,6 +5387,7 @@
       body { grid-template-columns: 1fr; }
       .topbar { padding: 10px 14px; }
       .brand-mark { height: 34px; font-size: 14px; }
+      .brand-logo { height: 34px; }
       .brand h1 { font-size: 13px; }
       .sidebar {
         position: static;

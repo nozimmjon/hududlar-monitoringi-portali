@@ -17,7 +17,7 @@
 <body>
   <aside class="sidebar">
     <div class="side-brand">
-      <span class="brand-mark">CERR</span>
+      <img class="brand-logo" src="/logo.svg" alt="CERR">
     </div>
     <div class="side-title">
       <strong>Бошқарув маркази</strong>
