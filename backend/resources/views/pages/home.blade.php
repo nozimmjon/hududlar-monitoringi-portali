@@ -93,6 +93,25 @@ svg.uz { width: 100%; height: min(76vh, 900px); display: block; }
 }
 .legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
 
+.filter {
+  position: absolute; top: 18px; right: 24px;
+  display: inline-flex; gap: 4px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+  box-shadow: var(--shadow-s); padding: 5px;
+}
+.filter button {
+  border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font); font-size: 13.5px; font-weight: 700; color: var(--ink-mute);
+  padding: 9px 18px; border-radius: 999px;
+  transition: background 180ms var(--ease), color 180ms var(--ease);
+}
+.filter button:hover { color: var(--ink); }
+.filter button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.filter button.on {
+  background: linear-gradient(135deg, #2b61af 0%, #0b4c7a 100%);
+  color: white;
+}
+
 .rg { cursor: pointer; }
 .rg path {
   stroke: white; stroke-width: 1.2;
@@ -165,10 +184,14 @@ svg.uz:hover .rg:not(.hot) path { opacity: .45; }
 
 <main class="stage">
   <section class="map-card">
+    <div class="filter" role="tablist" aria-label="Муддат бўйича фильтр">
+      <button type="button" class="on" data-filter="h1" role="tab" aria-selected="true">I ярим йиллик</button>
+      <button type="button" data-filter="all" role="tab" aria-selected="false">Барча топшириқлар</button>
+    </div>
     <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари — топшириқлар ижроси" id="map"></svg>
     <div class="kpis" aria-label="Республика жамланмаси">
-      <div class="kpi"><div class="v num">{{ $republic['done'] }} <small>/ {{ $republic['total'] }}</small></div><div class="k">Бажарилган</div></div>
-      <div class="kpi"><div class="v num">{{ $republic['open'] }}</div><div class="k">Ижрода</div></div>
+      <div class="kpi"><div class="v num" id="kpi-done"></div><div class="k">Бажарилган</div></div>
+      <div class="kpi"><div class="v num" id="kpi-open"></div><div class="k">Ижрода</div></div>
     </div>
     <div class="legend">
       <span><i style="background:var(--t-hi)"></i>юқори</span>
@@ -183,17 +206,27 @@ svg.uz:hover .rg:not(.hot) path { opacity: .45; }
 
 <script>
 const UZ_REGIONS = @json($geometry, JSON_UNESCAPED_UNICODE);
-const REGION_STATS = @json($stats, JSON_UNESCAPED_UNICODE);
+const STATS_BY_FILTER = @json($stats, JSON_UNESCAPED_UNICODE);
 
-const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
 const dash = c => '{{ url('/region') }}/' + c;
 const donePct = s => s.total ? s.done / s.total * 100 : 0;
-const tier = s => donePct(s) >= 22 ? 'hi' : donePct(s) >= 20 ? 'md' : 'lo';
 
 const svg = document.getElementById('map');
 const NS = 'http://www.w3.org/2000/svg';
 const tip = document.getElementById('tip');
 const TIER_COLOR = { hi: 'oklch(58% 0.145 262)', md: 'oklch(70% 0.10 250)', lo: 'oklch(80% 0.06 250)' };
+
+let stats = {};   // current filter's stats, keyed by region code
+let tier = () => 'md';
+
+// Tier cutoffs are terciles of the current filter's done-share distribution —
+// fixed thresholds would collapse to one color when a filter shifts the range.
+function makeTier(list) {
+  const shares = list.map(donePct).sort((a, b) => a - b);
+  const q = f => shares[Math.min(shares.length - 1, Math.floor(f * shares.length))] ?? 0;
+  const lo = q(1 / 3), hi = q(2 / 3);
+  return s => donePct(s) >= hi ? 'hi' : donePct(s) >= lo ? 'md' : 'lo';
+}
 
 /* ---- ring layout: pills evenly distributed around the map on a rectangular
    ring, geographic order preserved, ring rotation chosen to keep each pill
@@ -211,6 +244,17 @@ const bbox = d => {
   }
   return [minX, maxX, minY, maxY];
 };
+
+function render(filterKey) {
+const list = STATS_BY_FILTER[filterKey] || [];
+stats = Object.fromEntries(list.map(s => [s.code, s]));
+tier = makeTier(list);
+svg.textContent = '';
+tip.classList.remove('on');
+
+const rep = list.reduce((a, s) => ({ done: a.done + s.done, total: a.total + s.total, open: a.open + s.open }), { done: 0, total: 0, open: 0 });
+document.getElementById('kpi-done').innerHTML = rep.done + ' <small>/ ' + rep.total + '</small>';
+document.getElementById('kpi-open').textContent = rep.open;
 
 const regions = UZ_REGIONS.filter(g => stats[g.code]);
 let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9, maxW = 0;
@@ -385,6 +429,20 @@ document.querySelectorAll('.pill').forEach(el => {
   el.addEventListener('mouseenter', () => hot(el.dataset.pill, true));
   el.addEventListener('mouseleave', () => hot(el.dataset.pill, false));
 });
+}
+
+document.querySelectorAll('.filter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter button').forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    render(btn.dataset.filter);
+  });
+});
+
+render('h1');
 </script>
 </body>
 </html>

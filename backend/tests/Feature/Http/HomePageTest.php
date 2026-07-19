@@ -16,15 +16,18 @@ test('GET / renders the entry map page with per-region task stats', function () 
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '1',
         'status' => 'done', 'headline_plan' => 10,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
     ]);
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '2',
         'status' => 'open', 'headline_plan' => 5,
+        'period_code' => 'year', 'deadline_text' => '2026 йил якуни билан',
     ]);
     // Plan-less task must NOT count anywhere.
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '3',
         'status' => 'open', 'headline_plan' => null,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
     ]);
 
     $response = $this->get('/');
@@ -32,13 +35,17 @@ test('GET / renders the entry map page with per-region task stats', function () 
     $response->assertOk();
     $response->assertSee('Ҳудудий топшириқлар ижроси');
     $response->assertSee('Тошкент ш.');           // disambiguated short label
-    $response->assertSee('"total":2', false);      // Andijan: only planned tasks
+    $response->assertSee('I ярим йиллик');         // deadline filter control
+    $response->assertSee('Барча топшириқлар');
+    // "all" filter: both planned tasks; "h1" filter: only the half-year one.
+    $response->assertSee('"total":2', false);
+    $response->assertSee('"total":1', false);
     $response->assertSee('"done":1', false);
     $response->assertDontSee('layouts.app');       // standalone page, no app shell
 });
 
 test('GET / works with no tasks at all', function () {
-    $this->get('/')->assertOk()->assertSee('0 / 0');
+    $this->get('/')->assertOk()->assertSee('Ҳудудий топшириқлар ижроси');
 });
 
 test('clicking a region switches the session region and opens the dashboard', function () {

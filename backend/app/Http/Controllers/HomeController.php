@@ -6,7 +6,9 @@ use App\Models\Region;
 use App\Models\Task;
 use App\Support\CountryMapGeometry;
 use App\Support\CurrentRegion;
+use App\Support\TaskPeriod;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
@@ -16,12 +18,28 @@ class HomeController extends Controller
         // Region-level display names: short for the pills, full for tooltips.
         $regions = Region::orderBy('code')->get()->keyBy('code');
 
-        // One pass over all planned tasks; group counts per region in PHP.
-        $tasks = Task::query()->hasPlan()->get(['region_code', 'status']);
-        $byRegion = $tasks->groupBy('region_code');
+        // One pass over all planned tasks; the deadline filter splits them into
+        // "everything" vs "due in the first half-year" (bucket h1 = ярим йиллик
+        // deadlines incl. Jan–Jun month deadlines).
+        $tasks = Task::query()->hasPlan()->get(['region_code', 'status', 'period_code', 'deadline_text']);
+        $h1Tasks = $tasks->filter(
+            fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === 'h1'
+        );
 
+        return view('pages.home', [
+            'geometry' => CountryMapGeometry::regions(),
+            'stats'    => [
+                'all' => self::regionStats($tasks, $regions),
+                'h1'  => self::regionStats($h1Tasks, $regions),
+            ],
+        ]);
+    }
+
+    /** @return list<array{code:int,short:string,full:string,total:int,done:int,open:int}> */
+    private static function regionStats(Collection $tasks, Collection $regions): array
+    {
         $stats = [];
-        foreach ($byRegion as $code => $rows) {
+        foreach ($tasks->groupBy('region_code') as $code => $rows) {
             $region = $regions->get($code);
             if ($region === null) {
                 continue;
@@ -39,17 +57,7 @@ class HomeController extends Controller
         }
         usort($stats, fn ($a, $b) => $a['code'] <=> $b['code']);
 
-        $republic = [
-            'total' => array_sum(array_column($stats, 'total')),
-            'done'  => array_sum(array_column($stats, 'done')),
-            'open'  => array_sum(array_column($stats, 'open')),
-        ];
-
-        return view('pages.home', [
-            'geometry' => CountryMapGeometry::regions(),
-            'stats'    => $stats,
-            'republic' => $republic,
-        ]);
+        return $stats;
     }
 
     /** Region click: remember the region in the session, open its dashboard. */
