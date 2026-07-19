@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги · Aurora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext">
+<style>
+/* Hallmark · macrostructure: Marquee canvas (map-hero) · theme: custom "aurora glass"
+ * vibe: night sky · glass · luminous data · paper oklch(16% 0.03 265) · accent oklch(78% 0.12 210)
+ * fonts: Unbounded + Manrope · nav: floating glass pill · footer: none (stage page)
+ * pre-emit critique: P5 H4 E5 S5 R4 V5 */
+:root {
+  --bg:        oklch(15% 0.032 268);
+  --glow-1:    oklch(38% 0.11 285 / .55);
+  --glow-2:    oklch(45% 0.10 210 / .38);
+  --glow-3:    oklch(35% 0.09 330 / .30);
+  --glass:     oklch(98% 0.01 250 / .06);
+  --glass-2:   oklch(98% 0.01 250 / .10);
+  --glass-line:oklch(98% 0.01 250 / .16);
+  --ink:       oklch(96% 0.008 250);
+  --ink-mute:  oklch(78% 0.02 255);
+  --ink-faint: oklch(62% 0.025 260);
+  --hi:        oklch(80% 0.11 210);
+  --t-hi:      oklch(62% 0.10 230);
+  --t-hi-2:    oklch(74% 0.125 205);
+  --t-md:      oklch(50% 0.09 245);
+  --t-lo:      oklch(33% 0.05 268);
+  --warn:      oklch(70% 0.14 45);
+  --focus:     oklch(82% 0.10 210);
+  --font-d:    'Unbounded', sans-serif;
+  --font-b:    'Manrope', sans-serif;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  min-height: 100vh;
+  font-family: var(--font-b);
+  color: var(--ink);
+  background: var(--bg);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+body::before {
+  content: ''; position: fixed; inset: -20%;
+  background:
+    radial-gradient(42% 55% at 18% 12%, var(--glow-1), transparent 70%),
+    radial-gradient(38% 48% at 85% 20%, var(--glow-2), transparent 70%),
+    radial-gradient(45% 60% at 60% 95%, var(--glow-3), transparent 72%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+body > * { position: relative; }
+.num { font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+
+/* ---------- floating header ---------- */
+.bar {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  margin: 22px clamp(16px, 3vw, 40px) 0;
+  padding: 12px 12px 12px 20px;
+  background: var(--glass); border: 1px solid var(--glass-line);
+  border-radius: 18px; backdrop-filter: blur(14px);
+}
+.bar h1 { font-family: var(--font-d); font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.bar h1 span { color: var(--hi); }
+.bar .chip {
+  font-size: 13px; font-weight: 600; color: var(--ink-mute);
+  background: var(--glass-2); border: 1px solid var(--glass-line);
+  padding: 8px 16px; border-radius: 12px;
+}
+
+/* ---------- stage ---------- */
+.stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px clamp(8px, 2vw, 28px); min-height: 0; }
+svg.uz { width: min(100%, 1500px); height: min(78vh, 860px); display: block; }
+
+.rg { cursor: pointer; }
+.rg path {
+  stroke: oklch(20% 0.03 265); stroke-width: 1;
+  transition: opacity 260ms var(--ease), filter 260ms var(--ease), transform 260ms var(--ease);
+  transform-box: fill-box; transform-origin: center;
+}
+.rg[data-tier="hi"] path { fill: var(--t-hi); }
+.rg[data-tier="hi2"] path { fill: var(--t-hi-2); }
+.rg[data-tier="md"] path { fill: var(--t-md); }
+.rg[data-tier="lo"] path { fill: var(--t-lo); }
+svg.uz:hover .rg:not(.hot) path { opacity: .38; }
+.rg.hot path {
+  filter: brightness(1.25) saturate(1.2) drop-shadow(0 0 18px oklch(75% 0.12 215 / .55)) drop-shadow(0 10px 30px oklch(10% 0.03 265 / .8));
+  transform: translateY(-4px) scale(1.012);
+}
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2.4; }
+
+.badge { pointer-events: none; transition: opacity 200ms var(--ease); }
+.badge rect {
+  fill: oklch(14% 0.03 268 / .78); stroke: var(--glass-line); rx: 11;
+}
+.badge text.n { font-family: var(--font-b); font-size: 10.5px; font-weight: 600; fill: var(--ink-mute); }
+.badge text.c { font-family: var(--font-b); font-size: 13.5px; font-weight: 800; fill: var(--ink); }
+.badge text.c tspan { fill: var(--ink-faint); font-weight: 600; }
+.badge line { stroke: var(--glass-line); stroke-width: 1; }
+
+/* ---------- stats dock ---------- */
+.dock {
+  position: fixed; left: clamp(16px, 3vw, 40px); bottom: 22px;
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.dock .card {
+  background: var(--glass); border: 1px solid var(--glass-line);
+  border-radius: 16px; backdrop-filter: blur(14px);
+  padding: 12px 18px;
+}
+.dock .v { font-family: var(--font-d); font-size: 20px; font-weight: 600; }
+.dock .v small { font-size: 12px; color: var(--ink-faint); font-weight: 500; font-family: var(--font-b); }
+.dock .k { font-size: 11.5px; color: var(--ink-faint); margin-top: 3px; font-weight: 600; }
+.legend {
+  position: fixed; right: clamp(16px, 3vw, 40px); bottom: 22px;
+  display: flex; gap: 16px; align-items: center;
+  background: var(--glass); border: 1px solid var(--glass-line);
+  border-radius: 14px; backdrop-filter: blur(14px);
+  padding: 10px 16px; font-size: 12px; color: var(--ink-mute); font-weight: 600;
+}
+.legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+/* ---------- tooltip ---------- */
+.tip {
+  position: fixed; z-index: 20; pointer-events: none; width: 252px;
+  background: oklch(20% 0.032 266 / .85); border: 1px solid var(--glass-line);
+  border-radius: 18px; backdrop-filter: blur(18px);
+  padding: 16px 18px;
+  opacity: 0; transform: translateY(8px) scale(.98);
+  transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+  box-shadow: 0 24px 60px oklch(8% 0.02 265 / .6);
+}
+.tip.on { opacity: 1; transform: none; }
+.tip h3 { font-size: 14.5px; font-weight: 700; }
+.tip .row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+.tip .ring { width: 58px; height: 58px; flex: none; }
+.tip .ring .tr { stroke: var(--glass-line); }
+.tip .ring .pr { stroke: var(--hi); stroke-linecap: round; transition: stroke-dashoffset 350ms var(--ease); }
+.tip .big { font-family: var(--font-d); font-size: 19px; font-weight: 600; }
+.tip .big small { font-size: 12px; color: var(--ink-faint); font-family: var(--font-b); font-weight: 600; }
+.tip .sub { font-size: 12px; color: var(--ink-mute); margin-top: 2px; font-weight: 600; }
+.tip .go { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--glass-line); font-size: 12px; font-weight: 700; color: var(--hi); }
+
+@media (max-width: 820px) {
+  .dock, .legend { position: static; margin: 0 16px 16px; }
+  .stage { padding-bottom: 0; }
+  svg.uz { height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>ҲУДУДЛАР <span>МОНИТОРИНГИ</span></h1>
+  <span class="chip" id="period"></span>
+</header>
+
+<main class="stage">
+  <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари — топшириқлар ижроси" id="map"></svg>
+</main>
+
+<div class="dock" aria-label="Республика жамланмаси">
+  <div class="card"><div class="v num" id="d-done"></div><div class="k">Бажарилган топшириқлар</div></div>
+  <div class="card"><div class="v num" id="d-open"></div><div class="k">Ижрода</div></div>
+  <div class="card"><div class="v num">14</div><div class="k">Ҳудуд</div></div>
+</div>
+<div class="legend">
+  <span><i style="background:var(--t-hi-2)"></i>юқори</span>
+  <span><i style="background:var(--t-md)"></i>ўрта</span>
+  <span><i style="background:var(--t-lo)"></i>паст</span>
+  <span style="color:var(--ink-faint)">бажарилган улуши</span>
+</div>
+
+<div class="tip" id="tip" role="status"></div>
+
+<script src="data.js"></script>
+<script>
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '/dashboard?region=' + c;
+const tier = s => s.donePct >= 22 ? 'hi2' : s.donePct >= 20 ? 'md' : 'lo';
+
+document.getElementById('period').textContent = REPUBLIC.period;
+document.getElementById('d-done').innerHTML = REPUBLIC.done + ' <small>/ ' + REPUBLIC.total + '</small>';
+document.getElementById('d-open').textContent = REPUBLIC.open;
+
+const LBL = {
+  1735: {dx: -6, dy: -10}, 1733: {dx: 2, dy: 12}, 1712: {dx: -14, dy: 28},
+  1706: {dx: -8, dy: 22}, 1710: {dx: 6, dy: 14}, 1722: {dx: 2, dy: 10},
+  1718: {dx: -36, dy: 40}, 1708: {dx: -6, dy: 22}, 1724: {dx: 58, dy: 68, leader: true},
+  1727: {dx: 34, dy: -36}, 1726: {dx: -38, dy: -60, leader: true},
+  1714: {dx: 6, dy: -22}, 1703: {dx: 16, dy: 24}, 1730: {dx: -6, dy: 14},
+};
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s));
+  a.setAttribute('aria-label', s.full + ' — ' + s.done + ' / ' + s.total + ' топшириқ бажарилган');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  svg.appendChild(a);
+}
+
+// Count badges: rounded chips with name + done/total.
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const o = LBL[g.code] || {dx: 0, dy: 0};
+  const x = g.cx + o.dx, y = g.cy + o.dy;
+  const grp = document.createElementNS(NS, 'g');
+  grp.setAttribute('class', 'badge');
+  grp.setAttribute('data-badge', g.code);
+  const wName = Math.max(s.short.length * 6.1, String(s.done + '/' + s.total).length * 8) + 18;
+  if (o.leader) {
+    const ln = document.createElementNS(NS, 'line');
+    ln.setAttribute('x1', g.cx); ln.setAttribute('y1', g.cy);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', y + 8);
+    grp.appendChild(ln);
+  }
+  const r = document.createElementNS(NS, 'rect');
+  r.setAttribute('x', x - wName / 2); r.setAttribute('y', y - 22);
+  r.setAttribute('width', wName); r.setAttribute('height', 40);
+  r.setAttribute('rx', 11);
+  grp.appendChild(r);
+  const t1 = document.createElementNS(NS, 'text');
+  t1.setAttribute('x', x); t1.setAttribute('y', y - 7);
+  t1.setAttribute('text-anchor', 'middle');
+  t1.setAttribute('class', 'n');
+  t1.textContent = s.short;
+  const t2 = document.createElementNS(NS, 'text');
+  t2.setAttribute('x', x); t2.setAttribute('y', y + 11);
+  t2.setAttribute('text-anchor', 'middle');
+  t2.setAttribute('class', 'c num');
+  t2.innerHTML = s.done + '<tspan>/' + s.total + '</tspan>';
+  grp.appendChild(t1); grp.appendChild(t2);
+  svg.appendChild(grp);
+}
+
+const R = 24, CIRC = 2 * Math.PI * R;
+document.querySelectorAll('.rg').forEach(el => {
+  const s = stats[el.dataset.code];
+  el.addEventListener('mouseenter', () => {
+    el.classList.add('hot');
+    const badge = document.querySelector('[data-badge="' + el.dataset.code + '"]');
+    if (badge) badge.style.opacity = '0';
+    const frac = s.done / s.total;
+    tip.innerHTML = '<h3>' + s.full + '</h3>'
+      + '<div class="row">'
+      + '<svg class="ring" viewBox="0 0 58 58"><circle class="tr" cx="29" cy="29" r="' + R + '" fill="none" stroke-width="5"/>'
+      + '<circle class="pr" cx="29" cy="29" r="' + R + '" fill="none" stroke-width="5" stroke-dasharray="' + CIRC + '" stroke-dashoffset="' + CIRC + '" transform="rotate(-90 29 29)"/></svg>'
+      + '<div><div class="big num">' + s.done + ' <small>/ ' + s.total + '</small></div>'
+      + '<div class="sub">топшириқ бажарилди · ижрода ' + s.open + '</div></div></div>'
+      + '<div class="go">Дашбордни очиш →</div>';
+    tip.classList.add('on');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const pr = tip.querySelector('.pr');
+      if (pr) pr.style.strokeDashoffset = String(CIRC * (1 - frac));
+    }));
+  });
+  el.addEventListener('mousemove', e => {
+    const w = 252, vw = window.innerWidth, vh = window.innerHeight;
+    tip.style.left = Math.min(e.clientX + 18, vw - w - 14) + 'px';
+    tip.style.top = Math.min(e.clientY + 20, vh - tip.offsetHeight - 14) + 'px';
+  });
+  el.addEventListener('mouseleave', () => {
+    el.classList.remove('hot');
+    const badge = document.querySelector('[data-badge="' + el.dataset.code + '"]');
+    if (badge) badge.style.opacity = '';
+    tip.classList.remove('on');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги · Spotlight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext">
+<style>
+/* Hallmark · macrostructure: Split canvas + live panel · theme: custom "spotlight"
+ * vibe: near-black · single accent · hover spotlight · paper oklch(13% 0.012 260) · accent oklch(72% 0.15 155)
+ * fonts: Golos Text only (weight contrast) · nav: minimal inline · footer: none
+ * pre-emit critique: P5 H5 E5 S5 R5 V5 */
+:root {
+  --bg:        oklch(13.5% 0.012 260);
+  --panel:     oklch(17.5% 0.014 260);
+  --panel-2:   oklch(21% 0.016 260);
+  --line:      oklch(28% 0.015 260);
+  --ink:       oklch(95% 0.005 250);
+  --ink-mute:  oklch(70% 0.012 255);
+  --ink-faint: oklch(52% 0.014 258);
+  --accent:    oklch(74% 0.145 155);
+  --accent-dim:oklch(40% 0.08 155);
+  --t-hi:      oklch(58% 0.10 155);
+  --t-md:      oklch(38% 0.055 165);
+  --t-lo:      oklch(28% 0.02 240);
+  --warn:      oklch(70% 0.13 45);
+  --focus:     oklch(76% 0.14 155);
+  --font: 'Golos Text', sans-serif;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  min-height: 100vh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  display: flex; flex-direction: column;
+}
+.num { font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+
+.top {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 20px clamp(20px, 3vw, 40px);
+  border-bottom: 1px solid var(--line);
+}
+.wordmark { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+.wordmark i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.top .chip { font-size: 13px; font-weight: 500; color: var(--ink-mute); }
+.top .chip b { color: var(--ink); font-weight: 600; }
+
+.work { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 372px; min-height: 0; }
+
+.stage { display: flex; align-items: center; justify-content: center; padding: clamp(10px, 2vw, 30px); min-width: 0; }
+svg.uz { width: 100%; height: min(80vh, 860px); display: block; }
+
+.rg { cursor: pointer; }
+.rg path {
+  stroke: var(--bg); stroke-width: 1.1;
+  transition: opacity 280ms var(--ease), filter 280ms var(--ease), transform 280ms var(--ease);
+  transform-box: fill-box; transform-origin: center;
+}
+.rg[data-tier="hi"] path { fill: var(--t-hi); }
+.rg[data-tier="md"] path { fill: var(--t-md); }
+.rg[data-tier="lo"] path { fill: var(--t-lo); }
+svg.uz.lit .rg:not(.hot) path { opacity: .22; filter: saturate(.4); }
+.rg.hot path {
+  filter: brightness(1.3) saturate(1.35) drop-shadow(0 0 22px oklch(70% 0.14 155 / .5));
+  transform: translateY(-3px) scale(1.01);
+}
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2.4; }
+
+.lbl { pointer-events: none; transition: opacity 240ms var(--ease); }
+.lbl text { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.lbl text.c { font-size: 11.5px; font-weight: 700; fill: var(--ink-mute); }
+.lbl line { stroke: var(--ink-faint); stroke-width: 1; }
+svg.uz.lit .lbl:not(.hot) { opacity: .25; }
+
+/* ---------- live panel ---------- */
+.side {
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+  padding: clamp(20px, 3vh, 32px) 26px;
+  display: flex; flex-direction: column; gap: 18px;
+  min-width: 0;
+}
+.side .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+.side h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; min-height: 52px; }
+.side .metric { border-top: 1px solid var(--line); padding-top: 16px; }
+.side .big { font-size: 46px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.side .big small { font-size: 20px; font-weight: 600; color: var(--ink-faint); letter-spacing: -0.01em; }
+.side .cap { font-size: 13px; font-weight: 500; color: var(--ink-mute); margin-top: 6px; }
+
+.split { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: var(--panel-2); margin-top: 14px; }
+.split i { display: block; height: 100%; background: var(--accent); transition: width 320ms var(--ease); }
+.split-cap { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink-mute); }
+.split-cap b { color: var(--accent); }
+
+.side .rows { border-top: 1px solid var(--line); }
+.side .row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.side .row span { color: var(--ink-mute); font-weight: 500; }
+.side .row b { font-weight: 700; }
+
+.cta {
+  margin-top: auto;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--accent); color: oklch(15% 0.03 155);
+  font-weight: 700; font-size: 14.5px;
+  border-radius: 12px; padding: 15px 18px;
+  transition: filter 160ms var(--ease), transform 160ms var(--ease);
+}
+.cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.cta:active { transform: translateY(0); }
+.cta:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.cta.idle { background: var(--panel-2); color: var(--ink-faint); pointer-events: none; }
+
+.legend { display: flex; gap: 14px; font-size: 12px; font-weight: 600; color: var(--ink-mute); }
+.legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+@media (max-width: 920px) {
+  .work { grid-template-columns: 1fr; }
+  .side { border-left: 0; border-top: 1px solid var(--line); }
+  svg.uz { height: auto; }
+  .side h2 { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="wordmark"><i></i> Ҳудудлар мониторинги</span>
+  <span class="chip">Ҳисобот даври: <b id="period"></b></span>
+</header>
+
+<div class="work">
+  <main class="stage">
+    <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари — топшириқлар ижроси" id="map"></svg>
+  </main>
+
+  <aside class="side" id="side" aria-live="polite">
+    <div>
+      <div class="eyebrow" id="p-eyebrow">Республика бўйича</div>
+      <h2 id="p-name">Ўзбекистон Республикаси</h2>
+    </div>
+    <div class="metric">
+      <div class="big num" id="p-big"></div>
+      <div class="cap" id="p-cap">топшириқ бажарилди</div>
+      <div class="split"><i id="p-split"></i></div>
+      <div class="split-cap"><span><b id="p-done"></b> бажарилган</span><span id="p-open"></span></div>
+    </div>
+    <div class="rows" id="p-rows"></div>
+    <a class="cta idle" id="p-cta" href="#">Ҳудудни танланг</a>
+    <div class="legend">
+      <span><i style="background:var(--t-hi)"></i>юқори</span>
+      <span><i style="background:var(--t-md)"></i>ўрта</span>
+      <span><i style="background:var(--t-lo)"></i>паст</span>
+      <span style="color:var(--ink-faint)">бажарилган улуши</span>
+    </div>
+  </aside>
+</div>
+
+<script src="data.js"></script>
+<script>
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '/dashboard?region=' + c;
+const tier = s => s.donePct >= 22 ? 'hi' : s.donePct >= 20 ? 'md' : 'lo';
+
+document.getElementById('period').textContent = REPUBLIC.period;
+
+const LBL = {
+  1735: {dx: -6, dy: -10}, 1733: {dx: 2, dy: 12}, 1712: {dx: -14, dy: 28},
+  1706: {dx: -8, dy: 22}, 1710: {dx: 6, dy: 14}, 1722: {dx: 2, dy: 10},
+  1718: {dx: -36, dy: 40}, 1708: {dx: -6, dy: 22}, 1724: {dx: 58, dy: 68, leader: true},
+  1727: {dx: 34, dy: -36}, 1726: {dx: -38, dy: -60, leader: true},
+  1714: {dx: -20, dy: -18}, 1703: {dx: 16, dy: 24}, 1730: {dx: -6, dy: 14},
+};
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s));
+  a.setAttribute('aria-label', s.full + ' — ' + s.done + ' / ' + s.total + ' топшириқ бажарилган');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  svg.appendChild(a);
+}
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const o = LBL[g.code] || {dx: 0, dy: 0};
+  const x = g.cx + o.dx, y = g.cy + o.dy;
+  const grp = document.createElementNS(NS, 'g');
+  grp.setAttribute('class', 'lbl');
+  grp.setAttribute('data-lbl', g.code);
+  if (o.leader) {
+    const ln = document.createElementNS(NS, 'line');
+    ln.setAttribute('x1', g.cx); ln.setAttribute('y1', g.cy);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', y + 6);
+    grp.appendChild(ln);
+  }
+  const t1 = document.createElementNS(NS, 'text');
+  t1.setAttribute('x', x); t1.setAttribute('y', y - 2);
+  t1.setAttribute('text-anchor', 'middle');
+  t1.textContent = s.short;
+  const t2 = document.createElementNS(NS, 'text');
+  t2.setAttribute('x', x); t2.setAttribute('y', y + 13);
+  t2.setAttribute('text-anchor', 'middle');
+  t2.setAttribute('class', 'c num');
+  t2.textContent = s.done + '/' + s.total;
+  grp.appendChild(t1); grp.appendChild(t2);
+  svg.appendChild(grp);
+}
+
+// Live panel.
+const el = id => document.getElementById(id);
+function renderPanel(s) {
+  if (s === null) {
+    el('p-eyebrow').textContent = 'Республика бўйича';
+    el('p-name').textContent = 'Ўзбекистон Республикаси';
+    el('p-big').innerHTML = REPUBLIC.done + ' <small>/ ' + REPUBLIC.total + '</small>';
+    el('p-split').style.width = (REPUBLIC.done / REPUBLIC.total * 100) + '%';
+    el('p-done').textContent = REPUBLIC.done;
+    el('p-open').textContent = 'ижрода ' + REPUBLIC.open;
+    el('p-rows').innerHTML = '<div class="row"><span>Ҳудудлар</span><b class="num">14</b></div>'
+      + '<div class="row"><span>Энг юқори улуш</span><b>Тошкент ш. · <span class="num">18/75</span></b></div>'
+      + '<div class="row"><span>Жами топшириқ</span><b class="num">' + REPUBLIC.total + '</b></div>';
+    const cta = el('p-cta');
+    cta.classList.add('idle'); cta.href = '#'; cta.textContent = 'Ҳудудни танланг';
+    return;
+  }
+  el('p-eyebrow').textContent = 'Танланган ҳудуд';
+  el('p-name').textContent = s.full;
+  el('p-big').innerHTML = s.done + ' <small>/ ' + s.total + '</small>';
+  el('p-split').style.width = (s.done / s.total * 100) + '%';
+  el('p-done').textContent = s.done;
+  el('p-open').textContent = 'ижрода ' + s.open;
+  el('p-rows').innerHTML = '<div class="row"><span>Жами топшириқ</span><b class="num">' + s.total + '</b></div>'
+    + '<div class="row"><span>Бажарилган</span><b class="num">' + s.done + '</b></div>'
+    + '<div class="row"><span>Ижрода</span><b class="num">' + s.open + '</b></div>';
+  const cta = el('p-cta');
+  cta.classList.remove('idle'); cta.href = dash(s.code);
+  cta.textContent = s.short + ' дашбордини очиш →';
+}
+renderPanel(null);
+
+let leaveTimer = null;
+document.querySelectorAll('.rg').forEach(a => {
+  const s = stats[a.dataset.code];
+  a.addEventListener('mouseenter', () => {
+    clearTimeout(leaveTimer);
+    svg.classList.add('lit');
+    document.querySelectorAll('.hot').forEach(x => x.classList.remove('hot'));
+    a.classList.add('hot');
+    const l = document.querySelector('[data-lbl="' + a.dataset.code + '"]');
+    if (l) l.classList.add('hot');
+    renderPanel(s);
+  });
+  a.addEventListener('mouseleave', () => {
+    a.classList.remove('hot');
+    const l = document.querySelector('[data-lbl="' + a.dataset.code + '"]');
+    if (l) l.classList.remove('hot');
+    leaveTimer = setTimeout(() => { svg.classList.remove('lit'); renderPanel(null); }, 350);
+  });
+});
+</script>
+</body>
+</html>
