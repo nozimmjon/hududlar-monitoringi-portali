@@ -190,13 +190,18 @@ class DashboardCatalog
 
     public static function periodSourceKind(string $kpi, string $period, ?object $row): string
     {
-        if ($period === 'q1' && $row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null || $row->growth_pct !== null)) {
+        // A reported hokimyat actual wins for any period — H1/year actuals arrive
+        // via the tasks workbook (TaskFactBridge) and replace the Кутилиш forecast.
+        if ($row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null)) {
+            return 'actual';
+        }
+        if ($period === 'q1' && $row && $row->growth_pct !== null) {
             return 'actual';
         }
         if (in_array($kpi, ['budget', 'budget_investment', 'investment', 'export'], true)
             && $period !== 'q1'
             && $row
-            && ($row->actual_hokimyat !== null || $row->expected_value !== null || $row->pct_of_plan !== null)) {
+            && ($row->expected_value !== null || $row->pct_of_plan !== null)) {
             return 'expected';
         }
         if (in_array($kpi, ['inflation', 'unemployment', 'poverty', 'small_business_share'], true)) {
@@ -220,13 +225,13 @@ class DashboardCatalog
      */
     public static function periodState(string $kpi, string $period, ?object $row): array
     {
-        if ($period === 'q1' && $row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null || $row->growth_pct !== null)) {
+        $kind = self::periodSourceKind($kpi, $period, $row);
+        if ($kind === 'actual') {
             return ['cls' => 'actual', 'chip' => '', 'label' => ''];
         }
         if ($period === 'q1') {
             return ['cls' => 'empty', 'chip' => 'grey', 'label' => 'I чорак белгиланмаган'];
         }
-        $kind = self::periodSourceKind($kpi, $period, $row);
         return match ($kind) {
             'expected' => ['cls' => 'planned', 'chip' => 'grey', 'label' => 'Кутилиш'],
             'target'   => ['cls' => 'planned', 'chip' => 'grey', 'label' => 'Маълумот кутилмоқда'],
@@ -251,7 +256,7 @@ class DashboardCatalog
         if ($kind === 'target') return 'Мақсад';
         if ($kind === 'expected') return 'Кутилган ижро';
         if (! $row || $row->pct_of_plan === null) return 'Кўрсаткич';
-        if ($period === 'q1') return 'Ижро';
+        if ($kind === 'actual') return 'Ижро';
         return 'Кутилган ижро';
     }
 

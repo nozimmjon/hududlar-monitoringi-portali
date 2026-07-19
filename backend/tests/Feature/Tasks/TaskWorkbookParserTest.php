@@ -57,6 +57,68 @@ test('parses tasks, sections, regions and multi-metric lines', function () {
     expect($t3['regions'][1703]['metrics'][1]['pct'])->toBeNumericallyClose(50);
 });
 
+test('parses the economic layout: auto-detect, ratio pct, plan-based region listing', function () {
+    $path = TaskWorkbookFixture::makeEconomic();
+    try {
+        $tasks = (new TaskWorkbookParser())->parse($path);
+    } finally {
+        @unlink($path);
+    }
+
+    expect($tasks)->toHaveCount(7);
+
+    $t1 = $tasks[0];
+    expect($t1['task_number'])->toBe('1');
+    expect($t1['title'])->toBe('Ялпи ҳудудий маҳсулотни ўсишини таъминлаш.');
+    expect($t1['period_code'])->toBe('h1');
+    expect($t1['module_code'])->toBe('macro');
+    expect($t1['indicator_code'])->toBe('grp');
+    // No metadata columns in this file generation -> all null (importer preserves old values).
+    expect($t1['kind'])->toBeNull();
+    expect($t1['cadence'])->toBeNull();
+    expect($t1['data_source'])->toBeNull();
+    expect($t1['report_schedule_text'])->toBeNull();
+
+    // Ratio % -> percent: 1 -> 100, formula 8.8/7.2 -> 122.22.
+    expect($t1['regions'][1735]['metrics'][0]['pct'])->toBeNumericallyClose(100);
+    expect($t1['regions'][1703]['metrics'][0]['plan'])->toBeNumericallyClose(7.2);
+    expect($t1['regions'][1703]['metrics'][0]['actual'])->toBeNumericallyClose(8.8);
+    expect($t1['regions'][1703]['metrics'][0]['pct'])->toBeNumericallyClose(8.8 / 7.2 * 100);
+
+    // Plan present, actual empty: the formula's 0% is an artifact -> pct null.
+    expect($t1['regions'][1708]['metrics'][0]['plan'])->toBeNumericallyClose(5);
+    expect($t1['regions'][1708]['metrics'][0]['actual'])->toBeNull();
+    expect($t1['regions'][1708]['metrics'][0]['pct'])->toBeNull();
+
+    // «х» plan (Bukhara) and actual-without-plan (Kashkadarya) -> regions excluded.
+    expect($t1['regions'])->not->toHaveKey(1706);
+    expect($t1['regions'])->not->toHaveKey(1710);
+
+    // Task 2: headline line empty but a sub-line carries the plan -> region kept.
+    $t2 = $tasks[1];
+    expect($t2['regions'])->toHaveKey(1703);
+    expect($t2['regions'][1703]['executor_text'])->toContain('Шахрихон');
+    expect($t2['regions'][1703]['metrics'][0]['plan'])->toBeNull();
+    expect($t2['regions'][1703]['metrics'][1]['plan'])->toBeNumericallyClose(55);
+    expect($t2['regions'][1703]['metrics'][1]['pct'])->toBeNumericallyClose(100);
+    expect($t2['regions'])->not->toHaveKey(1735);
+
+    // Task 3: col B wins as task_number; empty pct cell -> derived 120.
+    $t3 = $tasks[2];
+    expect($t3['task_number'])->toBe('4');
+    expect($t3['regions'][1703]['metrics'][0]['pct'])->toBeNumericallyClose(120);
+
+    // Task 68 (инфляция) is lower-is-better: pct = plan/actual, not the file's ratio.
+    $t4 = $tasks[3];
+    expect($t4['task_number'])->toBe('68');
+    // Worse than plan (3.2 > 2.8): file ratio 114% -> must invert to 87.5%.
+    expect($t4['regions'][1735]['metrics'][0]['pct'])->toBeNumericallyClose(2.8 / 3.2 * 100);
+    // Better than plan (2.4 < 2.9): >100%, reads as done.
+    expect($t4['regions'][1703]['metrics'][0]['pct'])->toBeNumericallyClose(2.9 / 2.4 * 100);
+    // Zero actual against a zero target: met -> 100%.
+    expect($t4['regions'][1708]['metrics'][0]['pct'])->toBeNumericallyClose(100);
+});
+
 test('throws on workbook with shifted/missing region headers', function () {
     $path = TaskWorkbookFixture::makeMissingHeaders();
     try {

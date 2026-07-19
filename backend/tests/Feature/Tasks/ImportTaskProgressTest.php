@@ -116,6 +116,64 @@ test('rejects missing file and unknown region cleanly', function () {
         ->assertFailed();
 });
 
+test('imports the economic half-year workbook on top of a monitoring import', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    $econ = TaskWorkbookFixture::makeEconomic();
+    try {
+        $this->artisan('import:task-progress', ['--file' => $econ, '--period' => '2026-H1'])
+            ->assertSuccessful();
+    } finally {
+        @unlink($econ);
+    }
+
+    // Task 1 (Andijan): headline advanced to H1 with the ratio pct converted to percent.
+    $t1 = Task::where('region_code', 1703)->where('task_number', '1')->first();
+    expect($t1->latest_period)->toBe('2026-H1');
+    expect((float) $t1->headline_plan)->toBeNumericallyClose(7.2);
+    expect((float) $t1->headline_actual)->toBeNumericallyClose(8.8);
+    // pct_of_plan is decimal(10,4) — compare at column precision.
+    expect((float) $t1->headline_pct)->toBeNumericallyClose(8.8 / 7.2 * 100, 1e-3);
+    expect($t1->status)->toBe('done');
+    // Metadata from the monitoring import survives the metadata-less economic file.
+    expect($t1->kind)->toBe('kpi');
+    expect($t1->cadence)->toBe('quarterly');
+    expect($t1->data_source)->toBe('Статистика агентлиги');
+    // Both periods kept in history; the H1 row is typed 'half'.
+    expect($t1->progress()->where('report_period', '2026-Q1')->count())->toBe(1);
+    $h1 = $t1->progress()->where('report_period', '2026-H1')->get();
+    expect($h1)->toHaveCount(1);
+    expect($h1[0]->period_type)->toBe('half');
+
+    // Monitoring task 2 keeps its kind; economic-only task 4 is created with the default.
+    expect(Task::where('region_code', 1703)->where('task_number', '2')->first()->kind)->toBe('measure');
+    $t4 = Task::where('region_code', 1703)->where('task_number', '4')->first();
+    expect($t4)->not->toBeNull();
+    expect($t4->kind)->toBe('kpi');
+    expect((float) $t4->headline_pct)->toBeNumericallyClose(120);
+
+    // «х» plan (Bukhara) / actual-without-plan (Kashkadarya) regions get no task rows.
+    expect(Task::where('region_code', 1706)->count())->toBe(0);
+    expect(Task::where('region_code', 1710)->count())->toBe(0);
+
+    // Plan-only region (Jizzakh): imported, no pct, stays open.
+    $j1 = Task::where('region_code', 1708)->where('task_number', '1')->first();
+    expect((float) $j1->headline_plan)->toBeNumericallyClose(5);
+    expect($j1->headline_actual)->toBeNull();
+    expect($j1->headline_pct)->toBeNull();
+    expect($j1->status)->toBe('open');
+
+    // Lower-is-better task 68: worse than plan -> under 100% and open,
+    // better than plan -> over 100% and done.
+    $inf = Task::where('region_code', 1735)->where('task_number', '68')->first();
+    expect((float) $inf->headline_pct)->toBeNumericallyClose(2.8 / 3.2 * 100, 1e-3);
+    expect($inf->status)->toBe('open');
+    $infAnd = Task::where('region_code', 1703)->where('task_number', '68')->first();
+    expect((float) $infAnd->headline_pct)->toBeNumericallyClose(2.9 / 2.4 * 100, 1e-3);
+    expect($infAnd->status)->toBe('done');
+});
+
 test('records per-region rows_promoted on import runs', function () {
     $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
         ->assertSuccessful();

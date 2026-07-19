@@ -5,6 +5,10 @@ The partner organisation sends a refreshed copy of
 monthly, some quarterly — see the *Ҳисобот шакилланадиган сана* column). This runbook
 covers how to load it.
 
+The same `import:task-progress` command also accepts the **"Иқтисодий кўрсаткичлар"**
+file generation (e.g. the half-year snapshot). The layout is auto-detected from the
+row-3 headers; see [Economic file generation](#economic-file-generation) below.
+
 ## Monthly workflow
 
 1. Place the new file at `data/tasks/Ҳудудий_кўрсаткичлар_назорати_бўйича.xlsx`
@@ -41,6 +45,50 @@ php artisan import:task-progress --period=2026-Q1
 
 `import:all-regions --period=2026-Q1` also chains the task import per region after the
 indicator import.
+
+## Economic file generation
+
+The half-year "Иқтисодий кўрсаткичлар" workbook carries the same 97 tasks (same
+col-B numbering) but differs from the monitoring file:
+
+- **No metadata columns** (KPI type, data source, schedule, mechanism, integration) —
+  the import keeps whatever an earlier monitoring import recorded for those fields.
+- **Region blocks start at column G** (col 7) instead of M (col 13). Auto-detected;
+  the same shifted/reordered-columns guard applies.
+- **The % column is a ratio** (`1.0` = 100%) — converted to percent on import. A `0`
+  with an empty *Амалда ижроси* is treated as "no execution data yet" (stored as
+  empty, shown as —), not as 0%.
+- **Region applicability follows Режа кўрсаткичи**: a region whose plan is empty or
+  «х» on every line of a task is *not listed* for that task — no rows are written
+  (and the task stays hidden for that region via the plan filter on all pages).
+  A task whose headline has no plan but whose sub-line does is still listed.
+- **Lower-is-better indicators** (инфляция/ишсизлик/камбағаллик даражаси, нарх ва
+  тариф caps — the task numbers in `TasksTaxonomy::LOWER_IS_BETTER_TASKS`): the
+  file's % cell is actual/plan, which reads >100% exactly when a region did WORSE
+  than the plan. The import recomputes these as **plan/actual** (both layouts), so
+  exceeding an inflation forecast shows <100% and open, staying below it shows
+  ≥100% and done. Extend that list if the partner adds new such indicators.
+- **Dashboard bridge**: after writing task rows, the import pushes reported
+  actuals into the region-level `indicator_facts` rows the KPI dashboard reads
+  (`App\Support\TaskFactBridge::MAP` — budget 117/121, investment 155/157,
+  export 165/167 ×1000, unemployment 181/200, poverty 213/214, jobs/legalization/
+  microprojects 182/201 lines, mfy_clear 215). Module pages then show **Амалда**
+  instead of the imported Кутилиш forecast; the forecast stays in
+  `expected_value` for reference. Rows are matched by task number + line and
+  guarded by a metric-label substring; a label mismatch skips the mapping with a
+  warning instead of writing a wrong number. Note: re-running the *indicator*
+  import (`import:region`/`import:promote`) rebuilds those fact rows, so re-run
+  the task import afterwards to restore the actuals.
+
+Import it with a half-year period:
+
+```bash
+php artisan import:task-progress --file="../data/+++Иқтисодий кўрсаткичлар.xlsx" --period=2026-H1
+```
+
+`--period` accepts `YYYY-H1`/`YYYY-H2` alongside quarters and months; half-year rows
+are stored with `period_type = half` and sort between Q2 and Q3 (H1 → June,
+H2 → December) for the headline-advance guard.
 
 ## How updates behave
 

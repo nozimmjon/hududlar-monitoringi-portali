@@ -59,7 +59,10 @@
                     <div class="q-aux-row"><span>{{ DashboardCatalog::planLabel($kpi, $period, $row) }}</span><b class="num">{{ $planFmt }}</b></div>
                 @endif
                 <div class="q-aux-row"><span>{{ DashboardCatalog::factLabel($kpi, $period, $row) }}</span><b class="num">{{ $factFmt }}</b></div>
-                <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip {{ $chipClass }}">{{ $statusText }}</span></b></div>
+                {{-- A row with a real actual needs no Ҳолат chip — "Амалда бор" is noise. --}}
+                @if($stateInfo['cls'] !== 'actual')
+                    <div class="q-aux-row status"><span>Ҳолат</span><b><span class="chip {{ $chipClass }}">{{ $statusText }}</span></b></div>
+                @endif
             </dl>
         </div>
     @endforeach

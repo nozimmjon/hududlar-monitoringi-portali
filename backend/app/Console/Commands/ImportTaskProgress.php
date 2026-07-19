@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\TaskProgress;
 use App\Services\Tasks\TaskWorkbookParser;
 use App\Support\TaskExecutorResolver;
+use App\Support\TaskFactBridge;
 use App\Support\TaskPeriod;
 use App\Support\TaskStatus;
 use App\Support\TasksTaxonomy;
@@ -29,8 +30,8 @@ class ImportTaskProgress extends Command
     public function handle(): int
     {
         $period = (string) $this->option('period');
-        if ($period === '' || ! preg_match('/^\d{4}-(Q[1-4]|\d{2})$/', $period)) {
-            $this->error('Provide --period as YYYY-Q1..Q4 or YYYY-MM (e.g. 2026-Q1 or 2026-04).');
+        if ($period === '' || ! preg_match('/^\d{4}-(Q[1-4]|H[12]|\d{2})$/', $period)) {
+            $this->error('Provide --period as YYYY-Q1..Q4, YYYY-H1/H2 or YYYY-MM (e.g. 2026-Q1, 2026-H1 or 2026-04).');
             return self::FAILURE;
         }
         $periodType = TaskPeriod::periodType($period);
@@ -100,6 +101,11 @@ class ImportTaskProgress extends Command
                 }
             }
             $this->info('Coverage: ' . count($regionCodes) . ' region(s), ' . $lineCount . ' metric lines.');
+            $bridge = TaskFactBridge::apply($tasks, $year, $regionFilter, dryRun: true);
+            $this->info("Dashboard facts: would enrich {$bridge['updated']} indicator fact row(s) with task actuals.");
+            foreach ($bridge['notes'] as $note) {
+                $this->warn('Dashboard facts: ' . $note);
+            }
             $this->warn('Dry run — no changes written.');
             return self::SUCCESS;
         }
@@ -126,26 +132,28 @@ class ImportTaskProgress extends Command
                         'started_at'   => now(),
                     ]);
 
-                    $task = Task::updateOrCreate(
-                        ['region_code' => $code, 'task_number' => $t['task_number']],
-                        [
-                            'title'                  => $t['title'],
-                            'deadline_text'          => $t['deadline_text'],
-                            'period_code'            => $t['period_code'],
-                            'executor_text'          => $regionData['executor_text'],
-                            'kind'                   => $t['kind'],
-                            'cadence'                => $t['cadence'],
-                            'data_source'            => $t['data_source'],
-                            'report_schedule_text'   => $t['report_schedule_text'],
-                            'integration_status'     => $t['integration_status'],
-                            'mechanism_text'         => $t['mechanism_text'],
-                            'module_code'            => $t['module_code'],
-                            'indicator_code'         => $t['indicator_code'],
-                            'section_path'           => $t['section_path'],
-                            'section_label'          => $t['section_label'],
-                            'source_paragraph_index' => $t['source_row'],
-                        ]
-                    );
+                    $task = Task::firstOrNew(['region_code' => $code, 'task_number' => $t['task_number']]);
+                    $task->fill([
+                        'title'                  => $t['title'],
+                        'deadline_text'          => $t['deadline_text'],
+                        'period_code'            => $t['period_code'],
+                        'executor_text'          => $regionData['executor_text'],
+                        'module_code'            => $t['module_code'],
+                        'indicator_code'         => $t['indicator_code'],
+                        'section_path'           => $t['section_path'],
+                        'section_label'          => $t['section_label'],
+                        'source_paragraph_index' => $t['source_row'],
+                    ]);
+                    // Metadata columns the economic file generation does not carry come
+                    // back as null from the parser — keep whatever an earlier monitoring
+                    // import recorded instead of wiping it.
+                    foreach (['kind', 'cadence', 'data_source', 'report_schedule_text', 'integration_status', 'mechanism_text'] as $metaKey) {
+                        if ($t[$metaKey] !== null) {
+                            $task->{$metaKey} = $t[$metaKey];
+                        }
+                    }
+                    $task->kind ??= 'kpi'; // NOT NULL column; economic rows are all numeric indicators
+                    $task->save();
 
                     // Re-sync districts from this file's executor list.
                     $ids = TaskExecutorResolver::districtIds(
@@ -203,6 +211,14 @@ class ImportTaskProgress extends Command
             }
         });
 
+        // Push reported actuals into the dashboard's indicator_facts so module
+        // pages show Амалда instead of the stale Кутилиш forecast.
+        $bridge = TaskFactBridge::apply($tasks, $year, $regionFilter);
+        $this->info("Dashboard facts: enriched {$bridge['updated']} indicator fact row(s) with task actuals.");
+        foreach ($bridge['notes'] as $note) {
+            $this->warn('Dashboard facts: ' . $note);
+        }
+
         $total = array_sum($writtenByRegion);
         $this->info("Wrote {$total} progress rows across " . count($runByRegion) . ' region(s).');
         if (! empty($unmatched)) {
@@ -212,11 +228,14 @@ class ImportTaskProgress extends Command
         return self::SUCCESS;
     }
 
-    /** Sortable key: quarters map to their closing month (Q1->03, ..., Q4->12). */
+    /** Sortable key: quarters/halves map to their closing month (Q1->03, ..., H1->06, H2->12). */
     private function periodSortKey(string $period): string
     {
         if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $m)) {
             return $m[1] . '-' . str_pad((string) ((int) $m[2] * 3), 2, '0', STR_PAD_LEFT);
+        }
+        if (preg_match('/^(\d{4})-H([12])$/', $period, $m)) {
+            return $m[1] . '-' . ($m[2] === '1' ? '06' : '12');
         }
         return $period;
     }

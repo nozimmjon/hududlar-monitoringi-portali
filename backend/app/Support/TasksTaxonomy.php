@@ -69,6 +69,62 @@ class TasksTaxonomy
         65 => 1726, // Тошкент шаҳри
     ];
 
+    /**
+     * Lower-is-better tasks (col-B numbers): the target is NOT to exceed the plan
+     * value, so execution % is plan/actual, not actual/plan — inflation above the
+     * forecast must not read as >100% done. Identified from the source file:
+     *   68/69   Инфляция даражаси (ярим йиллик / йил якуни)
+     *   70      Озиқ-овқат нархлари ўсиш caps (гўшт, тухум, сут, картошка, пиёз, сабзи)
+     *   77/78   Гуруч/ун нархини 2025 йил даражасида сақлаш
+     *   79      Коммунал тарифлар режа-график чегарасида (сув, чиқинди, транспорт)
+     *   181/200 Ишсизлик даражаси (ярим йиллик / йил якуни, "оширмаслик")
+     *   213/214 Камбағаллик даражаси (ярим йиллик / йил якуни)
+     * All other tasks are higher-is-better volumes/counts.
+     */
+    public const LOWER_IS_BETTER_TASKS = [
+        '68', '69', '70', '77', '78', '79', '181', '200', '213', '214',
+    ];
+
+    /**
+     * Same anchors for the "Иқтисодий кўрсаткичлар" (economic indicators) file
+     * generation: no metadata columns H..L, so the 14 region blocks start at col 7.
+     * Region order is identical to the monitoring file.
+     */
+    public const ECONOMIC_REGION_HEADER_ANCHORS = [
+        7  => 'Қорақалпоғистон',
+        11 => 'Андижон',
+        15 => 'Бухоро',
+        19 => 'Жиззах',
+        23 => 'Қашқадарё',
+        27 => 'Навоий',
+        31 => 'Наманган',
+        35 => 'Самарқанд',
+        39 => 'Сирдарё',
+        43 => 'Сурхондарё',
+        47 => 'Тошкент',          // Тошкент вилояти — must NOT contain "шаҳри"
+        51 => 'Фарғона',
+        55 => 'Хоразм',
+        59 => 'Тошкент шаҳри',
+    ];
+
+    /** Economic-layout region blocks: 1-based start column of each 4-col block => SOATO code. */
+    public const ECONOMIC_REGION_BLOCKS = [
+        7  => 1735, // Қорақалпоғистон
+        11 => 1703, // Андижон
+        15 => 1706, // Бухоро
+        19 => 1708, // Жиззах
+        23 => 1710, // Қашқадарё
+        27 => 1712, // Навоий
+        31 => 1714, // Наманган
+        35 => 1718, // Самарқанд
+        39 => 1724, // Сирдарё
+        43 => 1722, // Сурхондарё
+        47 => 1727, // Тошкент вилояти
+        51 => 1730, // Фарғона
+        55 => 1733, // Хоразм
+        59 => 1726, // Тошкент шаҳри
+    ];
+
     public const REGION_FILENAMES = [
         'andijan'      => '00_Чора_тадбир_Андижон.docx',
         'bukhara'      => '00_Чора_тадбир_Бухоро.docx',
