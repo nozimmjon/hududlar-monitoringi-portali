@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги портали</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
+<style>
+/* Hallmark · macrostructure: Canvas-card hero · theme: custom "soft cloud"
+ * Entry page: country map + per-region task execution, click → region dashboard.
+ * Font/brand matched to the dashboard (Inter + CERR navy). */
+:root {
+  --bg:        oklch(97.5% 0.007 255);
+  --bg-2:      oklch(94.5% 0.015 262);
+  --card:      oklch(100% 0 0);
+  --line:      oklch(91% 0.012 255);
+  --ink:       oklch(25% 0.035 262);
+  --ink-mute:  oklch(50% 0.03 260);
+  --ink-faint: oklch(65% 0.022 258);
+  --accent:    oklch(55% 0.16 262);
+  --t-hi:      oklch(58% 0.145 262);
+  --t-md:      oklch(72% 0.09 250);
+  --t-lo:      oklch(85% 0.045 250);
+  --focus:     oklch(55% 0.16 262);
+  --shadow-s:  0 2px 6px oklch(30% 0.05 262 / .06), 0 10px 28px oklch(30% 0.05 262 / .07);
+  --shadow-m:  0 6px 16px oklch(30% 0.05 262 / .10), 0 24px 60px oklch(30% 0.05 262 / .12);
+  --font: 'Inter', sans-serif;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--ink);
+  background:
+    radial-gradient(60% 50% at 80% -10%, var(--bg-2), transparent 60%),
+    radial-gradient(50% 40% at 5% 110%, oklch(93% 0.02 220), transparent 55%),
+    var(--bg);
+  display: flex; flex-direction: column;
+  font-feature-settings: "ss01", "cv11";
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "ss01", "cv11"; letter-spacing: -0.005em; }
+a { color: inherit; text-decoration: none; }
+
+.top {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 22px clamp(20px, 4vw, 48px) 0;
+}
+.wordmark { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+/* logo.svg is all-white — sit it on the brand gradient chip (dashboard navy). */
+.logo-chip {
+  display: inline-flex; align-items: center;
+  background: linear-gradient(135deg, #2b61af 0%, #0b4c7a 100%);
+  border-radius: 10px; padding: 7px 12px;
+}
+.logo-chip img { height: 26px; width: auto; display: block; }
+
+.lede { text-align: center; padding: clamp(8px, 1.6vh, 18px) 20px 0; }
+.lede h1 { font-size: clamp(21px, 2.4vw, 27px); font-weight: 800; letter-spacing: -0.025em; }
+.lede p { color: var(--ink-mute); font-weight: 600; font-size: 13.5px; margin-top: 4px; }
+.lede p b { color: var(--accent); }
+
+.stage { flex: 1; display: flex; align-items: stretch; justify-content: center; padding: clamp(10px, 1.8vh, 20px) clamp(14px, 2.5vw, 36px) 20px; min-height: 0; }
+.map-card {
+  position: relative;
+  background: var(--card); border: 1px solid var(--line); border-radius: 28px;
+  box-shadow: var(--shadow-s);
+  width: min(100%, 1600px);
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(8px, 1.2vw, 18px);
+}
+svg.uz { width: 100%; height: min(76vh, 900px); display: block; }
+
+.kpis {
+  position: absolute; bottom: 20px; left: 24px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.kpi {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow-s); padding: 10px 16px; min-width: 152px;
+}
+.kpi .v { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.kpi .v small { font-size: 12.5px; font-weight: 700; color: var(--ink-faint); }
+.kpi .k { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); margin-top: 1px; }
+
+.legend {
+  position: absolute; bottom: 20px; right: 24px;
+  display: flex; gap: 14px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+  box-shadow: var(--shadow-s); padding: 9px 16px;
+  font-size: 12px; font-weight: 700; color: var(--ink-mute);
+}
+.legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+.rg { cursor: pointer; }
+.rg path {
+  stroke: white; stroke-width: 1.2;
+  transition: filter 240ms var(--ease), transform 240ms var(--ease), opacity 240ms var(--ease);
+  transform-box: fill-box; transform-origin: center;
+}
+.rg[data-tier="hi"] path { fill: var(--t-hi); }
+.rg[data-tier="md"] path { fill: var(--t-md); }
+.rg[data-tier="lo"] path { fill: var(--t-lo); }
+svg.uz:hover .rg:not(.hot) path { opacity: .45; }
+.rg.hot path {
+  filter: saturate(1.15) brightness(1.06) drop-shadow(0 14px 26px oklch(45% 0.1 262 / .35));
+  transform: translateY(-5px);
+}
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2.6; }
+
+.leader { fill: none; stroke: oklch(80% 0.02 258); stroke-width: 1.1; transition: stroke 200ms var(--ease), stroke-width 200ms var(--ease); }
+.leader.hot { stroke: var(--accent); stroke-width: 1.6; }
+.mdot { fill: oklch(70% 0.03 258); transition: fill 200ms var(--ease); }
+.mdot.hot { fill: var(--accent); }
+.pill { cursor: pointer; transition: transform 200ms var(--ease); transform-box: fill-box; transform-origin: center; }
+.pill:hover, .pill.hot { transform: scale(1.07); }
+.pill .bg { fill: white; stroke: var(--line); filter: drop-shadow(0 4px 12px oklch(30% 0.05 262 / .16)); transition: stroke 200ms var(--ease), filter 200ms var(--ease); }
+.pill:hover .bg, .pill.hot .bg { stroke: var(--accent); filter: drop-shadow(0 8px 20px oklch(45% 0.1 262 / .3)); }
+.pill:focus-visible { outline: none; }
+.pill:focus-visible .bg { stroke: var(--focus); stroke-width: 2; }
+.pill text.n { font-size: 15.5px; font-weight: 700; fill: var(--ink); letter-spacing: -0.005em; }
+.pill text.c { font-size: 17px; font-weight: 800; fill: var(--accent); }
+.pill text.c tspan { font-size: 13px; fill: var(--ink-faint); font-weight: 700; }
+
+.tip {
+  position: fixed; z-index: 20; pointer-events: none; width: 248px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 20px; box-shadow: var(--shadow-m);
+  padding: 16px 18px;
+  opacity: 0; transform: translateY(8px) scale(.98);
+  transition: opacity 170ms var(--ease), transform 170ms var(--ease);
+}
+.tip.on { opacity: 1; transform: none; }
+.tip h3 { font-size: 14.5px; font-weight: 800; letter-spacing: -0.01em; }
+.tip .row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+.tip .ring { width: 56px; height: 56px; flex: none; }
+.tip .ring .tr { stroke: var(--bg-2); }
+.tip .ring .pr { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 350ms var(--ease); }
+.tip .big { font-size: 19px; font-weight: 800; }
+.tip .big small { font-size: 12px; color: var(--ink-faint); font-weight: 700; }
+.tip .sub { font-size: 12px; color: var(--ink-mute); font-weight: 600; margin-top: 2px; }
+.tip .go { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; color: var(--accent); }
+
+@media (max-width: 860px) {
+  .kpis { position: static; flex-direction: row; flex-wrap: wrap; margin-bottom: 8px; }
+  .map-card { flex-direction: column; align-items: stretch; }
+  svg.uz { height: auto; }
+  .legend { position: static; margin-top: 10px; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="wordmark"><span class="logo-chip"><img src="/logo.svg" alt="CERR"></span> Ҳудудлар мониторинги</span>
+</header>
+
+<div class="lede">
+  <h1>Ҳудудий топшириқлар ижроси</h1>
+  <p>Республика бўйича <b class="num">{{ $republic['done'] }} / {{ $republic['total'] }}</b> топшириқ бажарилди</p>
+</div>
+
+<main class="stage">
+  <section class="map-card">
+    <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари — топшириқлар ижроси" id="map"></svg>
+    <div class="kpis" aria-label="Республика жамланмаси">
+      <div class="kpi"><div class="v num">{{ $republic['done'] }} <small>/ {{ $republic['total'] }}</small></div><div class="k">Бажарилган</div></div>
+      <div class="kpi"><div class="v num">{{ $republic['open'] }}</div><div class="k">Ижрода</div></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--t-hi)"></i>юқори</span>
+      <span><i style="background:var(--t-md)"></i>ўрта</span>
+      <span><i style="background:var(--t-lo)"></i>паст</span>
+      <span style="color:var(--ink-faint)">бажарилган улуши</span>
+    </div>
+  </section>
+</main>
+
+<div class="tip" id="tip" role="status"></div>
+
+<script>
+const UZ_REGIONS = @json($geometry, JSON_UNESCAPED_UNICODE);
+const REGION_STATS = @json($stats, JSON_UNESCAPED_UNICODE);
+
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '{{ url('/region') }}/' + c;
+const donePct = s => s.total ? s.done / s.total * 100 : 0;
+const tier = s => donePct(s) >= 22 ? 'hi' : donePct(s) >= 20 ? 'md' : 'lo';
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+const TIER_COLOR = { hi: 'oklch(58% 0.145 262)', md: 'oklch(70% 0.10 250)', lo: 'oklch(80% 0.06 250)' };
+
+/* ---- ring layout: pills evenly distributed around the map on a rectangular
+   ring, geographic order preserved, ring rotation chosen to keep each pill
+   nearest its own region, light repulsion for corner pinches. ---- */
+const PILL_H = 46, RAD_X = 18, RAD_Y = 14, MIN_GAP = 8;
+const pillW = s => 34 + s.short.length * 9.7 + 14 + String(s.done + '/' + s.total).length * 9.6 + 19;
+
+const bbox = d => {
+  const ns = d.match(/-?\d+(?:\.\d+)?/g);
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  for (let i = 0; i + 1 < ns.length; i += 2) {
+    const x = +ns[i], y = +ns[i + 1];
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+  }
+  return [minX, maxX, minY, maxY];
+};
+
+const regions = UZ_REGIONS.filter(g => stats[g.code]);
+let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9, maxW = 0;
+for (const g of regions) {
+  const [x0, x1, y0, y1] = bbox(g.d);
+  minX = Math.min(minX, x0); maxX = Math.max(maxX, x1);
+  minY = Math.min(minY, y0); maxY = Math.max(maxY, y1);
+  maxW = Math.max(maxW, pillW(stats[g.code]));
+}
+const mapW = maxX - minX, mapH = maxY - minY;
+const gx = RAD_X + Math.ceil(maxW / 2) + 10, gy = RAD_Y + PILL_H + 8;
+const outerW = mapW + 2 * gx, outerH = mapH + 2 * gy;
+const tx = gx - minX, ty = gy - minY;
+const ocx = outerW / 2, ocy = outerH / 2;
+const cxc = minX + mapW / 2, cyc = minY + mapH / 2;
+const aRad = mapW / 2 + RAD_X, bRad = mapH / 2 + RAD_Y;
+svg.setAttribute('viewBox', '0 0 ' + Math.round(outerW) + ' ' + Math.round(outerH));
+
+const mapG = document.createElementNS(NS, 'g');
+mapG.setAttribute('transform', 'translate(' + tx.toFixed(1) + ',' + ty.toFixed(1) + ')');
+svg.appendChild(mapG);
+for (const g of regions) {
+  const s = stats[g.code];
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s));
+  a.setAttribute('aria-label', s.full + ' — ' + s.done + ' / ' + s.total + ' топшириқ бажарилган');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  mapG.appendChild(a);
+}
+
+const ringXY = th => {
+  const c = Math.cos(th), s = Math.sin(th);
+  const k = 1 / Math.max(Math.abs(c) / aRad, Math.abs(s) / bRad);
+  return [ocx + k * c, ocy + k * s];
+};
+const wrapPi = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+const items = regions
+  .map(g => ({ g, s: stats[g.code], w: pillW(stats[g.code]) }))
+  .map(it => (it.a = Math.atan2((it.g.cy - cyc) / bRad, (it.g.cx - cxc) / aRad), it))
+  .sort((p, q) => p.a - q.a);
+const n = items.length, step = 2 * Math.PI / n;
+let bestOff = 0, bestCost = Infinity;
+for (let k = 0; k < 720; k++) {
+  const off = -Math.PI + k * Math.PI / 360;
+  let cost = 0;
+  for (let i = 0; i < n; i++) cost += Math.abs(wrapPi(off + i * step - items[i].a));
+  if (cost < bestCost) { bestCost = cost; bestOff = off; }
+}
+items.forEach((it, i) => {
+  it.th = bestOff + i * step;
+  [it.x, it.y] = ringXY(it.th);
+});
+for (let iter = 0; iter < 200; iter++) {
+  let moved = false;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const ox = (items[i].w + items[j].w) / 2 + MIN_GAP - Math.abs(items[i].x - items[j].x);
+      const oy = PILL_H + MIN_GAP - Math.abs(items[i].y - items[j].y);
+      if (ox > 0 && oy > 0) {
+        const sgn = wrapPi(items[j].th - items[i].th) >= 0 ? 1 : -1;
+        for (const [it, dir] of [[items[i], -1], [items[j], 1]]) {
+          it.th += 0.015 * sgn * dir;
+          [it.x, it.y] = ringXY(it.th);
+        }
+        moved = true;
+      }
+    }
+  }
+  if (!moved) break;
+}
+
+const leaderG = document.createElementNS(NS, 'g');
+svg.appendChild(leaderG);
+for (const it of items) {
+  const { g, s, w } = it;
+  const color = TIER_COLOR[tier(s)];
+  const px = Math.min(outerW - 6 - w, Math.max(6, it.x - w / 2));
+  const py = it.y;
+  const dotX = g.cx + tx, dotY = g.cy + ty;
+  const topbot = Math.abs(Math.sin(it.th)) / bRad > Math.abs(Math.cos(it.th)) / aRad;
+  let leader;
+  if (topbot) {
+    const sx = px + w / 2;
+    const sy = Math.sin(it.th) > 0 ? py - PILL_H / 2 : py + PILL_H / 2;
+    leader = 'M' + sx.toFixed(1) + ' ' + sy.toFixed(1)
+      + ' C' + sx.toFixed(1) + ' ' + ((sy + dotY) / 2).toFixed(1)
+      + ' ' + dotX.toFixed(1) + ' ' + ((sy + dotY) / 2).toFixed(1)
+      + ' ' + dotX.toFixed(1) + ' ' + dotY.toFixed(1);
+  } else {
+    const sx = Math.cos(it.th) >= 0 ? px : px + w;
+    leader = 'M' + sx.toFixed(1) + ' ' + py.toFixed(1)
+      + ' C' + ((sx + dotX) / 2).toFixed(1) + ' ' + py.toFixed(1)
+      + ' ' + ((sx + dotX) / 2).toFixed(1) + ' ' + dotY.toFixed(1)
+      + ' ' + dotX.toFixed(1) + ' ' + dotY.toFixed(1);
+  }
+  const lp = document.createElementNS(NS, 'path');
+  lp.setAttribute('class', 'leader');
+  lp.setAttribute('data-leader', g.code);
+  lp.setAttribute('d', leader);
+  leaderG.appendChild(lp);
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('class', 'mdot');
+  dot.setAttribute('data-mdot', g.code);
+  dot.setAttribute('cx', dotX); dot.setAttribute('cy', dotY); dot.setAttribute('r', 2.6);
+  leaderG.appendChild(dot);
+
+  // Capsule pill: [tier dot] Name 18/84 — one line, fully rounded ends.
+  const pill = document.createElementNS(NS, 'a');
+  pill.setAttribute('href', dash(g.code));
+  pill.setAttribute('class', 'pill');
+  pill.setAttribute('data-pill', g.code);
+  pill.setAttribute('aria-label', s.full + ' — ' + s.done + ' / ' + s.total + ' топшириқ бажарилган');
+  const top = py - PILL_H / 2;
+  const mk = (tag, attrs) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    pill.appendChild(el);
+    return el;
+  };
+  const base = top + PILL_H / 2 + 5.5;
+  mk('rect', {class: 'bg', x: px, y: top, width: w, height: PILL_H, rx: PILL_H / 2});
+  mk('circle', {cx: px + 21, cy: top + PILL_H / 2, r: 5, fill: color});
+  const tn = mk('text', {class: 'n', x: px + 33, y: base});
+  tn.textContent = s.short;
+  const tc = mk('text', {class: 'c num', x: px + 33 + s.short.length * 9.7 + 14, y: base});
+  tc.innerHTML = s.done + '<tspan>/' + s.total + '</tspan>';
+  svg.appendChild(pill);
+}
+
+// region ↔ pill ↔ leader hover sync.
+function hot(code, on) {
+  for (const attr of ['data-code', 'data-pill', 'data-leader', 'data-mdot']) {
+    const el = document.querySelector('[' + attr + '="' + code + '"]');
+    if (el) el.classList.toggle('hot', on);
+  }
+}
+
+const R = 23, CIRC = 2 * Math.PI * R;
+document.querySelectorAll('.rg').forEach(el => {
+  const s = stats[el.dataset.code];
+  el.addEventListener('mouseenter', () => {
+    hot(el.dataset.code, true);
+    tip.innerHTML = '<h3>' + s.full + '</h3>'
+      + '<div class="row">'
+      + '<svg class="ring" viewBox="0 0 56 56"><circle class="tr" cx="28" cy="28" r="' + R + '" fill="none" stroke-width="5"/>'
+      + '<circle class="pr" cx="28" cy="28" r="' + R + '" fill="none" stroke-width="5" stroke-dasharray="' + CIRC + '" stroke-dashoffset="' + CIRC + '" transform="rotate(-90 28 28)"/></svg>'
+      + '<div><div class="big num">' + s.done + ' <small>/ ' + s.total + '</small></div>'
+      + '<div class="sub">бажарилди · ижрода ' + s.open + '</div></div></div>'
+      + '<div class="go">Дашбордни очиш →</div>';
+    tip.classList.add('on');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const pr = tip.querySelector('.pr');
+      if (pr) pr.style.strokeDashoffset = String(CIRC * (1 - s.done / s.total));
+    }));
+  });
+  el.addEventListener('mousemove', e => {
+    const w = 248, vw = window.innerWidth, vh = window.innerHeight;
+    tip.style.left = Math.min(e.clientX + 18, vw - w - 14) + 'px';
+    tip.style.top = Math.min(e.clientY + 20, vh - tip.offsetHeight - 14) + 'px';
+  });
+  el.addEventListener('mouseleave', () => {
+    hot(el.dataset.code, false);
+    tip.classList.remove('on');
+  });
+});
+document.querySelectorAll('.pill').forEach(el => {
+  el.addEventListener('mouseenter', () => hot(el.dataset.pill, true));
+  el.addEventListener('mouseleave', () => hot(el.dataset.pill, false));
+});
+</script>
+</body>
+</html>
