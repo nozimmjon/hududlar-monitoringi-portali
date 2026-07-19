@@ -36,8 +36,8 @@ test('board card shows labeled plan, actual, percent and context', function () {
         ->assertSee('Режа')               // stat-strip labels
         ->assertSee('Амалда')
         ->assertSee('Бажарилиш')
-        ->assertSee('7.2')                 // plan value
-        ->assertSee('3.6')                 // actual value
+        ->assertSee('7,2')                 // plan value, decimal comma
+        ->assertSee('3,6')                 // actual value, decimal comma
         ->assertSee('50')                  // pct value (50%)
         ->assertSeeHtml('task-pct--amber')
         ->assertSee('Муддат')              // context label

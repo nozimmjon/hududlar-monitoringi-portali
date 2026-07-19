@@ -55,7 +55,7 @@
                             $statusChip = $isDone ? 'green' : 'grey';
                             $statusLabel = $isDone ? 'Бажарилди' : 'Бажарилмаган';
                             $cadenceLabel = $task->cadence === 'monthly' ? 'Ойлик' : ($task->cadence === 'quarterly' ? 'Чорак' : '');
-                            $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
+                            $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, ',', ' '), '0'), ',');
                             $srok = $task->deadline_text;
                             $yonalish = $task->module?->label ?? $task->section_label;
                             $scopeText = $task->districts->count() ? $task->districts->count() . ' туман/шаҳар' : 'вилоят';
