@@ -4337,7 +4337,7 @@
     }
 
     .task-filter.report-filter {
-      grid-template-columns: minmax(220px, .9fr) minmax(240px, 1fr) minmax(150px, .55fr) minmax(220px, .85fr);
+      grid-template-columns: minmax(220px, 1fr) minmax(150px, .55fr) minmax(170px, .65fr) minmax(220px, .9fr);
     }
 
     .task-filter.report-filter.execution-filter {

@@ -4,8 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Task;
 use App\Models\Module;
-use App\Models\Indicator;
 use App\Models\District;
+use App\Support\TaskPeriod;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -16,16 +16,16 @@ class TasksBoard extends Component
     public string $module = 'all';
 
     #[Url]
-    public string $indicator = 'all';
-
-    #[Url]
-    public string $status = 'open';
+    public string $status = 'all';
 
     #[Url]
     public string $period = 'all';
 
     #[Url]
     public string $district = 'all';
+
+    #[Url]
+    public string $deadline = 'all';
 
     #[Url]
     public string $search = '';
@@ -40,12 +40,6 @@ class TasksBoard extends Component
     public function selectModule(string $code): void
     {
         $this->module = $code;
-        $this->indicator = 'all';
-    }
-
-    public function selectIndicator(string $code): void
-    {
-        $this->indicator = $code;
     }
 
     public function selectStatus(string $code): void
@@ -63,13 +57,18 @@ class TasksBoard extends Component
         $this->district = $code;
     }
 
+    public function selectDeadline(string $code): void
+    {
+        $this->deadline = $code;
+    }
+
     public function clearFilters(): void
     {
         $this->module = 'all';
-        $this->indicator = 'all';
-        $this->status = 'open';
+        $this->status = 'all';
         $this->period = 'all';
         $this->district = 'all';
+        $this->deadline = 'all';
         $this->search = '';
     }
 
@@ -84,7 +83,6 @@ class TasksBoard extends Component
             ->hasPlan();
 
         if ($this->module !== 'all')   $q->forModule($this->module);
-        if ($this->indicator !== 'all') $q->forIndicator($this->indicator);
         if ($this->period !== 'all')   $q->forPeriod($this->period);
         if ($this->district !== 'all') $q->forDistrict((int) $this->district);
         if ($this->search !== '')      $q->search($this->search);
@@ -93,7 +91,24 @@ class TasksBoard extends Component
         if ($this->status === 'open') $q->where('status', '!=', 'done');
         if ($this->status === 'done') $q->where('status', 'done');
 
-        return $q->orderBy('source_paragraph_index')->get();
+        $tasks = $q->get();
+
+        if ($this->deadline !== 'all') {
+            $tasks = $tasks->filter(
+                fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === $this->deadline
+            );
+        }
+
+        // Tasks with a reported actual first; then by deadline bucket
+        // (H1 → Q3 → year-end → ongoing); then source order.
+        return $tasks
+            ->sortBy([
+                fn ($a, $b) => ($a->headline_actual === null) <=> ($b->headline_actual === null),
+                fn ($a, $b) => TaskPeriod::deadlineSortRank($a->period_code, $a->deadline_text)
+                           <=> TaskPeriod::deadlineSortRank($b->period_code, $b->deadline_text),
+                fn ($a, $b) => $a->source_paragraph_index <=> $b->source_paragraph_index,
+            ])
+            ->values();
     }
 
     #[Computed]
@@ -109,16 +124,6 @@ class TasksBoard extends Component
     }
 
     #[Computed]
-    public function indicatorOptions()
-    {
-        $q = Task::forRegion($this->regionCode)->hasPlan()->whereNotNull('indicator_code');
-        if ($this->module !== 'all') $q->forModule($this->module);
-        $codes = $q->distinct()->pluck('indicator_code');
-
-        return Indicator::whereIn('code', $codes)->orderBy('label_short')->get();
-    }
-
-    #[Computed]
     public function districtOptions()
     {
         $taskIds = Task::forRegion($this->regionCode)->hasPlan()->pluck('id');
@@ -129,17 +134,40 @@ class TasksBoard extends Component
     }
 
     #[Computed]
+    public function deadlineOptions(): array
+    {
+        $present = Task::forRegion($this->regionCode)
+            ->hasPlan()
+            ->get(['period_code', 'deadline_text'])
+            ->map(fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text))
+            ->unique();
+
+        return array_filter(
+            TaskPeriod::deadlineBucketLabels(),
+            fn ($code) => $present->contains($code),
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    #[Computed]
     public function totals(): array
     {
         $base = Task::forRegion($this->regionCode)->hasPlan();
         if ($this->module !== 'all')    $base->forModule($this->module);
-        if ($this->indicator !== 'all') $base->forIndicator($this->indicator);
         if ($this->period !== 'all')    $base->forPeriod($this->period);
         if ($this->district !== 'all')  $base->forDistrict((int) $this->district);
         if ($this->search !== '')       $base->search($this->search);
 
-        $total = $base->count();
-        $done  = (clone $base)->where('status', 'done')->count();
+        $all = $base->get(['id', 'status', 'period_code', 'deadline_text']);
+
+        if ($this->deadline !== 'all') {
+            $all = $all->filter(
+                fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === $this->deadline
+            );
+        }
+
+        $total = $all->count();
+        $done  = $all->where('status', 'done')->count();
 
         return [
             'total' => $total,

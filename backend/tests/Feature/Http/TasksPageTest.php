@@ -49,9 +49,16 @@ test('search filters by title via ILIKE', function () {
         ->assertDontSee('macro one');
 });
 
-test('selectModule resets indicator to all', function () {
+test('board shows all tasks including done by default', function () {
+    Task::create(['region_code'=>1703,'task_number'=>'3','title'=>'finished three','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>3,'headline_plan'=>100,'status'=>'done']);
+
     Livewire::test(TasksBoard::class)
-        ->set('indicator', 'industry')
-        ->call('selectModule', 'export')
-        ->assertSet('indicator', 'all');
+        ->assertSet('status', 'all')
+        ->assertSee('finished three')
+        ->assertSee('macro one');
+});
+
+test('board has no KPI indicator filter', function () {
+    Livewire::test(TasksBoard::class)
+        ->assertDontSee('KPI / топшириқ йўналиши');
 });

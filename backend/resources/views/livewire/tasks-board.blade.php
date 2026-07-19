@@ -2,8 +2,7 @@
     $totals = $this->totals;
     $tasks = $this->tasks;
     $moduleOptions = $this->moduleOptions;
-    $indicatorOptions = $this->indicatorOptions;
-    $shownScope = $status === 'done' ? 'Бажарилган' : ($status === 'open' ? 'Бажарилмаган' : 'Барчаси');
+    $shownScope = $status === 'done' ? 'Бажарилган' : ($status === 'open' ? 'Бажарилмаган' : 'Барча');
 @endphp
 
 <div>
@@ -16,19 +15,19 @@
                 @endforeach
             </select>
         </label>
-        <label>KPI / топшириқ йўналиши
-            <select wire:model.live="indicator">
-                <option value="all">Барча KPI</option>
-                @foreach($indicatorOptions as $i)
-                    <option value="{{ $i->code }}">{{ $i->label_short }} — {{ $i->label_full }}</option>
-                @endforeach
-            </select>
-        </label>
         <label>Ҳолат
             <select wire:model.live="status">
-                <option value="open">Бажарилмаган</option>
                 <option value="all">Барчаси</option>
+                <option value="open">Бажарилмаган</option>
                 <option value="done">Бажарилган</option>
+            </select>
+        </label>
+        <label>Муддат
+            <select wire:model.live="deadline">
+                <option value="all">Барча муддатлар</option>
+                @foreach($this->deadlineOptions as $code => $label)
+                    <option value="{{ $code }}">{{ $label }}</option>
+                @endforeach
             </select>
         </label>
         <label>Қидириш
