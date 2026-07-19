@@ -65,7 +65,7 @@ test('parses the economic layout: auto-detect, ratio pct, plan-based region list
         @unlink($path);
     }
 
-    expect($tasks)->toHaveCount(7);
+    expect($tasks)->toHaveCount(8); // incl. task 36 (services) used by the fact bridge
 
     $t1 = $tasks[0];
     expect($t1['task_number'])->toBe('1');

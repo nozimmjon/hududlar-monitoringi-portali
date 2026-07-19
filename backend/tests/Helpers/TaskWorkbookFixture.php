@@ -287,6 +287,24 @@ class TaskWorkbookFixture
         $set(13, 14, 4.4501433700843);
         $set(14, 14, '=M14/L14');
 
+        // Row 15: TASK 36 — services H1 volume (трлн -> млрд, scale 1000)…
+        $set(1, 15, 8);
+        $set(2, 15, 36);
+        $set(3, 15, 'Биринчи ярим йилликда бозор хизматлари ҳажмини ошириш.');
+        $set(4, 15, 'Бозор хизматлари ҳажми (биринчи ярим йиллик)');
+        $set(5, 15, 'трлн сўм');
+        $set(6, 15, "2026 йил / I ярим йиллик");
+        $set(11, 15, 'Андижон вилояти ҳокимлиги');
+        $set(12, 15, 27.9);
+        $set(13, 15, 33.9889);
+        $set(14, 15, '=M15/L15');
+        // Row 16: …and its continuation line with the growth actual (line_no 1).
+        $set(4, 16, 'ўсиш суръати');
+        $set(5, 16, 'фоиз');
+        $set(12, 16, 14.5);
+        $set(13, 16, 16.1);
+        $set(14, 16, '=M16/L16');
+
         $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'taskwb_econ_' . uniqid('', true) . '.xlsx';
         (IOFactory::createWriter($book, 'Xlsx'))->save($path);
         $book->disconnectWorksheets();

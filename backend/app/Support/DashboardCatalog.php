@@ -190,12 +190,15 @@ class DashboardCatalog
 
     public static function periodSourceKind(string $kpi, string $period, ?object $row): string
     {
-        // A reported hokimyat actual wins for any period — H1/year actuals arrive
+        // A reported actual wins for any period — H1/year actuals arrive
         // via the tasks workbook (TaskFactBridge) and replace the Кутилиш forecast.
-        if ($row && ($row->actual_hokimyat !== null || $row->actual_statistika !== null)) {
+        if ($row && ($row->actual_hokimyat !== null || $row->actual_statkom !== null)) {
             return 'actual';
         }
-        if ($period === 'q1' && $row && $row->growth_pct !== null) {
+        // Growth-only actuals (macro KPIs): the bridge stamps hokimyat_reported_at;
+        // forecast growth from the region workbooks has no stamp and stays Режа.
+        if ($row && $row->growth_pct !== null
+            && ($period === 'q1' || ($row->hokimyat_reported_at ?? null) !== null)) {
             return 'actual';
         }
         if (in_array($kpi, ['budget', 'budget_investment', 'investment', 'export'], true)

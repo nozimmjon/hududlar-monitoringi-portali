@@ -17,11 +17,15 @@
                 $growthText = $row && $row->growth_pct !== null
                     ? DashboardCatalog::growthValue($row->growth_pct)
                     : '—';
+                // A reported actual (e.g. H1 via TaskFactBridge) overrides the static Режа state.
+                $isActual = DashboardCatalog::periodSourceKind($indicator->code ?? '', $item['period'], $row) === 'actual';
+                $state = $isActual ? 'Амалда' : $item['state'];
+                $cls   = $isActual ? 'actual' : $item['cls'];
             @endphp
-            <div class="macro-period-cell {{ $item['cls'] }}">
+            <div class="macro-period-cell {{ $cls }}">
                 <span class="macro-period-cell__label">{{ $item['label'] }}</span>
                 <strong class="macro-period-cell__value">{{ $growthText }}</strong>
-                <span class="macro-period-cell__state">({{ $item['state'] }})</span>
+                <span class="macro-period-cell__state">({{ $state }})</span>
             </div>
         @endforeach
     </div>

@@ -27,6 +27,17 @@ beforeEach(function () {
         'plan_value' => 3.841246,
         'unit' => '%', 'source_label' => 'Прогноз',
     ]);
+    // Macro rows carry only the forecast growth until the tasks workbook reports.
+    IndicatorFact::create([
+        'region_code' => 1703, 'indicator_code' => 'grp', 'period' => 'h1', 'year' => 2026,
+        'plan_value' => 52100.811094, 'growth_pct' => 107.1591,
+        'unit' => 'млрд сўм', 'source_label' => 'Прогноз',
+    ]);
+    IndicatorFact::create([
+        'region_code' => 1703, 'indicator_code' => 'services', 'period' => 'h1', 'year' => 2026,
+        'plan_value' => 27911.207377, 'growth_pct' => 114.5,
+        'unit' => 'млрд сўм', 'source_label' => 'Прогноз',
+    ]);
 });
 
 afterEach(function () {
@@ -59,6 +70,26 @@ test('task actuals replace the dashboard Кутилиш values on import', funct
     expect(DashboardCatalog::factLabel('budget', 'h1', $budget))->toBe('Амалда');
     expect(DashboardCatalog::periodState('budget', 'h1', $budget)['cls'])->toBe('actual');
     expect(DashboardCatalog::executionLabel('budget', 'h1', $budget))->toBe('Ижро');
+});
+
+test('macro growth and volume actuals land on dashboard facts', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-H1'])
+        ->assertSuccessful();
+
+    // grp (task 1): growth-only actual — 8.8% delta becomes ratio 108.8, marked reported.
+    $grp = IndicatorFact::where('indicator_code', 'grp')->where('period', 'h1')->first();
+    expect((float) $grp->growth_pct)->toBeNumericallyClose(108.8, 1e-4);
+    expect($grp->hokimyat_reported_at)->not->toBeNull();
+    expect($grp->actual_hokimyat)->toBeNull();
+    expect(DashboardCatalog::periodSourceKind('grp', 'h1', $grp))->toBe('actual');
+    expect(DashboardCatalog::periodState('grp', 'h1', $grp)['cls'])->toBe('actual');
+
+    // services (task 36): volume трлн -> млрд (×1000) plus the growth line.
+    $srv = IndicatorFact::where('indicator_code', 'services')->where('period', 'h1')->first();
+    expect((float) $srv->actual_hokimyat)->toBeNumericallyClose(33988.9, 1e-2);
+    expect((float) $srv->growth_pct)->toBeNumericallyClose(116.1, 1e-4);
+    expect((float) $srv->pct_of_plan)->toBeNumericallyClose(33988.9 / 27911.207377 * 100, 1e-3);
+    expect(DashboardCatalog::periodState('services', 'h1', $srv)['cls'])->toBe('actual');
 });
 
 test('a fact row without a task actual keeps its Кутилиш presentation', function () {
