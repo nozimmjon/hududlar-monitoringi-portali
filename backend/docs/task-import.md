@@ -90,6 +90,39 @@ php artisan import:task-progress --file="../data/+++Иқтисодий кўрс�
 are stored with `period_type = half` and sort between Q2 and Q3 (H1 → June,
 H2 → December) for the headline-advance guard.
 
+## Annex tables workbook (илова жадваллар)
+
+The partner also sends a half-year annex workbook (**`data/илова жадваллар.xlsx`**,
+25 sheets "N-илова", one indicator per sheet, one row per region). Most of it
+duplicates the economic file, but a few sheets carry actuals the economic file
+leaves empty. A separate command fills exactly those gaps **after** the regular
+H1 import:
+
+```bash
+php artisan import:ilova --period=2026-H1            # add --dry-run first
+```
+
+Covered tasks: **10** (4-илова — actual = count of districts whose diff from the
+region average is positive), **40** (7-илова), **46** (8-илова), **48** (9-илова),
+**111 headline** (15б-илова), **133** (17-илова, cols У–Х).
+
+Behavior:
+
+- **Gap-filling only** — a non-null plan/actual already in the DB is never
+  overwritten; a conflicting file value is reported and skipped. Idempotent.
+- **Explicit zeros are written** — a closed half-year with no execution is a
+  real 0% (shown as 0%, task open), unlike an empty cell which stays "—".
+- **Regions matched by name, never by row position** — the annex sheets shuffle
+  region order (17-илова swaps Сирдарё/Сурхондарё, 15б-илова omits Жиззах and
+  uses its own order, several sheets omit Тошкент шаҳри). An unrecognised region
+  name on a numbered row aborts the import.
+- **Header guards** — each sheet's key columns are verified against expected
+  header text; a moved/renamed column aborts instead of importing wrong numbers.
+- Task **133** actuals arrive for four regions (Андижон, Бухоро, Навоий,
+  Тошкент вилояти) that have **no plan** in either file — the actual is stored,
+  but the task stays hidden for those regions by the no-plan filter and shows no
+  percent.
+
 ## How updates behave
 
 - **Idempotent**: re-running the same `--period` replaces that period's progress rows
