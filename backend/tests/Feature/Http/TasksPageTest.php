@@ -18,8 +18,8 @@ beforeEach(function () {
         ['code' => 'export', 'label' => 'E', 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
     ]);
 
-    Task::create(['region_code'=>1703,'task_number'=>'1','title'=>'macro one','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>1,'headline_plan'=>100]);
-    Task::create(['region_code'=>1703,'task_number'=>'2','title'=>'export two','executor_text'=>'хокимлик','kind'=>'measure','module_code'=>'export','section_path'=>'VI','section_label'=>'VI','source_paragraph_index'=>2,'headline_plan'=>100]);
+    Task::create(['region_code'=>1703,'task_number'=>'1','title'=>'macro one','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>1,'headline_plan'=>100,'period_code'=>'h1']);
+    Task::create(['region_code'=>1703,'task_number'=>'2','title'=>'export two','executor_text'=>'хокимлик','kind'=>'measure','module_code'=>'export','section_path'=>'VI','section_label'=>'VI','source_paragraph_index'=>2,'headline_plan'=>100,'period_code'=>'h1']);
 });
 
 test('GET /tasks returns 200 and contains task-card markup', function () {
@@ -50,7 +50,7 @@ test('search filters by title via ILIKE', function () {
 });
 
 test('board shows all tasks including done by default', function () {
-    Task::create(['region_code'=>1703,'task_number'=>'3','title'=>'finished three','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>3,'headline_plan'=>100,'status'=>'done']);
+    Task::create(['region_code'=>1703,'task_number'=>'3','title'=>'finished three','executor_text'=>'хокимлик','kind'=>'kpi','module_code'=>'macro','section_path'=>'I','section_label'=>'I','source_paragraph_index'=>3,'headline_plan'=>100,'status'=>'done','period_code'=>'h1']);
 
     Livewire::test(TasksBoard::class)
         ->assertSet('status', 'all')

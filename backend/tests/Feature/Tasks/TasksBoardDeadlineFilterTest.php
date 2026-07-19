@@ -56,6 +56,15 @@ function boardTitles(string $deadline): array
         ->instance()->tasks->pluck('title')->values()->all();
 }
 
+test('board opens on the h1 bucket by default', function () {
+    $titles = Livewire::test(TasksBoard::class)
+        ->assertSet('deadline', 'h1')
+        ->set('status', 'all')
+        ->instance()->tasks->pluck('title')->values()->all();
+
+    expect($titles)->toBe(['Ярим йиллик топшириқ', 'Май ойи топшириқ']);
+});
+
 test('h1 bucket keeps half-year and first-half month deadlines', function () {
     expect(boardTitles('h1'))->toBe(['Ярим йиллик топшириқ', 'Май ойи топшириқ']);
 });
@@ -92,9 +101,9 @@ test('deadline options list only buckets present in data, in deadline order', fu
     expect(array_keys($options))->toBe(['h1', 'q3', 'year', 'ongoing']);
 });
 
-test('clear filters resets deadline', function () {
+test('clear filters resets deadline to the h1 default', function () {
     Livewire::test(TasksBoard::class)
         ->set('deadline', 'year')
         ->call('clearFilters')
-        ->assertSet('deadline', 'all');
+        ->assertSet('deadline', 'h1');
 });

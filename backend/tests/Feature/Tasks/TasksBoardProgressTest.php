@@ -32,6 +32,7 @@ beforeEach(function () {
 test('board card shows labeled plan, actual, percent and context', function () {
     session(['region_code' => 1703]); // TasksBoard::mount() reads CurrentRegion::code()
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->assertSee('Режа')               // stat-strip labels
         ->assertSee('Амалда')
@@ -58,6 +59,7 @@ test('percent under 50 uses the red tier', function () {
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Орқада')              // isolate this card
         ->assertSeeHtml('task-pct--red')        // pct value gets the red modifier
@@ -74,6 +76,7 @@ test('percent between 50 and 99 uses the amber tier', function () {
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Ярим')
         ->assertSeeHtml('task-pct--amber')
@@ -90,6 +93,7 @@ test('done task shows done badge and green tier', function () {
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'done')
         ->assertSee('Бажарилди')
         ->assertSee('Экспорт ҳажми')
@@ -122,6 +126,7 @@ test('card detail shows sub-metrics, scope, cadence and districts; drops the hea
 
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->assertSee('Батафсил')
         ->assertSee('Қамров')                              // scope/cadence caption
@@ -155,6 +160,7 @@ test('detail sub-metric pills use the per-line tier (red, amber, none)', functio
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Кўп тоифали')
         ->assertSeeHtml('tl-pill--red')      // 30% sub-line
@@ -171,6 +177,7 @@ test('task without progress data renders without errors', function () {
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->assertSee('Маълумотсиз топшириқ')
         ->assertSee('—'); // null plan/actual/pct render as em-dash
@@ -186,6 +193,7 @@ test('a task with no plan is hidden from the board list and the count', function
 
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->assertSee('ЯҲМ ўсиши')             // planned task (from beforeEach) still visible
         ->assertDontSee('Режасиз топшириқ')   // no-plan task hidden from the list
@@ -206,6 +214,7 @@ test('a no-plan task does not contribute its module to the filter options', func
 
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->assertSeeHtml('value="macro"')      // macro has a planned task -> offered
         ->assertDontSeeHtml('value="export"'); // export only has a no-plan task -> not offered
@@ -221,6 +230,7 @@ test('open task just under 100 percent shows 99 and amber, never 100 or green', 
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Деярли')
         ->assertSee('99%')
@@ -241,6 +251,7 @@ test('plan-only task shows an empty 0 percent track but keeps em-dash, not 0 per
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Режа бор амал йўқ')
         ->assertSeeHtml('--w:0%')           // empty progress track is rendered
@@ -265,6 +276,7 @@ test('task planned only via a sub-metric line still shows an empty 0% track', fu
     ]);
     session(['region_code' => 1703]);
     Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
         ->set('status', 'all')
         ->set('search', 'Фақат ост-сатр')
         ->assertSee('Фақат ост-сатр режа топшириғи')  // visible (planned via sub-line)

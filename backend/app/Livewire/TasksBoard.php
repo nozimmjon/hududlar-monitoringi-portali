@@ -25,7 +25,7 @@ class TasksBoard extends Component
     public string $district = 'all';
 
     #[Url]
-    public string $deadline = 'all';
+    public string $deadline = 'h1';
 
     #[Url]
     public string $search = '';
@@ -68,7 +68,7 @@ class TasksBoard extends Component
         $this->status = 'all';
         $this->period = 'all';
         $this->district = 'all';
-        $this->deadline = 'all';
+        $this->deadline = 'h1';
         $this->search = '';
     }
 

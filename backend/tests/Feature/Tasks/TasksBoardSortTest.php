@@ -58,6 +58,7 @@ test('tasks sort by actual presence first, then deadline bucket', function () {
 
     $titles = Livewire::test(TasksBoard::class)
         ->set('status', 'all')
+        ->set('deadline', 'all')
         ->instance()->tasks->pluck('title')->values()->all();
 
     expect($titles)->toBe([
@@ -86,6 +87,7 @@ test('within the same bucket tasks keep source order', function () {
 
     $titles = Livewire::test(TasksBoard::class)
         ->set('status', 'all')
+        ->set('deadline', 'all')
         ->instance()->tasks->pluck('title')->values()->all();
 
     expect($titles)->toBe(['Биринчи параграф', 'Иккинчи параграф']);
