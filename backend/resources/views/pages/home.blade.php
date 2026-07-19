@@ -60,8 +60,6 @@ a { color: inherit; text-decoration: none; }
 
 .lede { text-align: center; padding: clamp(8px, 1.6vh, 18px) 20px 0; }
 .lede h1 { font-size: clamp(21px, 2.4vw, 27px); font-weight: 800; letter-spacing: -0.025em; }
-.lede p { color: var(--ink-mute); font-weight: 600; font-size: 13.5px; margin-top: 4px; }
-.lede p b { color: var(--accent); }
 
 .stage { flex: 1; display: flex; align-items: stretch; justify-content: center; padding: clamp(10px, 1.8vh, 20px) clamp(14px, 2.5vw, 36px) 20px; min-height: 0; }
 .map-card {
@@ -79,12 +77,12 @@ svg.uz { width: 100%; height: min(76vh, 900px); display: block; }
   display: flex; flex-direction: column; gap: 10px;
 }
 .kpi {
-  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-  box-shadow: var(--shadow-s); padding: 10px 16px; min-width: 152px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: var(--shadow-s); padding: 16px 22px; min-width: 210px;
 }
-.kpi .v { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
-.kpi .v small { font-size: 12.5px; font-weight: 700; color: var(--ink-faint); }
-.kpi .k { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); margin-top: 1px; }
+.kpi .v { font-size: 34px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+.kpi .v small { font-size: 17px; font-weight: 700; color: var(--ink-faint); }
+.kpi .k { font-size: 13.5px; font-weight: 700; color: var(--ink-mute); margin-top: 3px; }
 
 .legend {
   position: absolute; bottom: 20px; right: 24px;
@@ -158,12 +156,11 @@ svg.uz:hover .rg:not(.hot) path { opacity: .45; }
 </head>
 <body>
 <header class="top">
-  <span class="wordmark"><span class="logo-chip"><img src="/logo.svg" alt="CERR"></span> Ҳудудлар мониторинги</span>
+  <span class="wordmark"><span class="logo-chip"><img src="/logo.svg" alt="CERR"></span> Ҳудудлар мониторинги платформаси</span>
 </header>
 
 <div class="lede">
   <h1>Ҳудудий топшириқлар ижроси</h1>
-  <p>Республика бўйича <b class="num">{{ $republic['done'] }} / {{ $republic['total'] }}</b> топшириқ бажарилди</p>
 </div>
 
 <main class="stage">
