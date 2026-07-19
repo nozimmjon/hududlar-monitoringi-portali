@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги · Бошқарув маркази</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap&subset=cyrillic,cyrillic-ext">
+<style>
+/* Hallmark · macrostructure: Workbench · theme: Midnight-adapted · tone: control-room
+ * genre: atmospheric · nav: N9 wordmark-only · footer: Ft5 one-line statement
+ * enrichment: none — the map IS the artifact · pre-emit critique: P5 H5 E4 S5 R4 V5 */
+:root {
+  --paper:      oklch(21% 0.045 250);
+  --paper-2:    oklch(24% 0.05 250);
+  --panel:      oklch(26.5% 0.052 250);
+  --line:       oklch(34% 0.05 250);
+  --line-soft:  oklch(29% 0.048 250);
+  --ink:        oklch(94% 0.012 250);
+  --ink-mute:   oklch(72% 0.03 250);
+  --ink-faint:  oklch(56% 0.035 250);
+  --good:       oklch(72% 0.115 225);
+  --good-deep:  oklch(48% 0.09 235);
+  --mid:        oklch(75% 0.11 80);
+  --mid-deep:   oklch(52% 0.09 70);
+  --attn:       oklch(66% 0.14 25);
+  --attn-deep:  oklch(45% 0.12 25);
+  --sea:        oklch(30% 0.055 250);
+  --focus:      oklch(80% 0.1 225);
+  --font-body:  'Inter', sans-serif;
+  --font-mono:  'IBM Plex Mono', monospace;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --dur: 170ms;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-feature-settings: "cv11";
+}
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+
+.stage {
+  display: grid;
+  grid-template-columns: 336px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* ---------- rail ---------- */
+.rail {
+  border-right: 1px solid var(--line-soft);
+  background: linear-gradient(180deg, var(--paper-2), var(--paper) 60%);
+  padding: var(--sp-6) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.brand { display: flex; align-items: baseline; gap: var(--sp-3); }
+.brand-mark {
+  font-family: var(--font-mono); font-weight: 600; font-size: 13px;
+  letter-spacing: .14em; color: var(--good);
+  border: 1px solid var(--line); padding: 5px 9px; border-radius: 4px;
+}
+.brand h1 { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+.brand p  { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+
+.rollup { display: grid; gap: var(--sp-4); }
+.rollup-main { border-top: 1px solid var(--line-soft); padding-top: var(--sp-4); }
+.rollup-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--font-mono); }
+.rollup-value { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-top: var(--sp-1); }
+.rollup-value small { font-size: 17px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0; }
+.rollup-row { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line-soft); padding-top: var(--sp-3); }
+.rollup-row span { font-size: 13px; color: var(--ink-mute); }
+.rollup-row b { font-size: 16px; font-weight: 700; }
+
+.rank { display: flex; flex-direction: column; min-height: 0; }
+.rank-head { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-family: var(--font-mono); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--line-soft); }
+.rank ol { list-style: none; }
+.rank a {
+  display: grid; grid-template-columns: 18px minmax(0,1fr) 84px 44px;
+  gap: var(--sp-2); align-items: center;
+  padding: 7px 6px; margin: 0 -6px; border-radius: 6px;
+  transition: background var(--dur) var(--ease-out);
+}
+.rank a:hover, .rank a.hot { background: var(--panel); }
+.rank a:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.rank .no { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
+.rank .nm { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank .bar { height: 4px; background: var(--sea); border-radius: 2px; overflow: hidden; }
+.rank .bar i { display: block; height: 100%; border-radius: 2px; }
+.rank .pv { font-family: var(--font-mono); font-size: 12px; text-align: right; color: var(--ink-mute); }
+.rank a[data-tier="good"] .bar i { background: var(--good); }
+.rank a[data-tier="mid"]  .bar i { background: var(--mid); }
+.rank a[data-tier="attn"] .bar i { background: var(--attn); }
+
+/* ---------- canvas ---------- */
+.canvas { position: relative; display: flex; flex-direction: column; padding: var(--sp-6) var(--sp-7); min-width: 0; }
+.canvas-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-4); flex-wrap: wrap; }
+.canvas-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.canvas-head .period { font-family: var(--font-mono); font-size: 12px; color: var(--ink-mute); border: 1px solid var(--line-soft); border-radius: 999px; padding: 6px 14px; }
+.canvas-sub { color: var(--ink-faint); font-size: 13.5px; margin-top: var(--sp-2); max-width: 56ch; }
+
+.map-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; margin-top: var(--sp-4); }
+svg.uz { width: 100%; max-width: 1060px; height: auto; display: block; }
+
+.rg path {
+  stroke: var(--paper); stroke-width: 1.1; cursor: pointer;
+  transition: filter var(--dur) var(--ease-out), opacity var(--dur) var(--ease-out);
+}
+.rg[data-tier="good"] path { fill: var(--good-deep); }
+.rg[data-tier="mid"]  path { fill: var(--mid-deep); }
+.rg[data-tier="attn"] path { fill: var(--attn-deep); }
+.rg:hover path, .rg.hot path { filter: brightness(1.35); }
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2; }
+.lbl { pointer-events: none; }
+.lbl text { font-family: var(--font-body); font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.lbl text.v { font-family: var(--font-mono); font-size: 11px; font-weight: 500; fill: var(--ink-mute); }
+.lbl line { stroke: var(--ink-faint); stroke-width: 1; }
+
+.legend { display: flex; gap: var(--sp-5); align-items: center; padding-top: var(--sp-4); border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-mute); }
+.legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.legend .cap { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
+
+.tip {
+  position: fixed; z-index: 10; pointer-events: none;
+  background: oklch(17% 0.04 250 / .96); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 14px; min-width: 200px;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.tip.on { opacity: 1; transform: none; }
+.tip h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+.tip .tr { display: flex; justify-content: space-between; gap: 18px; font-size: 12.5px; color: var(--ink-mute); padding: 2px 0; }
+.tip .tr b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+.tip .go { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line-soft); font-size: 11.5px; color: var(--good); }
+
+.foot { padding: var(--sp-3) var(--sp-7); border-top: 1px solid var(--line-soft); font-size: 12px; color: var(--ink-faint); display: flex; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .stage { grid-template-columns: 1fr; }
+  .rail { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .canvas { padding: var(--sp-5) var(--sp-4); }
+  .foot { padding: var(--sp-3) var(--sp-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="rail">
+    <div class="brand">
+      <span class="brand-mark">CERR</span>
+      <div>
+        <h1>Ҳудудлар мониторинги</h1>
+        <p>Бошқарув маркази</p>
+      </div>
+    </div>
+
+    <section class="rollup" aria-label="Республика бўйича жамланма">
+      <div class="rollup-main">
+        <div class="rollup-label">Топшириқлар ижроси</div>
+        <div class="rollup-value num" id="r-done"></div>
+      </div>
+      <div class="rollup-row"><span>Жами топшириқлар</span><b class="num" id="r-total"></b></div>
+      <div class="rollup-row"><span>Ижрода</span><b class="num" id="r-open"></b></div>
+      <div class="rollup-row"><span>Ўртача бажарилиш</span><b class="num" id="r-avg"></b></div>
+    </section>
+
+    <nav class="rank" aria-label="Ҳудудлар рейтинги">
+      <div class="rank-head">Ўртача бажарилиш бўйича</div>
+      <ol id="rank"></ol>
+    </nav>
+  </aside>
+
+  <main class="canvas">
+    <div class="canvas-head">
+      <h2>Ҳудудлар кесимида ижро ҳолати</h2>
+      <span class="period" id="period"></span>
+    </div>
+    <p class="canvas-sub">Ҳудудни танланг — унинг тўлиқ мониторинг дашборди очилади. Ранг ҳудуддаги топшириқларнинг ўртача бажарилишини билдиради.</p>
+
+    <div class="map-wrap">
+      <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари харитаси" id="map"></svg>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--good-deep)"></i> 96% дан юқори</span>
+      <span><i style="background:var(--mid-deep)"></i> 92–96%</span>
+      <span><i style="background:var(--attn-deep)"></i> 92% дан паст</span>
+      <span class="cap">Ўртача бажарилиш · I ярим йиллик</span>
+    </div>
+  </main>
+</div>
+
+<div class="tip" id="tip" role="status"></div>
+
+<footer class="foot">
+  <span>Иқтисодий кўрсаткичлар мониторинги · маълумотлар ҳудудий топшириқлар ҳисоботидан</span>
+  <span class="num" id="stamp"></span>
+</footer>
+
+<script src="data.js"></script>
+<script>
+const fmt = n => String(n).replace('.', ',');
+const tier = a => a >= 96 ? 'good' : a >= 92 ? 'mid' : 'attn';
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '/dashboard?region=' + c;
+
+document.getElementById('r-done').innerHTML = REPUBLIC.done + '<small> / ' + REPUBLIC.total + ' бажарилди</small>';
+document.getElementById('r-total').textContent = REPUBLIC.total;
+document.getElementById('r-open').textContent = REPUBLIC.open;
+document.getElementById('r-avg').textContent = fmt(REPUBLIC.avgExec) + '%';
+document.getElementById('period').textContent = REPUBLIC.period;
+document.getElementById('stamp').textContent = '14 ҳудуд · ' + REPUBLIC.total + ' топшириқ';
+
+// Label placement tuning (Fergana valley + Tashkent are crowded).
+const LBL = {
+  1735: {dx: -6, dy: -6}, 1733: {dx: 2, dy: 10}, 1712: {dx: -14, dy: 26},
+  1706: {dx: -6, dy: 20}, 1710: {dx: 6, dy: 12}, 1722: {dx: 2, dy: 6},
+  1718: {dx: -26, dy: 30}, 1708: {dx: -4, dy: 20}, 1724: {dx: 56, dy: 66, leader: true},
+  1727: {dx: 30, dy: -34}, 1726: {dx: -34, dy: -58, leader: true},
+  1714: {dx: -18, dy: -16}, 1703: {dx: 12, dy: 20}, 1730: {dx: -6, dy: 12},
+};
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s.avgExec));
+  a.setAttribute('aria-label', s.full + ' — бажарилиш ' + fmt(s.avgExec) + '%');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  svg.appendChild(a);
+}
+// Labels above the shapes.
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const o = LBL[g.code] || {dx: 0, dy: 0};
+  const x = g.cx + o.dx, y = g.cy + o.dy;
+  const grp = document.createElementNS(NS, 'g');
+  grp.setAttribute('class', 'lbl');
+  if (o.leader) {
+    const ln = document.createElementNS(NS, 'line');
+    ln.setAttribute('x1', g.cx); ln.setAttribute('y1', g.cy);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', y + 4);
+    grp.appendChild(ln);
+  }
+  const t1 = document.createElementNS(NS, 'text');
+  t1.setAttribute('x', x); t1.setAttribute('y', y);
+  t1.setAttribute('text-anchor', 'middle');
+  t1.textContent = s.short;
+  const t2 = document.createElementNS(NS, 'text');
+  t2.setAttribute('x', x); t2.setAttribute('y', y + 14);
+  t2.setAttribute('text-anchor', 'middle');
+  t2.setAttribute('class', 'v');
+  t2.textContent = fmt(s.avgExec) + '%';
+  grp.appendChild(t1); grp.appendChild(t2);
+  svg.appendChild(grp);
+}
+
+// Ranking rail.
+const rank = document.getElementById('rank');
+[...REGION_STATS].sort((a, b) => b.avgExec - a.avgExec).forEach((s, i) => {
+  const li = document.createElement('li');
+  li.innerHTML = '<a href="' + dash(s.code) + '" data-code="' + s.code + '" data-tier="' + tier(s.avgExec) + '">'
+    + '<span class="no num">' + String(i + 1).padStart(2, '0') + '</span>'
+    + '<span class="nm">' + s.short + '</span>'
+    + '<span class="bar"><i style="width:' + Math.min(100, s.avgExec) + '%"></i></span>'
+    + '<span class="pv">' + fmt(s.avgExec) + '%</span></a>';
+  rank.appendChild(li);
+});
+
+// Hover sync + tooltip.
+const hot = code => {
+  document.querySelectorAll('[data-code]').forEach(el =>
+    el.classList.toggle('hot', code !== null && el.dataset.code === String(code)));
+};
+document.querySelectorAll('.rg').forEach(el => {
+  const s = stats[el.dataset.code];
+  el.addEventListener('mouseenter', () => {
+    hot(el.dataset.code);
+    tip.innerHTML = '<h3>' + s.full + '</h3>'
+      + '<div class="tr"><span>Бажарилган</span><b>' + s.done + ' / ' + s.total + '</b></div>'
+      + '<div class="tr"><span>Ижрода</span><b>' + s.open + '</b></div>'
+      + '<div class="tr"><span>Ўртача бажарилиш</span><b>' + fmt(s.avgExec) + '%</b></div>'
+      + '<div class="go">Дашбордни очиш →</div>';
+    tip.classList.add('on');
+  });
+  el.addEventListener('mousemove', e => {
+    const w = tip.offsetWidth, vw = window.innerWidth;
+    tip.style.left = Math.min(e.clientX + 16, vw - w - 12) + 'px';
+    tip.style.top = (e.clientY + 18) + 'px';
+  });
+  el.addEventListener('mouseleave', () => { hot(null); tip.classList.remove('on'); });
+});
+document.querySelectorAll('.rank a').forEach(el => {
+  el.addEventListener('mouseenter', () => hot(el.dataset.code));
+  el.addEventListener('mouseleave', () => hot(null));
+});
+</script>
+</body>
+</html>

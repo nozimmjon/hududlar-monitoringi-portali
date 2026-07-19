@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги · Платформа</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap&subset=cyrillic,cyrillic-ext">
+<style>
+/* Hallmark · macrostructure: Stat-Led (stat band → split canvas) · theme: Quiet-adapted
+ * tone: state platform · genre: modern-minimal · nav: N6 split minimal · footer: Ft4 colophon line
+ * enrichment: none — typography + map · pre-emit critique: P5 H5 E5 S4 R5 V4 */
+:root {
+  --paper:     oklch(98.6% 0.003 250);
+  --paper-2:   oklch(96.5% 0.006 250);
+  --panel:     oklch(100% 0 0);
+  --ink:       oklch(23% 0.03 255);
+  --ink-mute:  oklch(48% 0.025 255);
+  --ink-faint: oklch(62% 0.02 255);
+  --line:      oklch(89% 0.01 255);
+  --line-dark: oklch(78% 0.015 255);
+  --accent:    oklch(50% 0.135 255);
+  --good:      oklch(55% 0.09 245);
+  --good-soft: oklch(68% 0.065 240);
+  --mid:       oklch(78% 0.085 85);
+  --attn:      oklch(62% 0.13 30);
+  --focus:     oklch(50% 0.135 255);
+  --font-display: 'Inter Tight', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --dur: 150ms;
+  --r: 10px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14.5px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.num { font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(1240px, 100%); margin: 0 auto; padding: 0 var(--sp-5); }
+
+/* ---------- top ---------- */
+.top { border-bottom: 1px solid var(--line); }
+.top-in { display: flex; justify-content: space-between; align-items: center; padding: var(--sp-4) 0; gap: var(--sp-4); }
+.wordmark { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14.5px; }
+.wordmark i {
+  width: 26px; height: 26px; border-radius: 7px; background: var(--accent);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: white; font-size: 10.5px; font-weight: 700; font-style: normal; letter-spacing: .04em;
+}
+.top .period { font-size: 13px; color: var(--ink-mute); }
+.top .period b { color: var(--ink); font-weight: 600; }
+
+/* ---------- head + stats ---------- */
+.lede { padding: var(--sp-7) 0 var(--sp-5); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--sp-6); align-items: end; }
+.lede h1 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -0.025em; line-height: 1.06;
+  overflow-wrap: anywhere; min-width: 0;
+}
+.lede p { color: var(--ink-mute); margin-top: var(--sp-3); max-width: 52ch; font-size: 15px; }
+.statband { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stat { padding: 0 var(--sp-5); border-left: 1px solid var(--line-dark); }
+.stat .v { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.stat .v small { font-size: 14px; font-weight: 500; color: var(--ink-mute); letter-spacing: 0; }
+.stat .k { font-size: 12.5px; color: var(--ink-faint); margin-top: 3px; }
+
+/* ---------- workspace ---------- */
+.work { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); gap: var(--sp-6); padding-bottom: var(--sp-7); flex: 1; }
+.map-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: var(--sp-5); display: flex; flex-direction: column; }
+svg.uz { width: 100%; height: auto; display: block; flex: 1; }
+.map-foot { display: flex; gap: var(--sp-5); align-items: center; padding-top: var(--sp-4); margin-top: var(--sp-2); border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-mute); flex-wrap: wrap; }
+.map-foot i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: 7px; vertical-align: -1px; }
+.map-foot .cap { margin-left: auto; color: var(--ink-faint); }
+
+.rg path { stroke: var(--panel); stroke-width: 1.1; cursor: pointer; transition: filter var(--dur) var(--ease-out); }
+.rg[data-tier="good"] path { fill: var(--good); }
+.rg[data-tier="mid"]  path { fill: var(--mid); }
+.rg[data-tier="attn"] path { fill: var(--attn); }
+.rg:hover path, .rg.hot path { filter: brightness(1.1) saturate(1.12); }
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2.4; }
+.lbl { pointer-events: none; }
+.lbl text { font-size: 14px; font-weight: 600; fill: white; }
+.lbl text.dk { fill: var(--ink); }
+.lbl line { stroke: var(--ink-faint); stroke-width: 1; }
+
+/* ---------- region list ---------- */
+.list { display: flex; flex-direction: column; min-width: 0; }
+.list-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: var(--sp-3); }
+.list-head h2 { font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.list-head span { font-size: 12px; color: var(--ink-faint); }
+.list ol { list-style: none; display: flex; flex-direction: column; }
+.list a {
+  display: grid; grid-template-columns: minmax(0, 1fr) 74px 52px 14px;
+  align-items: center; gap: var(--sp-3);
+  padding: 9px var(--sp-3); margin: 0 calc(-1 * var(--sp-3));
+  border-radius: 8px;
+  transition: background var(--dur) var(--ease-out);
+}
+.list a:hover, .list a.hot { background: var(--paper-2); }
+.list a:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.list li + li a { border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
+.list li + li a:hover, .list li + li a.hot { border-radius: 8px; }
+.list .nm { font-weight: 500; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list .nm small { color: var(--ink-faint); font-weight: 400; margin-left: 6px; }
+.list .bar { height: 4px; background: var(--paper-2); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.list .bar i { display: block; height: 100%; border-radius: 2px; }
+.list a[data-tier="good"] .bar i { background: var(--good); }
+.list a[data-tier="mid"]  .bar i { background: var(--mid); }
+.list a[data-tier="attn"] .bar i { background: var(--attn); }
+.list .pv { font-size: 12.5px; text-align: right; color: var(--ink-mute); font-weight: 500; }
+.list .ch { color: var(--ink-faint); font-size: 12px; }
+
+.foot { border-top: 1px solid var(--line); }
+.foot-in { display: flex; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-4) 0; font-size: 12.5px; color: var(--ink-faint); flex-wrap: wrap; }
+
+@media (max-width: 980px) {
+  .lede { grid-template-columns: 1fr; align-items: start; }
+  .statband { max-width: 560px; }
+  .stat:first-child { border-left: 0; padding-left: 0; }
+  .work { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .statband { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .stat { border-left: 0; padding: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="shell top-in">
+    <span class="wordmark"><i>UZ</i> Ҳудудлар мониторинги</span>
+    <span class="period">Ҳисобот даври: <b id="period"></b></span>
+  </div>
+</header>
+
+<div class="shell lede">
+  <div>
+    <h1>Ҳудудий топшириқлар ижроси</h1>
+    <p>14 ҳудуд бўйича режа–амалда мониторинги. Ҳудудни харитадан ёки рўйхатдан танланг — тўлиқ дашборд очилади.</p>
+  </div>
+  <div class="statband" aria-label="Республика жамланмаси">
+    <div class="stat"><div class="v num" id="s-total"></div><div class="k">Жами топшириқ</div></div>
+    <div class="stat"><div class="v num" id="s-done"></div><div class="k">Бажарилган</div></div>
+    <div class="stat"><div class="v num" id="s-avg"></div><div class="k">Ўртача бажарилиш</div></div>
+  </div>
+</div>
+
+<main class="shell work">
+  <section class="map-card" aria-label="Харита">
+    <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари харитаси" id="map"></svg>
+    <div class="map-foot">
+      <span><i style="background:var(--good)"></i>96% дан юқори</span>
+      <span><i style="background:var(--mid)"></i>92–96%</span>
+      <span><i style="background:var(--attn)"></i>92% дан паст</span>
+      <span class="cap">Ўртача бажарилиш даражаси</span>
+    </div>
+  </section>
+
+  <nav class="list" aria-label="Ҳудудлар рўйхати">
+    <div class="list-head">
+      <h2>Ҳудудлар</h2>
+      <span>ўртача бажарилиш бўйича</span>
+    </div>
+    <ol id="list"></ol>
+  </nav>
+</main>
+
+<footer class="foot">
+  <div class="shell foot-in">
+    <span>Ҳудудлар мониторинги портали · CERR</span>
+    <span class="num" id="stamp"></span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script>
+const fmt = n => String(n).replace('.', ',');
+const tier = a => a >= 96 ? 'good' : a >= 92 ? 'mid' : 'attn';
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '/dashboard?region=' + c;
+
+document.getElementById('period').textContent = REPUBLIC.period;
+document.getElementById('s-total').textContent = REPUBLIC.total;
+document.getElementById('s-done').innerHTML = REPUBLIC.done + '<small> · ' + fmt(REPUBLIC.donePct) + '%</small>';
+document.getElementById('s-avg').textContent = fmt(REPUBLIC.avgExec) + '%';
+document.getElementById('stamp').textContent = '14 ҳудуд · ' + REPUBLIC.total + ' топшириқ · ' + REPUBLIC.period;
+
+const LBL = {
+  1735: {dx: -6, dy: -6}, 1733: {dx: 4, dy: 14}, 1712: {dx: -14, dy: 26},
+  1706: {dx: -6, dy: 20}, 1710: {dx: 6, dy: 12}, 1722: {dx: 2, dy: 10},
+  1718: {dx: -34, dy: 38}, 1708: {dx: -4, dy: 20}, 1724: {dx: 56, dy: 66, leader: true, dark: true},
+  1727: {dx: 30, dy: -34}, 1726: {dx: -34, dy: -58, leader: true, dark: true},
+  1714: {dx: -18, dy: -16}, 1703: {dx: 12, dy: 20}, 1730: {dx: -6, dy: 12},
+};
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s.avgExec));
+  a.setAttribute('aria-label', s.full + ' — бажарилиш ' + fmt(s.avgExec) + '%');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  svg.appendChild(a);
+  a.addEventListener('mouseenter', () => hot(g.code));
+  a.addEventListener('mouseleave', () => hot(null));
+}
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const o = LBL[g.code] || {dx: 0, dy: 0};
+  const x = g.cx + o.dx, y = g.cy + o.dy;
+  const grp = document.createElementNS(NS, 'g');
+  grp.setAttribute('class', 'lbl');
+  if (o.leader) {
+    const ln = document.createElementNS(NS, 'line');
+    ln.setAttribute('x1', g.cx); ln.setAttribute('y1', g.cy);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', y + 4);
+    grp.appendChild(ln);
+  }
+  // Quiet theme: names only on the map — the numbers live in the region list.
+  const dark = (o.dark || tier(s.avgExec) === 'mid');
+  const t = document.createElementNS(NS, 'text');
+  t.setAttribute('x', x); t.setAttribute('y', y + 4);
+  t.setAttribute('text-anchor', 'middle');
+  if (dark) t.setAttribute('class', 'dk');
+  t.textContent = s.short;
+  grp.appendChild(t);
+  svg.appendChild(grp);
+}
+
+const list = document.getElementById('list');
+[...REGION_STATS].sort((a, b) => b.avgExec - a.avgExec).forEach(s => {
+  const li = document.createElement('li');
+  li.innerHTML = '<a href="' + dash(s.code) + '" data-code="' + s.code + '" data-tier="' + tier(s.avgExec) + '">'
+    + '<span class="nm">' + s.short + '<small class="num">' + s.done + '/' + s.total + '</small></span>'
+    + '<span class="bar"><i style="width:' + Math.min(100, s.avgExec) + '%"></i></span>'
+    + '<span class="pv num">' + fmt(s.avgExec) + '%</span>'
+    + '<span class="ch">→</span></a>';
+  list.appendChild(li);
+});
+document.querySelectorAll('.list a').forEach(el => {
+  el.addEventListener('mouseenter', () => hot(el.dataset.code));
+  el.addEventListener('mouseleave', () => hot(null));
+});
+
+function hot(code) {
+  document.querySelectorAll('[data-code]').forEach(el =>
+    el.classList.toggle('hot', code !== null && el.dataset.code === String(code)));
+}
+</script>
+</body>
+</html>

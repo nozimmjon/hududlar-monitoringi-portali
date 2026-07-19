@@ -1,0 +1,13 @@
+on_http_response:
+  - expressions:
+      - "req.url.path.startsWith('/css/') || req.url.path.startsWith('/js/') || req.url.path.startsWith('/build/')"
+    actions:
+      - type: add-headers
+        config:
+          headers:
+            cache-control: "public, max-age=86400"
+  - actions:
+      - type: compress-response
+        config:
+          algorithms:
+            - gzip

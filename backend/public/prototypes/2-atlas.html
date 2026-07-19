@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ҳудудлар мониторинги · Атлас</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Inter:wght@400;500;600;700&display=swap&subset=cyrillic,cyrillic-ext">
+<style>
+/* Hallmark · macrostructure: Almanac plate (masthead → plate → table) · theme: Newsprint-adapted
+ * tone: state report · genre: editorial · nav: none (masthead is the nav) · footer: Ft4 colophon line
+ * enrichment: none — the map plate carries the page · pre-emit critique: P5 H5 E4 S5 R5 V5 */
+:root {
+  --paper:     oklch(97% 0.008 90);
+  --paper-2:   oklch(94.5% 0.012 90);
+  --ink:       oklch(24% 0.02 60);
+  --ink-mute:  oklch(45% 0.02 60);
+  --ink-faint: oklch(60% 0.018 60);
+  --rule:      oklch(80% 0.015 75);
+  --rule-dark: oklch(38% 0.02 60);
+  --good:      oklch(46% 0.065 235);
+  --good-2:    oklch(62% 0.05 230);
+  --mid:       oklch(76% 0.06 85);
+  --attn:      oklch(58% 0.115 35);
+  --focus:     oklch(48% 0.1 245);
+  --font-display: 'Literata', serif;
+  --font-body: 'Inter', sans-serif;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px;
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --dur: 160ms;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.num { font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+.sheet { max-width: 1180px; margin: 0 auto; padding: var(--sp-7) var(--sp-5) var(--sp-6); }
+
+/* ---------- masthead ---------- */
+.masthead { text-align: center; }
+.masthead .over {
+  font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-mute); word-spacing: .3em;
+}
+.masthead h1 {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 6vw, 64px);
+  font-weight: 700; letter-spacing: -0.015em; line-height: 1.04;
+  margin: var(--sp-4) auto var(--sp-4);
+  max-width: 18ch; overflow-wrap: anywhere; min-width: 0;
+}
+.mast-rule { border: 0; border-top: 1px solid var(--rule-dark); margin: 0; }
+.mast-rule.thin { border-top-width: 1px; border-color: var(--rule); margin-top: 3px; }
+.mast-meta {
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-3) 0; font-size: 13px; color: var(--ink-mute); flex-wrap: wrap;
+}
+.mast-meta b { color: var(--ink); font-weight: 600; }
+
+/* ---------- summary line ---------- */
+.digest {
+  display: flex; justify-content: center; gap: var(--sp-7);
+  padding: var(--sp-5) 0 var(--sp-2); flex-wrap: wrap; text-align: center;
+}
+.digest div { min-width: 128px; }
+.digest .v { font-family: var(--font-display); font-size: 34px; font-weight: 600; line-height: 1.1; }
+.digest .v small { font-size: 16px; color: var(--ink-mute); font-weight: 400; }
+.digest .k { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
+
+/* ---------- plate ---------- */
+.plate { margin-top: var(--sp-5); border: 1px solid var(--rule-dark); position: relative; background: var(--paper); }
+.plate::after { content: ''; position: absolute; inset: 5px; border: 1px solid var(--rule); pointer-events: none; }
+.plate-inner { padding: var(--sp-6) var(--sp-6) var(--sp-4); }
+svg.uz { width: 100%; height: auto; display: block; }
+.plate-cap {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-6) var(--sp-4); font-size: 12.5px; color: var(--ink-mute); flex-wrap: wrap;
+}
+.plate-cap .lg { display: flex; gap: var(--sp-5); flex-wrap: wrap; }
+.plate-cap .lg span { display: inline-flex; gap: 7px; align-items: center; }
+.plate-cap .lg i { width: 12px; height: 12px; display: inline-block; border: 1px solid var(--rule-dark); }
+.plate-cap em { font-family: var(--font-display); font-style: italic; }
+
+.rg path {
+  stroke: var(--paper); stroke-width: 1;
+  transition: filter var(--dur) var(--ease-out);
+  cursor: pointer;
+}
+.rg[data-tier="good"] path { fill: var(--good); }
+.rg[data-tier="mid"]  path { fill: var(--mid); }
+.rg[data-tier="attn"] path { fill: var(--attn); }
+.rg:hover path, .rg.hot path { filter: brightness(1.12) saturate(1.1); }
+.rg:focus-visible { outline: none; }
+.rg:focus-visible path { stroke: var(--focus); stroke-width: 2.2; }
+.lbl { pointer-events: none; }
+.lbl text { font-family: var(--font-body); font-size: 12px; font-weight: 600; fill: oklch(98% 0.005 90); }
+.lbl text.dk { fill: var(--ink); }
+.lbl text.v { font-size: 10.5px; font-weight: 500; }
+.lbl line { stroke: var(--ink-mute); stroke-width: 1; }
+
+/* ---------- table ---------- */
+.ledger { margin-top: var(--sp-7); }
+.ledger-head {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  padding-bottom: var(--sp-3); border-bottom: 2px solid var(--rule-dark);
+}
+.ledger table { width: 100%; border-collapse: collapse; }
+.ledger thead th {
+  text-align: left; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; padding: var(--sp-3) var(--sp-2);
+  border-bottom: 1px solid var(--rule);
+}
+.ledger thead th.r, .ledger td.r { text-align: right; }
+.ledger tbody tr { border-bottom: 1px solid var(--rule); transition: background var(--dur) var(--ease-out); }
+.ledger tbody tr:hover, .ledger tbody tr.hot { background: var(--paper-2); }
+.ledger td { padding: 10px var(--sp-2); font-size: 14px; }
+.ledger td a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ledger .rn { font-family: var(--font-display); font-style: italic; color: var(--ink-faint); width: 34px; }
+.ledger .nm a { font-weight: 600; display: inline-flex; align-items: baseline; gap: 8px; }
+.ledger .nm a::after { content: '→'; font-size: 12px; color: var(--ink-faint); opacity: 0; transition: opacity var(--dur) var(--ease-out); }
+.ledger tr:hover .nm a::after, .ledger tr.hot .nm a::after { opacity: 1; }
+.ledger .meter { display: inline-grid; grid-template-columns: 120px 48px; gap: 10px; align-items: center; }
+.ledger .meter .tr { height: 5px; background: var(--paper-2); border: 1px solid var(--rule); }
+.ledger .meter .tr i { display: block; height: 100%; }
+.ledger tr[data-tier="good"] .meter .tr i { background: var(--good); }
+.ledger tr[data-tier="mid"]  .meter .tr i { background: var(--mid); }
+.ledger tr[data-tier="attn"] .meter .tr i { background: var(--attn); }
+
+.colophon {
+  margin-top: var(--sp-7); padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule-dark);
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  font-size: 12.5px; color: var(--ink-faint); flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+  .sheet { padding: var(--sp-6) var(--sp-4); }
+  .plate-inner { padding: var(--sp-4) var(--sp-3) var(--sp-2); }
+  .digest { gap: var(--sp-5); }
+  .ledger .meter { grid-template-columns: 70px 44px; }
+  .ledger td.hide-m, .ledger th.hide-m { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header class="masthead">
+    <div class="over">Ўзбекистон Республикаси · Иқтисодий кўрсаткичлар мониторинги</div>
+    <h1>Ҳудудлар ижро аҳволи</h1>
+    <hr class="mast-rule">
+    <hr class="mast-rule thin">
+    <div class="mast-meta">
+      <span>Давр: <b id="period"></b></span>
+      <span>Манба: ҳудудий топшириқлар ҳисоботи</span>
+      <span>Қамров: <b>14 ҳудуд</b></span>
+    </div>
+  </header>
+
+  <section class="digest" aria-label="Республика жамланмаси">
+    <div><div class="v num" id="d-total"></div><div class="k">Жами топшириқ</div></div>
+    <div><div class="v num" id="d-done"></div><div class="k">Бажарилган</div></div>
+    <div><div class="v num" id="d-open"></div><div class="k">Ижрода</div></div>
+    <div><div class="v num" id="d-avg"></div><div class="k">Ўртача бажарилиш</div></div>
+  </section>
+
+  <figure class="plate">
+    <div class="plate-inner">
+      <svg class="uz" viewBox="0 0 1000 640" role="img" aria-label="Ўзбекистон ҳудудлари харитаси" id="map"></svg>
+    </div>
+    <figcaption class="plate-cap">
+      <span class="lg">
+        <span><i style="background:var(--good)"></i> 96% дан юқори</span>
+        <span><i style="background:var(--mid)"></i> 92–96%</span>
+        <span><i style="background:var(--attn)"></i> 92% дан паст</span>
+      </span>
+      <em>Ҳудудни танланг — мониторинг дашборди очилади</em>
+    </figcaption>
+  </figure>
+
+  <section class="ledger">
+    <h2 class="ledger-head">Ҳудудлар жадвали</h2>
+    <table>
+      <thead>
+        <tr>
+          <th></th><th>Ҳудуд</th>
+          <th class="r hide-m">Жами</th>
+          <th class="r">Бажарилган</th>
+          <th class="r hide-m">Ижрода</th>
+          <th class="r">Ўртача бажарилиш</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <footer class="colophon">
+    <span>Ҳудудлар мониторинги портали · CERR</span>
+    <span class="num" id="stamp"></span>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+const fmt = n => String(n).replace('.', ',');
+const tier = a => a >= 96 ? 'good' : a >= 92 ? 'mid' : 'attn';
+const stats = Object.fromEntries(REGION_STATS.map(s => [s.code, s]));
+const dash = c => '/dashboard?region=' + c;
+
+document.getElementById('period').textContent = REPUBLIC.period;
+document.getElementById('d-total').textContent = REPUBLIC.total;
+document.getElementById('d-done').innerHTML = REPUBLIC.done + '<small> · ' + fmt(REPUBLIC.donePct) + '%</small>';
+document.getElementById('d-open').textContent = REPUBLIC.open;
+document.getElementById('d-avg').textContent = fmt(REPUBLIC.avgExec) + '%';
+document.getElementById('stamp').textContent = REPUBLIC.period;
+
+const LBL = {
+  1735: {dx: -6, dy: -6}, 1733: {dx: 2, dy: 10}, 1712: {dx: -14, dy: 26},
+  1706: {dx: -6, dy: 20}, 1710: {dx: 6, dy: 12}, 1722: {dx: 2, dy: 6},
+  1718: {dx: -26, dy: 30}, 1708: {dx: -4, dy: 20}, 1724: {dx: 56, dy: 66, leader: true, dark: true},
+  1727: {dx: 30, dy: -34}, 1726: {dx: -34, dy: -58, leader: true, dark: true},
+  1714: {dx: -18, dy: -16}, 1703: {dx: 12, dy: 20}, 1730: {dx: -6, dy: 12},
+};
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const a = document.createElementNS(NS, 'a');
+  a.setAttribute('href', dash(g.code));
+  a.setAttribute('class', 'rg');
+  a.setAttribute('data-code', g.code);
+  a.setAttribute('data-tier', tier(s.avgExec));
+  a.setAttribute('aria-label', s.full + ' — бажарилиш ' + fmt(s.avgExec) + '%');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', g.d);
+  a.appendChild(p);
+  svg.appendChild(a);
+  a.addEventListener('mouseenter', () => hot(g.code));
+  a.addEventListener('mouseleave', () => hot(null));
+}
+for (const g of UZ_REGIONS) {
+  const s = stats[g.code]; if (!s) continue;
+  const o = LBL[g.code] || {dx: 0, dy: 0};
+  const x = g.cx + o.dx, y = g.cy + o.dy;
+  const grp = document.createElementNS(NS, 'g');
+  grp.setAttribute('class', 'lbl');
+  if (o.leader) {
+    const ln = document.createElementNS(NS, 'line');
+    ln.setAttribute('x1', g.cx); ln.setAttribute('y1', g.cy);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', y + 4);
+    grp.appendChild(ln);
+  }
+  const mk = (dy, cls, txt) => {
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y + dy);
+    t.setAttribute('text-anchor', 'middle');
+    if (cls) t.setAttribute('class', cls);
+    t.textContent = txt;
+    return t;
+  };
+  // Light amber fill (mid tier) and off-map labels need dark text for contrast.
+  const dark = (o.dark || tier(s.avgExec) === 'mid') ? ' dk' : '';
+  grp.appendChild(mk(0, dark.trim() || null, s.short));
+  grp.appendChild(mk(13, ('v' + dark), fmt(s.avgExec) + '%'));
+  svg.appendChild(grp);
+}
+
+const rows = document.getElementById('rows');
+[...REGION_STATS].sort((a, b) => b.avgExec - a.avgExec).forEach((s, i) => {
+  const tr = document.createElement('tr');
+  tr.dataset.code = s.code;
+  tr.dataset.tier = tier(s.avgExec);
+  tr.innerHTML = '<td class="rn num">' + (i + 1) + '</td>'
+    + '<td class="nm"><a href="' + dash(s.code) + '">' + s.full + '</a></td>'
+    + '<td class="r num hide-m">' + s.total + '</td>'
+    + '<td class="r num">' + s.done + '</td>'
+    + '<td class="r num hide-m">' + s.open + '</td>'
+    + '<td class="r"><span class="meter"><span class="tr"><i style="width:' + Math.min(100, s.avgExec) + '%"></i></span><span class="num">' + fmt(s.avgExec) + '%</span></span></td>';
+  tr.addEventListener('mouseenter', () => hot(s.code));
+  tr.addEventListener('mouseleave', () => hot(null));
+  tr.addEventListener('click', e => { if (!e.target.closest('a')) location.href = dash(s.code); });
+  rows.appendChild(tr);
+});
+
+function hot(code) {
+  document.querySelectorAll('[data-code]').forEach(el =>
+    el.classList.toggle('hot', code !== null && el.dataset.code === String(code)));
+}
+</script>
+</body>
+</html>
