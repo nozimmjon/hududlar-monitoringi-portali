@@ -366,6 +366,13 @@
       overflow: visible;
     }
 
+    /* Plain module-card already pads 22px — zero the inner card to avoid double inset.
+       Inside .module-panel-card (padding:0) the inner card keeps its own padding. */
+    .module-card:not(.module-panel-card) > .kpi-monitor-card,
+    .module-card:not(.module-panel-card) .kpi-monitor-grid > .kpi-monitor-card {
+      padding: 0;
+    }
+
     .module-card {
       background: #fff;
       border: 1px solid var(--line);
@@ -1887,6 +1894,7 @@
       box-shadow: var(--shadow);
       overflow: hidden;
       min-width: 0;
+      padding: 22px 24px;
       transition: transform var(--motion), box-shadow var(--motion), border-color var(--motion);
     }
 
@@ -2509,6 +2517,7 @@
       background: transparent;
       box-shadow: none;
       overflow: visible;
+      padding: 0;
     }
 
     .kpi-monitor-card.macro-layout-card .kpi-monitor-head {
@@ -3218,7 +3227,7 @@
     }
 
     .kpi-monitor-card > .finance-source {
-      margin: 14px 16px 16px;
+      margin: 14px 0 0;
     }
 
     .finance-action {
@@ -3821,7 +3830,8 @@
     }
 
     @media (max-width: 640px) {
-      .poverty-section { padding: 14px 14px 18px; }
+      .kpi-monitor-card:not(.macro-layout-card) { padding: 16px; }
+      .poverty-section { padding: 0; }
       .poverty-stats { grid-template-columns: 1fr; }
       .employment-driver-section .poverty-stats { grid-template-columns: 1fr; }
       .poverty-section .poverty-head { grid-template-columns: 1fr; }
@@ -5303,6 +5313,18 @@
 
     .hidden { display: none !important; }
 
+    /* Laptop tier (1181–1366): full 232px sidebar, content ~980–1066px.
+       Step the densest child grids down BEFORE they hit the 1180 icon-rail tier. */
+    @media (max-width: 1366px) {
+      .dashboard-module-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .module-seg { flex-wrap: wrap; }
+      .task-filter.report-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) { grid-template-columns: 64px minmax(0, 1fr); }
+      .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .kpi-icon { width: 64px; height: 64px; }
+      .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value { font-size: clamp(34px, 3.4vw, 48px); }
+    }
+
     @media (max-width: 1180px) {
       :root { --nav-w: 86px; }
       .side-title span, .side-title strong, .nav-btn span { display: none; }
@@ -5325,7 +5347,10 @@
       .scoreline-copy, .score-actions { grid-column: 1 / -1; }
       .exec-status-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .front-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .front-kpis.module-kpis.macro-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; }
+      .front-kpis.module-kpis.macro-layout .front-kpi.parent { grid-column: 1 / -1; grid-row: auto; padding: 22px; }
+      .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-value { font-size: clamp(40px, 8vw, 64px); }
+      .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-value { font-size: clamp(30px, 6vw, 44px); }
       .front-kpis.module-kpis.employment-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .front-kpi:nth-child(3) { border-right: 0; }
       .front-kpi:nth-child(n+4) { border-top: 1px solid var(--line); }
@@ -5333,9 +5358,25 @@
       .debt-cell { justify-items: start; border-left: 0; border-top: 1px solid var(--line); padding: 8px 0 0; }
       .metric-cell { border-left: 0; border-top: 1px solid var(--line); padding: 8px 0 0; }
       .district-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .region-switcher { padding: 10px 4px 4px; }
+      .region-switcher label { display: none; }
+      .region-switcher select { padding: 9px 8px; font-size: 12px; }
+      .region-chevron { display: none; }
+      .industry-driver-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .macro-period-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .macro-period-cell__value { font-size: clamp(30px, 6vw, 48px); }
+      .budget-invest-body { grid-template-columns: 1fr; }
+      .budget-periods-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .budget-invest-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .budget-invest-summary > div:nth-child(2n) { border-right: 0; }
+      .composition-grid, .driver-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .product-card { grid-template-columns: 44px minmax(0, 1fr); gap: 12px; }
+      .product-card .product-icon { width: 44px; height: 44px; }
+      .kpi-monitor-head { grid-template-columns: 56px minmax(0, 1fr); }
+      .kpi-monitor-head .kpi-head-district { grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 840px) {
       body { grid-template-columns: 1fr; }
       .topbar { padding: 10px 14px; }
       .brand-mark { height: 34px; font-size: 14px; }
@@ -5404,6 +5445,9 @@
       .modal-body { padding: 14px; }
       table { min-width: 720px; }
       .table-scroll { overflow-x: auto; }
+      .districts-header-top { align-items: stretch; }
+      .module-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+      .module-seg-btn { padding: 6px 10px; white-space: normal; text-align: center; }
     }
 
 /* ── Region Switcher ─────────────────────────────────────────── */

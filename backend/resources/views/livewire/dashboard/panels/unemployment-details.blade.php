@@ -7,14 +7,6 @@
 
 <div class="drivers poverty-section employment-driver-section">
     <div class="lagging">
-        <header class="poverty-head">
-            <div>
-                <strong>Ишсизликни пасайтириш драйверлари</strong>
-                <p>Ишсизлик KPI мақсадини бажариш учун бандлик бўйича асосий ўлчанадиган ишлар.</p>
-            </div>
-            <a class="mini-button primary"
-               href="{{ route('districts') }}?indicatorCode=unemployment">Туманлар кесими →</a>
-        </header>
         <div class="poverty-stats">
             @foreach($stats as $s)
                 @php
