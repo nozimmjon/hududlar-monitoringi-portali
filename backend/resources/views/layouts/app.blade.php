@@ -16,9 +16,9 @@
 </head>
 <body>
   <aside class="sidebar">
-    <div class="side-brand">
+    <a class="side-brand" href="{{ route('home') }}" title="Бош саҳифа">
       <img class="brand-logo" src="/logo.svg" alt="CERR">
-    </div>
+    </a>
     <div class="side-title">
       <strong>Бошқарув маркази</strong>
     </div>
