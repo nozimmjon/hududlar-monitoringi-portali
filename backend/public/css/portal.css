@@ -338,10 +338,33 @@
     }
 
     .module-tab__count {
+      display: grid;
+      gap: 1px;
+      justify-items: center;
       color: var(--muted);
-      font-size: 16px;
+      font-size: 11px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+    }
+
+    .module-tab__stat {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .module-tab__stat i {
+      font-style: normal;
+      font-weight: 600;
+      opacity: .85;
+    }
+
+    .module-tab__stat b {
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
     }
 
     .module-tab:hover {
@@ -890,7 +913,7 @@
       display: grid;
       position: relative;
       grid-template-columns: auto minmax(0, 1fr);
-      grid-template-rows: auto 1fr auto auto;
+      grid-template-rows: auto 1fr auto auto auto;
       gap: 10px 20px;
       padding: 32px;
       min-height: 0;
@@ -969,6 +992,48 @@
       color: rgba(255, 255, 255, .82);
       font-size: 18px;
     }
+
+    /* Plan line — the promise the reported value is measured against. */
+    .front-kpi-plan {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .front-kpi-plan i {
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: .8;
+    }
+
+    .front-kpi-plan small { font-size: 11px; font-weight: 600; opacity: .8; }
+
+    .front-kpi.active .front-kpi-plan,
+    .front-kpi.active .front-kpi-plan i { color: var(--blue); }
+
+    .front-kpis.module-kpis.macro-layout .front-kpi:not(.parent) .front-kpi-plan { font-size: 14px; }
+
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-plan {
+      grid-column: 1 / -1;
+      grid-row: 5;
+      position: relative;
+      z-index: 1;
+      margin-top: 6px;
+      font-size: 16px;
+      color: rgba(255, 255, 255, .9);
+    }
+
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-plan i { color: rgba(255, 255, 255, .7); }
+    .front-kpis.module-kpis.macro-layout .front-kpi.parent .front-kpi-plan small { font-size: 13px; }
 
     .front-kpi {
       position: relative;

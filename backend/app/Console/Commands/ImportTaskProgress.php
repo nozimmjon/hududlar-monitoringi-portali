@@ -115,10 +115,11 @@ class ImportTaskProgress extends Command
         $unmatched = [];
         $runByRegion = [];
         $writtenByRegion = [];
+        $preserved = 0;
 
         DB::transaction(function () use (
             $tasks, $period, $periodType, $year, $regionFilter,
-            $districtsByRegion, &$unmatched, &$runByRegion, &$writtenByRegion
+            $districtsByRegion, &$unmatched, &$runByRegion, &$writtenByRegion, &$preserved
         ) {
             foreach ($tasks as $t) {
                 foreach ($t['regions'] as $code => $regionData) {
@@ -165,8 +166,23 @@ class ImportTaskProgress extends Command
                     $task->districts()->sync($ids);
 
                     // Replace this period's progress rows (idempotent), then insert.
+                    // Actuals recorded by a complementary source (import:ilova) for
+                    // lines this file leaves empty must survive the rebuild — the
+                    // same "keep what an earlier import recorded" rule the metadata
+                    // columns above follow. A file that DOES carry an actual always
+                    // wins, so genuine corrections still land.
+                    $kept = $task->progress()
+                        ->where('report_period', $period)
+                        ->whereNotNull('actual_value')
+                        ->get()
+                        ->keyBy('line_no');
+
                     $task->progress()->where('report_period', $period)->delete();
                     foreach ($regionData['metrics'] as $m) {
+                        $carry = $m['actual'] === null ? $kept->get($m['line_no']) : null;
+                        if ($carry !== null) {
+                            $preserved++;
+                        }
                         TaskProgress::create([
                             'task_id'       => $task->id,
                             'line_no'       => $m['line_no'],
@@ -175,8 +191,8 @@ class ImportTaskProgress extends Command
                             'report_period' => $period,
                             'period_type'   => $periodType,
                             'plan_value'    => $m['plan'],
-                            'actual_value'  => $m['actual'],
-                            'pct_of_plan'   => $m['pct'],
+                            'actual_value'  => $carry->actual_value ?? $m['actual'],
+                            'pct_of_plan'   => $carry->pct_of_plan ?? $m['pct'],
                             'import_run_id' => $run->id,
                         ]);
                         $writtenByRegion[$code] = ($writtenByRegion[$code] ?? 0) + 1;
@@ -184,10 +200,21 @@ class ImportTaskProgress extends Command
 
                     // Recompute the headline snapshot from line_no 0 and the binary
                     // status from ALL planned lines (weakest link — a multi-indicator
-                    // task is done only when every planned line is ≥100%).
-                    $head = collect($regionData['metrics'])->firstWhere('line_no', 0)
-                        ?? ($regionData['metrics'][0] ?? null);
-                    $agg = TaskStatus::forTask($t['task_number'], $t['title'], $regionData['metrics']);
+                    // task is done only when every planned line is ≥100%). Read the
+                    // rows back so carried-over actuals count, not the file's blanks.
+                    $stored = $task->progress()
+                        ->where('report_period', $period)
+                        ->orderBy('line_no')
+                        ->get()
+                        ->map(fn ($r) => [
+                            'line_no' => $r->line_no,
+                            'unit'    => $r->unit,
+                            'plan'    => $r->plan_value,
+                            'actual'  => $r->actual_value,
+                            'pct'     => $r->pct_of_plan,
+                        ]);
+                    $head = $stored->firstWhere('line_no', 0) ?? $stored->first();
+                    $agg = TaskStatus::forTask($t['task_number'], $t['title'], $stored);
                     // Only advance the headline snapshot if this period is not older
                     // than what the task already shows.
                     $shouldAdvance = $task->latest_period === null
@@ -227,6 +254,9 @@ class ImportTaskProgress extends Command
 
         $total = array_sum($writtenByRegion);
         $this->info("Wrote {$total} progress rows across " . count($runByRegion) . ' region(s).');
+        if ($preserved > 0) {
+            $this->info("Kept {$preserved} actual value(s) this file does not carry (recorded by an earlier import).");
+        }
         if (! empty($unmatched)) {
             $this->warn('Unmatched executor tokens: ' . implode(' | ', array_unique($unmatched)));
         }

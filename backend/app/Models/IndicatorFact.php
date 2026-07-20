@@ -11,7 +11,7 @@ class IndicatorFact extends Model
     protected $fillable = [
         'region_code','district_code','year','indicator_code','period',
         'plan_value','expected_value','actual_hokimyat','actual_statkom',
-        'growth_pct','pct_of_plan','count_extra','count_extra_2',
+        'growth_pct','plan_growth_pct','pct_of_plan','count_extra','count_extra_2',
         'is_sentinel','sentinel_label','unit','source_label',
         'hokimyat_reported_at','statkom_published_at',
     ];
@@ -25,6 +25,7 @@ class IndicatorFact extends Model
         'actual_hokimyat'      => 'decimal:6',
         'actual_statkom'       => 'decimal:6',
         'growth_pct'           => 'decimal:4',
+        'plan_growth_pct'      => 'decimal:4',
         'pct_of_plan'          => 'decimal:4',
         'is_sentinel'          => 'boolean',
         'hokimyat_reported_at' => 'datetime',

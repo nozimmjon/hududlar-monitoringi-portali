@@ -200,3 +200,42 @@ test('importing an older period does not regress the headline snapshot', functio
     // But the older period's history rows are still stored.
     expect($t2->progress()->where('report_period', '2026-Q1')->count())->toBe(2);
 });
+
+test('re-importing keeps actuals the file does not carry', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    // Andijan task 1 has a plan but no actual in the workbook; a complementary
+    // source (import:ilova) fills it in afterwards.
+    $t1 = Task::where('region_code', 1703)->where('task_number', '1')->first();
+    $t1->progress()->where('report_period', '2026-Q1')->where('line_no', 0)
+        ->update(['actual_value' => 8.8, 'pct_of_plan' => 122.22]);
+
+    // The monthly file arrives again with that cell still empty.
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    $row = $t1->fresh()->progress()->where('report_period', '2026-Q1')->where('line_no', 0)->first();
+    expect((float) $row->actual_value)->toBeNumericallyClose(8.8);
+    expect((float) $row->pct_of_plan)->toBeNumericallyClose(122.22);
+    // The status snapshot follows the surviving value, not the file's blank.
+    expect($t1->fresh()->status)->toBe('done');
+    expect((float) $t1->fresh()->headline_actual)->toBeNumericallyClose(8.8);
+});
+
+test('a file that carries an actual overwrites the stored one', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    // Task 2 line 0 HAS an actual in the workbook (3 of 6). A stale local edit
+    // must lose to the file on the next import.
+    $t2 = Task::where('region_code', 1703)->where('task_number', '2')->first();
+    $t2->progress()->where('report_period', '2026-Q1')->where('line_no', 0)
+        ->update(['actual_value' => 999, 'pct_of_plan' => 999]);
+
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
+        ->assertSuccessful();
+
+    $row = $t2->fresh()->progress()->where('report_period', '2026-Q1')->where('line_no', 0)->first();
+    expect((float) $row->actual_value)->toBeNumericallyClose(3);
+});

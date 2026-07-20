@@ -35,20 +35,28 @@ class KpiModuleTabs extends Component
             $taskCounts[$code] = ['done' => 0, 'total' => 0];
         }
 
+        // hasPlan() mirrors the tasks board: a task with nothing planned has no
+        // execution to report, so it must not inflate the completion counts.
         $tasks = Task::forRegion($this->regionCode)
+            ->hasPlan()
             ->whereNotNull('module_code')
-            ->get(['module_code', 'status', 'period_code', 'deadline_text']);
+            ->get(['id', 'module_code', 'status', 'period_code', 'deadline_text']);
 
-        // Год якуни = full annual picture (all tasks); I ярим йиллик = h1-bucket only.
+        // Йил якуни = full annual picture (all tasks); I ярим йиллик = the h1 bucket
+        // plus anything already finished, so work delivered ahead of a later
+        // deadline still counts towards the half-year result.
         if ($this->period === 'h1') {
             $tasks = $tasks->filter(
-                fn ($t) => TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === 'h1'
+                fn ($t) => $t->status === 'done'
+                    || TaskPeriod::deadlineBucket($t->period_code, $t->deadline_text) === 'h1'
             );
         }
 
         foreach ($tasks->groupBy('module_code') as $code => $group) {
             $taskCounts[$code] = [
-                'done'  => $group->where('status', 'done')->count(),
+                // Same reading as the entry page: a task is on track unless it is
+                // reported behind plan, so Бажарилмоқда counts with Бажарилди.
+                'done'  => $group->whereIn('status', ['done', 'in_progress'])->count(),
                 'total' => $group->count(),
             ];
         }

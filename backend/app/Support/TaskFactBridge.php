@@ -169,7 +169,12 @@ class TaskFactBridge
 
                         if ($field === 'growth') {
                             // ўсиш суръати comes as a delta (8.8) — store the 108.8 ratio.
+                            // The promised rate goes to its own column so plan-vs-fact
+                            // survives: growth_pct now holds the reported value.
                             $fact->growth_pct = 100.0 + (float) $metric['actual'];
+                            if ($metric['plan'] !== null) {
+                                $fact->plan_growth_pct = 100.0 + (float) $metric['plan'];
+                            }
                         } else {
                             $actual = $metric['actual'] * $scale;
                             $fact->actual_hokimyat = $actual;

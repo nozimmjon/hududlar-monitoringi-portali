@@ -107,3 +107,18 @@ test('dry run does not touch indicator facts', function () {
     $budget = IndicatorFact::where('indicator_code', 'budget')->where('period', 'h1')->first();
     expect($budget->actual_hokimyat)->toBeNull();
 });
+
+test('the bridge keeps the planned growth beside the reported one', function () {
+    $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-H1'])
+        ->assertSuccessful();
+
+    // Task 1 line 0: plan 7.2 / actual 8.8 -> both stored as ratios.
+    $grp = IndicatorFact::where('indicator_code', 'grp')->where('period', 'h1')->first();
+    expect((float) $grp->growth_pct)->toBeNumericallyClose(108.8, 1e-4);
+    expect((float) $grp->plan_growth_pct)->toBeNumericallyClose(107.2, 1e-4);
+
+    // Task 36 line 1: plan 14.5 / actual 16.1.
+    $srv = IndicatorFact::where('indicator_code', 'services')->where('period', 'h1')->first();
+    expect((float) $srv->growth_pct)->toBeNumericallyClose(116.1, 1e-4);
+    expect((float) $srv->plan_growth_pct)->toBeNumericallyClose(114.5, 1e-4);
+});

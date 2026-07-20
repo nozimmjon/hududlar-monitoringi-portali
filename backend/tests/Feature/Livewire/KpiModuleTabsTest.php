@@ -9,7 +9,9 @@ it('renders module tabs with body and count classes', function () {
         ->assertSeeHtml('class="module-tab__count"');
 });
 
-it('renders 0/0 count when region has no tasks for a module', function () {
+it('spells out both counts when a region has no tasks for a module', function () {
     Livewire::test(KpiModuleTabs::class)
-        ->assertSeeHtml('0/0');
+        ->assertSee('Амалда бажарилган:')
+        ->assertSee('Жами топшириқлар:')
+        ->assertSee('0 та');
 });

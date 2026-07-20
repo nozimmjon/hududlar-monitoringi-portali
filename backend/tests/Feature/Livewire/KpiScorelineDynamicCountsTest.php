@@ -50,6 +50,7 @@ test('counts macro+grp tasks when module has indicator-tagged tasks', function (
         'module_code'    => 'macro',
         'indicator_code' => 'grp',
         'status'         => 'open',
+        'headline_plan'  => 10, // carry a plan so the hasPlan() count filter keeps it
     ]);
     // 2 grp done tasks
     Task::factory()->count(2)->create([
@@ -57,6 +58,7 @@ test('counts macro+grp tasks when module has indicator-tagged tasks', function (
         'module_code'    => 'macro',
         'indicator_code' => 'grp',
         'status'         => 'done',
+        'headline_plan'  => 10, // carry a plan so the hasPlan() count filter keeps it
     ]);
     // 3 industry noise (different indicator_code — must be excluded)
     Task::factory()->count(3)->create([
@@ -64,6 +66,7 @@ test('counts macro+grp tasks when module has indicator-tagged tasks', function (
         'module_code'    => 'macro',
         'indicator_code' => 'industry',
         'status'         => 'open',
+        'headline_plan'  => 10, // carry a plan so the hasPlan() count filter keeps it
     ]);
 
     Livewire::test(KpiScoreline::class, ['module' => 'macro', 'kpi' => 'grp'])
@@ -80,6 +83,7 @@ test('counts module-only tasks when module has no indicator_code', function () {
         'module_code'    => 'budget',
         'indicator_code' => null,
         'status'         => 'open',
+        'headline_plan'  => 10, // carry a plan so the hasPlan() count filter keeps it
     ]);
 
     Livewire::test(KpiScoreline::class, ['module' => 'budget', 'kpi' => 'budget'])
@@ -103,6 +107,7 @@ test('ignores tasks from other regions', function () {
         'module_code'    => 'macro',
         'indicator_code' => 'grp',
         'status'         => 'open',
+        'headline_plan'  => 10, // carry a plan so the hasPlan() count filter keeps it
     ]);
 
     Livewire::test(KpiScoreline::class, ['module' => 'macro', 'kpi' => 'grp'])

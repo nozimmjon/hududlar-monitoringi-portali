@@ -128,6 +128,10 @@ Behavior:
 
 - **Idempotent**: re-running the same `--period` replaces that period's progress rows
   and re-syncs districts. No duplicates.
+- **Complementary actuals survive a re-import**: rebuilding a period keeps any stored
+  actual whose incoming cell is empty (e.g. values `import:ilova` filled from the
+  annex workbook), and reports how many it kept. A file that *does* carry an actual
+  always overwrites, so genuine corrections still land.
 - **History**: each period's rows are kept in `task_progress`. The board shows the
   latest period; history stays queryable for future trend views.
 - **Status**: three states, weakest-link — `in_progress` (Бажарилмоқда) when no
