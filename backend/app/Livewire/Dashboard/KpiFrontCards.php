@@ -54,6 +54,9 @@ class KpiFrontCards extends Component
             'layoutClass'  => DashboardCatalog::layoutClass($this->module),
             'selectedKpi'  => $this->kpi,
             'isMacro'      => $this->module === 'macro',
+            // The cards read facts for the selected period, so the caption must
+            // name that period — not always "йиллик".
+            'growthNote'   => $this->period === 'h1' ? 'ярим йиллик ўсиш' : 'йиллик ўсиш',
         ]);
     }
 }

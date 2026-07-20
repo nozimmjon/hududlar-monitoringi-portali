@@ -21,7 +21,7 @@
                 <h3>{{ $ind->label_short }}</h3>
                 @if($growth !== null)
                     <strong class="front-kpi-value">{{ $growth }}</strong>
-                    <span class="front-kpi-note">йиллик ўсиш</span>
+                    <span class="front-kpi-note">{{ $growthNote }}</span>
                 @else
                     <p>{{ $ind->label_full }}</p>
                 @endif

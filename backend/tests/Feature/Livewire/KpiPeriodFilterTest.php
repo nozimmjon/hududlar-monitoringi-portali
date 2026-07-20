@@ -50,9 +50,12 @@ test('front cards show facts of the chosen period', function () {
 
     $h1 = Livewire::test(KpiFrontCards::class, ['module' => 'macro', 'kpi' => 'grp', 'period' => 'h1'])->html();
     expect($h1)->toContain('+8,8%')->not->toContain('+7,8%');
+    // The caption must name the period the value came from.
+    expect($h1)->toContain('ярим йиллик ўсиш');
 
     $year = Livewire::test(KpiFrontCards::class, ['module' => 'macro', 'kpi' => 'grp', 'period' => 'year'])->html();
     expect($year)->toContain('+7,8%')->not->toContain('+8,8%');
+    expect($year)->toContain('йиллик ўсиш')->not->toContain('ярим йиллик ўсиш');
 });
 
 test('module tabs count only half-year tasks when period is h1, all when year', function () {
