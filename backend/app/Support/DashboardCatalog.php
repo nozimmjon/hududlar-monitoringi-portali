@@ -97,9 +97,15 @@ class DashboardCatalog
         ['name' => 'Ун',                         'icon' => 'flour',        'cap' => '2025 йил даражасида'],
     ];
 
+    /**
+     * Inflation ceilings shown as driver cards. `task` names the monitoring task
+     * carrying that horizon's план/амалда, so the card can show the reported rate
+     * next to the cap; `needle` guards against a workbook renumbering pointing the
+     * card at a different indicator (same idea as TaskFactBridge::MAP).
+     */
     public const INFLATION_LIMITS = [
-        ['period' => 'II чорак',   'cap' => '≤2,9%', 'note' => 'амалдаги инфляцияга нисбатан'],
-        ['period' => 'Йил якуни',  'cap' => '≤6,6%', 'note' => 'йил якуни бўйича чегара'],
+        ['period' => 'II чорак',   'cap' => '≤2,9%', 'note' => 'ярим йиллик чегара',   'task' => '68', 'needle' => 'инфляция'],
+        ['period' => 'Йил якуни',  'cap' => '≤6,6%', 'note' => 'йил якуни бўйича чегара', 'task' => '69', 'needle' => 'инфляция'],
     ];
 
     public const INDUSTRY_DRIVERS = [
@@ -188,12 +194,25 @@ class DashboardCatalog
         return self::PERIOD_LABELS[$period] ?? $period;
     }
 
+    /**
+     * KPIs whose region workbook stores the FORECAST for unfinished periods in
+     * actual_hokimyat. For those, a value only counts as reported once the tasks
+     * bridge stamps hokimyat_reported_at — otherwise a year-end forecast read as
+     * «Амалда» while the year is still running.
+     */
+    private const FORECAST_IN_ACTUAL_KPIS = ['budget', 'budget_investment', 'investment', 'export'];
+
     public static function periodSourceKind(string $kpi, string $period, ?object $row): string
     {
         // A reported actual wins for any period — H1/year actuals arrive
         // via the tasks workbook (TaskFactBridge) and replace the Кутилиш forecast.
         if ($row && ($row->actual_hokimyat !== null || $row->actual_statkom !== null)) {
-            return 'actual';
+            $isForecastSlot = $period !== 'q1'
+                && in_array($kpi, self::FORECAST_IN_ACTUAL_KPIS, true)
+                && ($row->hokimyat_reported_at ?? null) === null;
+            if (! $isForecastSlot) {
+                return 'actual';
+            }
         }
         // Growth-only actuals (macro KPIs): the bridge stamps hokimyat_reported_at;
         // forecast growth from the region workbooks has no stamp and stays Режа.
@@ -201,10 +220,10 @@ class DashboardCatalog
             && ($period === 'q1' || ($row->hokimyat_reported_at ?? null) !== null)) {
             return 'actual';
         }
-        if (in_array($kpi, ['budget', 'budget_investment', 'investment', 'export'], true)
+        if (in_array($kpi, self::FORECAST_IN_ACTUAL_KPIS, true)
             && $period !== 'q1'
             && $row
-            && ($row->expected_value !== null || $row->pct_of_plan !== null)) {
+            && ($row->expected_value !== null || $row->pct_of_plan !== null || $row->actual_hokimyat !== null)) {
             return 'expected';
         }
         if (in_array($kpi, ['inflation', 'unemployment', 'poverty', 'small_business_share'], true)) {

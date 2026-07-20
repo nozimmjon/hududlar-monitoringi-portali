@@ -1,12 +1,46 @@
 @php
     use App\Support\DashboardCatalog;
 
-    $items = [
-        ['label' => 'I чорак',  'period' => 'q1',   'kind' => 'actual',   'chip' => 'blue', 'state' => 'Амалда',        'note' => 'амалдаги ўзлаштириш'],
-        ['label' => 'II чорак', 'period' => 'h1',   'kind' => 'expected', 'chip' => 'grey', 'state' => 'Кутилиш',        'note' => 'тезкор кутилиш'],
-        ['label' => 'III чорак','period' => 'm9',   'kind' => 'missing',  'chip' => 'grey', 'state' => 'Маълумот йўқ',  'note' => '9 ой учун алоҳида маълумот йўқ'],
-        ['label' => 'Йиллик',   'period' => 'year', 'kind' => 'expected', 'chip' => 'grey', 'state' => 'Кутилиш',        'note' => 'йил якуни бўйича кутилиш'],
-    ];
+    // The monitoring tasks are the source for the half-year/annual horizons: they
+    // carry the period plan and, once reported, the actual ўзлаштириш. A period
+    // reads Амалда only with a reported figure; otherwise it shows the promise
+    // (Режа) — a forecast is never presented as achievement.
+    $targets = $periodTargets ?? [];
+    $items = [];
+    foreach ([
+        ['label' => 'I чорак',   'period' => 'q1',   'note' => 'амалдаги ўзлаштириш'],
+        ['label' => 'II чорак',  'period' => 'h1',   'note' => 'ярим йиллик ўзлаштириш'],
+        ['label' => 'III чорак', 'period' => 'm9',   'note' => '9 ой учун алоҳида маълумот йўқ', 'missing' => true],
+        ['label' => 'Йиллик',    'period' => 'year', 'note' => 'йил якуни бўйича режа'],
+    ] as $item) {
+        $row    = $rows->get($item['period']);
+        $target = $targets[$item['period']] ?? null;
+
+        if ($item['missing'] ?? false) {
+            $kind = 'missing';
+        } elseif ($target !== null) {
+            $kind = $target['actual'] !== null ? 'actual' : ($target['plan'] !== null ? 'plan' : 'empty');
+        } else {
+            $kind = DashboardCatalog::periodSourceKind('budget_investment', $item['period'], $row);
+        }
+
+        $items[] = $item + [
+            'kind'  => match ($kind) {
+                'actual'           => 'actual',
+                'missing', 'empty' => 'missing',
+                default            => 'expected',
+            },
+            'chip'  => $kind === 'actual' ? 'blue' : 'grey',
+            'state' => match ($kind) {
+                'actual'           => 'Амалда',
+                'expected'         => 'Кутилиш',
+                'plan'             => 'Режа',
+                'missing', 'empty' => 'Маълумот йўқ',
+                default            => 'Режа',
+            },
+            'target' => $target,
+        ];
+    }
 
     $referenceRow = $rows->get('year') ?? $rows->get('h1') ?? $rows->get('q1');
     $limit   = $referenceRow->plan_value ?? null;
@@ -69,11 +103,16 @@
                 @php
                     $row = $rows->get($item['period']);
                     $isMissing = $item['kind'] === 'missing';
-                    $fact = $row->actual_hokimyat ?? null;
+                    $target = $item['target'] ?? null;
+                    // A reported actual leads the card; a period still ahead of us
+                    // shows its promise instead of a forecast dressed up as a fact.
+                    $headline = $target !== null
+                        ? ($target['actual'] ?? $target['plan'])
+                        : ($row->actual_hokimyat ?? null);
                     $exec = $row->pct_of_plan ?? null;
-                    $value = $isMissing
+                    $value = ($isMissing || $headline === null)
                         ? '—'
-                        : ($fact !== null ? DashboardCatalog::displayMlnSum($fact) : '—');
+                        : DashboardCatalog::displayMlnSum($headline);
                     $pctText = ($isMissing || $exec === null) ? '—' : DashboardCatalog::fmt($exec, 1) . '%';
                     $progress = ($isMissing || $exec === null) ? 0 : max(0, min((float) $exec, 108));
                     $accent = $isMissing ? 'var(--grey)' : 'var(--blue)';
@@ -84,6 +123,15 @@
                         <span class="chip {{ $item['chip'] }}">{{ $item['state'] }}</span>
                     </div>
                     <strong>{{ $value }}</strong>
+                    @if($item['kind'] === 'actual' && ($target['plan'] ?? null) !== null)
+                        {{-- Promise beside the fact. Plan-only cards already show the
+                             plan as their headline, so repeating it would read as two
+                             rival figures. --}}
+                        <div class="budget-period-meta">
+                            <span>давр режаси</span>
+                            <b>{{ DashboardCatalog::displayMlnSum($target['plan']) }}</b>
+                        </div>
+                    @endif
                     <div class="budget-period-meta">
                         <span>йиллик лимитга нисбатан</span>
                         <b>{{ $pctText }}</b>

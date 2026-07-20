@@ -33,6 +33,12 @@ class TaskFactBridge
             'h1'   => [['155', 0, 'инвестиция', 1, 'actual']],
             'year' => [['157', 0, 'инвестициялар ва кредитлар', 1, 'actual']],
         ],
+        // Budget-funded investments: the workbook reports млрд сўм, the fact rows
+        // are млн сўм, hence the ×1000 scale.
+        'budget_investment' => [
+            'h1'   => [['125', 0, 'Бюджет маблағлари ҳисобидан инвестиция', 1000, 'actual']],
+            'year' => [['129', 0, 'Бюджет маблағлари ҳисобидан инвестиция', 1000, 'actual']],
+        ],
         'export' => [
             'h1'   => [['165', 0, 'Экспорт хажми', 1000, 'actual']],
             'year' => [['167', 0, 'Экспорт хажми', 1000, 'actual']],

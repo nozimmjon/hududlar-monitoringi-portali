@@ -3536,6 +3536,10 @@
       text-overflow: ellipsis;
     }
 
+    /* Lower-is-better readouts: at/below the cap reads green, above it red. */
+    .driver-card strong.is-ok   { color: var(--green); }
+    .driver-card strong.is-over { color: var(--red); }
+
     .component-card small,
     .driver-card small,
     .food-card small {

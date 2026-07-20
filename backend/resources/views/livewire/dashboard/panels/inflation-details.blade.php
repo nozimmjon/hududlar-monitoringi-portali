@@ -1,7 +1,7 @@
 @php
     use App\Support\DashboardCatalog;
     $caps = DashboardCatalog::INFLATION_PRICE_CAPS;
-    $limits = DashboardCatalog::INFLATION_LIMITS;
+    $reported = collect($limits)->contains(fn ($l) => $l['actual'] !== null);
 @endphp
 
 <div class="drivers">
@@ -11,12 +11,23 @@
             @foreach($limits as $limit)
                 <div class="driver-card">
                     <span>{{ $limit['period'] }}</span>
-                    <strong>{{ $limit['cap'] }}</strong>
-                    <small>{{ $limit['note'] }}</small>
+                    @if($limit['actual'] !== null)
+                        {{-- Reported rate leads; inflation is lower-is-better, so at or
+                             below the cap is on target. --}}
+                        <strong class="{{ $limit['onTarget'] ? 'is-ok' : 'is-over' }}">
+                            {{ DashboardCatalog::fmt($limit['actual'], 1) }}%
+                        </strong>
+                        <small>амалда · режа {{ $limit['cap'] }}</small>
+                    @else
+                        <strong>{{ $limit['cap'] }}</strong>
+                        <small>{{ $limit['note'] }}</small>
+                    @endif
                 </div>
             @endforeach
         </div>
-        <p class="data-note">Амалдаги инфляция маълумоти киритилмаган.</p>
+        @unless($reported)
+            <p class="data-note">Амалдаги инфляция маълумоти киритилмаган.</p>
+        @endunless
     </div>
 
     <div class="composition">

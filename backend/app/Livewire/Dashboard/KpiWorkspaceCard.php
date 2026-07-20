@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\Indicator;
 use App\Models\IndicatorFact;
+use App\Models\Task;
 use App\Support\DashboardCatalog;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Reactive;
@@ -65,8 +66,51 @@ class KpiWorkspaceCard extends Component
             'unemployment-details' => $this->employmentData(['jobs', 'legalization']),
             'poverty-details'     => $this->povertyData(),
             'macro-growth'        => $this->macroGrowthData(),
+            'budget-investment'   => ['periodTargets' => $this->budgetInvestmentPeriods()],
             default               => [],
         };
+    }
+
+    /**
+     * Per-period ўзлаштириш промise and reported fact (млн сўм). The fact rows only
+     * carry the annual limit and, for unfinished periods, the region's forecast —
+     * the monitoring tasks are the source for both the period plan and the reported
+     * actual. Needle-guarded like TaskFactBridge::MAP so a workbook renumbering
+     * cannot point a card at a different indicator.
+     *
+     * @return array<string, array{plan: ?float, actual: ?float}>
+     */
+    protected function budgetInvestmentPeriods(): array
+    {
+        $map = [
+            'h1'   => ['125', 'Бюджет маблағлари ҳисобидан инвестиция'],
+            'year' => ['129', 'Бюджет маблағлари ҳисобидан инвестиция'],
+        ];
+
+        $tasks = Task::forRegion($this->regionCode)
+            ->whereIn('task_number', array_column($map, 0))
+            ->with('progress')
+            ->get()
+            ->keyBy('task_number');
+
+        $out = [];
+        foreach ($map as $period => [$number, $needle]) {
+            $task = $tasks->get($number);
+            $line = $task?->progress
+                ->where('report_period', $task->latest_period)
+                ->firstWhere('line_no', 0);
+
+            if ($line === null || mb_stripos((string) $line->metric_label, $needle) === false) {
+                continue;
+            }
+
+            $out[$period] = [
+                'plan'   => $line->plan_value !== null ? (float) $line->plan_value * 1000 : null,
+                'actual' => $line->actual_value !== null ? (float) $line->actual_value * 1000 : null,
+            ];
+        }
+
+        return $out;
     }
 
     protected function inflationData(): array
@@ -94,7 +138,49 @@ class KpiWorkspaceCard extends Component
             'foods'          => $foods,
             'sensitiveFoods' => $sensitiveFoods,
             'warehouses'     => $warehouses,
+            'limits'         => $this->inflationLimits(),
         ];
+    }
+
+    /**
+     * Ceiling cards enriched with the reported rate from the matching monitoring
+     * task. Inflation is lower-is-better, so a card is on target while амалда
+     * stays at or below the cap.
+     *
+     * @return list<array{period:string,cap:string,note:string,plan:?float,actual:?float,onTarget:?bool}>
+     */
+    protected function inflationLimits(): array
+    {
+        $numbers = array_column(DashboardCatalog::INFLATION_LIMITS, 'task');
+        $tasks = Task::forRegion($this->regionCode)
+            ->whereIn('task_number', $numbers)
+            ->with('progress')
+            ->get()
+            ->keyBy('task_number');
+
+        $out = [];
+        foreach (DashboardCatalog::INFLATION_LIMITS as $limit) {
+            $task = $tasks->get($limit['task']);
+            $line = $task !== null && mb_stripos($task->title, $limit['needle']) !== false
+                ? $task->progress
+                    ->where('report_period', $task->latest_period)
+                    ->firstWhere('line_no', 0)
+                : null;
+
+            $plan   = $line?->plan_value !== null ? (float) $line->plan_value : null;
+            $actual = $line?->actual_value !== null ? (float) $line->actual_value : null;
+
+            $out[] = [
+                'period'   => $limit['period'],
+                'cap'      => $limit['cap'],
+                'note'     => $limit['note'],
+                'plan'     => $plan,
+                'actual'   => $actual,
+                'onTarget' => $actual !== null && $plan !== null ? $actual <= $plan : null,
+            ];
+        }
+
+        return $out;
     }
 
     protected function employmentData(array $codes): array
