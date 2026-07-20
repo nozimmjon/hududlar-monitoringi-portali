@@ -39,10 +39,16 @@ class IlovaAnnexParser
 
     /**
      * Simple per-region-row sheets: each matched region row carries
-     * line_no => [planCol, actualCol] (0-based) cell pairs.
+     * line_no => [planCol, actualCol] (0-based) cell pairs, with an optional
+     * third element scaling both values (ratio columns store 0.077 for 7.7%).
      * Guards: [headerRow (1-based), col (0-based), lowercase substring].
      */
     private const COLUMN_SHEETS = [
+        '2-илова' => [
+            'task'   => '4',
+            'guards' => [[4, 2, 'прогноз'], [4, 4, 'амалда'], [5, 5, 'ўсиш']],
+            'lines'  => [1 => [3, 5, 100]], // growth-rate line; volume (line 0) already imported
+        ],
         '8-илова' => [
             'task'   => '46',
             'guards' => [[4, 2, 'инвестициялар'], [4, 5, 'дам олиш']],
@@ -142,10 +148,14 @@ class IlovaAnnexParser
             $code = $this->regionRowCode($row, $sheetName);
             if ($code === null) continue;
 
-            foreach ($lines as $lineNo => [$planCol, $actualCol]) {
+            foreach ($lines as $lineNo => $cols) {
+                [$planCol, $actualCol] = $cols;
+                $scale = $cols[2] ?? 1;
+                $plan = $this->num($row[$planCol] ?? null);
+                $actual = $this->num($row[$actualCol] ?? null);
                 $out[$code][$lineNo] = [
-                    'plan'   => $this->num($row[$planCol] ?? null),
-                    'actual' => $this->num($row[$actualCol] ?? null),
+                    'plan'   => $plan === null ? null : $plan * $scale,
+                    'actual' => $actual === null ? null : $actual * $scale,
                 ];
             }
         }

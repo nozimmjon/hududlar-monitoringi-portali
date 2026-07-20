@@ -40,6 +40,11 @@ beforeEach(function () {
     $this->seed();
     $this->fixture = IlovaAnnexFixture::make();
 
+    // Task 4 — volume line already imported, growth-rate line (1) awaiting its actual.
+    $t = annexTask(1703, '4', ['latest_period' => '2026-H1', 'headline_plan' => 52600, 'headline_actual' => 54193.1]);
+    annexRow($t, 0, '2026-H1', 52600, 54193.1, ['unit' => 'млрд сўм', 'pct_of_plan' => 103.0287]);
+    annexRow($t, 1, '2026-H1', 7.7, null, ['unit' => 'фоиз', 'metric_label' => 'ўсиш суръати']);
+
     // Task 10 — Andijan H1 row awaiting the district count. No task for Тошкент ш.
     $t = annexTask(1703, '10', ['latest_period' => '2026-H1', 'headline_plan' => 2, 'headline_unit' => 'фоиз']);
     annexRow($t, 0, '2026-H1', 2, null, ['unit' => 'фоиз', 'metric_label' => 'Паст ўсиш туманлар']);
@@ -91,6 +96,18 @@ afterEach(function () {
 test('fills missing actuals, keeps existing values, creates rows, advances headlines', function () {
     $this->artisan('import:ilova', ['--file' => $this->fixture, '--period' => '2026-H1'])
         ->assertSuccessful();
+
+    // Task 4: growth-rate ratios from 2-илова scaled to percent (0.077 -> 7.7).
+    $t = Task::where('region_code', 1703)->where('task_number', '4')->first();
+    $row = $t->progress()->where('report_period', '2026-H1')->where('line_no', 1)->first();
+    expect((float) $row->plan_value)->toBeNumericallyClose(7.7);
+    expect((float) $row->actual_value)->toBeNumericallyClose(9.2);
+    expect((float) $row->pct_of_plan)->toBeNumericallyClose(9.2 / 7.7 * 100, 1e-3);
+    // Both lines above plan -> the task reads done.
+    expect($t->lines_done)->toBe(2);
+    expect($t->status)->toBe('done');
+    // Line 0 untouched — the file's volume matches what was already stored.
+    expect((float) $t->headline_actual)->toBeNumericallyClose(54193.1);
 
     // Task 10: Andijan = 1 district above average of 2 planned -> 50%, open.
     $t = Task::where('region_code', 1703)->where('task_number', '10')->first();

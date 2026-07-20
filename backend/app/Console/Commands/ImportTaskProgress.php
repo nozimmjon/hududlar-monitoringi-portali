@@ -187,7 +187,7 @@ class ImportTaskProgress extends Command
                     // task is done only when every planned line is ≥100%).
                     $head = collect($regionData['metrics'])->firstWhere('line_no', 0)
                         ?? ($regionData['metrics'][0] ?? null);
-                    $agg = TaskStatus::aggregate($regionData['metrics']);
+                    $agg = TaskStatus::forTask($t['task_number'], $t['title'], $regionData['metrics']);
                     // Only advance the headline snapshot if this period is not older
                     // than what the task already shows.
                     $shouldAdvance = $task->latest_period === null

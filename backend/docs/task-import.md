@@ -102,7 +102,8 @@ H1 import:
 php artisan import:ilova --period=2026-H1            # add --dry-run first
 ```
 
-Covered tasks: **10** (4-илова — actual = count of districts whose diff from the
+Covered tasks: **4 line 1** (2-илова — the ўсиш суръати ratio columns D/F, scaled
+×100 to percent), **10** (4-илова — actual = count of districts whose diff from the
 region average is positive), **40** (7-илова), **46** (8-илова), **48** (9-илова),
 **111 headline** (15б-илова), **133** (17-илова, cols У–Х).
 

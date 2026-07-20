@@ -34,7 +34,7 @@ class RecomputeTaskStatus extends Command
                         ? collect()
                         : $task->progress->where('report_period', $task->latest_period);
 
-                    $agg = TaskStatus::aggregate($lines->map(
+                    $agg = TaskStatus::forTask($task->task_number, $task->title, $lines->map(
                         fn ($l) => ['plan' => $l->plan_value, 'actual' => $l->actual_value, 'pct' => $l->pct_of_plan]
                     ));
 

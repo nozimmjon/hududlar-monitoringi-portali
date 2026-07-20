@@ -20,6 +20,16 @@ class IlovaAnnexFixture
         $book = new Spreadsheet();
         $book->removeSheetByIndex(0);
 
+        // --- 2-илова (task 4, line 1): growth-rate ratios in cols D (план) / F (амалда). ---
+        $s = new Worksheet($book, '2-илова');
+        $book->addSheet($s);
+        self::set($s, 2, 1, '2026 йил I ярим йилликда ҳудудлар кесимида саноат маҳсулотлари ишлаб чиқариш прогноз…');
+        self::set($s, 4, 1, 'Т/р');
+        self::set($s, 4, 3, 'Прогноз');
+        self::set($s, 4, 5, 'Амалда');
+        self::set($s, 5, 6, 'ўсиш, %');
+        self::row($s, 6, [1, 'Андижон вилояти', 52600, 0.077, 54193.1, 0.092, 1.0303]);
+
         // --- 4-илова (task 10): district rows under numbered region rows. ---
         $s = new Worksheet($book, '4-илова');
         $book->addSheet($s);

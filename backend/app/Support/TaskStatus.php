@@ -4,6 +4,65 @@ namespace App\Support;
 
 class TaskStatus
 {
+    /**
+     * Continuous tasks: worked on all year, so a mid-year percentage is not a
+     * done/not-done verdict — they always report as «Бажарилмоқда».
+     * task_number => title needle, so a workbook renumbering cannot move the
+     * override onto a different task (same guard idea as TaskFactBridge::MAP).
+     */
+    public const CONTINUOUS = [
+        '10' => 'Паст ўсиш кузатилган',
+    ];
+
+    /**
+     * Ongoing-until-done tasks: long-running collection work where falling short
+     * of plan mid-year means «still being worked on», not «failed» — so `open`
+     * reports as «Бажарилмоқда» while a fully met task still closes as `done`.
+     * Same task_number => title needle guard.
+     */
+    public const ONGOING_UNTIL_DONE = [
+        '111' => 'Яширин иқтисодиётга қарши курашиш',
+        '182' => 'Биринчи ярим йилда ишсизлик даражаси камайтириш чоралари',
+    ];
+
+    public static function isContinuous(?string $taskNumber, ?string $title): bool
+    {
+        return self::matches(self::CONTINUOUS, $taskNumber, $title);
+    }
+
+    public static function isOngoingUntilDone(?string $taskNumber, ?string $title): bool
+    {
+        return self::matches(self::ONGOING_UNTIL_DONE, $taskNumber, $title);
+    }
+
+    private static function matches(array $map, ?string $taskNumber, ?string $title): bool
+    {
+        $needle = $map[(string) $taskNumber] ?? null;
+
+        return $needle !== null && mb_stripos((string) $title, $needle) !== false;
+    }
+
+    /**
+     * Aggregate for one task: the normal weakest-link rule, with two overrides —
+     * continuous tasks never close, ongoing-until-done tasks report unfinished
+     * work as in_progress. Line counts stay truthful either way.
+     *
+     * @param iterable<array{plan: float|string|null, actual?: float|string|null, pct: float|string|null}> $lines
+     * @return array{status: string, total: int, done: int}
+     */
+    public static function forTask(?string $taskNumber, ?string $title, iterable $lines): array
+    {
+        $agg = self::aggregate($lines);
+
+        if (self::isContinuous($taskNumber, $title)) {
+            $agg['status'] = 'in_progress';
+        } elseif ($agg['status'] === 'open' && self::isOngoingUntilDone($taskNumber, $title)) {
+            $agg['status'] = 'in_progress';
+        }
+
+        return $agg;
+    }
+
     /** Binary done/open from a percent-of-plan value. */
     public static function statusFor(?float $pct): string
     {
