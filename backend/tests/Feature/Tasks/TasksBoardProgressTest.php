@@ -286,3 +286,28 @@ test('task planned only via a sub-metric line still shows an empty 0% track', fu
         ->assertSeeHtml('var(--grey)')                  // neutral colour
         ->assertSee('—');                               // empty headline cells
 });
+
+test('task with nothing reported shows Бажарилмоқда and its filter finds only it', function () {
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '9', 'title' => 'Маълумот келмаган топшириқ',
+        'module_code' => 'macro', 'indicator_code' => null,
+        'status' => 'in_progress', 'headline_unit' => 'дона', 'headline_plan' => 10,
+        'headline_actual' => null, 'headline_pct' => null,
+        'latest_period' => '2026-H1', 'lines_total' => 1, 'lines_done' => 0,
+    ]);
+
+    session(['region_code' => 1703]);
+    Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
+        ->set('status', 'in_progress')
+        ->assertSee('Маълумот келмаган топшириқ')
+        ->assertSee('Бажарилмоқда')
+        ->assertDontSee('ЯҲМ ўсиши');           // the reported-but-open task is filtered out
+
+    // The open filter now excludes not-yet-reported tasks.
+    Livewire::test(TasksBoard::class)
+        ->set('deadline', 'all')
+        ->set('status', 'open')
+        ->assertSee('ЯҲМ ўсиши')
+        ->assertDontSee('Маълумот келмаган топшириқ');
+});

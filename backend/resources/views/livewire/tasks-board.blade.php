@@ -2,7 +2,12 @@
     $totals = $this->totals;
     $tasks = $this->tasks;
     $moduleOptions = $this->moduleOptions;
-    $shownScope = $status === 'done' ? 'Бажарилган' : ($status === 'open' ? 'Бажарилмаган' : 'Барча');
+    $shownScope = match ($status) {
+        'done'        => 'Бажарилган',
+        'open'        => 'Бажарилмаган',
+        'in_progress' => 'Бажарилмоқда',
+        default       => 'Барча',
+    };
 @endphp
 
 <div>
@@ -19,6 +24,7 @@
             <select wire:model.live="status">
                 <option value="all">Барчаси</option>
                 <option value="open">Бажарилмаган</option>
+                <option value="in_progress">Бажарилмоқда</option>
                 <option value="done">Бажарилган</option>
             </select>
         </label>
@@ -49,17 +55,19 @@
                             // номи lines): the card shows how many indicator lines are done, and
                             // its percent is that share — never line 0 alone.
                             $isMulti = (int) $task->lines_total > 1;
-                            $pct = $isMulti
-                                ? $task->lines_done / $task->lines_total * 100
-                                : ($task->headline_pct !== null ? (float) $task->headline_pct : null);
+                            // Бажарилмоқда = nothing reported yet, so no percent claim at all.
+                            $pct = $task->status === 'in_progress' ? null
+                                : ($isMulti
+                                    ? $task->lines_done / $task->lines_total * 100
+                                    : ($task->headline_pct !== null ? (float) $task->headline_pct : null));
                             $isDone = $task->status === 'done';
                             // Percent text and its colour tier come from the SAME value so they can never disagree.
                             // A not-done task never shows 100% (capped at 99); green is reserved for genuinely done tasks.
                             $pctShown = $pct === null ? null : ($isDone ? (int) round($pct) : min(99, (int) round($pct)));
                             $tier = $pct === null ? 'none' : ($isDone ? 'green' : ($pctShown >= 50 ? 'amber' : 'red'));
                             $tierVar = ['none' => '--grey', 'red' => '--task-red', 'amber' => '--task-amber', 'green' => '--task-green'][$tier];
-                            $statusChip = $isDone ? 'green' : 'grey';
-                            $statusLabel = $isDone ? 'Бажарилди' : 'Бажарилмаган';
+                            $statusChip = $isDone ? 'green' : ($task->status === 'in_progress' ? 'violet' : 'grey');
+                            $statusLabel = $isDone ? 'Бажарилди' : ($task->status === 'in_progress' ? 'Бажарилмоқда' : 'Бажарилмаган');
                             $cadenceLabel = $task->cadence === 'monthly' ? 'Ойлик' : ($task->cadence === 'quarterly' ? 'Чорак' : '');
                             $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, ',', ' '), '0'), ',');
                             $srok = $task->deadline_text;
@@ -199,6 +207,11 @@
                     <span class="task-stat-num">{{ $totals['done'] }}</span>
                     <span class="task-stat-label">Бажарилди</span>
                     <span class="task-stat-icon">@include('partials.icon', ['name' => 'check'])</span>
+                </div>
+                <div class="task-stat-box violet">
+                    <span class="task-stat-num">{{ $totals['inprog'] }}</span>
+                    <span class="task-stat-label">Бажарилмоқда</span>
+                    <span class="task-stat-icon">@include('partials.icon', ['name' => 'clock'])</span>
                 </div>
                 <div class="task-stat-box red">
                     <span class="task-stat-num">{{ $totals['open'] }}</span>

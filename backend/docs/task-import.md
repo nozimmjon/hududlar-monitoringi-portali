@@ -129,16 +129,22 @@ Behavior:
   and re-syncs districts. No duplicates.
 - **History**: each period's rows are kept in `task_progress`. The board shows the
   latest period; history stays queryable for future trend views.
-- **Status**: binary, weakest-link — `done` only when EVERY metric line that has
-  a plan is at ≥100% (a planned line with no execution data keeps the task open).
-  Multi-indicator tasks (`lines_total > 1`) show "M/N индикатор бажарилди" on the
-  boards instead of line-0 Режа/Амалда, and list every line in Батафсил. Computed
-  on import; `php artisan tasks:recompute` rebuilds status + line counters from
+- **Status**: three states, weakest-link — `in_progress` (Бажарилмоқда) when no
+  line of the latest period shows real progress (every actual missing or an
+  explicit 0 — nothing achieved yet), else `done` only when EVERY metric line
+  that has a plan is at ≥100%, else `open` (Бажарилмаган). Multi-indicator tasks
+  (`lines_total > 1`) show "M/N индикатор бажарилди" on the boards instead of
+  line-0 Режа/Амалда, and list every line in Батафсил. Computed on import;
+  `php artisan tasks:recompute` rebuilds status + line counters from
   `task_progress` at any time without re-importing.
 - **Stale files**: importing an *older* period than the latest already imported will
   not regress the headline/status shown in the UI (guarded), but it **will** refresh
   task titles/executors/districts from that older file — import files in
   chronological order.
+- **Deadline overrides**: `TasksTaxonomy::DEADLINE_OVERRIDES` corrects tasks whose
+  Муддати column is wrong in the source file (currently task 217 → I ярим йиллик).
+  Applied on every import so the partner file cannot revert the fix; extend the
+  map for future corrections.
 
 ## One-time setup in an environment that ran the old DOCX importer
 

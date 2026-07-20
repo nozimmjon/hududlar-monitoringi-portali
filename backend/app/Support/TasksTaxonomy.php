@@ -86,6 +86,15 @@ class TasksTaxonomy
     ];
 
     /**
+     * Deadline corrections applied on import over the workbook's Муддати column.
+     * Operator-decided (2026-07): the source file's deadline is wrong for these
+     * tasks; without the override every monthly import would revert the fix.
+     */
+    public const DEADLINE_OVERRIDES = [
+        '217' => ['deadline_text' => '2026 йил I ярим йиллик', 'period_code' => 'h1'],
+    ];
+
+    /**
      * Same anchors for the "Иқтисодий кўрсаткичлар" (economic indicators) file
      * generation: no metadata columns H..L, so the 14 region blocks start at col 7.
      * Region order is identical to the monitoring file.

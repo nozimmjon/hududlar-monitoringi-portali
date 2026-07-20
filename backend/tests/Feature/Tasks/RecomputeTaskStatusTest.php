@@ -46,6 +46,10 @@ test('recomputes weakest-link status and line counters from progress rows', func
     $info = statusTask('5', ['status' => 'open', 'headline_pct' => 100], [
         [10, 10, 100], [null, 3, null],
     ]);
+    // Nothing reported at all -> Бажарилмоқда.
+    $fresh = statusTask('6', ['status' => 'open'], [
+        [10, null, null], [5, null, null],
+    ]);
 
     $this->artisan('tasks:recompute')->assertSuccessful();
 
@@ -54,6 +58,7 @@ test('recomputes weakest-link status and line counters from progress rows', func
     expect($single->fresh())->status->toBe('done')->lines_total->toBe(1)->lines_done->toBe(1);
     expect($noData->fresh())->status->toBe('open')->lines_total->toBe(2)->lines_done->toBe(1);
     expect($info->fresh())->status->toBe('done')->lines_total->toBe(1)->lines_done->toBe(1);
+    expect($fresh->fresh())->status->toBe('in_progress')->lines_total->toBe(2)->lines_done->toBe(0);
 });
 
 test('dry-run reports but writes nothing', function () {

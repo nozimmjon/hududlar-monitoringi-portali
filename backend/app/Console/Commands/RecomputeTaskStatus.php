@@ -23,7 +23,7 @@ class RecomputeTaskStatus extends Command
 
     public function handle(): int
     {
-        $flipped = ['done→open' => 0, 'open→done' => 0];
+        $flipped = [];
         $updated = 0;
 
         DB::beginTransaction();
@@ -35,7 +35,7 @@ class RecomputeTaskStatus extends Command
                         : $task->progress->where('report_period', $task->latest_period);
 
                     $agg = TaskStatus::aggregate($lines->map(
-                        fn ($l) => ['plan' => $l->plan_value, 'pct' => $l->pct_of_plan]
+                        fn ($l) => ['plan' => $l->plan_value, 'actual' => $l->actual_value, 'pct' => $l->pct_of_plan]
                     ));
 
                     $dirty = $task->status !== $agg['status']
@@ -45,8 +45,10 @@ class RecomputeTaskStatus extends Command
                         continue;
                     }
 
-                    if ($task->status === 'done' && $agg['status'] === 'open') $flipped['done→open']++;
-                    if ($task->status === 'open' && $agg['status'] === 'done') $flipped['open→done']++;
+                    if ($task->status !== $agg['status']) {
+                        $key = $task->status . '→' . $agg['status'];
+                        $flipped[$key] = ($flipped[$key] ?? 0) + 1;
+                    }
 
                     $task->update([
                         'status'      => $agg['status'],
@@ -67,7 +69,10 @@ class RecomputeTaskStatus extends Command
             throw $e;
         }
 
-        $this->info("Updated {$updated} task(s): {$flipped['done→open']} flipped done→open, {$flipped['open→done']} flipped open→done.");
+        $flips = $flipped === []
+            ? 'no status flips'
+            : implode(', ', array_map(fn ($k, $v) => "{$v} {$k}", array_keys($flipped), $flipped));
+        $this->info("Updated {$updated} task(s): {$flips}.");
         if ($this->option('dry-run')) {
             $this->warn('Dry run — no changes written.');
         }

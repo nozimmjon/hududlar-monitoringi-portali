@@ -133,10 +133,11 @@ class ImportTaskProgress extends Command
                     ]);
 
                     $task = Task::firstOrNew(['region_code' => $code, 'task_number' => $t['task_number']]);
+                    $deadlineOverride = TasksTaxonomy::DEADLINE_OVERRIDES[$t['task_number']] ?? null;
                     $task->fill([
                         'title'                  => $t['title'],
-                        'deadline_text'          => $t['deadline_text'],
-                        'period_code'            => $t['period_code'],
+                        'deadline_text'          => $deadlineOverride['deadline_text'] ?? $t['deadline_text'],
+                        'period_code'            => $deadlineOverride['period_code'] ?? $t['period_code'],
                         'executor_text'          => $regionData['executor_text'],
                         'module_code'            => $t['module_code'],
                         'indicator_code'         => $t['indicator_code'],

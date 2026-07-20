@@ -224,7 +224,9 @@ class ImportIlovaAnnex extends Command
         }
 
         // Status is the weakest link over ALL planned lines, not just line 0.
-        $agg = TaskStatus::aggregate($lines->map(fn ($l) => ['plan' => $l->plan_value, 'pct' => $l->pct_of_plan]));
+        $agg = TaskStatus::aggregate($lines->map(
+            fn ($l) => ['plan' => $l->plan_value, 'actual' => $l->actual_value, 'pct' => $l->pct_of_plan]
+        ));
 
         $task->update([
             'latest_period'   => $period,

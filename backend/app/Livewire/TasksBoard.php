@@ -87,9 +87,11 @@ class TasksBoard extends Component
         if ($this->district !== 'all') $q->forDistrict((int) $this->district);
         if ($this->search !== '')      $q->search($this->search);
 
-        // Status: 'open' shows non-done; 'done' shows done; 'all' shows all.
-        if ($this->status === 'open') $q->where('status', '!=', 'done');
-        if ($this->status === 'done') $q->where('status', 'done');
+        // Status: exact match per state — 'open' (reported, below plan),
+        // 'in_progress' (nothing reported yet), 'done'; 'all' shows all.
+        if (in_array($this->status, ['open', 'in_progress', 'done'], true)) {
+            $q->where('status', $this->status);
+        }
 
         $tasks = $q->get();
 
@@ -166,14 +168,16 @@ class TasksBoard extends Component
             );
         }
 
-        $total = $all->count();
-        $done  = $all->where('status', 'done')->count();
+        $total  = $all->count();
+        $done   = $all->where('status', 'done')->count();
+        $inprog = $all->where('status', 'in_progress')->count();
 
         return [
-            'total' => $total,
-            'done'  => $done,
-            'open'  => $total - $done,
-            'pct'   => $total > 0 ? (int) round($done / $total * 100) : 0,
+            'total'  => $total,
+            'done'   => $done,
+            'inprog' => $inprog,
+            'open'   => $total - $done - $inprog,
+            'pct'    => $total > 0 ? (int) round($done / $total * 100) : 0,
         ];
     }
 

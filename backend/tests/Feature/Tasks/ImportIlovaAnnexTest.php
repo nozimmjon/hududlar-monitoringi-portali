@@ -100,7 +100,8 @@ test('fills missing actuals, keeps existing values, creates rows, advances headl
     expect((float) $t->headline_actual)->toBeNumericallyClose(1);
     expect($t->status)->toBe('open');
 
-    // Task 40 Andijan: explicit zeros written on all six lines.
+    // Task 40 Andijan: explicit zeros written on all six lines — data stored,
+    // but zero progress means the task reads Бажарилмоқда.
     $t = Task::where('region_code', 1703)->where('task_number', '40')->first();
     $rows = $t->progress()->where('report_period', '2026-H1')->orderBy('line_no')->get();
     expect($rows)->toHaveCount(6);
@@ -108,7 +109,7 @@ test('fills missing actuals, keeps existing values, creates rows, advances headl
         expect((float) $row->actual_value)->toBeNumericallyClose(0);
         expect((float) $row->pct_of_plan)->toBeNumericallyClose(0);
     }
-    expect($t->status)->toBe('open');
+    expect($t->status)->toBe('in_progress');
 
     // Task 40 Самарқанд: DB actual 5 conflicts with the file's 6 -> kept.
     $t = Task::where('region_code', 1718)->where('task_number', '40')->first();

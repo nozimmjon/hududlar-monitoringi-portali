@@ -22,7 +22,7 @@ test('imports tasks, progress, districts and status for a period', function () {
     $this->artisan('import:task-progress', ['--file' => $this->fixture, '--period' => '2026-Q1'])
         ->assertSuccessful();
 
-    // Andijan task 1: plan only, no actual -> open
+    // Andijan task 1: plan only, nothing reported yet -> Бажарилмоқда
     $t1 = Task::where('region_code', 1703)->where('task_number', '1')->first();
     expect($t1)->not->toBeNull();
     expect($t1->title)->toBe('ЯҲМ ўсишини таъминлаш');
@@ -31,7 +31,7 @@ test('imports tasks, progress, districts and status for a period', function () {
     expect($t1->module_code)->toBe('macro');
     expect($t1->indicator_code)->toBe('grp');
     expect((float) $t1->headline_plan)->toBeNumericallyClose(7.2);
-    expect($t1->status)->toBe('open');
+    expect($t1->status)->toBe('in_progress');
     expect($t1->latest_period)->toBe('2026-Q1');
 
     // Andijan task 2: multi-metric, district executor, headline pct 50 -> open
@@ -160,12 +160,12 @@ test('imports the economic half-year workbook on top of a monitoring import', fu
     expect(Task::where('region_code', 1706)->count())->toBe(0);
     expect(Task::where('region_code', 1710)->count())->toBe(0);
 
-    // Plan-only region (Jizzakh): imported, no pct, stays open.
+    // Plan-only region (Jizzakh): imported, nothing reported -> Бажарилмоқда.
     $j1 = Task::where('region_code', 1708)->where('task_number', '1')->first();
     expect((float) $j1->headline_plan)->toBeNumericallyClose(5);
     expect($j1->headline_actual)->toBeNull();
     expect($j1->headline_pct)->toBeNull();
-    expect($j1->status)->toBe('open');
+    expect($j1->status)->toBe('in_progress');
 
     // Lower-is-better task 68: worse than plan -> under 100% and open,
     // better than plan -> over 100% and done.

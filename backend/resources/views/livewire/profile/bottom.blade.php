@@ -17,11 +17,13 @@
                 @php
                     // Multi-indicator tasks show done/total indicator lines, not line 0 numbers.
                     $isMulti = (int) $task->lines_total > 1;
-                    $pct = $isMulti
-                        ? $task->lines_done / $task->lines_total * 100
-                        : ($task->headline_pct !== null ? (float) $task->headline_pct : null);
-                    $tStatusChip = $task->status === 'done' ? 'green' : 'grey';
-                    $tStatusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
+                    // Бажарилмоқда = nothing reported yet, so no percent claim at all.
+                    $pct = $task->status === 'in_progress' ? null
+                        : ($isMulti
+                            ? $task->lines_done / $task->lines_total * 100
+                            : ($task->headline_pct !== null ? (float) $task->headline_pct : null));
+                    $tStatusChip = $task->status === 'done' ? 'green' : ($task->status === 'in_progress' ? 'violet' : 'grey');
+                    $tStatusLabel = $task->status === 'done' ? 'Бажарилди' : ($task->status === 'in_progress' ? 'Бажарилмоқда' : 'Бажарилмаган');
                     $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
                 @endphp
                 <article class="profile-task">
