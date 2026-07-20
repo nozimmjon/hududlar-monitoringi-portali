@@ -44,6 +44,30 @@ test('GET / renders the entry map page with per-region task stats', function () 
     $response->assertDontSee('layouts.app');       // standalone page, no app shell
 });
 
+test('the entry map counts Бажарилмоқда tasks on the done side', function () {
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '1',
+        'status' => 'done', 'headline_plan' => 10,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
+    ]);
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '2',
+        'status' => 'in_progress', 'headline_plan' => 5,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
+    ]);
+    Task::factory()->create([
+        'region_code' => 1703, 'task_number' => '3',
+        'status' => 'open', 'headline_plan' => 7,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
+    ]);
+
+    $response = $this->get('/');
+
+    // 3 planned tasks: done + in_progress on the done side, only 'open' left over.
+    $response->assertOk();
+    $response->assertSee('"total":3,"done":2,"open":1', false);
+});
+
 test('GET / works with no tasks at all', function () {
     $this->get('/')->assertOk()->assertSee('Ҳудудий топшириқлар ижроси');
 });

@@ -45,7 +45,10 @@ class HomeController extends Controller
                 continue;
             }
             $total = $rows->count();
-            $done  = $rows->where('status', 'done')->count();
+            // Entry-page reading: a task is "on track" unless it is reported behind
+            // plan. Бажарилмоқда (nothing achieved yet) counts with Бажарилди here;
+            // the tasks board keeps the three states apart.
+            $done  = $rows->whereIn('status', ['done', 'in_progress'])->count();
             $stats[] = [
                 'code'  => (int) $code,
                 'short' => self::shortLabel($region),
