@@ -217,10 +217,14 @@ class ImportIlovaAnnex extends Command
             return;
         }
 
-        $head = $task->progress()->where('report_period', $period)->where('line_no', 0)->first();
+        $lines = $task->progress()->where('report_period', $period)->orderBy('line_no')->get();
+        $head = $lines->firstWhere('line_no', 0);
         if ($head === null) {
             return;
         }
+
+        // Status is the weakest link over ALL planned lines, not just line 0.
+        $agg = TaskStatus::aggregate($lines->map(fn ($l) => ['plan' => $l->plan_value, 'pct' => $l->pct_of_plan]));
 
         $task->update([
             'latest_period'   => $period,
@@ -228,7 +232,9 @@ class ImportIlovaAnnex extends Command
             'headline_plan'   => $head->plan_value,
             'headline_actual' => $head->actual_value,
             'headline_pct'    => $head->pct_of_plan,
-            'status'          => TaskStatus::statusFor($head->pct_of_plan !== null ? (float) $head->pct_of_plan : null),
+            'lines_total'     => $agg['total'],
+            'lines_done'      => $agg['done'],
+            'status'          => $agg['status'],
         ]);
     }
 }

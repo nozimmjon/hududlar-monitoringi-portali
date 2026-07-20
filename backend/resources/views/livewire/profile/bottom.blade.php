@@ -15,7 +15,11 @@
         <div class="profile-task-list">
             @forelse($tasks as $task)
                 @php
-                    $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
+                    // Multi-indicator tasks show done/total indicator lines, not line 0 numbers.
+                    $isMulti = (int) $task->lines_total > 1;
+                    $pct = $isMulti
+                        ? $task->lines_done / $task->lines_total * 100
+                        : ($task->headline_pct !== null ? (float) $task->headline_pct : null);
                     $tStatusChip = $task->status === 'done' ? 'green' : 'grey';
                     $tStatusLabel = $task->status === 'done' ? 'Бажарилди' : 'Бажарилмаган';
                     $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, '.', ' '), '0'), '.');
@@ -23,8 +27,12 @@
                 <article class="profile-task">
                     <p class="profile-task-title">{{ $task->title }}</p>
                     <div class="task-meta">
-                        <span>Режа: <b>{{ $fmt($task->headline_plan) }}</b> {{ $task->headline_unit }}</span>
-                        <span>Амалда: <b>{{ $fmt($task->headline_actual) }}</b> {{ $task->headline_unit }}</span>
+                        @if($isMulti)
+                            <span>Индикаторлар: <b>{{ $task->lines_done }}/{{ $task->lines_total }}</b> бажарилди</span>
+                        @else
+                            <span>Режа: <b>{{ $fmt($task->headline_plan) }}</b> {{ $task->headline_unit }}</span>
+                            <span>Амалда: <b>{{ $fmt($task->headline_actual) }}</b> {{ $task->headline_unit }}</span>
+                        @endif
                         <span class="chip {{ $tStatusChip }}">{{ $tStatusLabel }}{{ $pct !== null ? ' · ' . round($pct) . '%' : '' }}</span>
                     </div>
                     @if($task->deadline_text)

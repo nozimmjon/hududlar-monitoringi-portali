@@ -103,7 +103,7 @@ test('done task shows done badge and green tier', function () {
         ->assertDontSee('ЯҲМ ўсиши');
 });
 
-test('card detail shows sub-metrics, scope, cadence and districts; drops the headline line', function () {
+test('multi-indicator card shows line counts and lists every line in the breakdown', function () {
     DB::table('districts')->insert([
         'region_id' => 1, 'region_code' => 1703, 'code' => 1703230,
         'name_short' => 'Шаҳрихон т.', 'name_full' => 'Шаҳрихон тумани',
@@ -115,6 +115,7 @@ test('card detail shows sub-metrics, scope, cadence and districts; drops the hea
         'cadence' => 'monthly', 'status' => 'open',
         'headline_unit' => 'дона', 'headline_plan' => 6, 'headline_actual' => 3,
         'headline_pct' => 50, 'latest_period' => '2026-Q1',
+        'lines_total' => 2, 'lines_done' => 1,
     ]);
     $task->progress()->createMany([
         ['line_no' => 0, 'metric_label' => 'йирик корхона сони', 'unit' => 'дона',
@@ -134,10 +135,11 @@ test('card detail shows sub-metrics, scope, cadence and districts; drops the hea
         ->assertSee('Ойлик')                               // monthly cadence
         ->assertSee('Ижрочи ҳудудлар')                     // districts group label
         ->assertSee('Шаҳрихон тумани')                     // district chip
+        ->assertSee('Индикаторлар')                        // card face shows counts, not line-0 numbers
         ->assertSee('қайта тикланадиган ишлаб чиқариш')    // sub-metric (line_no 1) shown
         ->assertSee('млрд сўм')
         ->assertSeeHtml('tl-pill--green')                  // its 100% pill is the green tier
-        ->assertDontSee('йирик корхона сони');             // headline (line_no 0) dropped from breakdown
+        ->assertSee('йирик корхона сони');                 // line 0 listed in the breakdown too
 });
 
 test('detail sub-metric pills use the per-line tier (red, amber, none)', function () {

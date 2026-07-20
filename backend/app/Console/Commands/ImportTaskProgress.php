@@ -181,9 +181,12 @@ class ImportTaskProgress extends Command
                         $writtenByRegion[$code] = ($writtenByRegion[$code] ?? 0) + 1;
                     }
 
-                    // Recompute headline snapshot + binary status from line_no 0.
+                    // Recompute the headline snapshot from line_no 0 and the binary
+                    // status from ALL planned lines (weakest link — a multi-indicator
+                    // task is done only when every planned line is ≥100%).
                     $head = collect($regionData['metrics'])->firstWhere('line_no', 0)
                         ?? ($regionData['metrics'][0] ?? null);
+                    $agg = TaskStatus::aggregate($regionData['metrics']);
                     // Only advance the headline snapshot if this period is not older
                     // than what the task already shows.
                     $shouldAdvance = $task->latest_period === null
@@ -195,7 +198,9 @@ class ImportTaskProgress extends Command
                             'headline_plan'   => $head['plan'] ?? null,
                             'headline_actual' => $head['actual'] ?? null,
                             'headline_pct'    => $head['pct'] ?? null,
-                            'status'          => TaskStatus::statusFor(isset($head['pct']) ? (float) $head['pct'] : null),
+                            'lines_total'     => $agg['total'],
+                            'lines_done'      => $agg['done'],
+                            'status'          => $agg['status'],
                         ]);
                     }
                 }

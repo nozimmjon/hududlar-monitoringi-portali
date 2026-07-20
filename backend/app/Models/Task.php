@@ -20,7 +20,7 @@ class Task extends Model
         // XLSX progress fields
         'cadence', 'data_source', 'report_schedule_text', 'integration_status',
         'mechanism_text', 'latest_period', 'headline_unit', 'headline_plan',
-        'headline_actual', 'headline_pct',
+        'headline_actual', 'headline_pct', 'lines_total', 'lines_done',
     ];
 
     protected $casts = [
@@ -28,6 +28,8 @@ class Task extends Model
         'headline_plan'   => 'decimal:6',
         'headline_actual' => 'decimal:6',
         'headline_pct'    => 'decimal:4',
+        'lines_total'     => 'integer',
+        'lines_done'      => 'integer',
     ];
 
     public function region(): BelongsTo

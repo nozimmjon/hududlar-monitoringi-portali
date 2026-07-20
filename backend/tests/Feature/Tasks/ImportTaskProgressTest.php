@@ -42,9 +42,12 @@ test('imports tasks, progress, districts and status for a period', function () {
     expect($t2->progress()->where('report_period', '2026-Q1')->count())->toBe(2);
     expect($t2->districts->pluck('name_full')->all())->toContain('Шахрихон тумани');
 
-    // Andijan task 3: derived pct 120 -> done (task_number comes from col B = 5)
+    // Andijan task 3 (task_number comes from col B = 5): headline pct derived 120,
+    // but its second planned line is at 50% -> weakest link keeps the task open.
     $t3 = Task::where('region_code', 1703)->where('task_number', '5')->first();
-    expect($t3->status)->toBe('done');
+    expect($t3->status)->toBe('open');
+    expect($t3->lines_total)->toBe(2);
+    expect($t3->lines_done)->toBe(1);
     expect((float) $t3->headline_pct)->toBeNumericallyClose(120);
     expect((float) $t3->headline_actual)->toBeNumericallyClose(12);
 

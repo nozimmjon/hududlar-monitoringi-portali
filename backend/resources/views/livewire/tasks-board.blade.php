@@ -45,7 +45,13 @@
                 <div class="task-list">
                     @forelse($tasks as $task)
                         @php
-                            $pct = $task->headline_pct !== null ? (float) $task->headline_pct : null;
+                            // Multi-indicator task (one Кўрсаткич номи, several planned Индикатор
+                            // номи lines): the card shows how many indicator lines are done, and
+                            // its percent is that share — never line 0 alone.
+                            $isMulti = (int) $task->lines_total > 1;
+                            $pct = $isMulti
+                                ? $task->lines_done / $task->lines_total * 100
+                                : ($task->headline_pct !== null ? (float) $task->headline_pct : null);
                             $isDone = $task->status === 'done';
                             // Percent text and its colour tier come from the SAME value so they can never disagree.
                             // A not-done task never shows 100% (capped at 99); green is reserved for genuinely done tasks.
@@ -74,14 +80,25 @@
                                 </div>
 
                                 <div class="task-strip">
-                                    <div class="cell">
-                                        <span class="clab">Режа</span>
-                                        <span class="val">{{ $fmt($task->headline_plan) }}<small>{{ $task->headline_unit }}</small></span>
-                                    </div>
-                                    <div class="cell">
-                                        <span class="clab">Амалда</span>
-                                        <span class="val">{{ $fmt($task->headline_actual) }}<small>{{ $task->headline_unit }}</small></span>
-                                    </div>
+                                    @if($isMulti)
+                                        <div class="cell">
+                                            <span class="clab">Индикаторлар</span>
+                                            <span class="val">{{ $task->lines_total }}<small>та</small></span>
+                                        </div>
+                                        <div class="cell">
+                                            <span class="clab">Бажарилди</span>
+                                            <span class="val">{{ $task->lines_done }}<small>та</small></span>
+                                        </div>
+                                    @else
+                                        <div class="cell">
+                                            <span class="clab">Режа</span>
+                                            <span class="val">{{ $fmt($task->headline_plan) }}<small>{{ $task->headline_unit }}</small></span>
+                                        </div>
+                                        <div class="cell">
+                                            <span class="clab">Амалда</span>
+                                            <span class="val">{{ $fmt($task->headline_actual) }}<small>{{ $task->headline_unit }}</small></span>
+                                        </div>
+                                    @endif
                                     <div class="cell">
                                         <span class="clab">Бажарилиш</span>
                                         <span class="val task-pct task-pct--{{ $tier }}">{{ $pctShown === null ? '—' : $pctShown . '%' }}</span>
@@ -100,8 +117,10 @@
                                     $latestLines = $task->latest_period
                                         ? $task->progress->where('report_period', $task->latest_period)
                                         : collect();
-                                    // Breakdown shows sub-metrics only; the headline (line_no 0) is on the card face.
-                                    $subLines = $latestLines->where('line_no', '>', 0);
+                                    // Multi-indicator card face shows only counts, so the breakdown
+                                    // lists EVERY line incl. line 0. Single-indicator cards keep the
+                                    // headline on the face and the breakdown holds sub-metrics only.
+                                    $subLines = $isMulti ? $latestLines : $latestLines->where('line_no', '>', 0);
                                     // Per-line tier by raw pct (red <50, amber 50–99, green ≥100). Unlike the
                                     // card face, sub-lines have no done-gating or 99% cap — a sub-metric can
                                     // genuinely be ≥100% even when the parent task isn't "done".

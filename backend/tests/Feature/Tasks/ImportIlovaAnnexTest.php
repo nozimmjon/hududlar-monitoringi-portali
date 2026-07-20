@@ -126,10 +126,13 @@ test('fills missing actuals, keeps existing values, creates rows, advances headl
     $t = Task::where('region_code', 1708)->where('task_number', '46')->first();
     expect($t->progress()->where('report_period', '2026-H1')->where('line_no', 0)->value('actual_value'))->toBeNull();
 
-    // Task 48 Сирдарё: 4 of 4 -> 100% -> done.
+    // Task 48 Сирдарё: line 0 hits 100%, but the file also creates lines 1-3 and
+    // line 2 is at ~51% -> weakest link keeps the task open (3 of 4 lines done).
     $t = Task::where('region_code', 1724)->where('task_number', '48')->first();
     expect((float) $t->headline_pct)->toBeNumericallyClose(100);
-    expect($t->status)->toBe('done');
+    expect($t->lines_total)->toBe(4);
+    expect($t->lines_done)->toBe(3);
+    expect($t->status)->toBe('open');
 
     // Task 111 Andijan: headline plan+actual from 15б -> 100% done; sub-line untouched.
     $t = Task::where('region_code', 1703)->where('task_number', '111')->first();
