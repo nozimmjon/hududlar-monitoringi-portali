@@ -78,11 +78,12 @@ test('BudgetInvestModuleParser produces 51 staging rows for Andijan', function (
     expect($q1->count_extra)->toBe(100);
     expect($q1->count_extra_2)->toBeNull();
 
-    // Region rollup year: actual=1024641.5, pct=107.8, count_extra_2=96
+    // Region rollup year: «кутилиш (тезкор)» forecast -> expected_value, not actual.
     $year = ImportStagingIndicatorFact::where('indicator_code', 'budget_investment')
         ->whereNull('district_code')->where('period', 'year')->first();
     expect($year->plan_value)->toBeNumericallyClose(950279.86, 0.5);
-    expect($year->actual_hokimyat)->toBeNumericallyClose(1024641.5, 0.5);
+    expect($year->expected_value)->toBeNumericallyClose(1024641.5, 0.5);
+    expect($year->actual_hokimyat)->toBeNull();
     expect($year->pct_of_plan)->toBeNumericallyClose(107.8, 0.05);
     expect($year->count_extra)->toBe(100);
     expect($year->count_extra_2)->toBe(96);

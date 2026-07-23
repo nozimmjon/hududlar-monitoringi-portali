@@ -3982,6 +3982,14 @@
     .kpi-switch-btn:hover { border-color:rgba(23,105,224,.4); }
     .kpi-switch-btn.on { background:var(--blue); border-color:var(--blue); color:#fff; }
 
+    /* Districts controls row: KPI switch (left) + period filter (right). */
+    .districts-controls { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--line); }
+    .districts-controls .kpi-switch { border-top:0; flex:1 1 auto; }
+    .period-seg { display:inline-flex; gap:4px; padding:8px 10px; flex:0 0 auto; }
+    .period-seg-btn { border:1px solid var(--line); background:#fff; font:inherit; font-size:12px; font-weight:650; color:var(--muted); padding:5px 14px; border-radius:999px; cursor:pointer; transition:border-color var(--motion), background var(--motion), color var(--motion); }
+    .period-seg-btn:hover { border-color:rgba(23,105,224,.4); }
+    .period-seg-btn.on { background:var(--ink); border-color:var(--ink); color:#fff; }
+
     /* ===== professional navy map ===== */
     .districts-mapstage {
       position: relative;

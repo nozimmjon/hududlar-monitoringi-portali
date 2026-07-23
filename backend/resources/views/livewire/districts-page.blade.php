@@ -3,10 +3,18 @@
     $targetCountByDistrict = $this->targetCountByDistrict;
     $statusLabel = [
         'green' => 'Яхши', 'amber' => 'Ўртача', 'red' => 'Эътибор', 'grey' => 'Маълумот йўқ',
-        'plan' => 'Режалаштирилган',
+        'forecast' => 'Кутилиш (тезкор)', 'plan' => 'Режалаштирилган',
     ];
-    // 'plan' status has no chip colour of its own; reuse the blue chip.
-    $chipClass = fn (string $s): string => $s === 'plan' ? 'blue' : $s;
+    // 'forecast'/'plan' statuses have no chip colour of their own; reuse blue.
+    $chipClass = fn (string $s): string => in_array($s, ['forecast', 'plan'], true) ? 'blue' : $s;
+
+    // Mode-aware wording for the value the map/hero/peek shows.
+    $valueCaption = match ($dataMode) {
+        'execution' => 'Ижро бажарилиши',
+        'forecast'  => 'Кутилиш (тезкор)',
+        'plan'      => 'Туман режаси',
+        default     => '',
+    };
 
     $taskDone      = fn (array $t): int => max(0, $t['total'] - $t['unfinished']);
     $taskChipClass = function (array $t): string {
@@ -48,14 +56,20 @@
     $kpiFull  = $indicator?->label_full  ?? $kpi;
 
     $regionName = \App\Support\CurrentRegion::current()->name_full;
-    // Plan-only KPIs (employment): the region rollup has no execution to show, so
-    // the hero displays the вилоят plan instead of a dash.
+    $isPctKpi   = ($indicator?->default_unit ?? '') === '%' || (bool) ($indicator?->lower_is_better);
+    // Hero value follows the mode: execution/forecast show the region %/growth;
+    // plan-only shows the вилоят план.
     $heroVal    = $rollup?->pct_of_plan ?? $rollup?->growth_pct;
     $heroVal    = $heroVal !== null ? (float) $heroVal : null;
     $heroKind   = $rollup?->pct_of_plan !== null ? 'execution' : 'growth';
-    $heroPlan   = $planMode && $rollup?->plan_value !== null
-        ? $fmt($rollup->plan_value, 1) . (($indicator?->default_unit ?? '') === '%' || (bool) ($indicator?->lower_is_better) ? '%' : '')
+    $heroPlan   = $dataMode === 'plan' && $rollup?->plan_value !== null
+        ? $fmt($rollup->plan_value, 1) . ($isPctKpi ? '%' : '')
         : null;
+    $heroCaption = match ($dataMode) {
+        'forecast' => 'вилоят кутилиши',
+        'plan'     => 'вилоят режаси',
+        default    => 'вилоят бўйича',
+    };
 @endphp
 
 <div>
@@ -80,23 +94,32 @@
             <div class="districts-hero-value">
                 @if($heroPlan !== null)
                     <strong>{{ $heroPlan }}</strong>
-                    <small>вилоят режаси</small>
+                    <small>{{ $heroCaption }}</small>
                 @else
                     <strong class="{{ $heroKind === 'growth' && $heroVal !== null ? ($statUp($heroVal, $heroKind) ? 'up' : 'down') : '' }}">{{ $statText($heroVal, $heroKind) }}</strong>
-                    <small>вилоят бўйича</small>
+                    <small>{{ $heroCaption }}</small>
                 @endif
             </div>
         </div>
 
-        @if($kpiOptions->count() > 1)
-            <div class="kpi-switch">
-                @foreach($kpiOptions as $i)
-                    <button class="kpi-switch-btn {{ $i->code === $kpi ? 'on' : '' }}"
-                            wire:click="selectKpi('{{ $i->code }}')" type="button"
-                            title="{{ $i->label_full }}">{{ $i->label_short }}</button>
+        <div class="districts-controls">
+            @if($kpiOptions->count() > 1)
+                <div class="kpi-switch">
+                    @foreach($kpiOptions as $i)
+                        <button class="kpi-switch-btn {{ $i->code === $kpi ? 'on' : '' }}"
+                                wire:click="selectKpi('{{ $i->code }}')" type="button"
+                                title="{{ $i->label_full }}">{{ $i->label_short }}</button>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="period-seg" role="group" aria-label="Давр">
+                @foreach($periodOptions as $code => $label)
+                    <button class="period-seg-btn {{ $code === $period ? 'on' : '' }}"
+                            wire:click="selectPeriod('{{ $code }}')" type="button">{{ $label }}</button>
                 @endforeach
             </div>
-        @endif
+        </div>
     </header>
 
     <section class="districts-mapstage">
@@ -170,18 +193,27 @@
                 <h2>{{ $selectedDistrict->name_full }}</h2>
                 <span class="chip {{ $chipClass($selectedStatus) }}">{{ $statusLabel[$selectedStatus] ?? '—' }}</span>
             </div>
+            @php
+                $selPct    = $selectedFact?->pct_of_plan;
+                $selGrowth = $selectedFact?->growth_pct;
+                $selActual = $selectedFact?->actual_hokimyat ?? $selectedFact?->actual_statkom;
+                $selForecast = $selectedFact?->expected_value;
+            @endphp
             <div class="district-peek-value">
-                @if($planMode)
+                @if($dataMode === 'plan')
                     <strong>{{ $selectedFact?->plan_value !== null ? $fmt($selectedFact->plan_value, 1) : '—' }}</strong>
-                    <span>Туман режаси · {{ $kpiShort }}</span>
                 @else
-                    <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : ($selectedFact?->growth_pct !== null ? $fmt($selectedFact->growth_pct, 1) . '%' : '—') }}</strong>
-                    <span>Ижро бажарилиши · {{ $kpiShort }}</span>
+                    <strong>{{ $selPct !== null ? $fmt($selPct, 1) . '%' : ($selGrowth !== null ? $fmt($selGrowth, 1) . '%' : '—') }}</strong>
                 @endif
+                <span>{{ $valueCaption }} · {{ $kpiShort }}</span>
             </div>
             <div class="district-peek-pf">
                 <div><small>Режа</small><strong>{{ $selectedFact?->plan_value !== null ? $fmt($selectedFact->plan_value, 1) : '—' }}</strong></div>
-                <div><small>Факт</small><strong>{{ ($selectedFact?->actual_hokimyat ?? $selectedFact?->actual_statkom) !== null ? $fmt($selectedFact->actual_hokimyat ?? $selectedFact->actual_statkom, 1) : '—' }}</strong></div>
+                @if($dataMode === 'forecast')
+                    <div><small>Кутилиш</small><strong>{{ $selForecast !== null ? $fmt($selForecast, 1) : '—' }}</strong></div>
+                @elseif($dataMode !== 'plan')
+                    <div><small>Факт</small><strong>{{ $selActual !== null ? $fmt($selActual, 1) : '—' }}</strong></div>
+                @endif
             </div>
             <div class="district-peek-chips">
                 <span class="chip {{ $taskChipClass($selectedTasks) }}">Топшириқлар {{ $taskDone($selectedTasks) }}/{{ $selectedTasks['total'] }}</span>

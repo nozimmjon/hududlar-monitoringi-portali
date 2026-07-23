@@ -121,6 +121,13 @@ class BudgetInvestModuleParser extends ModuleParser
 
         $count = 0;
         foreach (['q1', 'h1', 'year'] as $period) {
+            // Column semantics differ by period: I-чорак is «амалда» (a real
+            // reported actual), but I-ярим йиллик and 2026 йил are «кутилиш
+            // (тезкор)» — operational FORECASTS. Forecasts must land in
+            // expected_value, not actual_hokimyat, so the UI never colours a
+            // forecast as achieved (and the dashboard bridge is not fed a
+            // forecast as an actual).
+            $isForecast = $period !== 'q1';
             $dto = new IndicatorFactDto(
                 regionCode:    $ctx->regionCode(),
                 districtCode:  $districtCode,
@@ -128,7 +135,8 @@ class BudgetInvestModuleParser extends ModuleParser
                 indicatorCode: 'budget_investment',  // indicator catalog code (module_code is 'budget_invest')
                 period:        $period,
                 planValue:     $limit,
-                actualHokimyat: $absorptions[$period],
+                expectedValue:  $isForecast ? $absorptions[$period] : null,
+                actualHokimyat: $isForecast ? null : $absorptions[$period],
                 pctOfPlan:     $pcts[$period],
                 countExtra:    $objects,
                 countExtra2:   $period === 'year' ? $commissioning : null,

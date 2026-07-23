@@ -59,7 +59,9 @@ test('Andijan budget_invest import reproduces DATA.regional.budget_investment an
         expect($actual)->not->toBeNull("missing rollup row for period $period");
         expect($actual->plan_value)->toBeNumericallyClose($regional['limit'], 0.5);
         if (isset($regional["{$period}_absorption"])) {
-            expect($actual->actual_hokimyat)->toBeNumericallyClose($regional["{$period}_absorption"], 0.5);
+            // Q1 is «амалда» (actual); H1/year are «кутилиш» forecasts (expected_value).
+            $col = $period === 'q1' ? 'actual_hokimyat' : 'expected_value';
+            expect($actual->{$col})->toBeNumericallyClose($regional["{$period}_absorption"], 0.5);
         }
         if (isset($regional["{$period}_pct"])) {
             expect($actual->pct_of_plan)->toBeNumericallyClose($regional["{$period}_pct"], 0.05);
@@ -97,7 +99,8 @@ test('Andijan budget_invest import reproduces DATA.regional.budget_investment an
 
             expect($actual->plan_value)->toBeNumericallyClose($bi['limit'], 0.5);
             if (isset($bi["{$period}_absorption"])) {
-                expect($actual->actual_hokimyat)->toBeNumericallyClose($bi["{$period}_absorption"], 0.5);
+                $col = $period === 'q1' ? 'actual_hokimyat' : 'expected_value';
+                expect($actual->{$col})->toBeNumericallyClose($bi["{$period}_absorption"], 0.5);
             }
             if (isset($bi["{$period}_pct"])) {
                 expect($actual->pct_of_plan)->toBeNumericallyClose($bi["{$period}_pct"], 0.05);

@@ -48,7 +48,9 @@
     $unit    = $referenceRow->unit ?? 'млн сўм';
 
     $yearRow      = $rows->get('year');
-    $yearFact     = $yearRow->actual_hokimyat ?? null;
+    // «Йиллик кутилиш» — the year figure is a forecast, now stored in expected_value
+    // (falls back to actual_hokimyat for any row the tasks bridge reported).
+    $yearFact     = $yearRow->expected_value ?? $yearRow->actual_hokimyat ?? null;
     $yearExec     = $yearRow->pct_of_plan ?? null;
 
     $points = [];
