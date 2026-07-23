@@ -128,6 +128,13 @@ Behavior:
 
 - **Idempotent**: re-running the same `--period` replaces that period's progress rows
   and re-syncs districts. No duplicates.
+- **Manual actual edits need a pct recompute**: `pct_of_plan`, `headline_pct` and
+  `status` are stored columns set at import — editing `actual_value` by hand does
+  not refresh them. Run `php artisan tasks:recompute --pct --task=<N> --region=<code>`
+  to recompute the line percentage (plan/actual, or actual/plan; lower-is-better
+  aware) and the headline snapshot for that task. Omit the filters to recompute
+  every task, but note `--pct` overwrites the workbook's own percentages with a
+  plain plan/actual ratio, so scoping is safer.
 - **Complementary actuals survive a re-import**: rebuilding a period keeps any stored
   actual whose incoming cell is empty (e.g. values `import:ilova` filled from the
   annex workbook), and reports how many it kept. A file that *does* carry an actual

@@ -4000,6 +4000,7 @@
     .map-cell .map-fill { stroke: #0e1c3f; stroke-width: 1.2; stroke-linejoin: round; transition: filter var(--motion); }
     .map-cell.ok .map-fill { fill: #37a34a; }
     .map-cell.bad .map-fill { fill: #e0473a; }
+    .map-cell.plan .map-fill { fill: #3f74d6; } /* план-only KPIs: filled, neutral */
     .map-cell.nd .map-fill { fill: #6b748c; }
     .map-cell:hover .map-fill, .map-cell:focus .map-fill { filter: brightness(1.1); }
     .map-cell:focus-visible .map-fill { stroke: #ffffff; stroke-width: 2.5; }
@@ -4015,6 +4016,7 @@
     .pill-value { font-size: 11px; font-weight: 800; font-family: var(--font-sans); pointer-events: none; }
     .map-pill.ok .pill-value { fill: #7fe39a; }
     .map-pill.bad .pill-value { fill: #ff9a8f; }
+    .map-pill.plan .pill-value { fill: #a8c4f5; }
     .map-pill.nd .pill-value { fill: #cdd8f0; }
 
     /* ===== slide-over peek ===== */

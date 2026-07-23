@@ -3,7 +3,10 @@
     $targetCountByDistrict = $this->targetCountByDistrict;
     $statusLabel = [
         'green' => 'Яхши', 'amber' => 'Ўртача', 'red' => 'Эътибор', 'grey' => 'Маълумот йўқ',
+        'plan' => 'Режалаштирилган',
     ];
+    // 'plan' status has no chip colour of its own; reuse the blue chip.
+    $chipClass = fn (string $s): string => $s === 'plan' ? 'blue' : $s;
 
     $taskDone      = fn (array $t): int => max(0, $t['total'] - $t['unfinished']);
     $taskChipClass = function (array $t): string {
@@ -45,9 +48,14 @@
     $kpiFull  = $indicator?->label_full  ?? $kpi;
 
     $regionName = \App\Support\CurrentRegion::current()->name_full;
+    // Plan-only KPIs (employment): the region rollup has no execution to show, so
+    // the hero displays the вилоят plan instead of a dash.
     $heroVal    = $rollup?->pct_of_plan ?? $rollup?->growth_pct;
     $heroVal    = $heroVal !== null ? (float) $heroVal : null;
     $heroKind   = $rollup?->pct_of_plan !== null ? 'execution' : 'growth';
+    $heroPlan   = $planMode && $rollup?->plan_value !== null
+        ? $fmt($rollup->plan_value, 1) . (($indicator?->default_unit ?? '') === '%' || (bool) ($indicator?->lower_is_better) ? '%' : '')
+        : null;
 @endphp
 
 <div>
@@ -70,8 +78,13 @@
                 <span>{{ $regionName }} · туманлар кесими</span>
             </div>
             <div class="districts-hero-value">
-                <strong class="{{ $heroKind === 'growth' && $heroVal !== null ? ($statUp($heroVal, $heroKind) ? 'up' : 'down') : '' }}">{{ $statText($heroVal, $heroKind) }}</strong>
-                <small>вилоят бўйича</small>
+                @if($heroPlan !== null)
+                    <strong>{{ $heroPlan }}</strong>
+                    <small>вилоят режаси</small>
+                @else
+                    <strong class="{{ $heroKind === 'growth' && $heroVal !== null ? ($statUp($heroVal, $heroKind) ? 'up' : 'down') : '' }}">{{ $statText($heroVal, $heroKind) }}</strong>
+                    <small>вилоят бўйича</small>
+                @endif
             </div>
         </div>
 
@@ -155,11 +168,16 @@
             <div class="district-peek-head">
                 <span class="district-peek-eyebrow">Танланган ҳудуд</span>
                 <h2>{{ $selectedDistrict->name_full }}</h2>
-                <span class="chip {{ $selectedStatus }}">{{ $statusLabel[$selectedStatus] ?? '—' }}</span>
+                <span class="chip {{ $chipClass($selectedStatus) }}">{{ $statusLabel[$selectedStatus] ?? '—' }}</span>
             </div>
             <div class="district-peek-value">
-                <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : ($selectedFact?->growth_pct !== null ? $fmt($selectedFact->growth_pct, 1) . '%' : '—') }}</strong>
-                <span>Ижро бажарилиши · {{ $kpiShort }}</span>
+                @if($planMode)
+                    <strong>{{ $selectedFact?->plan_value !== null ? $fmt($selectedFact->plan_value, 1) : '—' }}</strong>
+                    <span>Туман режаси · {{ $kpiShort }}</span>
+                @else
+                    <strong>{{ $selectedFact?->pct_of_plan !== null ? $fmt($selectedFact->pct_of_plan, 1) . '%' : ($selectedFact?->growth_pct !== null ? $fmt($selectedFact->growth_pct, 1) . '%' : '—') }}</strong>
+                    <span>Ижро бажарилиши · {{ $kpiShort }}</span>
+                @endif
             </div>
             <div class="district-peek-pf">
                 <div><small>Режа</small><strong>{{ $selectedFact?->plan_value !== null ? $fmt($selectedFact->plan_value, 1) : '—' }}</strong></div>

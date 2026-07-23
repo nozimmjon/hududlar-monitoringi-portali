@@ -195,6 +195,19 @@ class DashboardCatalog
     }
 
     /**
+     * Human unit label. Internal codes (e.g. the counter unit «count») map to
+     * their Cyrillic display form; everything else passes through unchanged.
+     */
+    public static function unitLabel(?string $unit): string
+    {
+        return match ($unit) {
+            'count' => 'та',
+            null    => '',
+            default => $unit,
+        };
+    }
+
+    /**
      * KPIs whose region workbook stores the FORECAST for unfinished periods in
      * actual_hokimyat. For those, a value only counts as reported once the tasks
      * bridge stamps hokimyat_reported_at — otherwise a year-end forecast read as

@@ -59,6 +59,7 @@ class DistrictMetricResolver
     {
         if ($v === null) return '—';
         $s = number_format((float) $v, 1, ',', ' ');
-        return $unit === '' ? $s : "{$s} {$unit}";
+        $label = DashboardCatalog::unitLabel($unit);
+        return $label === '' ? $s : "{$s} {$label}";
     }
 }

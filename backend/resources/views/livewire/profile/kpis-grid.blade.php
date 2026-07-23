@@ -17,7 +17,7 @@
                         $fact?->plan_value !== null  => number_format((float) $fact->plan_value, 1, ',', ' '),
                         default                      => '—',
                     };
-                    $note = $i->default_unit ?? '';
+                    $note = \App\Support\DashboardCatalog::unitLabel($i->default_unit);
                 @endphp
                 <button class="district-kpi {{ $i->code === $kpi ? 'active' : '' }}"
                         wire:click="selectKpi('{{ $i->code }}')"

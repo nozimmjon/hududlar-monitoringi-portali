@@ -8,7 +8,7 @@
         $fact?->plan_value !== null  => number_format((float) $fact->plan_value, 1, ',', ' '),
         default                      => '—',
     };
-    $unit = $indicator?->default_unit ?? '';
+    $unit = \App\Support\DashboardCatalog::unitLabel($indicator?->default_unit);
     $moduleLabel = $indicator?->module_code ? \App\Support\DashboardCatalog::MODULES[$indicator->module_code]['label'] ?? '' : '';
 @endphp
 

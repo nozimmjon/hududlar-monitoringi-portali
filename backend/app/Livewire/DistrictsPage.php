@@ -111,13 +111,37 @@ class DistrictsPage extends Component
             ->first();
     }
 
+    /**
+     * True when the current KPI/period has district plans but NO execution or
+     * growth anywhere (e.g. every employment KPI: the source reports actuals only
+     * at region level). The map then shows the план instead of an empty grey shell.
+     */
+    #[Computed]
+    public function planMode(): bool
+    {
+        $anyPlan = false;
+        foreach ($this->facts as $fact) {
+            if ($fact->pct_of_plan !== null || $fact->growth_pct !== null) {
+                return false;
+            }
+            $anyPlan = $anyPlan || $fact->plan_value !== null;
+        }
+        return $anyPlan;
+    }
+
     #[Computed]
     public function statusByDistrict(): array
     {
         $lower = (bool) ($this->indicator?->lower_is_better);
+        $planMode = $this->planMode;
         $out = [];
         foreach ($this->districts as $code => $_district) {
             $fact = $this->facts->get($code);
+            if ($planMode) {
+                // No fact to judge — a district is "planned" (filled) or has no plan.
+                $out[$code] = $fact?->plan_value !== null ? 'plan' : 'grey';
+                continue;
+            }
             $out[$code] = DistrictStatus::statusFor(
                 $fact?->pct_of_plan !== null ? (float) $fact->pct_of_plan : null,
                 $fact?->growth_pct !== null ? (float) $fact->growth_pct : null,
@@ -264,6 +288,7 @@ class DistrictsPage extends Component
             $out[$code] = match ($status) {
                 'green'        => 'ok',
                 'amber', 'red' => 'bad',
+                'plan'         => 'plan',
                 default        => 'nd',
             };
         }
@@ -277,15 +302,24 @@ class DistrictsPage extends Component
     public function mapLayout(): array
     {
         $fmt = fn ($v) => number_format((float) $v, 1, ',', ' ');
+        $planMode = $this->planMode;
+        $isPct = ($this->indicator?->default_unit ?? '') === '%'
+            || (bool) ($this->indicator?->lower_is_better); // %-type KPIs (unemployment/poverty)
         $colors = $this->mapColors;
         $labels = [];
         foreach ($this->districts as $code => $district) {
             $fact   = $this->facts->get($code);
             $pct    = $fact?->pct_of_plan;
             $growth = $fact?->growth_pct;
-            $value  = $pct !== null
-                ? $fmt($pct) . '%'
-                : ($growth !== null ? $fmt($growth) . '%' : '—');
+            if ($planMode) {
+                // Show the район's план: percent KPIs keep the % suffix, counts stay bare.
+                $plan  = $fact?->plan_value;
+                $value = $plan !== null ? $fmt($plan) . ($isPct ? '%' : '') : '—';
+            } else {
+                $value = $pct !== null
+                    ? $fmt($pct) . '%'
+                    : ($growth !== null ? $fmt($growth) . '%' : '—');
+            }
             $labels[$code] = [
                 'name'  => $district->name_short,
                 'value' => $value,
@@ -308,6 +342,7 @@ class DistrictsPage extends Component
             'mapGeometry' => $this->mapGeometry,
             'mapColors'   => $this->mapColors,
             'mapLayout'   => $this->mapLayout,
+            'planMode'    => $this->planMode,
         ]);
     }
 }

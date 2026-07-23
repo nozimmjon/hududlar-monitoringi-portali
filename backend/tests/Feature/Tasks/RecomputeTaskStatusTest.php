@@ -70,3 +70,44 @@ test('dry-run reports but writes nothing', function () {
 
     expect($multi->fresh())->status->toBe('done')->lines_total->toBe(0);
 });
+
+test('--pct recomputes line percentages and the headline from plan+actual', function () {
+    // Higher-is-better task: pct = actual/plan.
+    $hib = statusTask('4', ['status' => 'open', 'headline_plan' => 10, 'headline_actual' => 8, 'headline_pct' => 80], [
+        [10, 12, 80],   // stored pct is stale (80); real actual/plan = 120
+    ]);
+    // Lower-is-better task (unemployment 181): pct = plan/actual.
+    $lib = statusTask('181', ['status' => 'open', 'headline_plan' => 4.6, 'headline_actual' => 4.2, 'headline_pct' => 100], [
+        [4.6, 4.2, 100],   // stored pct stale; real plan/actual ≈ 109.5
+    ]);
+
+    $this->artisan('tasks:recompute', ['--pct' => true])->assertSuccessful();
+
+    $hibLine = $hib->fresh()->progress->firstWhere('line_no', 0);
+    expect((float) $hibLine->pct_of_plan)->toBeNumericallyClose(120);
+    expect($hib->fresh())->status->toBe('done')->and((float) $hib->fresh()->headline_pct)->toBeNumericallyClose(120);
+
+    $libLine = $lib->fresh()->progress->firstWhere('line_no', 0);
+    expect((float) $libLine->pct_of_plan)->toBeNumericallyClose(4.6 / 4.2 * 100, 1e-3);
+    expect($lib->fresh()->status)->toBe('done');   // below the ceiling -> done
+});
+
+test('--pct honours --task and --region scoping', function () {
+    $a = statusTask('4', ['status' => 'open', 'region_code' => 1703, 'headline_pct' => 80], [[10, 12, 80]]);
+    $b = statusTask('4', ['status' => 'open', 'region_code' => 1735, 'headline_pct' => 80], [[10, 12, 80]]);
+
+    $this->artisan('tasks:recompute', ['--pct' => true, '--task' => '4', '--region' => '1703'])
+        ->assertSuccessful();
+
+    expect((float) $a->fresh()->progress->firstWhere('line_no', 0)->pct_of_plan)->toBeNumericallyClose(120);
+    // The other region is left untouched.
+    expect((float) $b->fresh()->progress->firstWhere('line_no', 0)->pct_of_plan)->toBeNumericallyClose(80);
+});
+
+test('without --pct the stored line percentages are left as-is', function () {
+    $t = statusTask('4', ['status' => 'open', 'headline_pct' => 80], [[10, 12, 80]]);
+
+    $this->artisan('tasks:recompute')->assertSuccessful();
+
+    expect((float) $t->fresh()->progress->firstWhere('line_no', 0)->pct_of_plan)->toBeNumericallyClose(80);
+});
