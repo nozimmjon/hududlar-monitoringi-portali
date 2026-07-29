@@ -137,6 +137,7 @@ class SectorWorkbookParser
     private function deadlineCode(string $text, string $title, array &$warnings): string
     {
         $t = mb_strtolower($text);
+        $t = str_replace(['і', 'ѵ'], ['i', 'v'], $t); // Cyrillic lookalikes → Latin (hand-edited future files)
         if (mb_strpos($t, 'якун') !== false) {
             return 'year';
         }

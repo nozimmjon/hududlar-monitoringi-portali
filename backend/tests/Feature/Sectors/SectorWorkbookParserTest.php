@@ -41,11 +41,12 @@ test('normalizes all deadline spellings', function () {
             [null, 4, null, 'г', 'та', '2026 йил III чорак', 1, null, null],
             [null, 5, null, 'д', 'та', '2026 йил IV чорак', 1, null, null],
             [null, 6, null, 'е', 'та', '2026 йил IV-чорак', 1, null, null],
+            [null, 7, null, 'ж', 'та', "2026 йил \u{406}\u{406}\u{406} чорак", 1, null, null],
         ]],
     ]);
 
     $lines = (new SectorWorkbookParser())->parse($file)['sheets'][0]['tasks'][0]['lines'];
-    expect(array_column($lines, 'deadline_code'))->toBe(['year', 'h2', 'q3', 'q3', 'q4', 'q4']);
+    expect(array_column($lines, 'deadline_code'))->toBe(['year', 'h2', 'q3', 'q3', 'q4', 'q4', 'q3']);
 });
 
 test('stops at Изоҳлар and keeps sheet-global line numbers', function () {
