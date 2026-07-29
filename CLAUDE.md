@@ -57,10 +57,11 @@ Styling: prebuilt `public/css/portal.css` (built via Vite/Tailwind from `resourc
 
 ### Data import pipelines
 
-Two separate pipelines, both Artisan commands using PhpSpreadsheet:
+Three separate pipelines, all Artisan commands using PhpSpreadsheet:
 
 1. **Indicator facts (KPI dashboard data):** `import:region` / `import:promote` / `import:all-regions` — staging→promote pipeline reading the per-region workbooks under `data/<region>/`.
 2. **Task monitoring (tasks board + district tasks):** `import:task-progress --period=2026-Q1` — reads the all-regions workbook `data/tasks/Ҳудудий_кўрсаткичлар_назорати_бўйича.xlsx` sent monthly by the partner organisation. Operator runbook: **`backend/docs/task-import.md`** (workflow, options, one-time legacy cleanup, known limitations). Key behaviors: idempotent per-period upserts, history kept in `task_progress`, binary done/open status (≥100% of plan), districts linked from the Ижрочи column, refuses files whose region columns shifted/reordered (all 14 verified).
+3. **Sector tasks (тармоқ корхоналари guarantee letters):** `import:sector-tasks --period=2026-H2` — reads the all-sectors workbook `data/sectors/Вазифалар_2026_тармоқлар_кесимида.xlsx` (17 sheets, one per enterprise). Runbook: `backend/docs/sector-task-import.md`. `sector-tasks:recompute` rebuilds statuses without re-import.
 
 ### Conceptual model (drives UX decisions)
 
