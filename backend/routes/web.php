@@ -11,3 +11,4 @@ Route::view('/districts', 'pages.districts')->name('districts');
 Route::view('/tasks', 'pages.tasks')->name('tasks');
 Route::view('/profile', 'pages.profile')->name('profile');
 Route::view('/execution', 'pages.execution')->name('execution');
+Route::view('/sectors', 'pages.sectors')->name('sectors');
