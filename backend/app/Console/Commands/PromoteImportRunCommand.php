@@ -35,6 +35,7 @@ class PromoteImportRunCommand extends Command
             $factCount      = $this->promoteIndicatorFacts($runId);
             $foodCount      = $this->promoteFoodBalance($runId);
             $warehouseCount = $this->promoteWarehouses($runId);
+            $this->purgeStaging($runId);
         });
 
         $totalPromoted = $factCount + $foodCount + $warehouseCount;
@@ -99,6 +100,18 @@ class PromoteImportRunCommand extends Command
         return DB::table('import_staging_indicator_facts')
             ->where('import_run_id', $runId)
             ->count();
+    }
+
+    /**
+     * Staging is a transient workspace: once rows land in the production tables
+     * they must not linger as a second full copy of the data. Runs that never
+     * reach promote keep their staging rows for review/debugging.
+     */
+    private function purgeStaging(int $runId): void
+    {
+        DB::table('import_staging_indicator_facts')->where('import_run_id', $runId)->delete();
+        DB::table('import_staging_food_balance')->where('import_run_id', $runId)->delete();
+        DB::table('import_staging_warehouses')->where('import_run_id', $runId)->delete();
     }
 
     private function promoteFoodBalance(int $runId): int

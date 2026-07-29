@@ -135,6 +135,73 @@ test('import:promote is idempotent — second run with same key updates value', 
     expect($fact->plan_value)->toBeNumericallyClose(4000.00, 0.01);
 });
 
+test('import:promote purges staging rows after successful promote', function () {
+    $this->seed();
+
+    $run = ImportRun::create([
+        'region_code'  => 1703,
+        'year'         => 2026,
+        'trigger_kind' => 'cli',
+        'status'       => 'awaiting_review',
+        'started_at'   => now(),
+        'rows_staged'  => 3,
+    ]);
+
+    DB::table('import_staging_indicator_facts')->insert([
+        'import_run_id'  => $run->id,
+        'region_code'    => 1703,
+        'district_code'  => null,
+        'year'           => 2026,
+        'indicator_code' => 'export',
+        'period'         => 'year',
+        'plan_value'     => 3341.74,
+        'unit'           => 'минг доллар',
+        'source_label'   => 'test',
+        'staging_status' => 'pending',
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+
+    DB::table('import_staging_food_balance')->insert([
+        'import_run_id'  => $run->id,
+        'region_code'    => 1703,
+        'year'           => 2026,
+        'product'        => 'Буғдой',
+        'source_label'   => 'test',
+        'staging_status' => 'pending',
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+
+    DB::table('import_staging_warehouses')->insert([
+        'import_run_id'      => $run->id,
+        'region_code'        => 1703,
+        'district_code'      => null,
+        'year'               => 2026,
+        'reserve_warehouses' => 5,
+        'source_label'       => 'test',
+        'staging_status'     => 'pending',
+        'created_at'         => now(),
+        'updated_at'         => now(),
+    ]);
+
+    $exitCode = Artisan::call('import:promote', ['run_id' => $run->id]);
+
+    expect($exitCode)->toBe(0);
+
+    // Staging is a transient workspace: promoted rows must not linger as a full copy of production.
+    expect(DB::table('import_staging_indicator_facts')->where('import_run_id', $run->id)->count())->toBe(0);
+    expect(DB::table('import_staging_food_balance')->where('import_run_id', $run->id)->count())->toBe(0);
+    expect(DB::table('import_staging_warehouses')->where('import_run_id', $run->id)->count())->toBe(0);
+
+    expect(IndicatorFact::count())->toBe(1);
+    expect(FoodBalance::count())->toBe(1);
+    expect(Warehouse::count())->toBe(1);
+
+    $run->refresh();
+    expect($run->rows_promoted)->toBe(3);
+});
+
 test('import:promote also promotes food_balance and warehouses', function () {
     $this->seed();
 
