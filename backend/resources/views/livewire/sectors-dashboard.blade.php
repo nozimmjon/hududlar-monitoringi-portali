@@ -36,7 +36,9 @@
             @endphp
             <div class="sector-card {{ $isActive ? 'active' : '' }} {{ $pct === null ? 'nodata' : '' }}"
                  role="button" tabindex="0" wire:key="sector-{{ $s->code }}"
-                 wire:click="selectSector('{{ $s->code }}')">
+                 wire:click="selectSector(@js($s->code))"
+                 x-on:keydown.enter="$wire.selectSector(@js($s->code))"
+                 x-on:keydown.space.prevent="$wire.selectSector(@js($s->code))">
                 <div class="sector-card-name">{{ $s->name_short }}</div>
                 <div class="sector-card-sub">{{ $card['tasks_total'] }} топшириқ · {{ $card['lines_total'] }} индикатор</div>
                 <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
