@@ -12,102 +12,93 @@ beforeEach(function () {
     $this->seed();
 });
 
-test('district panel shows task plan/actual/% and status chip', function () {
-    session(['region_code' => 1703]); // RegionProfile::mount() reads CurrentRegion::code()
-    $district = District::where('region_code', 1703)->first();
+function profileTask(array $attrs = []): Task
+{
+    $task = Task::factory()->create(array_merge([
+        'region_code' => 1703, 'module_code' => 'macro', 'indicator_code' => 'industry',
+        'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
+        'headline_plan' => 6, 'status' => 'open', 'latest_period' => '2026-H1',
+    ], $attrs));
+    $districtId = DB::table('districts')->where('code', 1703401)->value('id');
+    DB::table('task_districts')->insert(['task_id' => $task->id, 'district_id' => $districtId]);
 
-    $task = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '1', 'title' => 'Йирик корхона',
-        'module_code' => 'macro', 'indicator_code' => 'grp', 'status' => 'done',
-        'headline_unit' => 'дона', 'headline_plan' => 6, 'headline_actual' => 6,
-        'headline_pct' => 100, 'latest_period' => '2026-Q1',
+    return $task;
+}
+
+test('a done task shows Режа/Амалда/Бажарилиш cells and the done chip', function () {
+    profileTask([
+        'title' => 'Йирик корхона топшириғи', 'status' => 'done',
+        'headline_unit' => 'дона', 'headline_actual' => 6, 'headline_pct' => 100,
+        'lines_total' => 1, 'lines_done' => 1,
     ]);
-    $task->districts()->sync([$district->id]);
 
-    Livewire::test(RegionProfile::class)
-        ->set('districtCode', (string) $district->code)
-        ->assertSee('Йирик корхона')
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401'])
+        ->assertSee('Йирик корхона топшириғи')
         ->assertSee('Режа')
+        ->assertSee('Амалда')
+        ->assertSee('Бажарилиш')
         ->assertSee('дона')
-        ->assertSeeHtml('Бажарилди · 100%')
-        ->assertSee('Бажарилди');
+        ->assertSee('Бажарилди')
+        ->assertSee('100%');
 });
 
-test('district panel handles tasks without progress data', function () {
-    session(['region_code' => 1703]);
-    $district = District::where('region_code', 1703)->first();
-
-    $task = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '2', 'title' => 'Маълумотсиз туман топшириғи',
-        'module_code' => 'macro', 'indicator_code' => 'grp',
-        // plan set so the card is visible; actual/pct stay null -> still render as em-dash
-        'headline_plan' => 6,
+test('a task with no reported data reads Бажарилмоқда with an em-dash', function () {
+    profileTask([
+        'title' => 'Маълумотсиз туман топшириғи', 'status' => 'in_progress',
+        'headline_unit' => 'дона', 'headline_actual' => null, 'headline_pct' => null,
+        'lines_total' => 1, 'lines_done' => 0,
     ]);
-    $task->districts()->sync([$district->id]);
 
-    Livewire::test(RegionProfile::class)
-        ->set('districtCode', (string) $district->code)
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401'])
         ->assertSee('Маълумотсиз туман топшириғи')
+        ->assertSee('Бажарилмоқда')
+        ->assertSee('маълумот кутилмоқда')
+        ->assertSee('—');
+});
+
+test('a multi-indicator task shows line counts instead of line-0 numbers', function () {
+    profileTask([
+        'title' => 'Кўп индикаторли топшириқ', 'status' => 'open',
+        'headline_plan' => 10, 'headline_actual' => 4, 'headline_pct' => 40,
+        'lines_total' => 4, 'lines_done' => 2,
+    ]);
+
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401'])
+        ->assertSee('Индикаторлар')
         ->assertSee('Бажарилмаган')
-        ->assertSee('—')
-        ->assertDontSee('· %')
-        ->assertDontSee('· 0%');
+        ->assertSee('50%');   // 2 of 4 lines done
 });
 
-test('a no-plan task is hidden from the district panel', function () {
-    session(['region_code' => 1703]);
-    $district = District::where('region_code', 1703)->first();
+test('a no-plan task is hidden from the profile', function () {
+    profileTask(['title' => 'Режали туман топшириғи']);
+    profileTask(['title' => 'Режасиз туман топшириғи', 'headline_plan' => null]);
 
-    $planned = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '10', 'title' => 'Режали туман топшириғи',
-        'module_code' => 'macro', 'indicator_code' => 'grp', 'status' => 'open',
-        'headline_unit' => 'дона', 'headline_plan' => 6, 'headline_actual' => 3,
-        'headline_pct' => 50, 'latest_period' => '2026-Q1',
-    ]);
-    $noPlan = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '11', 'title' => 'Режасиз туман топшириғи',
-        'module_code' => 'macro', 'indicator_code' => 'grp', 'status' => 'open',
-        'headline_plan' => null, 'latest_period' => '2026-Q1',
-    ]);
-    $planned->districts()->sync([$district->id]);
-    $noPlan->districts()->sync([$district->id]);
-
-    Livewire::test(RegionProfile::class)
-        ->set('districtCode', (string) $district->code)
-        ->assertSee('Режали туман топшириғи')      // planned -> visible
-        ->assertDontSee('Режасиз туман топшириғи'); // no plan -> hidden
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401'])
+        ->assertSee('Режали туман топшириғи')
+        ->assertDontSee('Режасиз туман топшириғи');
 });
 
-test('hasPlan scope is applied to the hero KPI panel counts and list', function () {
-    // hero.blade.php line 25: {{ $taskCounts['unfinished'] }}/{{ $taskCounts['total'] }} T-топшириқ
-    // $taskCounts comes from taskCounts() and $tasks comes from tasksForKpi(); both must apply hasPlan().
-    // With only the planned task visible the chip must read "1/1 T-топшириқ".
-    // If hasPlan() were removed from either method the chip would read "2/2 T-топшириқ", failing this test.
-    session(['region_code' => 1703]);
-    $district = District::where('region_code', 1703)->first();
-
-    $planned = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '20', 'title' => 'Режали KPI топшириғи',
-        'module_code' => 'macro', 'indicator_code' => 'grp', 'status' => 'open',
-        'headline_unit' => 'дона', 'headline_plan' => 6, 'headline_actual' => 3,
-        'headline_pct' => 50, 'latest_period' => '2026-Q1',
+test('the period filter splits tasks by deadline bucket', function () {
+    profileTask(['title' => 'Ярим йиллик топшириқ']);
+    profileTask([
+        'title' => 'Йил якуни топшириғи',
+        'period_code' => 'year', 'deadline_text' => '2026 йил якуни билан',
     ]);
-    $noPlan = Task::factory()->create([
-        'region_code' => 1703, 'task_number' => '21', 'title' => 'Режасиз KPI топшириғи',
-        'module_code' => 'macro', 'indicator_code' => 'grp', 'status' => 'open',
-        'headline_plan' => null, 'latest_period' => '2026-Q1',
-    ]);
-    $planned->districts()->sync([$district->id]);
-    $noPlan->districts()->sync([$district->id]);
 
-    Livewire::test(RegionProfile::class)
-        ->set('districtCode', (string) $district->code)
-        ->set('kpi', 'grp')
-        // Confirms taskCounts() applied hasPlan(): chip shows 1 planned task, not 2.
-        // hero.blade.php:25  → <span class="chip ...">1/1 T-топшириқ</span>
-        ->assertSeeHtml('1/1 T-топшириқ')
-        // Confirms tasksForKpi() applied hasPlan(): planned task is in the list.
-        ->assertSee('Режали KPI топшириғи')
-        // The no-plan task must not appear (guarded by both the hero list and the bottom panel).
-        ->assertDontSee('Режасиз KPI топшириғи');
+    $c = Livewire::test(RegionProfile::class, ['districtCode' => '1703401']);
+    $c->assertSee('Ярим йиллик топшириқ')->assertDontSee('Йил якуни топшириғи');
+
+    $c->call('selectPeriod', 'year');
+    $c->assertSee('Йил якуни топшириғи')->assertDontSee('Ярим йиллик топшириқ');
+});
+
+test('hero counters cover all planned district tasks regardless of period', function () {
+    profileTask(['title' => 'Битта', 'status' => 'open']);
+    profileTask(['title' => 'Иккита', 'status' => 'in_progress',
+        'period_code' => 'year', 'deadline_text' => '2026 йил якуни билан']);
+    profileTask(['title' => 'Учта', 'status' => 'done']);
+
+    Livewire::test(RegionProfile::class, ['districtCode' => '1703401'])
+        ->assertViewHas('taskCounts', fn ($c) =>
+            $c['total'] === 3 && $c['open'] === 1 && $c['in_progress'] === 1 && $c['done'] === 1);
 });

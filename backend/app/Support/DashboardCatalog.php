@@ -208,6 +208,24 @@ class DashboardCatalog
     }
 
     /**
+     * What a single fact row actually carries, so the UI never presents a
+     * forecast or bare plan as achievement:
+     *   'execution' — a reported actual (амалда) is present.
+     *   'forecast'  — no actual, but a кутилиш/prognoz value (expected_value or
+     *                 a growth forecast) exists.
+     *   'plan'      — only a план exists.
+     *   'empty'     — nothing.
+     */
+    public static function factMode(?object $fact): string
+    {
+        if ($fact === null) return 'empty';
+        if ($fact->actual_hokimyat !== null || $fact->actual_statkom !== null) return 'execution';
+        if ($fact->expected_value !== null || $fact->growth_pct !== null) return 'forecast';
+        if ($fact->plan_value !== null) return 'plan';
+        return 'empty';
+    }
+
+    /**
      * KPIs whose region workbook stores the FORECAST for unfinished periods in
      * actual_hokimyat. For those, a value only counts as reported once the tasks
      * bridge stamps hokimyat_reported_at — otherwise a year-end forecast read as
