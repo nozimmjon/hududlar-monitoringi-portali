@@ -83,6 +83,24 @@ test('rejects sheet title without a leading number', function () {
         ->toThrow(RuntimeException::class);
 });
 
+test('task-starting row without indicator still starts a new task (no misattribution)', function () {
+    $file = SectorWorkbookBuilder::make([
+        ['1. Ўзбекнефтгаз', 'орг', [
+            [1, 1, 'В1.', 'Кўрсаткич А', 'та', '2026 йил якуни', 10, null, null],
+            [2, 2, 'В2.', null, null, null, null, null, null],               // task 2 header row, no D
+            [null, 3, null, 'Кўрсаткич Б', 'та', '2026 йил якуни', 20, null, null], // must belong to task 2
+        ]],
+    ]);
+
+    $tasks = (new SectorWorkbookParser())->parse($file)['sheets'][0]['tasks'];
+    expect($tasks)->toHaveCount(2);
+    expect($tasks[0]['lines'])->toHaveCount(1);
+    expect($tasks[1]['task_no'])->toBe(2);
+    expect($tasks[1]['title'])->toBe('В2.');
+    expect($tasks[1]['lines'])->toHaveCount(1);
+    expect($tasks[1]['lines'][0]['metric_label'])->toBe('Кўрсаткич Б');
+});
+
 test('reads actual values and ignores the file pct column', function () {
     $file = SectorWorkbookBuilder::make([
         ['1. Ўзбекнефтгаз', 'орг', [

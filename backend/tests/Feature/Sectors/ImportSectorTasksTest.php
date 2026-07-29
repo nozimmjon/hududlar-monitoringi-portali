@@ -91,6 +91,23 @@ test('a later period advances the snapshot, earlier period does not regress it',
     expect(SectorTask::where('task_no', 1)->first()->latest_period)->toBe('2026-Q3');
     // History keeps both periods.
     expect(SectorTaskProgress::where('line_no', 1)->count())->toBe(2);
+
+    Artisan::call('import:sector-tasks', ['--file' => sectorFixture(), '--period' => '2026-Q4']);
+    expect(SectorTask::where('task_no', 1)->first()->latest_period)->toBe('2026-Q4');
+});
+
+test('import headline selection matches recompute (lowest line_no wins, not file order)', function () {
+    $this->seed();
+    $file = sectorFixture([
+        [1, 5, 'В1.', 'Кўрсаткич А (line 5)', 'та', '2026 йил якуни', 100, null, null],
+        [null, 1, null, 'Кўрсаткич Б (line 1)', 'дона', '2026 йил якуни', 50, null, null],
+    ]);
+
+    Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-H2']);
+
+    $t1 = SectorTask::where('task_no', 1)->first();
+    expect($t1->headline_unit)->toBe('дона');
+    expect((float) $t1->headline_plan)->toEqualWithDelta(50.0, 0.001);
 });
 
 test('dry-run writes nothing', function () {
@@ -128,6 +145,12 @@ test('invalid period is rejected', function () {
     $this->seed();
     $exit = Artisan::call('import:sector-tasks', ['--file' => sectorFixture(), '--period' => 'H2-2026']);
     expect($exit)->toBe(1);
+});
+
+test('nonsense month periods are rejected', function () {
+    $this->seed();
+    expect(Artisan::call('import:sector-tasks', ['--file' => sectorFixture(), '--period' => '2026-13']))->toBe(1);
+    expect(Artisan::call('import:sector-tasks', ['--file' => sectorFixture(), '--period' => '2026-00']))->toBe(1);
 });
 
 test('duplicate line numbers in a task abort with a clear error', function () {

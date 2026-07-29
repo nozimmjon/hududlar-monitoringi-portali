@@ -38,17 +38,18 @@ gitignored — `data/` stays local, never committed).
 From `backend/`, run one command with the period the file represents:
 
 ```bash
-# baseline plans-only file:
-php artisan import:sector-tasks --period=2026-H2
+# baseline plans-only file — use the FIRST MONTH of the half, not the half itself
+# (see "Period convention" below for why):
+php artisan import:sector-tasks --period=2026-07
 
 # a later update with actuals filled in:
 php artisan import:sector-tasks --period=2026-08
 
 # dry run first — parse and report without writing anything:
-php artisan import:sector-tasks --period=2026-H2 --dry-run
+php artisan import:sector-tasks --period=2026-07 --dry-run
 
 # a different file path:
-php artisan import:sector-tasks --file=../data/sectors/some-other-copy.xlsx --period=2026-H2
+php artisan import:sector-tasks --file=../data/sectors/some-other-copy.xlsx --period=2026-07
 ```
 
 Check the output:
@@ -68,14 +69,26 @@ php artisan sector-tasks:recompute
 
 ## Period convention
 
+**Use `--period=2026-07` for the plans-only baseline, NOT `2026-H2`.** Periods sort
+by their *closing* month — a half sorts as its last month, so `2026-H2` sorts as
+`2026-12` (December). If the baseline were imported as `2026-H2`, every monthly file
+from August through November and even `2026-Q3` would sort *before* it, and the
+task snapshot (status/headline/`latest_period`) would stay frozen on the baseline
+until a December-or-later file finally arrived — silently hiding all progress
+reported in between. Importing the baseline as `2026-07` (the first month of H2)
+avoids this: it sorts before every later period in the half, so each subsequent
+monthly or quarterly import correctly advances the snapshot. `2026-H2` remains a
+perfectly valid `--period` value for a file that genuinely represents the whole
+half — just don't use it for the baseline.
+
 - **Initial plans-only baseline** (H/I columns empty, as sent for the guarantee
-  letter itself): `--period=2026-H2`.
+  letter itself): `--period=2026-07` (first month of the half, not the half code).
 - **Monthly update files** (partner refreshes actuals through the half-year):
   `--period=2026-08`, `--period=2026-09`, …
 - **Quarterly files**, if the partner switches cadence: `--period=2026-Q3`,
   `--period=2026-Q4`.
 
-`--period` accepts `YYYY-Q1..Q4`, `YYYY-H1`/`H2`, or `YYYY-MM`.
+`--period` accepts `YYYY-Q1..Q4`, `YYYY-H1`/`H2`, or `YYYY-MM` (`01`–`12`).
 
 ## Idempotency
 

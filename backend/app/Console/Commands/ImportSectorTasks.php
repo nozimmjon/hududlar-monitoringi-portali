@@ -24,7 +24,7 @@ class ImportSectorTasks extends Command
     public function handle(): int
     {
         $period = (string) $this->option('period');
-        if ($period === '' || ! preg_match('/^\d{4}-(Q[1-4]|H[12]|\d{2})$/', $period)) {
+        if ($period === '' || ! preg_match('/^\d{4}-(Q[1-4]|H[12]|0[1-9]|1[0-2])$/', $period)) {
             $this->error('Provide --period as YYYY-Q1..Q4, YYYY-H1/H2 or YYYY-MM (e.g. 2026-H2, 2026-Q3 or 2026-08).');
             return self::FAILURE;
         }
@@ -146,6 +146,8 @@ class ImportSectorTasks extends Command
                     // the task's first line. Only advance if this period is not older
                     // than what the task already shows.
                     $agg = TaskStatus::aggregate($stored);
+                    // Match recompute's headline selection (lowest line_no), not file order.
+                    usort($stored, fn ($x, $y) => $x['line_no'] <=> $y['line_no']);
                     $head = $stored[0] ?? null;
                     $shouldAdvance = $task->latest_period === null
                         || TaskPeriod::sortKey($period) >= TaskPeriod::sortKey($task->latest_period);

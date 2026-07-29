@@ -95,23 +95,35 @@ class SectorWorkbookParser
 
             $b = self::clean((string) ($row[1] ?? ''));
             $d = self::clean((string) ($row[3] ?? ''));
-            if ($b === '' || $d === '') {
-                continue; // spacer / malformed row
-            }
 
             if ($a !== '') {
+                // Column A filled always starts a new task, even if this row
+                // itself carries no indicator (B/D empty) — otherwise its
+                // continuation lines would misattribute to the previous task.
                 if ($current !== null) {
                     $tasks[] = $current;
                 }
                 $c = self::clean((string) ($row[2] ?? ''));
                 if ($c === '') {
-                    $warnings[] = "Лист '{$title}', вазифа №{$a}: Кўрсаткич номи (C) бўш — индикатор номи ишлатилди.";
-                    $c = $d;
+                    if ($d === '') {
+                        $warnings[] = "Лист '{$title}', вазифа №{$a}: Кўрсаткич номи (C) ва Индикатор номи (D) бўш — '(номаълум)' ишлатилди.";
+                        $c = '(номаълум)';
+                    } else {
+                        $warnings[] = "Лист '{$title}', вазифа №{$a}: Кўрсаткич номи (C) бўш — индикатор номи ишлатилди.";
+                        $c = $d;
+                    }
                 }
                 $current = ['task_no' => (int) $a, 'title' => $c, 'lines' => []];
             } elseif ($current === null) {
+                if ($b === '' && $d === '') {
+                    continue; // spacer row
+                }
                 $warnings[] = "Лист '{$title}', қатор " . ($i + 1) . ": вазифа рақамисиз индикатор қатори ташлаб кетилди.";
                 continue;
+            }
+
+            if ($b === '' || $d === '') {
+                continue; // no indicator on this row — task started, but no line to append
             }
 
             $deadlineText = self::clean((string) ($row[5] ?? ''));
@@ -141,6 +153,9 @@ class SectorWorkbookParser
         if (mb_strpos($t, 'якун') !== false) {
             return 'year';
         }
+        // Assumes the H2-2026 workbook season, where "ярим йил" always means the
+        // second half — an H1-season workbook would need a 1-/2- prefix check
+        // (e.g. "1-ярим йил" vs "2-ярим йил") before this could be reused as-is.
         if (mb_strpos($t, 'ярим йил') !== false) {
             return 'h2';
         }
