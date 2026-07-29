@@ -5763,7 +5763,8 @@ body.sectors-body { display: block; }
 }
 .sector-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
 .sector-card.active { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(43, 97, 175, .18), var(--shadow-sm); }
-.sector-card.nodata { opacity: .62; }
+.sector-card.nodata .sector-card-name { color: var(--muted); }
+.sector-card.nodata .sector-card-sub { opacity: .75; }
 .sector-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .sector-card-name { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; }
 .sector-card-sub { font-size: 11.5px; color: var(--muted); margin: 2px 0 9px; }
@@ -5783,7 +5784,6 @@ body.sectors-body { display: block; }
   background: rgba(43, 97, 175, .09); color: var(--blue);
   font-size: 22px; font-weight: 800;
 }
-.sector-card.nodata .sector-card-logo { filter: grayscale(1); opacity: .8; }
 
 .dp-task.expandable { cursor: pointer; }
 .dp-task.expandable:hover { border-color: var(--line-strong); }
