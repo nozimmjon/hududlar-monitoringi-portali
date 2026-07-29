@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             SoatoSeeder::class,
             IndicatorSeeder::class,
             RegionIndicatorAvailabilitySeeder::class,
+            SectorSeeder::class,
         ]);
     }
 }
