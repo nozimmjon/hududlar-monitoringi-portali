@@ -13,4 +13,17 @@ class Sector extends Model
     {
         return $this->hasMany(SectorTask::class);
     }
+
+    /** Public-relative path of the bundled logo (svg preferred), or null when none shipped. */
+    public function logoPath(): ?string
+    {
+        foreach (['svg', 'png'] as $ext) {
+            $rel = "img/sectors/{$this->code}.{$ext}";
+            if (is_file(public_path($rel))) {
+                return $rel;
+            }
+        }
+
+        return null;
+    }
 }

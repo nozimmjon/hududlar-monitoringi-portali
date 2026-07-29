@@ -40,6 +40,13 @@
                  wire:click="selectSector(@js($s->code))"
                  x-on:keydown.enter="$wire.selectSector(@js($s->code))"
                  x-on:keydown.space.prevent="$wire.selectSector(@js($s->code))">
+                <div class="sector-card-head">
+                    @if($card['logo'])
+                        <img class="sector-card-logo" src="{{ asset($card['logo']) }}" alt="" loading="lazy">
+                    @else
+                        <span class="sector-card-mono" aria-hidden="true">{{ mb_substr($s->name_short, 0, 1) }}</span>
+                    @endif
+                </div>
                 <div class="sector-card-name">{{ $s->name_short }}</div>
                 <div class="sector-card-sub">{{ $card['tasks_total'] }} топшириқ · {{ $card['lines_total'] }} индикатор</div>
                 <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>

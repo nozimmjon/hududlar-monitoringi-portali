@@ -40,6 +40,7 @@ class SectorsDashboard extends Component
 
             return [
                 'sector'      => $s,
+                'logo'        => $s->logoPath(),
                 'tasks_total' => $tasks->count(),
                 'lines_total' => $linesTotal,
                 'done'        => $tasks->where('status', 'done')->count(),
