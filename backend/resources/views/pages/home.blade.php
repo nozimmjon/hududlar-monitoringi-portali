@@ -115,7 +115,7 @@ svg.uz { width: 100%; height: min(76vh, 900px); display: block; }
 .sectors-link {
   background: var(--card); border: 1px solid var(--line); border-radius: 999px;
   box-shadow: var(--shadow-s); padding: 11px 20px;
-  font-size: 13.5px; font-weight: 800; color: var(--ink);
+  font-size: 13.5px; font-weight: 800; color: var(--ink); white-space: nowrap;
   transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease), transform 180ms var(--ease);
 }
 .sectors-link:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-m); }
@@ -172,6 +172,7 @@ svg.uz:hover .rg:not(.hot) path { opacity: .45; }
 .tip .go { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; color: var(--accent); }
 
 @media (max-width: 860px) {
+  .top { flex-wrap: wrap; justify-content: center; row-gap: 10px; }
   .kpis { position: static; flex-direction: row; flex-wrap: wrap; margin-bottom: 8px; }
   .map-card { flex-direction: column; align-items: stretch; }
   svg.uz { height: auto; }
