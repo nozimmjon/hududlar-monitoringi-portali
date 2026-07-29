@@ -5780,3 +5780,12 @@ body.sectors-body { display: block; }
 .dp-task.expandable:hover { border-color: var(--line-strong); }
 .dp-task.open { border-color: var(--blue); }
 .stask-toggle { float: right; font-weight: 800; color: var(--blue); }
+
+.stp-lines { border-top: 1px dashed var(--line-strong); margin: 4px 0 10px; padding-top: 6px; }
+.stp-line { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 12.5px; }
+.stp-line + .stp-line { border-top: 1px solid var(--line); }
+.stp-line.dim { color: var(--muted); }
+.stp-line-label { min-width: 0; }
+.stp-line-vals { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stp-line-vals small { color: var(--muted); }
+.stp-line-pct { font-weight: 800; margin-left: 8px; }

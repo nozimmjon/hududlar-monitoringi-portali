@@ -113,7 +113,25 @@
                         <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
                         @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
                     </div>
-                    {{-- Indicator lines (Task 3) --}}
+                    @if($isMulti && ($expanded[$task->id] ?? false))
+                        <div class="stp-lines" onclick="event.stopPropagation()">
+                            @foreach($lines as $line)
+                                @php
+                                    $lineUnit = \App\Support\DashboardCatalog::unitLabel($line->unit);
+                                    $linePct = $line->pct_of_plan !== null ? (int) round((float) $line->pct_of_plan) : null;
+                                    $lineTier = $linePct === null ? '--grey'
+                                        : ($linePct >= 100 ? '--task-green' : ($linePct >= 50 ? '--task-amber' : '--task-red'));
+                                @endphp
+                                <div class="stp-line {{ $line->actual_value === null ? 'dim' : '' }}" wire:key="stpl-{{ $line->id }}">
+                                    <span class="stp-line-label">{{ $line->metric_label }}</span>
+                                    <span class="stp-line-vals">
+                                        <b>{{ $fmt($line->actual_value) }}</b> / {{ $fmt($line->plan_value) }} <small>{{ $lineUnit }}</small>
+                                        <span class="stp-line-pct" style="color:var({{ $lineTier }})">{{ $linePct === null ? '—' : $linePct . '%' }}</span>
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                     <div class="dp-task-meta">
                         Муддат: <b>{{ $headLine?->deadline_text ?? '—' }}</b>
                         @if($task->status === 'in_progress') · маълумот кутилмоқда @endif
