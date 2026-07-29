@@ -29,7 +29,8 @@
             @php
                 $s = $card['sector'];
                 $pct = $card['pct'];
-                $pctShown = $pct === null ? null : (int) round($pct);
+                // Same 99-cap rule as the task cards: only a fully-done sector shows 100%.
+                $pctShown = $pct === null ? null : ($pct >= 100 ? 100 : min(99, (int) round($pct)));
                 $tierVar = $pct === null ? '--grey'
                     : ($pct >= 100 ? '--task-green' : ($pct >= 50 ? '--task-amber' : '--task-red'));
                 $isActive = $selected && $selected->code === $s->code;

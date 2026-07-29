@@ -35,6 +35,8 @@ test('sectors without any reported actuals show the waiting state', function () 
 
     $response->assertOk();
     $response->assertSee('Маълумот кутилмоқда');
+    // The card is actually dimmed, not just labeled.
+    expect($response->getContent())->toContain('nodata');
 });
 
 test('summary strip counts tasks by status across all sectors', function () {
@@ -50,9 +52,9 @@ test('summary strip counts tasks by status across all sectors', function () {
 
     $html = $this->get('/sectors')->getContent();
 
-    // dp-fact summary: 17 корхона, 3 топшириқ, 1 бажарилди, 1 бажарилмаган, 1 кутилмоқда
-    expect($html)->toContain('17');
-    expect($html)->toContain('дан 1 таси бажарилди'); // done count phrasing (see blade)
+    // dp-fact summary: 17 корхона, 3 топшириқдан 1 бажарилди, 1 бажарилмаган / 1 кутилмоқда
+    expect($html)->toContain('дан 1 таси бажарилди');
+    expect($html)->toContain('<span class="warn">1</span>/1'); // open/waiting fact cell
 });
 
 test('a sector card shows counts and indicator-level percent', function () {
