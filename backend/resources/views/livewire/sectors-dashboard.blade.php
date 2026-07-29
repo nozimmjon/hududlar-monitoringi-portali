@@ -90,7 +90,11 @@
                 @endphp
                 <div class="dp-task {{ $isMulti ? 'expandable' : '' }} {{ ($expanded[$task->id] ?? false) ? 'open' : '' }}"
                      wire:key="stask-{{ $task->id }}"
-                     @if($isMulti) wire:click="toggleTask({{ $task->id }})" role="button" tabindex="0" @endif>
+                     @if($isMulti)
+                         wire:click="toggleTask(@js($task->id))" role="button" tabindex="0"
+                         x-on:keydown.enter="$wire.toggleTask(@js($task->id))"
+                         x-on:keydown.space.prevent="$wire.toggleTask(@js($task->id))"
+                     @endif>
                     <div class="dp-task-top">
                         <div class="dp-task-title">{{ $task->task_no }}. {{ $task->title }}</div>
                         <span class="chip {{ $chip[0] }}">{{ $chip[1] }}</span>
