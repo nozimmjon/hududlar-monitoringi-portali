@@ -129,11 +129,12 @@ test('clicking a district opens the slide-over peek with stats and profile link'
     expect($html)->not->toContain('districts-leaderboard');
 });
 
-test('peek uses plain task and target labels, not D-/T- codes', function () {
+test('peek uses plain task labels, not D-/T- codes', function () {
     $response = $this->get('/districts?district=1703224');
     $html = $response->getContent();
     expect($html)->toContain('Топшириқлар');
-    expect($html)->toContain('Кафолат мажбурияти');
+    // 'Кафолат мажбурияти' chip removed with the dead promise_targets pipeline.
+    expect($html)->not->toContain('Кафолат мажбурияти');
     expect($html)->not->toContain('T-топшириқ');
     expect($html)->not->toContain('D-мақсад');
 });

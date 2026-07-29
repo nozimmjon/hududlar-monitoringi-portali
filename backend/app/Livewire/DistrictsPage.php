@@ -6,7 +6,6 @@ use App\Models\District;
 use App\Models\Indicator;
 use App\Models\IndicatorFact;
 use App\Models\Module;
-use App\Models\PromiseTarget;
 use App\Models\Task;
 use App\Support\DistrictStatus;
 use Illuminate\Support\Collection;
@@ -279,27 +278,6 @@ class DistrictsPage extends Component
                 if ($task->status !== 'done') {
                     $out[$d->code]['unfinished']++;
                 }
-            }
-        }
-        return $out;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    #[Computed]
-    public function targetCountByDistrict(): array
-    {
-        $out = [];
-        $targets = PromiseTarget::where('region_code', $this->regionCode)
-            ->where('indicator_code', $this->kpi)
-            ->whereNotNull('target_districts')
-            ->get();
-
-        foreach ($targets as $target) {
-            $codes = is_array($target->target_districts) ? $target->target_districts : [];
-            foreach ($codes as $code) {
-                $out[$code] = ($out[$code] ?? 0) + 1;
             }
         }
         return $out;

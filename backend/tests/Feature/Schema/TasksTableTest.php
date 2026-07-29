@@ -9,7 +9,7 @@ test('tasks table exists with all expected columns', function () {
     expect(Schema::hasTable('tasks'))->toBeTrue();
 
     $expected = [
-        'id', 'region_code', 'guarantee_letter_id', 'task_number',
+        'id', 'region_code', 'task_number',
         'title', 'deadline_text', 'period_code', 'executor_text',
         'kind', 'module_code', 'indicator_code', 'section_path',
         'section_label', 'source_paragraph_index', 'status',

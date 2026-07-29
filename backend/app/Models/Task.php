@@ -13,7 +13,7 @@ class Task extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'region_code', 'guarantee_letter_id', 'task_number', 'title',
+        'region_code', 'task_number', 'title',
         'deadline_text', 'period_code', 'executor_text', 'kind',
         'module_code', 'indicator_code', 'section_path', 'section_label',
         'source_paragraph_index', 'status',
@@ -35,11 +35,6 @@ class Task extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_code', 'code');
-    }
-
-    public function guaranteeLetter(): BelongsTo
-    {
-        return $this->belongsTo(GuaranteeLetter::class);
     }
 
     public function module(): BelongsTo

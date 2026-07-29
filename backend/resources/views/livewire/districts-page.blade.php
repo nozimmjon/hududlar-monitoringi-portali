@@ -1,6 +1,5 @@
 @php
     $taskCountByDistrict   = $this->taskCountByDistrict;
-    $targetCountByDistrict = $this->targetCountByDistrict;
     $statusLabel = [
         'green' => 'Яхши', 'amber' => 'Ўртача', 'red' => 'Эътибор', 'grey' => 'Маълумот йўқ',
         'forecast' => 'Кутилиш (тезкор)', 'plan' => 'Режалаштирилган',
@@ -22,8 +21,6 @@
         if ($t['total'] > 0) return 'green';
         return 'grey';
     };
-    $targetChipClass = fn (int $n): string => $n > 0 ? 'blue' : 'grey';
-
     $fmt = function ($v, int $decimals = 1): string {
         if ($v === null || $v === '') return '—';
         return number_format((float) $v, $decimals, ',', ' ');
@@ -50,7 +47,6 @@
     $selectedFact        = $selectedRow ? $selectedRow['fact'] : null;
     $selectedStatus      = $selectedRow ? $selectedRow['status'] : 'grey';
     $selectedTasks       = $selectedRow ? ($taskCountByDistrict[$selectedCode] ?? ['unfinished' => 0, 'total' => 0]) : ['unfinished' => 0, 'total' => 0];
-    $selectedTargetCount = $selectedRow ? ($targetCountByDistrict[$selectedCode] ?? 0) : 0;
 
     $kpiShort = $indicator?->label_short ?? $kpi;
     $kpiFull  = $indicator?->label_full  ?? $kpi;
@@ -217,7 +213,6 @@
             </div>
             <div class="district-peek-chips">
                 <span class="chip {{ $taskChipClass($selectedTasks) }}">Топшириқлар {{ $taskDone($selectedTasks) }}/{{ $selectedTasks['total'] }}</span>
-                <span class="chip {{ $targetChipClass($selectedTargetCount) }}">Кафолат мажбурияти {{ $selectedTargetCount }}</span>
             </div>
             <div class="district-peek-actions">
                 <a class="mini-button primary" href="{{ route('profile') }}?districtCode={{ $selectedCode }}">Профил</a>
