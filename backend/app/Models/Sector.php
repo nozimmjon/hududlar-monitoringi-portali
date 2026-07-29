@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sector extends Model
 {
-    protected $fillable = ['code', 'name_short', 'org_full', 'signer_text', 'sort_order'];
+    protected $fillable = ['code', 'name_short', 'display_name', 'org_full', 'signer_text', 'sort_order'];
+
+    /** Name shown in the UI: the real organisation name when name_short is a generic sheet label. */
+    public function cardName(): string
+    {
+        return $this->display_name ?? $this->name_short;
+    }
 
     public function tasks(): HasMany
     {

@@ -28,14 +28,26 @@ class SectorSeeder extends Seeder
         17 => ['uzbekzargarsanoati', 'Ўзбекзаргарсаноати', '«Ўзбекзаргарсаноати» уюшмаси', 'Раис в.б. Н. Мирахмедов'],
     ];
 
+    /**
+     * code => real organisation name for the UI, where name_short is a generic
+     * sheet label. name_short must stay as-is: import matches sheet titles on it.
+     */
+    public const DISPLAY_NAMES = [
+        'ies'                   => 'Иссиқлик электр станциялари',
+        'yengil_sanoat'         => 'Енгил саноат агентлиги',
+        'qurilish_materiallari' => 'Ўзсаноатқурилишматериаллари',
+        'farmatsevtika'         => 'Фармацевтика агентлиги',
+    ];
+
     public function run(): void
     {
         foreach (self::SECTORS as $sortOrder => [$code, $nameShort, $orgFull, $signer]) {
             Sector::updateOrCreate(['code' => $code], [
-                'name_short'  => $nameShort,
-                'org_full'    => $orgFull,
-                'signer_text' => $signer,
-                'sort_order'  => $sortOrder,
+                'name_short'   => $nameShort,
+                'display_name' => self::DISPLAY_NAMES[$code] ?? null,
+                'org_full'     => $orgFull,
+                'signer_text'  => $signer,
+                'sort_order'   => $sortOrder,
             ]);
         }
     }
