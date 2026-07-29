@@ -58,5 +58,65 @@
         @endforeach
     </div>
 
-    {{-- Drilldown (Task 2) --}}
+    @if($selected)
+        <div class="dp-sect" id="sector-detail">
+            <h2>{{ $selected->org_full }} — {{ $selectedTasks->count() }} топшириқ</h2>
+            @if($selected->signer_text)
+                <span class="dp-sect-hint">{{ $selected->signer_text }} имзолаган кафолат хати</span>
+            @endif
+        </div>
+
+        <div class="dp-tasks">
+            @foreach($selectedTasks as $task)
+                @php
+                    $isMulti = (int) $task->lines_total > 1;
+                    $pct = $task->status === 'in_progress' ? null
+                        : ($isMulti
+                            ? ($task->lines_total > 0 ? $task->lines_done / $task->lines_total * 100 : null)
+                            : ($task->headline_pct !== null ? (float) $task->headline_pct : null));
+                    $isDone = $task->status === 'done';
+                    $pctShown = $pct === null ? null : ($isDone ? (int) round($pct) : min(99, (int) round($pct)));
+                    $tierVar = $pct === null ? '--grey'
+                        : ($isDone ? '--task-green' : ($pctShown >= 50 ? '--task-amber' : '--task-red'));
+                    $chip = $isDone ? ['green', 'Бажарилди']
+                        : ($task->status === 'in_progress' ? ['violet', 'Бажарилмоқда'] : ['amber', 'Бажарилмаган']);
+                    $fmt = fn ($v) => $v === null ? '—' : rtrim(rtrim(number_format((float) $v, 2, ',', ' '), '0'), ',');
+                    $unitLabel = \App\Support\DashboardCatalog::unitLabel($task->headline_unit);
+                    $lines = $task->progress
+                        ->where('report_period', $task->latest_period)
+                        ->sortBy('line_no')
+                        ->values();
+                    $headLine = $lines->first();
+                @endphp
+                <div class="dp-task {{ $isMulti ? 'expandable' : '' }} {{ ($expanded[$task->id] ?? false) ? 'open' : '' }}"
+                     wire:key="stask-{{ $task->id }}"
+                     @if($isMulti) wire:click="toggleTask({{ $task->id }})" role="button" tabindex="0" @endif>
+                    <div class="dp-task-top">
+                        <div class="dp-task-title">{{ $task->task_no }}. {{ $task->title }}</div>
+                        <span class="chip {{ $chip[0] }}">{{ $chip[1] }}</span>
+                    </div>
+                    <div class="task-strip">
+                        @if($isMulti)
+                            <div class="cell"><span class="clab">Индикаторлар</span><span class="val">{{ $task->lines_total }}<small>та</small></span></div>
+                            <div class="cell"><span class="clab">Бажарилди</span><span class="val">{{ $task->lines_done }}<small>та</small></span></div>
+                        @else
+                            <div class="cell"><span class="clab">Режа</span><span class="val">{{ $fmt($task->headline_plan) }}<small>{{ $unitLabel }}</small></span></div>
+                            <div class="cell"><span class="clab">Амалда</span><span class="val">{{ $fmt($task->headline_actual) }}<small>{{ $task->headline_actual !== null ? $unitLabel : '' }}</small></span></div>
+                        @endif
+                        <div class="cell"><span class="clab">Бажарилиш</span><span class="val">{{ $pctShown === null ? '—' : $pctShown . '%' }}</span></div>
+                    </div>
+                    <div class="task-foot">
+                        <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
+                        @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
+                    </div>
+                    {{-- Indicator lines (Task 3) --}}
+                    <div class="dp-task-meta">
+                        Муддат: <b>{{ $headLine?->deadline_text ?? '—' }}</b>
+                        @if($task->status === 'in_progress') · маълумот кутилмоқда @endif
+                        @if($isMulti)<span class="stask-toggle">{{ ($expanded[$task->id] ?? false) ? '▴ ёпиш' : '▾ индикаторлар' }}</span>@endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>

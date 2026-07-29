@@ -5775,3 +5775,8 @@ body.sectors-body { display: block; }
 .sector-card-counts .bad { color: var(--task-amber); }
 .sector-card-counts .wait { color: var(--grey); }
 .sector-card-wait { font-size: 11.5px; font-weight: 700; color: var(--grey); }
+
+.dp-task.expandable { cursor: pointer; }
+.dp-task.expandable:hover { border-color: var(--line-strong); }
+.dp-task.open { border-color: var(--blue); }
+.stask-toggle { float: right; font-weight: 800; color: var(--blue); }
