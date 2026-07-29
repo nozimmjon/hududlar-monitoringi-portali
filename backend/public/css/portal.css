@@ -5775,13 +5775,13 @@ body.sectors-body { display: block; }
 .sector-card-counts .bad { color: var(--task-amber); }
 .sector-card-counts .wait { color: var(--grey); }
 .sector-card-wait { font-size: 11.5px; font-weight: 700; color: var(--grey); }
-.sector-card-head { height: 32px; margin-bottom: 8px; display: flex; align-items: center; }
-.sector-card-logo { max-height: 32px; max-width: 130px; object-fit: contain; }
+.sector-card-head { height: 52px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+.sector-card-logo { max-height: 52px; max-width: 180px; object-fit: contain; }
 .sector-card-mono {
-  width: 32px; height: 32px; border-radius: 9px;
+  width: 52px; height: 52px; border-radius: 13px;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(43, 97, 175, .09); color: var(--blue);
-  font-size: 15px; font-weight: 800;
+  font-size: 22px; font-weight: 800;
 }
 .sector-card.nodata .sector-card-logo { filter: grayscale(1); opacity: .8; }
 
