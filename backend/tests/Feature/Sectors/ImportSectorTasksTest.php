@@ -129,3 +129,17 @@ test('invalid period is rejected', function () {
     $exit = Artisan::call('import:sector-tasks', ['--file' => sectorFixture(), '--period' => 'H2-2026']);
     expect($exit)->toBe(1);
 });
+
+test('duplicate line numbers in a task abort with a clear error', function () {
+    $this->seed();
+    $file = sectorFixture([
+        [1, 1, 'В1.', 'Кўрсаткич А', 'та', '2026 йил якуни', 100, null, null],
+        [null, 1, null, 'Кўрсаткич Б', 'та', '2026 йил якуни', 200, null, null], // duplicate B=1
+    ]);
+
+    $exit = Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-H2']);
+
+    expect($exit)->toBe(1);
+    expect(SectorTask::count())->toBe(0);
+    expect(Artisan::output())->toContain('такрорланган');
+});

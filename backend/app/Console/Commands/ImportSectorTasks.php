@@ -79,6 +79,22 @@ class ImportSectorTasks extends Command
             $this->warn("Тармоқ '{$sectorsByOrder[$order]->name_short}' учун лист файлда йўқ — ташлаб кетилди.");
         }
 
+        // A hand-edited workbook can repeat column B within one task, which would
+        // hit the sector_task_progress unique constraint mid-transaction. Catch it
+        // here, before any write, so the operator gets a clear message instead of
+        // a raw SQL exception.
+        foreach ($matched as [$sector, $tasks]) {
+            foreach ($tasks as $t) {
+                $lineNos = array_column($t['lines'], 'line_no');
+                if (count($lineNos) !== count(array_unique($lineNos))) {
+                    $this->error(
+                        "Лист '{$sector->name_short}', вазифа №{$t['task_no']}: такрорланган индикатор рақами (B устун) — файл нотўғри тўлдирилган. Импорт тўхтатилди."
+                    );
+                    return self::FAILURE;
+                }
+            }
+        }
+
         $taskCount = $lineCount = 0;
         foreach ($matched as [, $tasks]) {
             $taskCount += count($tasks);
