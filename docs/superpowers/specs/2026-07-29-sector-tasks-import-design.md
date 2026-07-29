@@ -10,8 +10,9 @@
 > recommended plans-only baseline is `2026-07` — an H-period baseline sorts by its
 > closing month (December) and would freeze snapshot advancement until year end;
 > header verification checks columns C–I (the A/B `№` shape is enforced by the row
-> parsing rules instead); the parser also rejects duplicate line numbers within a
-> task and transliterates Cyrillic lookalikes in Roman-numeral deadlines.
+> parsing rules instead); the import command also rejects duplicate line numbers
+> within a task, and the parser transliterates Cyrillic lookalikes in
+> Roman-numeral deadlines.
 
 ## Background
 
