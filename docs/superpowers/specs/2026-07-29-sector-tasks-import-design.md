@@ -1,8 +1,17 @@
 # Sector (тармоқ) guarantee-letter tasks — DB import design
 
 **Date:** 2026-07-29
-**Status:** approved
+**Status:** implemented (2026-07-29)
 **Phase:** 1 of 2 (DB + import; visualization/dashboard is a separate later phase)
+
+> **As-built deviations** (accepted during implementation): the file is passed as
+> `--file=` option with a default under `data/sectors/` (not a positional argument);
+> `report_period`/`period_type` additionally accept `2026-H2`/`half`, though the
+> recommended plans-only baseline is `2026-07` — an H-period baseline sorts by its
+> closing month (December) and would freeze snapshot advancement until year end;
+> header verification checks columns C–I (the A/B `№` shape is enforced by the row
+> parsing rules instead); the parser also rejects duplicate line numbers within a
+> task and transliterates Cyrillic lookalikes in Roman-numeral deadlines.
 
 ## Background
 
