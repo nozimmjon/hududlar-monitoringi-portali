@@ -3,7 +3,6 @@
 
     <div class="dp-hero">
         <div>
-            <div class="dp-hero-eyebrow">Кафолат хатлари · 2026 йил 2-ярим йиллик</div>
             <h1>Тармоқ корхоналари топшириқлари</h1>
         </div>
         <div class="dp-hero-facts">
@@ -21,7 +20,6 @@
 
     <div class="dp-sect">
         <h2>Корхоналар</h2>
-        <span class="dp-sect-hint">Корхонани босинг — топшириқлари пастда очилади</span>
     </div>
 
     <div class="sector-grid">
@@ -50,18 +48,16 @@
                 <div class="sector-card-name {{ mb_strlen($s->cardName()) > 20 ? 'long' : '' }}">{{ $s->cardName() }}</div>
                 <div class="sector-card-sub">{{ $card['tasks_total'] }} топшириқ · {{ $card['lines_total'] }} индикатор</div>
                 <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
-                <div class="sector-card-foot">
-                    @if($pct === null)
-                        <span class="sector-card-wait">Маълумот кутилмоқда</span>
-                    @else
+                @if($pct !== null)
+                    <div class="sector-card-foot">
                         <span class="sector-card-pct">{{ $pctShown }}%</span>
                         <span class="sector-card-counts">
                             <b class="ok">{{ $card['done'] }}</b> ·
                             <b class="bad">{{ $card['open'] }}</b> ·
                             <b class="wait">{{ $card['waiting'] }}</b>
                         </span>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
         @endforeach
     </div>

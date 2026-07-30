@@ -34,9 +34,9 @@ test('sectors without any reported actuals show the waiting state', function () 
     $response = $this->get('/sectors');
 
     $response->assertOk();
-    $response->assertSee('Маълумот кутилмоқда');
-    // The card is actually dimmed, not just labeled.
+    // The card is dimmed; no waiting label (removed by design), no percent either.
     expect($response->getContent())->toContain('nodata');
+    expect($response->getContent())->not->toContain('sector-card-pct');
 });
 
 test('summary strip counts tasks by status across all sectors', function () {
