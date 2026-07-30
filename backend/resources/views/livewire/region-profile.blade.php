@@ -2,7 +2,7 @@
     @if(! $district)
         @include('livewire.profile.empty', ['districtCode' => $districtCode])
     @else
-        <div class="dp-crumb"><a href="{{ route('districts') }}">← Туманлар кесими</a></div>
+        <div class="dp-crumb"><a href="{{ route('districts') }}"><span class="arr">←</span> Туманлар кесими</a></div>
 
         <div class="dp-hero">
             <div>

@@ -1,5 +1,5 @@
 <div class="sectors-wrap">
-    <div class="dp-crumb"><a href="{{ route('home') }}">← Бош саҳифа</a></div>
+    <div class="dp-crumb"><a href="{{ route('home') }}"><span class="arr">←</span> Бош саҳифа</a></div>
 
     <div class="dp-hero">
         <div>
