@@ -47,7 +47,7 @@
                         <span class="sector-card-mono" aria-hidden="true">{{ mb_substr($s->cardName(), 0, 1) }}</span>
                     @endif
                 </div>
-                <div class="sector-card-name">{{ $s->cardName() }}</div>
+                <div class="sector-card-name {{ mb_strlen($s->cardName()) > 20 ? 'long' : '' }}">{{ $s->cardName() }}</div>
                 <div class="sector-card-sub">{{ $card['tasks_total'] }} топшириқ · {{ $card['lines_total'] }} индикатор</div>
                 <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
                 <div class="sector-card-foot">

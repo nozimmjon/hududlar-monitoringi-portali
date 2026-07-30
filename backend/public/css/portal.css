@@ -5766,7 +5766,8 @@ body.sectors-body { display: block; }
 .sector-card.nodata .sector-card-name { color: var(--muted); }
 .sector-card.nodata .sector-card-sub { opacity: .75; }
 .sector-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-.sector-card-name { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; }
+.sector-card-name { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.sector-card-name.long { font-size: 11.5px; letter-spacing: -.02em; }
 .sector-card-sub { font-size: 11.5px; color: var(--muted); margin: 2px 0 9px; }
 .sector-card .progress { margin-top: 0; }
 .sector-card-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; }
