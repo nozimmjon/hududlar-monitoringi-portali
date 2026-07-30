@@ -34,6 +34,7 @@ class SectorSeeder extends Seeder
      */
     public const DISPLAY_NAMES = [
         'ies'                   => 'Иссиқлик электр станциялари',
+        'kimyo_sanoati'         => 'Ўзкимёсаноат',
         'yengil_sanoat'         => 'Енгил саноат агентлиги',
         'qurilish_materiallari' => 'Ўзсаноатқурилишматериаллари',
         'farmatsevtika'         => 'Фармацевтика агентлиги',

@@ -22,20 +22,25 @@ test('logoPath falls back to png when there is no svg', function () {
 });
 
 test('logoPath is null when no logo file is bundled', function () {
-    $this->seed();
-
-    $sector = Sector::where('code', 'kimyo_sanoati')->firstOrFail();
+    $sector = Sector::create([
+        'code'       => 'no_logo_sector',
+        'name_short' => 'Тест',
+        'org_full'   => 'Тест ташкилоти',
+        'sort_order' => 99,
+    ]);
 
     expect($sector->logoPath())->toBeNull();
 });
 
-test('sector cards render the logo image, with a monogram fallback', function () {
+test('every seeded sector card renders its logo image', function () {
     $this->seed();
 
     $html = $this->get('/sectors')->getContent();
 
     expect($html)->toContain('img/sectors/nkmk.svg');
     expect($html)->toContain('img/sectors/uzavtosanoat.png');
-    // Sectors without a bundled logo (кимё саноати) show a letter monogram instead.
-    expect($html)->toContain('sector-card-mono');
+    expect($html)->toContain('img/sectors/kimyo_sanoati.png');
+    expect($html)->toContain('img/sectors/farmatsevtika.svg');
+    // All 17 have a bundled logo now — no monogram fallback in the page.
+    expect($html)->not->toContain('sector-card-mono');
 });

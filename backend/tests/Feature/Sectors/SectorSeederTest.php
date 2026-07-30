@@ -31,6 +31,7 @@ test('display_name overrides generic sheet labels with real organisation names',
     // Sheet-matching name_short stays untouched (import relies on it);
     // the card shows display_name when the label is not the real org name.
     expect(Sector::where('code', 'yengil_sanoat')->first()->display_name)->toBe('Енгил саноат агентлиги');
+    expect(Sector::where('code', 'kimyo_sanoati')->first()->display_name)->toBe('Ўзкимёсаноат');
     expect(Sector::where('code', 'qurilish_materiallari')->first()->display_name)->toBe('Ўзсаноатқурилишматериаллари');
     expect(Sector::where('code', 'farmatsevtika')->first()->display_name)->toBe('Фармацевтика агентлиги');
     expect(Sector::where('code', 'ies')->first()->display_name)->toBe('Иссиқлик электр станциялари');
