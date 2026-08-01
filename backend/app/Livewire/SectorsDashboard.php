@@ -4,30 +4,10 @@ namespace App\Livewire;
 
 use App\Models\Sector;
 use App\Models\SectorTask;
-use Illuminate\Support\Collection;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class SectorsDashboard extends Component
 {
-    /** Selected sector code (deep-linkable: /sectors?sector=nkmk). */
-    #[Url(as: 'sector')]
-    public ?string $sector = null;
-
-    /** @var array<int, bool> expanded multi-line task ids in the drilldown */
-    public array $expanded = [];
-
-    public function selectSector(string $code): void
-    {
-        $this->sector = $this->sector === $code ? null : $code;
-        $this->expanded = [];
-    }
-
-    public function toggleTask(int $taskId): void
-    {
-        $this->expanded[$taskId] = ! ($this->expanded[$taskId] ?? false);
-    }
-
     public function render()
     {
         $sectors = Sector::orderBy('sort_order')->with('tasks')->get();
@@ -51,22 +31,9 @@ class SectorsDashboard extends Component
             ];
         });
 
-        $selected = $this->sector !== null
-            ? $sectors->firstWhere('code', $this->sector)
-            : null;
-
-        $selectedTasks = $selected
-            ? SectorTask::where('sector_id', $selected->id)
-                ->orderBy('task_no')
-                ->with('progress')
-                ->get()
-            : new Collection();
-
         return view('livewire.sectors-dashboard', [
-            'cards'         => $cards,
-            'selected'      => $selected,
-            'selectedTasks' => $selectedTasks,
-            'summary'       => [
+            'cards'   => $cards,
+            'summary' => [
                 'sectors' => $cards->count(),
                 'tasks'   => $cards->sum('tasks_total'),
                 'done'    => $cards->sum('done'),

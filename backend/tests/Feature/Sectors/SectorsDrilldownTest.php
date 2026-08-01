@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\SectorsDashboard;
+use App\Livewire\SectorDetail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
@@ -24,49 +24,57 @@ function importSectorsUiFixture(): void
     Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-07']);
 }
 
-test('selecting a sector shows its task cards with status chips', function () {
+test('the sector detail page shows task cards with status chips', function () {
     $this->seed();
     importSectorsUiFixture();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
-        ->assertSee('«Ўзбекнефтгаз» АЖ')
-        ->assertSee('Товар маҳсулот ҳажмини етказиш.')
-        ->assertSee('Бажарилди')       // done chip
-        ->assertSee('Бажарилмаган')    // open chip (weakest link: газ 53%)
-        ->assertSee('Бажарилмоқда')    // in_progress chip
-        ->assertSee('Муддат:')
-        ->assertSee('2026 йил якуни');
+    $response = $this->get('/sectors/uzbekneftgaz');
+
+    $response->assertOk();
+    $response->assertSee('«Ўзбекнефтгаз» АЖ');
+    $response->assertSee('Товар маҳсулот ҳажмини етказиш.');
+    $response->assertSee('Бажарилди');       // done chip
+    $response->assertSee('Бажарилмаган');    // open chip (weakest link: газ 53%)
+    $response->assertSee('Бажарилмоқда');    // in_progress chip
+    $response->assertSee('Муддат');
+    $response->assertSee('2026 йил якуни');
 });
 
 test('single-line task shows РЕЖА/АМАЛДА, multi-line shows indicator counts', function () {
     $this->seed();
     importSectorsUiFixture();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
+    Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
         ->assertSee('Режа')
         ->assertSee('Амалда')
         ->assertSee('Индикаторлар')
         ->assertSee('Бажарилиш');
 });
 
-test('selecting the same sector again closes the drilldown', function () {
+test('status filter narrows the task list', function () {
     $this->seed();
     importSectorsUiFixture();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
-        ->assertSet('sector', 'uzbekneftgaz')
-        ->call('selectSector', 'uzbekneftgaz')
-        ->assertSet('sector', null);
+    Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
+        ->assertSee('Товар маҳсулот ҳажмини етказиш.')
+        ->assertSee('Инвестиция дастури.')
+        ->call('setFilter', 'done')
+        ->assertSee('Товар маҳсулот ҳажмини етказиш.')
+        ->assertDontSee('Инвестиция дастури.')
+        ->call('setFilter', 'in_progress')
+        ->assertSee('Инвестиция дастури.')
+        ->assertDontSee('Товар маҳсулот ҳажмини етказиш.');
 });
 
-test('sector deep link opens the drilldown from the URL', function () {
+test('dashboard cards link to the sector detail page', function () {
     $this->seed();
     importSectorsUiFixture();
 
-    Livewire::withQueryParams(['sector' => 'uzbekneftgaz'])
-        ->test(SectorsDashboard::class)
-        ->assertSee('«Ўзбекнефтгаз» АЖ');
+    $this->get('/sectors')->assertSee('/sectors/uzbekneftgaz');
+});
+
+test('an unknown sector code returns 404', function () {
+    $this->seed();
+
+    $this->get('/sectors/nope_such')->assertNotFound();
 });

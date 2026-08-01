@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\SectorsDashboard;
+use App\Livewire\SectorDetail;
 use App\Models\SectorTask;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -25,8 +25,7 @@ test('expanding a multi-line task reveals its indicator rows', function () {
     importExpandFixture('2026-07', 13.2);
     $task = SectorTask::where('task_no', 1)->firstOrFail();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
+    Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
         ->assertDontSee('Суюқ углеводородлар')
         ->call('toggleTask', $task->id)
         ->assertSee('Табиий газ')
@@ -41,8 +40,7 @@ test('expanded rows show only the latest period values', function () {
     importExpandFixture('2026-08', 13.2); // later period wins
     $task = SectorTask::where('task_no', 1)->firstOrFail();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
+    Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
         ->call('toggleTask', $task->id)
         ->assertSee('13,2')       // latest actual, formatted with comma decimal
         ->assertDontSee('10,5');  // older period's actual must not render
@@ -53,10 +51,9 @@ test('rows without actuals are shown dimmed with a dash', function () {
     importExpandFixture('2026-07', 13.2);
     $task = SectorTask::where('task_no', 1)->firstOrFail();
 
-    $component = Livewire::test(SectorsDashboard::class)
-        ->call('selectSector', 'uzbekneftgaz')
+    $component = Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
         ->call('toggleTask', $task->id);
 
     $component->assertSee('Суюқ углеводородлар');
-    $component->assertSeeHtml('stp-line dim');
+    $component->assertSeeHtml('sdp-line dim');
 });

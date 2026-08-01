@@ -12,3 +12,6 @@ Route::view('/tasks', 'pages.tasks')->name('tasks');
 Route::view('/profile', 'pages.profile')->name('profile');
 Route::view('/execution', 'pages.execution')->name('execution');
 Route::view('/sectors', 'pages.sectors')->name('sectors');
+Route::get('/sectors/{code}', fn (string $code) => view('pages.sector-detail', [
+    'sector' => \App\Models\Sector::where('code', $code)->firstOrFail(),
+]))->where('code', '[a-z0-9_]+')->name('sectors.detail');
