@@ -90,6 +90,54 @@ php artisan import:task-progress --file="../data/+++Иқтисодий кўрс�
 are stored with `period_type = half` and sort between Q2 and Q3 (H1 → June,
 H2 → December) for the headline-advance guard.
 
+## Plan-template sync (Шаблон файли — planlar only)
+
+When the hokimliks agree an updated plan template (e.g.
+**`data/Шаблон_2026 (йил якуни билан янгиланган) (2).xlsx`** with the H2/year-end
+tasks), do NOT run `import:task-progress` on it — its empty Амалда columns would
+wipe every reported actual. Use the dedicated plan-only sync:
+
+```bash
+# always snapshot first, then dry-run, review, apply:
+php artisan db:snapshot --label=pre_plan_sync
+php artisan import:plan-sync --file="../data/<template>.xlsx" --period=2026-H1 --dry-run
+php artisan import:plan-sync --file="../data/<template>.xlsx" --period=2026-H1
+```
+
+Behavior:
+
+- **Existing tasks** (matched by col-B number; the title must also match, else the
+  task is skipped and reported): plan values that changed are updated in the rows
+  of the task's **current latest period**; `pct_of_plan` is recomputed from the
+  stored actual against the new plan (lower-is-better aware); status/headline/line
+  counters are rebuilt. **Actual values are never touched.**
+- **New indicator lines** on existing tasks are appended to the latest period as
+  plan-only rows.
+- **New tasks** are created per region with plan-only rows under `--period`,
+  starting as Бажарилмоқда; districts are resolved from the Ижрочи column.
+- A template that carries **any** actual value is refused outright.
+- A task with no numeric plan in any region is skipped and reported.
+- Every run (including `--dry-run`) writes a full audit JSON to
+  `storage/app/plan-sync-<timestamp>.json` — keep it with the import records.
+- **Unit redefinitions** (a plan re-agreed in new units while the stored H1 actual
+  is still in old units) surface as wild percentages; they self-heal when the next
+  progress file re-reports the actual in the new units. The 2026-08-03 sync left 9
+  such lines (tasks 110, 155, 217) — listed in that run's audit file.
+
+## Database versioning (snapshot / restore)
+
+`db-backups/` at the repo root (gitignored) holds compressed `pg_dump` snapshots:
+
+```bash
+php artisan db:snapshot --label=pre_h2_sync   # take a version
+php artisan db:snapshot --list                # list versions
+php artisan db:restore <file.dump>            # roll back (asks for confirmation)
+```
+
+Take a snapshot before every import that mutates plans or actuals. `db:restore`
+drops and recreates objects from the dump (`--clean --if-exists`), so the database
+returns to exactly the snapshotted state.
+
 ## Annex tables workbook (илова жадваллар)
 
 The partner also sends a half-year annex workbook (**`data/илова жадваллар.xlsx`**,
