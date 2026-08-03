@@ -43,3 +43,6 @@ backend/design.md
 
 # Brainstorming visual-companion mockups (local, per-developer)
 .superpowers/
+
+# Local DB snapshots (pg_dump) — never push
+db-backups/
