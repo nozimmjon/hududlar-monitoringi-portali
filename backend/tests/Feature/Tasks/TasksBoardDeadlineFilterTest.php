@@ -46,6 +46,18 @@ beforeEach(function () {
         'period_code' => 'ongoing', 'deadline_text' => '2026 йил давомида',
         'headline_plan' => 10,
     ]);
+    // Legacy rows from before the H2 template: «II ярим йиллик» was stored as
+    // h1 and «III чорак» as null — the bucket must be derived from the text.
+    Task::factory()->create([
+        'title' => 'Иккинчи ярим йиллик топшириқ', 'indicator_code' => null,
+        'period_code' => 'h1', 'deadline_text' => '2026 йил II ярим йиллик',
+        'headline_plan' => 10,
+    ]);
+    Task::factory()->create([
+        'title' => 'Учинчи чорак топшириқ', 'indicator_code' => null,
+        'period_code' => null, 'deadline_text' => '2026 йил III чорак',
+        'headline_plan' => 10,
+    ]);
 });
 
 function boardTitles(string $deadline): array
@@ -69,8 +81,16 @@ test('h1 bucket keeps half-year and first-half month deadlines', function () {
     expect(boardTitles('h1'))->toBe(['Ярим йиллик топшириқ', 'Май ойи топшириқ']);
 });
 
-test('q3 bucket keeps only third-quarter month deadlines', function () {
-    expect(boardTitles('q3'))->toBe(['Сентябр ойи топшириқ']);
+test('q3 bucket keeps third-quarter months and III чорак deadlines', function () {
+    expect(boardTitles('q3'))->toBe(['Сентябр ойи топшириқ', 'Учинчи чорак топшириқ']);
+});
+
+test('h2 bucket keeps II ярим йиллик deadlines even with a legacy h1 code', function () {
+    expect(boardTitles('h2'))->toBe(['Иккинчи ярим йиллик топшириқ']);
+});
+
+test('h1 bucket does not swallow II ярим йиллик tasks', function () {
+    expect(boardTitles('h1'))->not->toContain('Иккинчи ярим йиллик топшириқ');
 });
 
 test('year bucket keeps only year-end deadlines', function () {
@@ -82,7 +102,7 @@ test('ongoing bucket keeps only davomida deadlines', function () {
 });
 
 test('all shows every task', function () {
-    expect(boardTitles('all'))->toHaveCount(5);
+    expect(boardTitles('all'))->toHaveCount(7);
 });
 
 test('totals respect the deadline filter', function () {
@@ -98,7 +118,7 @@ test('deadline options list only buckets present in data, in deadline order', fu
     $options = Livewire::test(TasksBoard::class)
         ->instance()->deadlineOptions;
 
-    expect(array_keys($options))->toBe(['h1', 'q3', 'year', 'ongoing']);
+    expect(array_keys($options))->toBe(['h1', 'q3', 'h2', 'year', 'ongoing']);
 });
 
 test('clear filters resets deadline to the h1 default', function () {

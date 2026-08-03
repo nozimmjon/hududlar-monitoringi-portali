@@ -44,12 +44,35 @@ class TaskPeriod
     ];
 
     /**
-     * Deadline filter bucket: 'h1' (incl. Jan–Jun months), 'q3'/'q4' months,
-     * 'year', 'ongoing', 'none' for unknown.
+     * Deadline filter bucket: 'h1' (incl. Jan–Jun months and I–II quarters),
+     * 'q3'/'q4' (quarters or their months), 'h2', 'year', 'ongoing', 'none'.
+     *
+     * The deadline TEXT wins over the stored code for half/quarter phrasing —
+     * rows imported before the H2 template existed carry 'h1' for
+     * «II ярим йиллик» and null for «III чорак».
      */
     public static function deadlineBucket(?string $periodCode, ?string $deadlineText): string
     {
-        if ($periodCode === 'h1') return 'h1';
+        $t = (string) preg_replace('/\s+/u', ' ', str_replace("\u{00A0}", ' ', (string) $deadlineText));
+
+        if (mb_strpos($t, 'ярим йиллик') !== false) {
+            return preg_match('/\bII\b/u', $t) === 1 ? 'h2' : 'h1';
+        }
+        if (mb_strpos($t, 'чорак') !== false) {
+            if (preg_match('/\b(IV|III|II|I)\b/u', $t, $m)) {
+                return match ($m[1]) {
+                    'III'   => 'q3',
+                    'IV'    => 'q4',
+                    default => 'h1', // I–II quarters close inside the first half
+                };
+            }
+            return 'none';
+        }
+
+        if ($periodCode === 'h1' || $periodCode === 'q1' || $periodCode === 'q2') return 'h1';
+        if ($periodCode === 'h2') return 'h2';
+        if ($periodCode === 'q3') return 'q3';
+        if ($periodCode === 'q4') return 'q4';
 
         if ($periodCode === 'month') {
             $m = self::monthNumber($deadlineText);
@@ -70,14 +93,15 @@ class TaskPeriod
             'h1'      => 'I ярим йиллик',
             'q3'      => 'III чорак',
             'q4'      => 'IV чорак',
+            'h2'      => 'II ярим йиллик',
             'year'    => 'Йил якуни',
             'ongoing' => 'Йил давомида',
         ];
     }
 
     /**
-     * Board sort bucket by deadline: H1 (incl. Jan–Jun months) → Q3 months →
-     * Q4 months → year-end → ongoing → unknown.
+     * Board sort bucket by deadline: H1 (incl. Jan–Jun months) → Q3 → Q4 →
+     * H2 → year-end → ongoing → unknown.
      */
     public static function deadlineSortRank(?string $periodCode, ?string $deadlineText): int
     {
@@ -85,6 +109,7 @@ class TaskPeriod
             'h1'      => 10,
             'q3'      => 20,
             'q4'      => 25,
+            'h2'      => 27,
             'year'    => 30,
             'ongoing' => 40,
             default   => 50,
@@ -109,7 +134,17 @@ class TaskPeriod
         $t = trim((string) $t);
         if ($t === '') return null;
 
-        if (mb_strpos($t, 'ярим йиллик') !== false) return 'h1';
+        if (mb_strpos($t, 'ярим йиллик') !== false) {
+            return preg_match('/\bII\b/u', $t) === 1 ? 'h2' : 'h1';
+        }
+        if (mb_strpos($t, 'чорак') !== false && preg_match('/\b(IV|III|II|I)\b/u', $t, $m)) {
+            return match ($m[1]) {
+                'I'     => 'q1',
+                'II'    => 'q2',
+                'III'   => 'q3',
+                default => 'q4',
+            };
+        }
         if (mb_strpos($t, 'якуни') !== false)       return 'year';
         if (mb_strpos($t, 'давомида') !== false)     return 'ongoing';
         if (preg_match('/(январ|феврал|март|апрел|май|июн|июл|август|сентябр|октябр|ноябр|декабр)/u', $t)) {
