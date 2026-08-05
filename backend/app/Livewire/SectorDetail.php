@@ -35,31 +35,6 @@ class SectorDetail extends Component
 
     public function render()
     {
-        $tasks = SectorTask::where('sector_id', $this->sector->id)
-            ->orderBy('task_no')
-            ->with('progress')
-            ->get();
-
-        $counts = [
-            'all'         => $tasks->count(),
-            'done'        => $tasks->where('status', 'done')->count(),
-            'open'        => $tasks->where('status', 'open')->count(),
-            'in_progress' => $tasks->where('status', 'in_progress')->count(),
-        ];
-
-        $linesTotal = (int) $tasks->sum('lines_total');
-        $linesDone  = (int) $tasks->sum('lines_done');
-        $hasReport  = $tasks->contains(fn (SectorTask $t) => $t->status !== 'in_progress');
-        $pct        = $hasReport && $linesTotal > 0 ? $linesDone / $linesTotal * 100 : null;
-
-        return view('livewire.sector-detail', [
-            'tasks'  => $this->filter === 'all' ? $tasks : $tasks->where('status', $this->filter)->values(),
-            'counts' => $counts,
-            'agg'    => [
-                'lines_total' => $linesTotal,
-                'lines_done'  => $linesDone,
-                'pct'         => $pct,
-            ],
-        ]);
+        return view('livewire.sector-detail', \App\Support\SectorDisplay::detailData($this->sector, $this->filter));
     }
 }

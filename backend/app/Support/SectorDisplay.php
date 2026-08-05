@@ -63,7 +63,7 @@ class SectorDisplay
             return null;
         }
         if ((int) $task->lines_total > 1) {
-            return $task->lines_total > 0 ? $task->lines_done / $task->lines_total * 100 : null;
+            return $task->lines_done / $task->lines_total * 100;
         }
 
         return $task->headline_pct !== null ? (float) $task->headline_pct : null;
@@ -76,6 +76,10 @@ class SectorDisplay
      */
     public static function detailData(Sector $sector, string $filter): array
     {
+        if (! in_array($filter, ['all', 'done', 'open', 'in_progress'], true)) {
+            $filter = 'all';
+        }
+
         $tasks = SectorTask::where('sector_id', $sector->id)
             ->orderBy('task_no')
             ->with('progress')

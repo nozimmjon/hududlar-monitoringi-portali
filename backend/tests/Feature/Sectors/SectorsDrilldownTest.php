@@ -35,20 +35,20 @@ test('the sector detail page shows task cards with status chips', function () {
     $response->assertSee('Товар маҳсулот ҳажмини етказиш.');
     $response->assertSee('Бажарилди');       // done chip
     $response->assertSee('Бажарилмаган');    // open chip (weakest link: газ 53%)
-    $response->assertSee('Бажарилмоқда');    // in_progress chip
-    $response->assertSee('Муддат');
+    $response->assertSee('Кутилмоқда');      // in_progress chip (renamed in the e-panel design)
+    $response->assertSee('муддат');
     $response->assertSee('2026 йил якуни');
 });
 
-test('single-line task shows РЕЖА/АМАЛДА, multi-line shows indicator counts', function () {
+test('single-line task shows РЕЖА/ФАКТ, multi-line shows indicator counts', function () {
     $this->seed();
     importSectorsUiFixture();
 
     Livewire::test(SectorDetail::class, ['code' => 'uzbekneftgaz'])
         ->assertSee('Режа')
-        ->assertSee('Амалда')
+        ->assertSee('Факт')
         ->assertSee('Индикаторлар')
-        ->assertSee('Бажарилиш');
+        ->assertSee('Умумий ижро');
 });
 
 test('status filter narrows the task list', function () {
@@ -66,11 +66,11 @@ test('status filter narrows the task list', function () {
         ->assertDontSee('Товар маҳсулот ҳажмини етказиш.');
 });
 
-test('dashboard cards link to the sector detail page', function () {
+test('the sector detail page stays reachable by direct URL', function () {
     $this->seed();
     importSectorsUiFixture();
 
-    $this->get('/sectors')->assertSee('/sectors/uzbekneftgaz');
+    $this->get('/sectors/uzbekneftgaz')->assertOk()->assertSee('«Ўзбекнефтгаз» АЖ');
 });
 
 test('an unknown sector code returns 404', function () {

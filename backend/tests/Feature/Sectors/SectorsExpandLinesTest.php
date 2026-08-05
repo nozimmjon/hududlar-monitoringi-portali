@@ -55,5 +55,5 @@ test('rows without actuals are shown dimmed with a dash', function () {
         ->call('toggleTask', $task->id);
 
     $component->assertSee('Суюқ углеводородлар');
-    $component->assertSeeHtml('sdp-line dim');
+    $component->assertSeeHtml('sec-line dim');
 });

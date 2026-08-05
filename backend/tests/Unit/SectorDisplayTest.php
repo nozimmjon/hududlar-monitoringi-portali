@@ -25,6 +25,7 @@ test('fmt renders numbers with space thousands and comma decimals', function () 
     expect(SectorDisplay::fmt(1234.5))->toBe('1 234,5');
     expect(SectorDisplay::fmt(56.0))->toBe('56');
     expect(SectorDisplay::fmt(0.25))->toBe('0,25');
+    expect(SectorDisplay::fmt('1234.500000'))->toBe('1 234,5');
 });
 
 test('taskPct: in_progress is null, multi-line uses line ratio, single-line uses headline_pct', function () {
