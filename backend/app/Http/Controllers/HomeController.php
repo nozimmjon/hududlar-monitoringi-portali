@@ -47,7 +47,8 @@ class HomeController extends Controller
             $total = $rows->count();
             // Entry-page reading: a task is "on track" unless it is reported behind
             // plan. Бажарилмоқда (nothing achieved yet) counts with Бажарилди here;
-            // the tasks board keeps the three states apart.
+            // the tasks board keeps the three states apart; the starter page's card
+            // uses the strict reading.
             $done  = $rows->whereIn('status', ['done', 'in_progress'])->count();
             $stats[] = [
                 'code'  => (int) $code,

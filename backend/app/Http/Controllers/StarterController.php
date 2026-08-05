@@ -29,6 +29,9 @@ class StarterController extends Controller
         try {
             return Cache::remember('starter.regions', 600, function (): array {
                 $total = Task::hasPlan()->count();
+                // Strict reading: only status='done'. Deliberately diverges from the
+                // map page's lenient done+in_progress pills (HomeController::regionStats)
+                // — matches the tasks board and the «бажарилди» label.
                 $done  = Task::hasPlan()->where('status', 'done')->count();
 
                 return [
@@ -53,6 +56,7 @@ class StarterController extends Controller
                 $lines     = (int) SectorTask::sum('lines_total');
                 $linesDone = (int) SectorTask::sum('lines_done');
                 $reported  = SectorTask::where('status', '!=', 'in_progress')->exists();
+                $allDone   = $reported && SectorTask::where('status', '!=', 'done')->doesntExist();
 
                 return [
                     'sectors'  => Sector::count(),
@@ -60,7 +64,7 @@ class StarterController extends Controller
                     'lines'    => $lines,
                     'reported' => $reported,
                     'pct'      => $reported && $lines > 0
-                        ? SectorDisplay::pshow($linesDone / $lines * 100, false)
+                        ? SectorDisplay::pshow($linesDone / $lines * 100, $allDone)
                         : null,
                 ];
             });

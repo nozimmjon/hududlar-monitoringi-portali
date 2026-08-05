@@ -483,16 +483,16 @@ body {
       <span class="rule anim" style="--d: 100ms"></span>
       <span class="module-title anim" role="heading" aria-level="2" style="--d: 100ms">Вилоятлар</span>
       <span class="module-desc anim" style="--d: 180ms">Кафолат хатларидаги ваъдалар ижроси — ҳудудлар кесимида режа ва амал солиштируви, вилоятдан туман топшириғигача.</span>
+      @if($regions !== null)
       <span class="stats anim" style="--d: 260ms">
-        @if($regions !== null)
         <span class="stat"><span class="num" data-count="{{ $regions['regions'] }}">{{ $fmt($regions['regions']) }}</span><span class="label">ҳудуд</span></span>
         <span class="stat"><span class="num" data-count="{{ $regions['total'] }}">{{ $fmt($regions['total']) }}</span><span class="label">топшириқ</span></span>
         <span class="stat"><span class="num" data-count="{{ $regions['done'] }}">{{ $fmt($regions['done']) }}</span><span class="label">бажарилди</span></span>
         @if($regions['pct'] !== null)
         <span class="stat"><span class="num"><span data-count="{{ $regions['pct'] }}">{{ $regions['pct'] }}</span><span class="unit">%</span></span><span class="label">ижро</span></span>
         @endif
-        @endif
       </span>
+      @endif
       <span class="enter anim" style="--d: 340ms">Кириш <span class="arr">&#8594;</span></span>
     </span>
   </a>
@@ -533,8 +533,8 @@ body {
       <span class="rule anim" style="--d: 160ms"></span>
       <span class="module-title anim" role="heading" aria-level="2" style="--d: 160ms">Тармоқлар</span>
       <span class="module-desc anim" style="--d: 240ms">@if($sectors !== null && ! $sectors['reported'])Тармоқ корхоналарининг кафолат хатларидаги вазифалари — режалар киритилган, амал ҳисоботи кутилмоқда.@else Тармоқ корхоналарининг кафолат хатларидаги вазифалари — режа ва факт мониторинги.@endif</span>
+      @if($sectors !== null)
       <span class="stats anim" style="--d: 320ms">
-        @if($sectors !== null)
         <span class="stat"><span class="num" data-count="{{ $sectors['sectors'] }}">{{ $fmt($sectors['sectors']) }}</span><span class="label">корхона</span></span>
         <span class="stat"><span class="num" data-count="{{ $sectors['tasks'] }}">{{ $fmt($sectors['tasks']) }}</span><span class="label">топшириқ</span></span>
         <span class="stat"><span class="num" data-count="{{ $sectors['lines'] }}">{{ $fmt($sectors['lines']) }}</span><span class="label">индикатор</span></span>
@@ -543,8 +543,8 @@ body {
         @else
         <span class="stat"><span class="state-val"><span class="dot"></span>Ҳисобот кутилмоқда</span><span class="label">жорий давр</span></span>
         @endif
-        @endif
       </span>
+      @endif
       <span class="enter anim" style="--d: 400ms">Кириш <span class="arr">&#8594;</span></span>
     </span>
   </a>

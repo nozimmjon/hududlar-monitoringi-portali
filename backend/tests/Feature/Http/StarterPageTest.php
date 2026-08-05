@@ -23,7 +23,7 @@ test('GET / renders the starter page with both module cards', function () {
     $response->assertSee('href="' . route('regions') . '"', escape: false);
     $response->assertSee('href="' . route('sectors') . '"', escape: false);
     $response->assertSee('Ҳудудлар мониторинги платформаси');
-    $response->assertDontSee('layouts.app'); // standalone shell
+    $response->assertDontSee('side-brand'); // standalone shell — no app-layout chrome
 });
 
 test('the regions card shows strict done counts and percent', function () {
