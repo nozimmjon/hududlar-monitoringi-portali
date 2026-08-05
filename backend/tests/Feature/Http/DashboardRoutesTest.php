@@ -34,9 +34,9 @@ test('execution route returns 200', function () {
     $this->get('/execution')->assertStatus(200);
 });
 
-test('root renders the entry map landing page', function () {
+test('the regions map page responds OK', function () {
     $this->seed();
-    $this->get('/')->assertOk();
+    $this->get('/regions')->assertOk();
 });
 
 test('dashboard with explicit module and kpi returns 200', function () {

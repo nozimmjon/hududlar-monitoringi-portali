@@ -112,14 +112,14 @@ svg.uz { width: 100%; height: min(76vh, 900px); display: block; }
   color: white;
 }
 
-.sectors-link {
+.crumb-link {
   background: var(--card); border: 1px solid var(--line); border-radius: 999px;
   box-shadow: var(--shadow-s); padding: 11px 20px;
   font-size: 13.5px; font-weight: 800; color: var(--ink); white-space: nowrap;
   transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease), transform 180ms var(--ease);
 }
-.sectors-link:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-m); }
-.sectors-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.crumb-link:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-m); }
+.crumb-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .rg { cursor: pointer; }
 .rg path {
@@ -186,7 +186,7 @@ svg.uz:hover .rg:not(.hot) path { opacity: .45; }
 <body>
 <header class="top">
   <span class="wordmark"><span class="logo-chip"><img src="/logo.svg" alt="CERR"></span> Ҳудудлар мониторинги платформаси</span>
-  <a class="sectors-link" href="{{ route('sectors') }}">Тармоқ корхоналари →</a>
+  <a class="crumb-link" href="{{ route('home') }}">← Бош саҳифа</a>
 </header>
 
 <div class="lede">

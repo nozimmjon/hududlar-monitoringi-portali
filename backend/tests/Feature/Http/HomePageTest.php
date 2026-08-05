@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->seed();
 });
 
-test('GET / renders the entry map page with per-region task stats', function () {
+test('GET /regions renders the entry map page with per-region task stats', function () {
     Task::factory()->create([
         'region_code' => 1703, 'task_number' => '1',
         'status' => 'done', 'headline_plan' => 10,
@@ -30,7 +30,7 @@ test('GET / renders the entry map page with per-region task stats', function () 
         'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
     ]);
 
-    $response = $this->get('/');
+    $response = $this->get('/regions');
 
     $response->assertOk();
     $response->assertSee('Ҳудудий топшириқлар ижроси');
@@ -61,15 +61,15 @@ test('the entry map counts Бажарилмоқда tasks on the done side', fun
         'period_code' => 'h1', 'deadline_text' => '2026 йил I ярим йиллик',
     ]);
 
-    $response = $this->get('/');
+    $response = $this->get('/regions');
 
     // 3 planned tasks: done + in_progress on the done side, only 'open' left over.
     $response->assertOk();
     $response->assertSee('"total":3,"done":2,"open":1', false);
 });
 
-test('GET / works with no tasks at all', function () {
-    $this->get('/')->assertOk()->assertSee('Ҳудудий топшириқлар ижроси');
+test('GET /regions works with no tasks at all', function () {
+    $this->get('/regions')->assertOk()->assertSee('Ҳудудий топшириқлар ижроси');
 });
 
 test('clicking a region switches the session region and opens the dashboard', function () {
