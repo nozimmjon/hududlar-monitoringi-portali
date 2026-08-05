@@ -5774,6 +5774,7 @@
 /* ===== Sectors pages (тармоқлар) — «Панель» design, scoped sec- ===== */
 body.sectors-body{
   display:block;
+  scrollbar-gutter:stable;
   font-family:'Inter','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;
   font-size:14px;line-height:1.5;color:var(--sec-ink);-webkit-font-smoothing:antialiased;
   background:#f0f3f8 linear-gradient(180deg,#e6edf7 0%,#eef2f8 260px,#f0f3f8 520px) no-repeat;
@@ -5792,6 +5793,7 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sectors-body .tnum{font-variant-numeric:tabular-nums}
 .sectors-body button{font-family:inherit;cursor:pointer}
 .sec-shell :focus-visible{outline:2px solid var(--sec-blue);outline-offset:2px;border-radius:4px}
+.sec-top :focus-visible{outline-color:#fff}
 .sec-shell .rise{opacity:0;transform:translateY(14px);filter:blur(5px);animation:secRise .6s var(--sec-ease) both}
 @keyframes secRise{60%{filter:blur(0)}to{opacity:1;transform:none;filter:blur(0)}}
 
@@ -5825,7 +5827,7 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sec-search{position:relative;width:230px}
 .sec-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.65)}
 .sec-search input{
-  width:100%;font-family:inherit;font-size:13px;color:#fff;
+  width:100%;min-height:0;font-family:inherit;font-size:13px;color:#fff;
   background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);border-radius:9px;
   padding:7px 11px 7px 33px;outline:none;transition:border-color .18s,box-shadow .18s,background .18s;
 }
@@ -5965,6 +5967,7 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sec-veil{
   position:fixed;inset:0;background:rgba(16,32,51,.34);z-index:60;
   opacity:0;pointer-events:none;transition:opacity .3s;
+  -webkit-backdrop-filter:blur(2px);
   backdrop-filter:blur(2px);
 }
 .sec-veil.on{opacity:1;pointer-events:auto}
@@ -6065,7 +6068,13 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 }
 @media (max-width:960px){.sec-detail-wrap{margin:16px 12px 60px}}
 
+@media (max-width:520px){
+  .sec-line{grid-template-columns:1fr 100px 46px;gap:8px}
+  .sec-lines,.sec-ltog,.sec-task .tfacts{margin-left:0}
+  .sec-ostats{grid-template-columns:repeat(2,1fr)}
+}
+
 @media (prefers-reduced-motion: reduce){
   .sec-shell *,.sec-shell *::before,.sec-shell *::after,
-  .sec-veil,.sec-over,.sec-pline{animation-duration:.001s!important;transition-duration:.001s!important}
+  .sec-veil,.sec-over,.sec-pline{animation-duration:.001s!important;transition-duration:.001s!important;transition-delay:0s!important;animation-delay:0s!important}
 }
