@@ -36,6 +36,7 @@ test('the sector detail page shows task cards with status chips', function () {
     $response->assertSee('Бажарилди');       // done chip
     $response->assertSee('Бажарилмаган');    // open chip (weakest link: газ 53%)
     $response->assertSee('Кутилмоқда');      // in_progress chip (renamed in the e-panel design)
+    $response->assertSeeHtml('sec-chip wait');
     $response->assertSee('муддат');
     $response->assertSee('2026 йил якуни');
 });

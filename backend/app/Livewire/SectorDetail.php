@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Sector;
-use App\Models\SectorTask;
+use App\Support\SectorDisplay;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -35,6 +35,6 @@ class SectorDetail extends Component
 
     public function render()
     {
-        return view('livewire.sector-detail', \App\Support\SectorDisplay::detailData($this->sector, $this->filter));
+        return view('livewire.sector-detail', SectorDisplay::detailData($this->sector, $this->filter));
     }
 }

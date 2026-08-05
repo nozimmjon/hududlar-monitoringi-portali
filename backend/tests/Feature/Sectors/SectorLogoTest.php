@@ -42,5 +42,5 @@ test('every seeded sector card renders its logo image', function () {
     expect($html)->toContain('img/sectors/kimyo_sanoati.png');
     expect($html)->toContain('img/sectors/farmatsevtika.svg');
     // All 17 have a bundled logo now — no monogram fallback in the page.
-    expect($html)->not->toContain('sector-card-mono');
+    expect($html)->not->toContain('sec-mono');
 });
