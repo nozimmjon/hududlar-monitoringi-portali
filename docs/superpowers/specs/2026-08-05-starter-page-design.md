@@ -23,7 +23,7 @@ Content:
 
 - Wordmark row: navy logo chip (existing `logo.svg` treatment) + portal name.
 - Two module cards, equal visual weight:
-  - **Вилоятлар** → `/regions`: 14 ҳудуд, топшириқ done/total, overall ижро % (same aggregate family the map page's KPI cards compute — the shared logic is extracted, not duplicated).
+  - **Вилоятлар** → `/regions`: 14 ҳудуд, топшириқ done/total, overall ижро % — STRICT reading (`status = 'done'` only), deliberately diverging from the map page's lenient done+in_progress pills; both sides carry cross-referencing comments (decided at implementation review).
   - **Тармоқлар** → `/sectors`: 17 корхона, топшириқ count, indicator-level % with the 99-cap rule via `App\Support\SectorDisplay`; while no actuals are reported the card shows the «ҳисобот кутилмоқда» state instead of a misleading 0%.
 - Both cards are full-card links with keyboard focus states.
 

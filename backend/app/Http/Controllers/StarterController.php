@@ -41,7 +41,9 @@ class StarterController extends Controller
                     'pct'     => $total > 0 ? (int) round($done / $total * 100) : null,
                 ];
             });
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            report($e); // degrade silently on the page, loudly in the log
+
             return null;
         }
     }
@@ -68,7 +70,9 @@ class StarterController extends Controller
                         : null,
                 ];
             });
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            report($e); // degrade silently on the page, loudly in the log
+
             return null;
         }
     }
