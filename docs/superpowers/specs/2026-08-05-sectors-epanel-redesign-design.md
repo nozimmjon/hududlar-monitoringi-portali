@@ -36,7 +36,7 @@ Prototype zones, one `<button>` per card, `wire:click="openSector(code)"` (cards
 - **Zone 1 — header:** index `01`-style counter, 50px logo (server-side monogram fallback when `logoPath()` is null, plus `onerror` monogram fallback), enterprise `cardName()` with the long-name shrink class (> 12 chars per prototype).
 - **Zone 2 — measure:** large percentage (44px) with the existing 99-cap rule (only a fully done sector shows ≥ 100; `—` when no report), and two icon stats: топшириқ `done/total`, индикатор `ld/lt`.
 - **Zone 3 — strip:** one segment per task, colored: done → green, waiting → grey, otherwise task-pct tier. Tooltip per segment (`Т-01: бажарилди · 119%`). If **all** tasks are waiting: replace strip with «Ҳисобот кутилмоқда» note and dim the card (`waitc`).
-- **Footer:** nearest deadline bucket + «Батафсил →» revealed on hover. Bucket derived from each task line's `deadline_text` by keyword match — «III чорак» → q3, «IV чорак» → q4, «ярим йиллик» → h2, otherwise year-end («Йил якуни»); the card shows the earliest bucket present.
+- **Footer:** nearest deadline bucket + «Батафсил →» revealed on hover. Bucket taken from each task line's `deadline_code` (already normalized on import to `q3 | q4 | h2 | year`); the card shows the earliest bucket present (q3 → «III чорак», q4 → «IV чорак», h2 → «2-ярим йиллик», year → «Йил якуни»).
 
 Search with no matches renders «Ҳеч нарса топилмади» across the grid.
 
