@@ -50,7 +50,7 @@ Pages are Livewire components, one per nav item, mounted from `resources/views/p
 | `/districts` | `DistrictsPage` | District comparison (map + table) |
 | `/profile` | `RegionProfile` | District drilldown (incl. "Туман топшириқлари" panel) |
 | `/execution` | `ExecutionPage` | Execution monitoring |
-| `/sectors` | `SectorsDashboard` | Sector enterprises (тармоқлар) guarantee-letter tasks — standalone national page, no region scoping; entered from the home page only |
+| `/sectors` | `SectorsDashboard` | Sector enterprises (тармоқлар) guarantee-letter tasks — standalone national page, no region scoping; entered from the home page only. Card click opens a Livewire slide-over drawer; /sectors/{code} stays as the deep-linkable detail page sharing the same partial |
 
 The active region is session state (`App\Support\CurrentRegion`, default 1703 = Andijan, switchable via `RegionSwitcher`). Region/district reference data uses SOATO codes.
 
