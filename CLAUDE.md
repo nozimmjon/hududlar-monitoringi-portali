@@ -45,12 +45,14 @@ Pages are Livewire components, one per nav item, mounted from `resources/views/p
 
 | Route | Livewire component | Purpose |
 | --- | --- | --- |
+| `/` | `StarterController` → `pages/start` | Front door: module chooser (Вилоятлар · Тармоқлар) with cached aggregates |
+| `/regions` | `HomeController@index` → `pages/home` | Country map with per-region task execution; region click → `/region/{code}` → dashboard |
 | `/dashboard` | `KpiDashboard` (+ `Dashboard/*` panels) | KPI overview per region |
 | `/tasks` | `TasksBoard` | Task monitoring board (plan/actual/% per task) |
 | `/districts` | `DistrictsPage` | District comparison (map + table) |
 | `/profile` | `RegionProfile` | District drilldown (incl. "Туман топшириқлари" panel) |
 | `/execution` | `ExecutionPage` | Execution monitoring |
-| `/sectors` | `SectorsDashboard` | Sector enterprises (тармоқлар) guarantee-letter tasks — standalone national page, no region scoping; entered from the home page only. Card click opens a Livewire slide-over drawer; /sectors/{code} stays as the deep-linkable detail page sharing the same partial |
+| `/sectors` | `SectorsDashboard` | Sector enterprises (тармоқлар) guarantee-letter tasks — standalone national page, no region scoping; entered from the starter page only. Card click opens a Livewire slide-over drawer; /sectors/{code} stays as the deep-linkable detail page sharing the same partial |
 
 The active region is session state (`App\Support\CurrentRegion`, default 1703 = Andijan, switchable via `RegionSwitcher`). Region/district reference data uses SOATO codes.
 

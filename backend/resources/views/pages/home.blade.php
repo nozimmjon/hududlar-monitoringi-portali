@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext">
 <style>
 /* Hallmark · macrostructure: Canvas-card hero · theme: custom "soft cloud"
- * Entry page: country map + per-region task execution, click → region dashboard.
+ * Map page (/regions): country map + per-region task execution, click → region dashboard.
  * Font/brand matched to the dashboard (Inter + CERR navy). */
 :root {
   --bg:        oklch(97.5% 0.007 255);

@@ -106,7 +106,7 @@ test('non-macro module renders the scoreline strip', function () {
     $response->assertSee('scoreline execution-strip', false);
 });
 
-test('the sidebar logo links to the entry map', function () {
+test('the sidebar logo links to the starter page', function () {
     $this->seed();
     $this->get('/dashboard')->assertSee('<a class="side-brand" href="' . route('home') . '"', false);
 });

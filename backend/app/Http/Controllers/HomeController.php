@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
-    /** Entry page: country map with per-region task execution status. */
+    /** Map page (/regions): country map with per-region task execution status. */
     public function index()
     {
         // Region-level display names: short for the pills, full for tooltips.
