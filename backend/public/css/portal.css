@@ -5772,9 +5772,9 @@
 .stp-line-pct { font-weight: 800; margin-left: 8px; }
 
 /* ===== Sectors pages (тармоқлар) — «Панель» design, scoped sec- ===== */
+html:has(body.sectors-body){scrollbar-gutter:stable}
 body.sectors-body{
   display:block;
-  scrollbar-gutter:stable;
   font-family:'Inter','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;
   font-size:14px;line-height:1.5;color:var(--sec-ink);-webkit-font-smoothing:antialiased;
   background:#f0f3f8 linear-gradient(180deg,#e6edf7 0%,#eef2f8 260px,#f0f3f8 520px) no-repeat;
