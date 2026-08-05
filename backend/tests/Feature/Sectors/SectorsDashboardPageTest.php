@@ -72,9 +72,32 @@ test('a sector card shows the 99-capped percent, counts, and earliest deadline b
     $html = $this->get('/sectors')->getContent();
 
     // Neftgaz: 1/2 lines done → 50%; q3 line present → III чорак on the card.
-    expect($html)->toContain('50');
+    expect($html)->toContain('50<span class="u">%</span>');
     expect($html)->toContain('III чорак');
     expect($html)->toContain('Батафсил');
+});
+
+test('the card deadline bucket follows the latest period only', function () {
+    $this->seed();
+    // 2026-07: q3 line present → III чорак.
+    $file = SectorWorkbookBuilder::make([
+        ['1. Ўзбекнефтгаз', 'орг', [
+            [1, 1, 'В1.', 'Кўрсаткич А', 'та', '2026 йил III-чорак', 100, 120, null],
+        ]],
+    ]);
+    Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-07']);
+    // 2026-08: same task now carries only a year-end line → bucket must move.
+    $file = SectorWorkbookBuilder::make([
+        ['1. Ўзбекнефтгаз', 'орг', [
+            [1, 1, 'В1.', 'Кўрсаткич А', 'та', '2026 йил якуни', 100, 120, null],
+        ]],
+    ]);
+    Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-08']);
+
+    $html = $this->get('/sectors')->getContent();
+
+    expect($html)->toContain('Йил якуни');
+    expect($html)->not->toContain('III чорак');
 });
 
 test('the rating card ranks reporting sectors best-first', function () {
@@ -82,7 +105,8 @@ test('the rating card ranks reporting sectors best-first', function () {
     importPanelFixture();
 
     // Гидро 100% > Нефтгаз 50%.
-    $this->get('/sectors')->assertSeeInOrder(['Энг юқори', 'Ўзбекгидроэнерго', 'Энг паст']);
+    $this->get('/sectors')->assertSeeInOrder(['Энг юқори', 'Ўзбекгидроэнерго', 'Ўзбекнефтгаз'])
+        ->assertDontSee('Энг паст');
 });
 
 test('search narrows the card grid but not the rail', function () {
@@ -93,6 +117,7 @@ test('search narrows the card grid but not the rail', function () {
         ->set('search', 'НКМК')
         ->assertSeeHtml('data-code="nkmk"')
         ->assertDontSeeHtml('data-code="uzavtosanoat"')
+        ->assertSeeHtml('ps-uzavtosanoat')
         ->set('search', 'зззйўқ')
         ->assertSee('Ҳеч нарса топилмади');
 });

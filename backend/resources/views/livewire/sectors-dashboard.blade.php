@@ -56,10 +56,12 @@
                         @php $pt = SectorDisplay::tier($c['pct']); @endphp
                         <span role="button" tabindex="0" wire:key="ps-{{ $c['sector']->code }}"
                               wire:click="openSector(@js($c['sector']->code))"
+                              wire:keydown.enter="openSector(@js($c['sector']->code))"
                               style="background:var(--sec-{{ $pt }})"
                               title="{{ $c['sector']->cardName() }}: {{ $c['pct'] === null ? 'кутилмоқда' : SectorDisplay::pshow($c['pct'], $c['tasks_total'] > 0 && $c['done'] === $c['tasks_total']) . '%' }}"></span>
                     @endforeach
                 </div>
+                @php $n = $ranked->count(); @endphp
                 @if($ranked->isNotEmpty())
                     <div class="lsec up">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
@@ -67,26 +69,29 @@
                     </div>
                     @foreach($ranked->take(3) as $k => $r)
                         <div class="sec-lrow" role="button" tabindex="0" wire:key="top-{{ $r['sector']->code }}"
-                             wire:click="openSector(@js($r['sector']->code))">
+                             wire:click="openSector(@js($r['sector']->code))"
+                             wire:keydown.enter="openSector(@js($r['sector']->code))">
                             <span class="rk tnum">{{ str_pad($k + 1, 2, '0', STR_PAD_LEFT) }}</span>
                             <span class="ln">{{ $r['sector']->cardName() }}</span>
                             <span class="lp tnum" style="color:var(--sec-{{ SectorDisplay::tier($r['pct']) }})">{{ SectorDisplay::pshow($r['pct'], $r['tasks_total'] > 0 && $r['done'] === $r['tasks_total']) }}%</span>
                         </div>
                     @endforeach
-                    <div class="ldiv"></div>
-                    <div class="lsec down">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>
-                        Энг паст
-                    </div>
-                    @php $n = $ranked->count(); @endphp
-                    @foreach($ranked->slice(max(0, $n - 3))->reverse()->values() as $k => $r)
-                        <div class="sec-lrow" role="button" tabindex="0" wire:key="low-{{ $r['sector']->code }}"
-                             wire:click="openSector(@js($r['sector']->code))">
-                            <span class="rk tnum">{{ str_pad($n - $k, 2, '0', STR_PAD_LEFT) }}</span>
-                            <span class="ln">{{ $r['sector']->cardName() }}</span>
-                            <span class="lp tnum" style="color:var(--sec-{{ SectorDisplay::tier($r['pct']) }})">{{ SectorDisplay::pshow($r['pct'], $r['tasks_total'] > 0 && $r['done'] === $r['tasks_total']) }}%</span>
+                    @if($n > 3)
+                        <div class="ldiv"></div>
+                        <div class="lsec down">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>
+                            Энг паст
                         </div>
-                    @endforeach
+                        @foreach($ranked->slice(max(0, $n - 3))->reverse()->values() as $k => $r)
+                            <div class="sec-lrow" role="button" tabindex="0" wire:key="low-{{ $r['sector']->code }}"
+                                 wire:click="openSector(@js($r['sector']->code))"
+                                 wire:keydown.enter="openSector(@js($r['sector']->code))">
+                                <span class="rk tnum">{{ str_pad($n - $k, 2, '0', STR_PAD_LEFT) }}</span>
+                                <span class="ln">{{ $r['sector']->cardName() }}</span>
+                                <span class="lp tnum" style="color:var(--sec-{{ SectorDisplay::tier($r['pct']) }})">{{ SectorDisplay::pshow($r['pct'], $r['tasks_total'] > 0 && $r['done'] === $r['tasks_total']) }}%</span>
+                            </div>
+                        @endforeach
+                    @endif
                 @endif
             </div>
         </aside>
