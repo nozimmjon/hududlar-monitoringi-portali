@@ -282,7 +282,7 @@ class ImportPlanSync extends Command
                 'pct'     => $r->pct_of_plan,
             ]);
         $head = $stored->firstWhere('line_no', 0) ?? $stored->first();
-        $agg = TaskStatus::forTask($task->task_number, $title, $stored);
+        $agg = TaskStatus::forTask($task->task_number, $title, $stored, $task->period_code, $task->deadline_text, $period);
 
         $task->update([
             'latest_period'   => $task->latest_period ?? $period,

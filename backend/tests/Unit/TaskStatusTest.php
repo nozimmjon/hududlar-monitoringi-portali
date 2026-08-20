@@ -114,3 +114,34 @@ test('the half-year unemployment measures task is ongoing-until-done', function 
     // The year-end sibling (#201) shares wording but is not overridden.
     expect(TaskStatus::forTask('201', $year, $partial)['status'])->toBe('open');
 });
+
+test('a below-plan verdict is deferred while the deadline has not been reached', function () {
+    $partial = [['plan' => 5.0, 'actual' => 8.5, 'pct' => 59.0]];
+
+    // Year-end promise running behind at H1 -> still being worked on.
+    expect(TaskStatus::forTask('70', 'Асосий озиқ-овқат маҳсулотлари йиллик нархларини барқарор сақлаш.', $partial,
+        'year', '2026 йил якуни билан', '2026-H1')['status'])->toBe('in_progress');
+
+    // Same task once the year has closed -> the verdict is due.
+    expect(TaskStatus::forTask('70', 'Асосий озиқ-овқат маҳсулотлари йиллик нархларини барқарор сақлаш.', $partial,
+        'year', '2026 йил якуни билан', '2026-H2')['status'])->toBe('open');
+
+    // H1 deadline at H1 -> due, verdict applies.
+    expect(TaskStatus::forTask('5', 'Бир топшириқ', $partial,
+        'h1', '2026 йил I ярим йиллик', '2026-H1')['status'])->toBe('open');
+
+    // Q3 deadline is not due at H1 but is due at Q3.
+    expect(TaskStatus::forTask('6', 'Бошқа топшириқ', $partial,
+        'q3', 'III чорак', '2026-H1')['status'])->toBe('in_progress');
+    expect(TaskStatus::forTask('6', 'Бошқа топшириқ', $partial,
+        'q3', 'III чорак', '2026-Q3')['status'])->toBe('open');
+
+    // Early completion still closes before the deadline.
+    expect(TaskStatus::forTask('70', 'Асосий озиқ-овқат маҳсулотлари йиллик нархларини барқарор сақлаш.',
+        [['plan' => 5.0, 'actual' => 3.0, 'pct' => 166.0]],
+        'year', '2026 йил якуни билан', '2026-H1')['status'])->toBe('done');
+
+    // No deadline context (legacy callers) -> old verdict-always behavior.
+    expect(TaskStatus::forTask('70', 'Асосий озиқ-овқат маҳсулотлари йиллик нархларини барқарор сақлаш.', $partial)['status'])
+        ->toBe('open');
+});

@@ -226,7 +226,7 @@ class ImportIlovaAnnex extends Command
         // Status is the weakest link over ALL planned lines, not just line 0.
         $agg = TaskStatus::forTask($task->task_number, $task->title, $lines->map(
             fn ($l) => ['plan' => $l->plan_value, 'actual' => $l->actual_value, 'pct' => $l->pct_of_plan]
-        ));
+        ), $task->period_code, $task->deadline_text, $period);
 
         $task->update([
             'latest_period'   => $period,

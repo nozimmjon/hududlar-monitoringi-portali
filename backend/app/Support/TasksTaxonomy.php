@@ -14,6 +14,45 @@ class TasksTaxonomy
         'VII' => 'employment',
     ];
 
+    /**
+     * Module from a section header's TEXT. The newer partner file generation
+     * numbers its sections with its own Roman sequence («IV. ЭКСПОРТ», «II. САНОАТ»,
+     * …), so the numeral alone misfiles them under ROMAN_TO_MODULE — when the label
+     * names a module, the text wins and the numeral is only a fallback.
+     * Ordered: first match wins, so more specific phrases come first
+     * («хорижий инвестиция» before «инвестиция»).
+     */
+    public const SECTION_LABEL_TO_MODULE = [
+        'хорижий инвестиция' => 'foreign_invest',
+        'инвестиция'         => 'budget_invest',
+        'экспорт'            => 'export',
+        'бюджет'             => 'budget',
+        'солиқ тушум'        => 'budget',
+        'инфляция'           => 'inflation',
+        'озиқ-овқат'         => 'inflation',
+        'бандли'             => 'employment',
+        'камбағал'           => 'employment',
+        'ишсизлик'           => 'employment',
+        'саноат'             => 'macro',
+        'қурилиш'            => 'macro',
+        'бозор хизматлари'   => 'macro',
+        'қишлоқ хўжалиги'    => 'macro',
+        'маҳаллийлаштириш'   => 'macro',
+        'энергия'            => 'macro',
+    ];
+
+    /** First SECTION_LABEL_TO_MODULE needle found in the label, or null. */
+    public static function moduleForLabel(?string $label): ?string
+    {
+        $t = mb_strtolower((string) $label);
+        foreach (self::SECTION_LABEL_TO_MODULE as $needle => $module) {
+            if (mb_strpos($t, $needle) !== false) {
+                return $module;
+            }
+        }
+        return null;
+    }
+
     public const NUMERIC_TO_INDICATOR = [
         '1.1' => 'grp',
         '1.2' => 'industry',

@@ -4562,7 +4562,7 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       box-shadow: var(--shadow-sm);
-      max-height: calc(100vh - 320px);
+      max-height: calc(100vh - 240px);
       overflow-y: auto;
       overscroll-behavior: contain;
     }
@@ -5789,7 +5789,6 @@ body.sectors-body{
   --sec-sh-lg:0 12px 26px rgba(15,42,71,.10),0 24px 60px rgba(15,42,71,.12);
   --sec-ease:cubic-bezier(.2,.8,.2,1);
 }
-body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sectors-body .tnum{font-variant-numeric:tabular-nums}
 .sectors-body button{font-family:inherit;cursor:pointer}
 .sec-shell :focus-visible{outline:2px solid var(--sec-blue);outline-offset:2px;border-radius:4px}
@@ -5873,8 +5872,8 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 }
 .sec-hstats > div:last-child .hk{margin-bottom:0}
 .sec-pstrip{display:flex;gap:2px;height:10px;margin-bottom:12px}
-.sec-pstrip span{flex:1;border-radius:2px;cursor:pointer;transition:transform .15s var(--sec-ease)}
-.sec-pstrip span:hover{transform:scaleY(1.45)}
+.sec-pstrip a{flex:1;border-radius:2px;cursor:pointer;transition:transform .15s var(--sec-ease)}
+.sec-pstrip a:hover{transform:scaleY(1.45)}
 .sec-kcard .lsec{
   display:flex;align-items:center;gap:6px;
   font-size:10px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--sec-faint);
@@ -5963,60 +5962,34 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sec-card:hover .cfoot .more{opacity:1;transform:none}
 .sec-empty{grid-column:1/-1;padding:50px;text-align:center;color:var(--sec-muted)}
 
-/* ---------- drawer ---------- */
-.sec-veil{
-  position:fixed;inset:0;background:rgba(16,32,51,.34);z-index:60;
-  opacity:0;pointer-events:none;transition:opacity .3s;
-  -webkit-backdrop-filter:blur(2px);
-  backdrop-filter:blur(2px);
+/* ---------- detail page rail (/sectors/{code}) ---------- */
+.sec-idcard{text-align:center;padding:22px 18px}
+.sec-idcard .sec-logo.big{width:74px;height:74px;border-radius:16px;margin:0 auto 12px}
+.sec-idcard .sec-logo.big img{max-width:56px;max-height:56px}
+.sec-idcard h2{font-size:18px;font-weight:750;letter-spacing:-.015em;line-height:1.25;margin:0}
+.sec-idcard .org{font-size:12.5px;color:var(--sec-muted);margin-top:3px}
+.sec-fbtns{display:flex;flex-direction:column;gap:2px;padding:8px}
+.sec-fbtns button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  border:0;background:none;border-radius:9px;padding:9px 12px;
+  font-size:13px;font-weight:600;color:var(--sec-muted);transition:background .16s,color .16s;
 }
-.sec-veil.on{opacity:1;pointer-events:auto}
-.sec-over{
-  position:fixed;top:0;right:0;bottom:0;width:min(600px,96vw);z-index:70;
-  background:var(--sec-card);box-shadow:var(--sec-sh-lg);
-  border-left:3px solid var(--sec-line-strong);
-  transform:translateX(103%);visibility:hidden;
-  transition:transform .38s cubic-bezier(.32,.72,0,1),visibility 0s linear .38s;
-  display:flex;flex-direction:column;
+.sec-fbtns button:hover{background:#f4f7fb}
+.sec-fbtns button.on{background:var(--sec-blue-soft);color:var(--sec-blue)}
+.sec-fbtns button i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.sec-fbtns .f-all i{background:var(--sec-blue)}
+.sec-fbtns .f-done i{background:var(--sec-ok)}
+.sec-fbtns .f-open i{background:var(--sec-bad)}
+.sec-fbtns .f-in_progress i{background:var(--sec-wait)}
+.sec-fbtns .n{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--sec-muted);background:var(--sec-wait-t);border-radius:999px;padding:1px 9px}
+.sec-fbtns button.on .n{background:#dcebff;color:var(--sec-blue)}
+.sec-dtasks{
+  background:var(--sec-card);border:1px solid var(--sec-line);border-radius:14px;
+  box-shadow:var(--sec-sh-sm);padding:6px 22px;
 }
-.sec-over.on{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.32,.72,0,1)}
-.sec-ohead{padding:20px 26px 0;flex:0 0 auto;background:linear-gradient(180deg,#f2f7fd,#fff 78%)}
-.sec-ohead .otop{display:flex;align-items:flex-start;gap:14px}
-.sec-ohead .sec-logo.big{width:62px;height:62px;border-radius:13px}
-.sec-ohead .sec-logo.big img{max-width:47px;max-height:47px}
-.sec-ohead .oid{min-width:0}
-.sec-ohead h2{font-size:19px;font-weight:750;letter-spacing:-.015em;line-height:1.2;margin:0}
-.sec-ohead .org{font-size:12.5px;color:var(--sec-muted);margin-top:3px}
-.sec-ohead .sg{font-size:12px;color:var(--sec-faint);margin-top:2px}
-.sec-ohead .x{
-  margin-left:auto;flex:0 0 auto;width:34px;height:34px;border-radius:9px;
-  border:1px solid var(--sec-line);background:#fff;color:var(--sec-muted);
-  display:flex;align-items:center;justify-content:center;
-  transition:color .18s,border-color .18s,background .18s;
-}
-.sec-ohead .x:hover{color:var(--sec-bad);border-color:var(--sec-bad);background:var(--sec-bad-t)}
-.sec-ostats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 16px}
-.sec-ostat{border:1px solid var(--sec-line);border-radius:11px;padding:11px 13px;background:#fff}
-.sec-ostat .v{font-size:19px;font-weight:750;letter-spacing:-.02em}
-.sec-ostat .k{font-size:10.5px;color:var(--sec-muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
-.sec-ostat.ok .v{color:var(--sec-ok)}
-.sec-ostat.bad .v{color:var(--sec-bad)}
-.sec-obody{flex:1;min-height:0;padding:0 26px 30px}
-.sec-over .sec-obody{overflow-y:auto}
-.sec-otabs{display:flex;gap:2px;border-bottom:1px solid var(--sec-line);margin-bottom:6px;position:sticky;top:0;background:var(--sec-card);padding-top:2px;z-index:2}
-.sec-otabs button{
-  border:0;background:none;font-size:12.5px;font-weight:600;color:var(--sec-muted);
-  padding:9px 13px;position:relative;transition:color .18s;
-}
-.sec-otabs button::after{
-  content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:1px;
-  background:var(--sec-blue);transform:scaleX(0);transition:transform .22s var(--sec-ease);
-}
-.sec-otabs button.on{color:var(--sec-blue)}
-.sec-otabs button.on::after{transform:scaleX(1)}
-.sec-otabs .n{color:var(--sec-faint);margin-left:3px;font-size:11.5px}
+.sec-detail .sec-task .tb{width:200px}
 
-/* ---------- task rows (drawer + detail page) ---------- */
+/* ---------- task rows (detail page) ---------- */
 .sec-task{padding:14px 0;border-top:1px solid var(--sec-line)}
 .sec-task:first-child{border-top:0}
 .sec-task .thead{display:flex;gap:12px;align-items:flex-start}
@@ -6060,21 +6033,13 @@ body.sectors-body:has(.sec-over.on){overflow:hidden}
 .sec-line .lp{text-align:right;font-weight:700}
 .sec-line .lp.na{color:var(--sec-faint);font-weight:600}
 
-/* ---------- detail page wrapper (/sectors/{code}) ---------- */
-.sec-detail-wrap{
-  max-width:900px;margin:24px auto 80px;padding:0;
-  background:#fff;border:1px solid var(--sec-line);border-radius:16px;
-  box-shadow:var(--sec-sh-sm);overflow:hidden;
-}
-@media (max-width:960px){.sec-detail-wrap{margin:16px 12px 60px}}
-
 @media (max-width:520px){
   .sec-line{grid-template-columns:1fr 100px 46px;gap:8px}
   .sec-lines,.sec-ltog,.sec-task .tfacts{margin-left:0}
-  .sec-ostats{grid-template-columns:repeat(2,1fr)}
+  .sec-dtasks{padding:2px 14px}
 }
 
 @media (prefers-reduced-motion: reduce){
   .sec-shell *,.sec-shell *::before,.sec-shell *::after,
-  .sec-veil,.sec-over,.sec-pline{animation-duration:.001s!important;transition-duration:.001s!important;transition-delay:0s!important;animation-delay:0s!important}
+  .sec-pline{animation-duration:.001s!important;transition-duration:.001s!important;transition-delay:0s!important;animation-delay:0s!important}
 }

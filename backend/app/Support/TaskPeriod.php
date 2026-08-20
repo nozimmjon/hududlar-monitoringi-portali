@@ -86,6 +86,26 @@ class TaskPeriod
         return 'none';
     }
 
+    /** Human label for a stored report period: «2026-H1» → «2026 йил I ярим йиллик». */
+    public static function reportPeriodLabel(?string $period): string
+    {
+        if ($period === null) {
+            return '';
+        }
+        if (preg_match('/^(\d{4})-H([12])$/', $period, $m)) {
+            return $m[1] . ' йил ' . ($m[2] === '1' ? 'I' : 'II') . ' ярим йиллик';
+        }
+        if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $m)) {
+            return $m[1] . ' йил ' . ['1' => 'I', '2' => 'II', '3' => 'III', '4' => 'IV'][$m[2]] . ' чорак';
+        }
+        if (preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $period, $m)) {
+            $months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+                       'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+            return $m[1] . ' йил ' . $months[(int) $m[2] - 1];
+        }
+        return $period;
+    }
+
     /** UI labels per bucket, in deadline order. */
     public static function deadlineBucketLabels(): array
     {
@@ -114,6 +134,41 @@ class TaskPeriod
             'ongoing' => 40,
             default   => 50,
         };
+    }
+
+    /**
+     * True when the report period reaches the deadline's closing month — i.e. the
+     * task's verdict is due. Before that point a below-plan report means «still
+     * being worked on», not «failed». Null/unknown inputs err on "due" so callers
+     * without deadline context keep the old weakest-link verdict.
+     */
+    public static function deadlineReached(?string $periodCode, ?string $deadlineText, ?string $reportPeriod): bool
+    {
+        if ($reportPeriod === null) {
+            return true;
+        }
+
+        $close = match (self::deadlineBucket($periodCode, $deadlineText)) {
+            'h1'    => 6,
+            'q3'    => 9,
+            'q4', 'h2', 'year', 'ongoing' => 12,
+            default => null,
+        };
+        if ($close === null) {
+            return true;
+        }
+
+        if (! preg_match('/^(\d{4})-(\d{2})$/', self::sortKey($reportPeriod), $p)) {
+            return true;
+        }
+
+        // Deadline year from its own text when present («2026 йил якуни билан»),
+        // else assume the report's year.
+        $deadlineYear = preg_match('/\b(20\d{2})\b/u', (string) $deadlineText, $m)
+            ? (int) $m[1]
+            : (int) $p[1];
+
+        return [(int) $p[1], (int) $p[2]] >= [$deadlineYear, $close];
     }
 
     /** 1–12 from a month name inside the deadline text, null if none found. */

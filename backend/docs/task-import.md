@@ -205,6 +205,26 @@ Behavior:
   Муддати column is wrong in the source file (currently task 217 → I ярим йиллик).
   Applied on every import so the partner file cannot revert the fix; extend the
   map for future corrections.
+- **Region review fixes**: `php artisan tasks:apply-review-fixes` applies the
+  correction set from the region-staff reviews (`data/edits/Ҳудудлар`, verified
+  against the guarantee letters): spelling fixes for titles/labels/units plus
+  region-guarded known-bad → known-good value corrections (e.g. Андижон №295
+  export plan 967 → 1000 млн доллар per the 20.07.2026 letter). The set lives in
+  `App\Support\TaskReviewFixes`; extend it as further region reviews arrive.
+  It runs automatically at the end of every `import:task-progress`, so the
+  partner file cannot regress the fixes; idempotent, safe to run manually.
+- **Suppressed duplicates**: several shared workbook rows carry STALE copies of
+  indicators whose current values live in another row (№13→№272, №15/№162→№287,
+  №201→№324 — confirmed by four region reviews and their letters). These are
+  flagged `tasks.hidden` (never deleted — the import would recreate them) via
+  `TaskReviewFixes::DUPLICATE_PAIRS` + per-region `SUPPRESSED`; every board
+  query skips hidden rows through `Task::scopeHasPlan`. Un-listing a pair
+  un-hides it on the next apply run.
+- **Deadline-aware verdicts**: a below-plan task whose deadline has not been
+  reached yet (e.g. a year-end promise running behind at H1) reports as
+  `in_progress` (Бажарилмоқда), not `open` (Бажарилмаган) — the verdict comes
+  due only when the report period reaches the deadline's closing month
+  (`TaskPeriod::deadlineReached`). Early completion still closes as `done`.
 
 ## One-time setup in an environment that ran the old DOCX importer
 

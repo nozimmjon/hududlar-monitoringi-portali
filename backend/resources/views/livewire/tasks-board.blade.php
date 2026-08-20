@@ -55,15 +55,23 @@
                             // номи lines): the card shows how many indicator lines are done, and
                             // its percent is that share — never line 0 alone.
                             $isMulti = (int) $task->lines_total > 1;
-                            // Бажарилмоқда = nothing reported yet, so no percent claim at all.
-                            $pct = $task->status === 'in_progress' ? null
+                            // Бажарилмоқда with nothing reported yet -> no percent claim at all.
+                            // A deferred verdict (continuous task, or a deadline not reached yet)
+                            // has real numbers behind it and still shows its share.
+                            $hasReport = $task->progress
+                                ->where('report_period', $task->latest_period)
+                                ->contains(fn ($p) => $p->actual_value !== null && (float) $p->actual_value != 0.0);
+                            $pct = ($task->status === 'in_progress' && ! $hasReport) ? null
                                 : ($isMulti
                                     ? $task->lines_done / $task->lines_total * 100
                                     : ($task->headline_pct !== null ? (float) $task->headline_pct : null));
                             $isDone = $task->status === 'done';
                             // Percent text and its colour tier come from the SAME value so they can never disagree.
-                            // A not-done task never shows 100% (capped at 99); green is reserved for genuinely done tasks.
-                            $pctShown = $pct === null ? null : ($isDone ? (int) round($pct) : min(99, (int) round($pct)));
+                            // A not-done task never shows 100% (capped at 99); green is reserved for genuinely done
+                            // tasks. Continuous tasks are exempt from the cap — their "not done" is by design
+                            // (they never close mid-year), so a fully met plan still reads 100% (Фарғона review 1).
+                            $isContinuous = \App\Support\TaskStatus::isContinuous($task->task_number, $task->title);
+                            $pctShown = $pct === null ? null : ($isDone || $isContinuous ? (int) round($pct) : min(99, (int) round($pct)));
                             $tier = $pct === null ? 'none' : ($isDone ? 'green' : ($pctShown >= 50 ? 'amber' : 'red'));
                             $tierVar = ['none' => '--grey', 'red' => '--task-red', 'amber' => '--task-amber', 'green' => '--task-green'][$tier];
                             $statusChip = $isDone ? 'green' : ($task->status === 'in_progress' ? 'violet' : 'grey');
@@ -117,7 +125,7 @@
                                     {{-- Planned (headline or sub-line) -> always show the bar. No actual/pct yet -> empty 0% grey track. --}}
                                     <div class="task-foot">
                                         <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
-                                        @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
+                                        @if($task->latest_period)<span class="task-foot-cap">ҳисобот даври: {{ \App\Support\TaskPeriod::reportPeriodLabel($task->latest_period) }}</span>@endif
                                     </div>
                                 @endif
 
@@ -177,10 +185,6 @@
                             </div>
                             <div class="task-chips">
                                 <span class="chip {{ $statusChip }}">{{ $statusLabel }}</span>
-                                <span class="chip grey">{{ $task->kind === 'kpi' ? 'KPI' : 'Чора-тадбир' }}</span>
-                                @if($task->indicator)
-                                    <span class="chip blue">{{ $task->indicator->label_short }}</span>
-                                @endif
                             </div>
                         </article>
                     @empty

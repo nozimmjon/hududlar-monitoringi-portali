@@ -1,5 +1,5 @@
 @php use App\Support\SectorDisplay; @endphp
-<div class="sec-shell" wire:keydown.escape.window="closeSector">
+<div class="sec-shell">
     @php
         $allDone   = $summary['tasks'] > 0 && $summary['done'] === $summary['tasks'];
         $ringShown = SectorDisplay::pshow($summary['pct'], $allDone) ?? 0;
@@ -54,11 +54,10 @@
                 <div class="sec-pstrip" title="Барча корхоналар — тартиб бўйича">
                     @foreach($cards as $c)
                         @php $pt = SectorDisplay::tier($c['pct']); @endphp
-                        <span role="button" tabindex="0" wire:key="ps-{{ $c['sector']->code }}"
-                              wire:click="openSector(@js($c['sector']->code))"
-                              wire:keydown.enter="openSector(@js($c['sector']->code))"
-                              style="background:var(--sec-{{ $pt }})"
-                              title="{{ $c['sector']->cardName() }}: {{ $c['pct'] === null ? 'кутилмоқда' : SectorDisplay::pshow($c['pct'], $c['tasks_total'] > 0 && $c['done'] === $c['tasks_total']) . '%' }}"></span>
+                        <a wire:key="ps-{{ $c['sector']->code }}"
+                           href="{{ route('sectors.detail', $c['sector']->code) }}"
+                           style="background:var(--sec-{{ $pt }})"
+                           title="{{ $c['sector']->cardName() }}: {{ $c['pct'] === null ? 'кутилмоқда' : SectorDisplay::pshow($c['pct'], $c['tasks_total'] > 0 && $c['done'] === $c['tasks_total']) . '%' }}"></a>
                     @endforeach
                 </div>
                 @php $n = $ranked->count(); @endphp
@@ -68,13 +67,12 @@
                         Энг юқори
                     </div>
                     @foreach($ranked->take(3) as $k => $r)
-                        <div class="sec-lrow" role="button" tabindex="0" wire:key="top-{{ $r['sector']->code }}"
-                             wire:click="openSector(@js($r['sector']->code))"
-                             wire:keydown.enter="openSector(@js($r['sector']->code))">
+                        <a class="sec-lrow" wire:key="top-{{ $r['sector']->code }}"
+                             href="{{ route('sectors.detail', $r['sector']->code) }}">
                             <span class="rk tnum">{{ str_pad($k + 1, 2, '0', STR_PAD_LEFT) }}</span>
                             <span class="ln">{{ $r['sector']->cardName() }}</span>
                             <span class="lp tnum" style="color:var(--sec-{{ SectorDisplay::tier($r['pct']) }})">{{ SectorDisplay::pshow($r['pct'], $r['tasks_total'] > 0 && $r['done'] === $r['tasks_total']) }}%</span>
-                        </div>
+                        </a>
                     @endforeach
                     @if($n > 3)
                         <div class="ldiv"></div>
@@ -83,13 +81,12 @@
                             Энг паст
                         </div>
                         @foreach($ranked->slice(max(0, $n - 3))->reverse()->values() as $k => $r)
-                            <div class="sec-lrow" role="button" tabindex="0" wire:key="low-{{ $r['sector']->code }}"
-                                 wire:click="openSector(@js($r['sector']->code))"
-                                 wire:keydown.enter="openSector(@js($r['sector']->code))">
+                            <a class="sec-lrow" wire:key="low-{{ $r['sector']->code }}"
+                                 href="{{ route('sectors.detail', $r['sector']->code) }}">
                                 <span class="rk tnum">{{ str_pad($n - $k, 2, '0', STR_PAD_LEFT) }}</span>
                                 <span class="ln">{{ $r['sector']->cardName() }}</span>
                                 <span class="lp tnum" style="color:var(--sec-{{ SectorDisplay::tier($r['pct']) }})">{{ SectorDisplay::pshow($r['pct'], $r['tasks_total'] > 0 && $r['done'] === $r['tasks_total']) }}%</span>
-                            </div>
+                            </a>
                         @endforeach
                     @endif
                 @endif
@@ -106,8 +103,8 @@
                         $shown    = SectorDisplay::pshow($card['pct'], $cardDone);
                         $allWait  = $card['tasks_total'] > 0 && $card['waiting'] === $card['tasks_total'];
                     @endphp
-                    <button type="button" class="sec-card {{ $allWait ? 'waitc' : '' }}" data-code="{{ $s->code }}"
-                            wire:key="sector-{{ $s->code }}" wire:click="openSector(@js($s->code))"
+                    <a class="sec-card {{ $allWait ? 'waitc' : '' }}" data-code="{{ $s->code }}"
+                            wire:key="sector-{{ $s->code }}" href="{{ route('sectors.detail', $s->code) }}"
                             style="--tc:var(--sec-{{ $tier }})">
                         <div class="chd">
                             <span class="cidx tnum">{{ str_pad($card['idx'], 2, '0', STR_PAD_LEFT) }}</span>
@@ -161,27 +158,11 @@
                             </span>
                             <span class="more">Батафсил →</span>
                         </div>
-                    </button>
+                    </a>
                 @empty
                     <div class="sec-empty">Ҳеч нарса топилмади</div>
                 @endforelse
             </div>
         </main>
     </div>
-
-    <div class="sec-veil {{ $open ? 'on' : '' }}" wire:click="closeSector"></div>
-    <aside class="sec-over {{ $open ? 'on' : '' }}" role="dialog" aria-modal="true"
-           @if($drawer) style="border-left-color:var(--sec-{{ SectorDisplay::tier($drawer['agg']['pct']) }})" @endif>
-        @if($drawer)
-            @include('livewire.partials.sector-tasks', [
-                'sector'   => $drawer['sector'],
-                'tasks'    => $drawer['tasks'],
-                'counts'   => $drawer['counts'],
-                'agg'      => $drawer['agg'],
-                'filter'   => $filter,
-                'expanded' => $expanded,
-                'inDrawer' => true,
-            ])
-        @endif
-    </aside>
 </div>

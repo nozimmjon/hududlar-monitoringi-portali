@@ -75,7 +75,8 @@ test('changed plan updates plan and pct, keeps the actual, recomputes status', f
 
     $task = Task::where('task_number', '2')->where('region_code', 1703)->firstOrFail();
     expect((float) $task->headline_plan)->toBe(100.0);
-    expect($task->status)->toBe('open'); // 40/100
+    // 40/100, but the year-end deadline is not reached at H1 -> verdict deferred.
+    expect($task->status)->toBe('in_progress');
 
     // Template: task 2 plan 100 -> 40 (now met), task 1 unchanged.
     $file = planSyncWorkbook([

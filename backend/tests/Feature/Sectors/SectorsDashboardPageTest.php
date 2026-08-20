@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\SectorsDashboard;
-use App\Models\SectorTask;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
@@ -122,49 +121,12 @@ test('search narrows the card grid but not the rail', function () {
         ->assertSee('Ҳеч нарса топилмади');
 });
 
-test('openSector renders the drawer with tasks; closeSector empties it', function () {
+test('sector cards and rating rows link to the detail page', function () {
     $this->seed();
     importPanelFixture();
 
-    Livewire::test(SectorsDashboard::class)
-        ->call('openSector', 'uzbekneftgaz')
-        ->assertSet('open', 'uzbekneftgaz')
-        ->assertSee('«Ўзбекнефтгаз» АЖ')
-        ->assertSee('В1. Биринчи вазифа')
-        ->call('closeSector')
-        ->assertSet('open', null)
-        ->assertDontSee('В1. Биринчи вазифа');
-});
+    $html = $this->get('/sectors')->getContent();
 
-test('drawer tabs filter tasks and reset on reopen', function () {
-    $this->seed();
-    importPanelFixture();
-
-    Livewire::test(SectorsDashboard::class)
-        ->call('openSector', 'uzbekneftgaz')
-        ->call('setFilter', 'done')
-        ->assertSee('В1. Биринчи вазифа')
-        ->assertDontSee('В2. Иккинчи вазифа')
-        ->call('closeSector')
-        ->call('openSector', 'uzbekneftgaz')
-        ->assertSet('filter', 'all')
-        ->assertSee('В2. Иккинчи вазифа');
-});
-
-test('toggleTask expands a multi-line task inside the drawer', function () {
-    $this->seed();
-    $file = SectorWorkbookBuilder::make([
-        ['1. Ўзбекнефтгаз', 'орг', [
-            [1, 1, 'Углеводород қазиб чиқариш.', 'Табиий газ', 'млрд куб метр', '2026 йил якуни', 24.7, 13.2, null],
-            [null, 2, null, 'Суюқ углеводородлар', 'минг тонна', '2026 йил якуни', 1188, null, null],
-        ]],
-    ]);
-    Artisan::call('import:sector-tasks', ['--file' => $file, '--period' => '2026-07']);
-    $task = SectorTask::where('task_no', 1)->firstOrFail();
-
-    Livewire::test(SectorsDashboard::class)
-        ->call('openSector', 'uzbekneftgaz')
-        ->assertDontSee('Суюқ углеводородлар')
-        ->call('toggleTask', $task->id)
-        ->assertSee('Суюқ углеводородлар');
+    expect($html)->toContain('href="' . route('sectors.detail', 'uzbekneftgaz') . '"');
+    expect($html)->not->toContain('openSector');
 });

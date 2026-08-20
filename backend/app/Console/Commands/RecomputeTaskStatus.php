@@ -62,7 +62,7 @@ class RecomputeTaskStatus extends Command
 
                     $agg = TaskStatus::forTask($task->task_number, $task->title, $lines->map(
                         fn ($l) => ['plan' => $l->plan_value, 'actual' => $l->actual_value, 'pct' => $l->pct_of_plan]
-                    ));
+                    ), $task->period_code, $task->deadline_text, $period);
 
                     $dirty = $task->status !== $agg['status']
                         || (int) $task->lines_total !== $agg['total']

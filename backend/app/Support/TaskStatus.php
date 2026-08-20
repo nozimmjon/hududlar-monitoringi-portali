@@ -43,20 +43,35 @@ class TaskStatus
     }
 
     /**
-     * Aggregate for one task: the normal weakest-link rule, with two overrides —
+     * Aggregate for one task: the normal weakest-link rule, with three overrides —
      * continuous tasks never close, ongoing-until-done tasks report unfinished
-     * work as in_progress. Line counts stay truthful either way.
+     * work as in_progress, and a below-plan verdict is deferred (in_progress, not
+     * open) while the task's deadline has not been reached yet: a year-end promise
+     * running behind at H1 is «Бажарилмоқда», not «Бажарилмаган». Early completion
+     * still closes as done. Line counts stay truthful either way.
+     *
+     * The deadline context ($periodCode, $deadlineText, $reportPeriod) is optional;
+     * without it the old verdict-always behavior applies.
      *
      * @param iterable<array{plan: float|string|null, actual?: float|string|null, pct: float|string|null}> $lines
      * @return array{status: string, total: int, done: int}
      */
-    public static function forTask(?string $taskNumber, ?string $title, iterable $lines): array
-    {
+    public static function forTask(
+        ?string $taskNumber,
+        ?string $title,
+        iterable $lines,
+        ?string $periodCode = null,
+        ?string $deadlineText = null,
+        ?string $reportPeriod = null,
+    ): array {
         $agg = self::aggregate($lines);
 
         if (self::isContinuous($taskNumber, $title)) {
             $agg['status'] = 'in_progress';
-        } elseif ($agg['status'] === 'open' && self::isOngoingUntilDone($taskNumber, $title)) {
+        } elseif ($agg['status'] === 'open' && (
+            self::isOngoingUntilDone($taskNumber, $title)
+            || ! TaskPeriod::deadlineReached($periodCode, $deadlineText, $reportPeriod)
+        )) {
             $agg['status'] = 'in_progress';
         }
 

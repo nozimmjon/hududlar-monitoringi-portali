@@ -7,7 +7,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Ҳудудлар мониторинги портали — бошланғич саҳифа: Вилоятлар ва Тармоқлар модулини танлаш">
+<meta name="description" content="Ҳудудлар мониторинги портали — бошланғич саҳифа: Ҳудудлар ва Тармоқлар модулини танлаш">
 <title>Ҳудудлар мониторинги портали</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,16 +95,15 @@ body {
 }
 
 .wordmark .chip {
-  width: 40px;
-  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  padding: 9px 13px;
+  border-radius: 12px;
   background: linear-gradient(180deg, var(--brand), var(--brand-deep));
   box-shadow: 0 2px 8px var(--chip-shadow);
 }
 
-.wordmark .chip img { width: 22px; height: 22px; display: block; }
+.wordmark .chip img { height: 30px; width: auto; display: block; }
 
 .wordmark .name {
   font-size: 0.95rem;
@@ -456,7 +455,7 @@ body {
 
 <header class="masthead">
   <div class="wordmark anim" style="--d: 0ms">
-    <span class="chip"><img src="/logo.svg" alt="" width="22" height="22"></span>
+    <span class="chip"><img src="/logo.svg" alt="" height="30"></span>
     <span class="name">Ҳудудлар мониторинги платформаси</span>
   </div>
 </header>
@@ -481,7 +480,7 @@ body {
     </svg>
     <span class="inner">
       <span class="rule anim" style="--d: 100ms"></span>
-      <span class="module-title anim" role="heading" aria-level="2" style="--d: 100ms">Вилоятлар</span>
+      <span class="module-title anim" role="heading" aria-level="2" style="--d: 100ms">Ҳудудлар</span>
       <span class="module-desc anim" style="--d: 180ms">Кафолат хатларидаги ваъдалар ижроси — ҳудудлар кесимида режа ва амал солиштируви, вилоятдан туман топшириғигача.</span>
       @if($regions !== null)
       <span class="stats anim" style="--d: 260ms">

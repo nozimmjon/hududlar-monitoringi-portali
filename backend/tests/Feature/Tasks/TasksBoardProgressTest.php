@@ -45,8 +45,8 @@ test('board card shows labeled plan, actual, percent and context', function () {
         ->assertSee('2026 йил якунигача')  // deadline value
         ->assertSee('Йўналиш')             // module label heading
         ->assertSee('Макро иқтисодиёт')    // module value
-        ->assertSee('ҳолат:')              // period caption label
-        ->assertSee('2026-Q1');            // period value
+        ->assertSee('ҳисобот даври:')      // period caption label
+        ->assertSee('2026 йил I чорак');   // period value, humanized
 });
 
 test('percent under 50 uses the red tier', function () {

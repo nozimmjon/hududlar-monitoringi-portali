@@ -81,9 +81,14 @@ class Task extends Model
      * count as planned. Only tasks with no plan anywhere (empty/«x») are excluded.
      * The OR is wrapped so it does not escape the surrounding region/status filters.
      */
+    /**
+     * Board-visible planned tasks. Also excludes review-suppressed rows
+     * (tasks.hidden — duplicates the region reviews asked to remove; the rows
+     * stay so imports keep working, see TaskReviewFixes::SUPPRESSED).
+     */
     public function scopeHasPlan(Builder $q): Builder
     {
-        return $q->where(function (Builder $w) {
+        return $q->where('hidden', false)->where(function (Builder $w) {
             $w->whereNotNull('headline_plan')
               ->orWhereHas('progress', fn ($p) => $p->whereNotNull('plan_value'));
         });

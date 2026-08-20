@@ -12,40 +12,6 @@ class SectorsDashboard extends Component
 {
     public string $search = '';
 
-    /** Code of the sector whose drawer is open, or null. */
-    public ?string $open = null;
-
-    /** Drawer status-tab filter. */
-    public string $filter = 'all';
-
-    /** @var array<int, bool> expanded multi-line task ids inside the drawer */
-    public array $expanded = [];
-
-    public function openSector(string $code): void
-    {
-        if (! Sector::where('code', $code)->exists()) {
-            return;
-        }
-        $this->open     = $code;
-        $this->filter   = 'all';
-        $this->expanded = [];
-    }
-
-    public function closeSector(): void
-    {
-        $this->open = null;
-    }
-
-    public function setFilter(string $filter): void
-    {
-        $this->filter = in_array($filter, ['all', 'done', 'open', 'in_progress'], true) ? $filter : 'all';
-    }
-
-    public function toggleTask(int $taskId): void
-    {
-        $this->expanded[$taskId] = ! ($this->expanded[$taskId] ?? false);
-    }
-
     public function render()
     {
         $sectors = Sector::orderBy('sort_order')
@@ -121,20 +87,11 @@ class SectorsDashboard extends Component
 
         $ranked = $cards->filter(fn (array $c) => $c['pct'] !== null)->sortByDesc('pct')->values();
 
-        $drawer = null;
-        if ($this->open !== null) {
-            $sector = Sector::where('code', $this->open)->first();
-            if ($sector) {
-                $drawer = SectorDisplay::detailData($sector, $this->filter);
-            }
-        }
-
         return view('livewire.sectors-dashboard', [
             'cards'   => $cards,
             'visible' => $visible,
             'summary' => $summary,
             'ranked'  => $ranked,
-            'drawer'  => $drawer,
         ]);
     }
 }

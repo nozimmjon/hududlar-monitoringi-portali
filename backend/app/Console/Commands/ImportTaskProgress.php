@@ -214,7 +214,7 @@ class ImportTaskProgress extends Command
                             'pct'     => $r->pct_of_plan,
                         ]);
                     $head = $stored->firstWhere('line_no', 0) ?? $stored->first();
-                    $agg = TaskStatus::forTask($t['task_number'], $t['title'], $stored);
+                    $agg = TaskStatus::forTask($t['task_number'], $t['title'], $stored, $task->period_code, $task->deadline_text, $period);
                     // Only advance the headline snapshot if this period is not older
                     // than what the task already shows.
                     $shouldAdvance = $task->latest_period === null
@@ -243,6 +243,11 @@ class ImportTaskProgress extends Command
                 ]);
             }
         });
+
+        // The partner file re-carries the typos and known-bad values the region
+        // review corrected — re-apply that fix set so imports cannot regress it.
+        $this->callSilently('tasks:apply-review-fixes');
+        $this->info('Region review fixes re-applied.');
 
         // Push reported actuals into the dashboard's indicator_facts so module
         // pages show Амалда instead of the stale Кутилиш forecast.

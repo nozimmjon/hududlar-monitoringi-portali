@@ -18,7 +18,7 @@ test('GET / renders the starter page with both module cards', function () {
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee('Вилоятлар');
+    $response->assertSee('Ҳудудлар');
     $response->assertSee('Тармоқлар');
     $response->assertSee('href="' . route('regions') . '"', escape: false);
     $response->assertSee('href="' . route('sectors') . '"', escape: false);
@@ -91,7 +91,7 @@ test('a failing aggregate degrades to a card without numbers, not a 500', functi
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee('Вилоятлар');
+    $response->assertSee('Ҳудудлар');
     $response->assertSee('Тармоқлар');
     $response->assertDontSee('data-count', escape: false);
 });

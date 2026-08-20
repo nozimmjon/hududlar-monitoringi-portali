@@ -34,18 +34,20 @@ test('imports tasks, progress, districts and status for a period', function () {
     expect($t1->status)->toBe('in_progress');
     expect($t1->latest_period)->toBe('2026-Q1');
 
-    // Andijan task 2: multi-metric, district executor, headline pct 50 -> open
+    // Andijan task 2: multi-metric, district executor, headline pct 50 — but its
+    // year-end deadline is not reached at Q1, so the verdict is deferred.
     $t2 = Task::where('region_code', 1703)->where('task_number', '2')->first();
     expect($t2->kind)->toBe('measure');
-    expect($t2->status)->toBe('open');
+    expect($t2->status)->toBe('in_progress');
     expect((float) $t2->headline_pct)->toBeNumericallyClose(50);
     expect($t2->progress()->where('report_period', '2026-Q1')->count())->toBe(2);
     expect($t2->districts->pluck('name_full')->all())->toContain('Шахрихон тумани');
 
     // Andijan task 3 (task_number comes from col B = 5): headline pct derived 120,
-    // but its second planned line is at 50% -> weakest link keeps the task open.
+    // but its second planned line is at 50% -> weakest link keeps it unfinished
+    // (year-end deadline not reached at Q1 -> in_progress, not open).
     $t3 = Task::where('region_code', 1703)->where('task_number', '5')->first();
-    expect($t3->status)->toBe('open');
+    expect($t3->status)->toBe('in_progress');
     expect($t3->lines_total)->toBe(2);
     expect($t3->lines_done)->toBe(1);
     expect((float) $t3->headline_pct)->toBeNumericallyClose(120);

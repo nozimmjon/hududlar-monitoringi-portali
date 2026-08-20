@@ -61,7 +61,11 @@ class TaskWorkbookParser
             // Section header rows (col A carries a marker, col C empty).
             if ($a !== '' && $c === '' && ! $this->isIntToken($a)) {
                 if (preg_match($romanRe, $a, $m)) {
-                    $module    = TasksTaxonomy::ROMAN_TO_MODULE[$m[1]] ?? null;
+                    // The label text wins over the numeral: the newer file generation
+                    // has its own section numbering (e.g. «IV. ЭКСПОРТ» is export,
+                    // not budget_invest).
+                    $module    = TasksTaxonomy::moduleForLabel($a)
+                        ?? TasksTaxonomy::ROMAN_TO_MODULE[$m[1]] ?? null;
                     $indicator = null;
                     $path0     = $m[1];
                     $label     = $a;
@@ -72,7 +76,13 @@ class TaskWorkbookParser
                     $path0     = ($prefix !== '' ? $prefix . '.' : '') . $key;
                     $label     = $a;
                 } else {
-                    $label = $a; // free-text sub-label, keep module/indicator
+                    // Free-text or beyond-VII header (X., XI., …): remap when the
+                    // text names a module, else keep the carried module/indicator.
+                    if (($byLabel = TasksTaxonomy::moduleForLabel($a)) !== null) {
+                        $module    = $byLabel;
+                        $indicator = null;
+                    }
+                    $label = $a;
                 }
                 continue;
             }

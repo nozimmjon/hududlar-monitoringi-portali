@@ -81,7 +81,7 @@
                     </div>
                     <div class="task-foot">
                         <div class="progress"><i style="--w:{{ $pct === null ? 0 : max(0, min(100, $pct)) }}%;--c:var({{ $tierVar }})"></i></div>
-                        @if($task->latest_period)<span class="task-foot-cap">ҳолат: {{ $task->latest_period }}</span>@endif
+                        @if($task->latest_period)<span class="task-foot-cap">ҳисобот даври: {{ \App\Support\TaskPeriod::reportPeriodLabel($task->latest_period) }}</span>@endif
                     </div>
                     <div class="dp-task-meta">
                         Муддат: <b>{{ $task->deadline_text }}</b>
