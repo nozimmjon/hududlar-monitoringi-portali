@@ -33,6 +33,13 @@ test('district headers yield the district name and the hokim text', function () 
         ->toBe(['name' => 'Урганч шаҳри', 'head' => null]);
     expect(RoadmapParser::matchDistrictHeader('1. Қувасой шаҳар (масъул – туман ҳокими З.Тўрақулов)'))
         ->toBe(['name' => 'Қувасой шаҳар', 'head' => 'туман ҳокими З.Тўрақулов']);
+    expect(RoadmapParser::matchDistrictHeader('1. Қувасой шаҳар'))->toBe(['name' => 'Қувасой шаҳар', 'head' => null]);
+    expect(RoadmapParser::matchDistrictHeader('1) Боғот тумани (масъул – туман ҳокими Ж.Назаров).'))
+        ->toBe(['name' => 'Боғот тумани', 'head' => 'туман ҳокими Ж.Назаров']);
+    expect(RoadmapParser::matchDistrictHeader('1. Косонсой тумани (масъул – Косонсой тумани ҳокими Х.Ғ.)'))
+        ->toBe(['name' => 'Косонсой тумани', 'head' => 'Косонсой тумани ҳокими Х.Ғ.']);
+    expect(RoadmapParser::matchDistrictHeader('5. Тошкент шаҳри (масъул – шаҳар ҳокими (и.в.) А.Б.)'))
+        ->toBe(['name' => 'Тошкент шаҳри', 'head' => 'шаҳар ҳокими (и.в.) А.Б.']);
     expect(RoadmapParser::matchDistrictHeader('1. 7,8 км хўжаликлараро каналлар;'))->toBeNull();
     expect(RoadmapParser::matchDistrictHeader('II. Халқаро молия'))->toBeNull();
 });
@@ -50,6 +57,16 @@ test('measure text splits into title and details', function () {
     // single line → no details
     expect(RoadmapParser::splitMeasure(['484,5 млн м3 сувни иқтисод қилиш.']))
         ->toBe(['title' => '484,5 млн м3 сувни иқтисод қилиш.', 'details' => null]);
+});
+
+test('splitMeasure guards and corpus shapes: empty body throws, blank pre-«жумладан» keeps the line, later-line «Жумладан» is not scanned', function () {
+    expect(fn () => RoadmapParser::splitMeasure([]))->toThrow(RuntimeException::class);
+    expect(RoadmapParser::splitMeasure(['жумладан: а', 'б']))->toBe(['title' => 'жумладан: а', 'details' => 'б']);
+    expect(RoadmapParser::splitMeasure(['Иш, Жумладан:', '1. а']))->toBe(['title' => 'Иш', 'details' => '1. а']);
+    expect(RoadmapParser::splitMeasure(['Сув тежовчи технологияларни жорий қилиш', '3 615 гектар. Жумладан:', 'томчилатиб — 1 200 гектар;']))
+        ->toBe(['title' => 'Сув тежовчи технологияларни жорий қилиш', 'details' => "3 615 гектар. Жумладан:\nтомчилатиб — 1 200 гектар;"]);
+    expect(RoadmapParser::splitMeasure(['Насосларни таъмирлаш, жумладан: 3 та агрегат.']))
+        ->toBe(['title' => 'Насосларни таъмирлаш', 'details' => '3 та агрегат.']);
 });
 
 test('cell lines join with a comma after a closing bracket or full stop, else a space', function () {

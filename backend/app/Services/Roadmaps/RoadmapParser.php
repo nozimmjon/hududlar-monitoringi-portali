@@ -14,7 +14,10 @@ use RuntimeException;
  */
 class RoadmapParser
 {
-    /** Cyrillic capitals typed instead of Latin Roman numerals (І U+0406, Х U+0425). */
+    /**
+     * Cyrillic capitals typed instead of Latin Roman numerals (І U+0406, Х U+0425).
+     * Keep in sync with the character class in matchSectionHeader().
+     */
     private const ROMAN_LOOKALIKES = ["\u{0406}" => 'I', "\u{0425}" => 'X'];
 
     private const ROMAN = ['I' => 1, 'V' => 5, 'X' => 10];
@@ -36,6 +39,7 @@ class RoadmapParser
     public static function romanToInt(string $s): ?int
     {
         $s = strtr(mb_strtoupper(trim($s)), self::ROMAN_LOOKALIKES);
+        // No /u on purpose: this ASCII-only guard is what makes the byte-wise str_split below safe.
         if ($s === '' || preg_match('/^[IVX]+$/', $s) !== 1) {
             return null;
         }
@@ -54,6 +58,7 @@ class RoadmapParser
     public static function matchSectionHeader(string $text): ?array
     {
         // Latin I/V/X plus the Cyrillic look-alikes І/і (U+0406/U+0456) and Х/х (U+0425/U+0445).
+        // Keep in sync with ROMAN_LOOKALIKES.
         if (preg_match('/^([IVXivx\x{0406}\x{0456}\x{0425}\x{0445}]+)\s*\.\s*(.+)$/u', trim($text), $m) !== 1) {
             return null;
         }
@@ -71,7 +76,7 @@ class RoadmapParser
      */
     public static function matchDistrictHeader(string $text): ?array
     {
-        $re = '/^\d+\s*\.\s*(.+?(?:тумани|туман|шаҳри|шахри|шаҳар|шахар))\s*(?:\((.*)\))?\s*$/u';
+        $re = '/^\d+\s*[.)]\s*(.+?(?:тумани|туман|шаҳри|шахри|шаҳар|шахар))\s*(?:\((.*)\))?\s*[.;]?\s*$/u';
         if (preg_match($re, trim($text), $m) !== 1) {
             return null;
         }
@@ -86,15 +91,24 @@ class RoadmapParser
      */
     public static function splitMeasure(array $lines): array
     {
+        if ($lines === []) {
+            throw new RuntimeException('Чора-тадбир матни бўш');
+        }
+
         $first = $lines[0];
         $rest  = array_slice($lines, 1);
         $pos   = mb_stripos($first, 'жумладан');
 
         if ($pos !== false) {
             $title = mb_substr($first, 0, $pos);
-            $after = ltrim(mb_substr($first, $pos + mb_strlen('жумладан')), " :,;");   // keep the item's own trailing ";"
-            if ($after !== '') {
-                array_unshift($rest, $after);
+            if (trim($title, " ,:;") === '') {
+                // «жумладан» opens the line with nothing meaningful before it — keep the whole line as the title.
+                $title = $first;
+            } else {
+                $after = ltrim(mb_substr($first, $pos + mb_strlen('жумладан')), " :,;");   // keep the item's own trailing ";"
+                if ($after !== '') {
+                    array_unshift($rest, $after);
+                }
             }
         } else {
             $title = $first;
@@ -117,7 +131,7 @@ class RoadmapParser
         $out = '';
         foreach ($lines as $i => $line) {
             if ($i > 0) {
-                $out .= preg_match('/[).]$/u', $out) === 1 ? ', ' : ' ';
+                $out .= preg_match('/[).]$/u', $lines[$i - 1]) === 1 ? ', ' : ' ';
             }
             $out .= $line;
         }
