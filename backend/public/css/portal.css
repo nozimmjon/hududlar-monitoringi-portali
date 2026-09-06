@@ -6052,7 +6052,14 @@ body.sectors-body{
 .wr-shell .tnum{font-variant-numeric:tabular-nums}
 .wr-shell button{font-family:inherit;cursor:pointer}
 
-.wr-rail{display:flex;flex-direction:column;gap:14px;position:sticky;top:78px}
+/* A sticky block cannot be scrolled with the page: cap it and let it scroll itself,
+   otherwise a tall rail (search + 5 sections + 11 districts) loses its last rows
+   on a ~720px viewport. The negative margin keeps the card shadows unclipped. */
+.wr-rail{
+  display:flex;flex-direction:column;gap:14px;position:sticky;top:78px;
+  max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;padding:3px 6px 3px 3px;margin:-3px -6px -3px -3px;
+}
 .wr-search input{
   width:100%;border:1px solid var(--line);border-radius:10px;background:var(--paper);
   padding:10px 12px;font:inherit;font-size:13px;color:var(--ink);box-shadow:var(--shadow-sm);
@@ -6084,7 +6091,8 @@ body.sectors-body{
 
 .wr-filterbar{display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--muted)}
 .wr-filterbar b{color:var(--ink)}
-.wr-filterbar button{border:0;background:none;color:var(--blue);font-size:12.5px;font-weight:700;padding:0}
+.wr-filterbar button{border:0;background:none;color:var(--blue);font-size:12.5px;font-weight:700;padding:0;transition:color .16s}
+.wr-filterbar button:hover{color:var(--blue-2);text-decoration:underline}
 
 .wr-group{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:4px 20px 6px}
 .wr-gtitle{
@@ -6119,7 +6127,8 @@ body.sectors-body{
 .wr-card .col{font-size:12px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
 .wr-card .col b{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);opacity:.75;margin-bottom:3px}
 
-.wr-more{margin-top:6px;border:0;background:none;padding:2px 0;font-size:12px;font-weight:700;color:var(--blue);display:inline-flex;align-items:center;gap:6px}
+.wr-more{margin-top:6px;border:0;background:none;padding:2px 0;font-size:12px;font-weight:700;color:var(--blue);display:inline-flex;align-items:center;gap:6px;transition:color .16s}
+.wr-more:hover{color:var(--blue-2)}
 .wr-more .c{display:inline-block;transition:transform .2s}
 .wr-more .c.open{transform:rotate(90deg)}
 .wr-details{margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:6px 12px}
@@ -6133,7 +6142,7 @@ body.sectors-body{
 
 @media (max-width:1100px){
   .wr-shell{grid-template-columns:1fr}
-  .wr-rail{position:static}
+  .wr-rail{position:static;max-height:none;overflow:visible;padding:0;margin:0}
   .wr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wr-card{grid-template-columns:34px minmax(0,1fr)}
   .wr-card .col{grid-column:2}
