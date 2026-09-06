@@ -10,7 +10,8 @@ use RuntimeException;
  * Rows are classified by their TEXT, never by position: section headers start
  * with a Roman numeral ("I. …"), district headers with "N. <name> тумани (…)",
  * everything else with a non-empty second cell is a measure. The Т/р cell is
- * ignored (Word auto-numbering; some regions type "1." in it).
+ * ignored (Word auto-numbering in some regions, literal numbers in others);
+ * seq_no is counted per section/district.
  */
 class RoadmapParser
 {
@@ -31,9 +32,138 @@ class RoadmapParser
         $this->resolveDistrict = $resolveDistrict;
     }
 
+    /**
+     * @param list<array> $blocks output of DocxTableReader::read()
+     * @return array{title_text:string, approvers_text:?string, measures:list<array<string,mixed>>}
+     */
     public function parse(array $blocks): array
     {
-        throw new RuntimeException('not implemented yet');
+        $tables = array_values(array_filter($blocks, fn (array $b) => $b['type'] === 'tbl'));
+        if (count($tables) < 2) {
+            throw new RuntimeException('Ҳужжатда камида 2 та жадвал бўлиши керак (тасдиқловчилар + йўл харита), топилди: ' . count($tables));
+        }
+
+        $approvers = [];
+        foreach ($tables[0]['rows'] as $row) {
+            foreach ($row as $cell) {
+                if ($cell !== []) {
+                    $approvers[] = implode(' ', $cell);
+                }
+            }
+        }
+
+        // Title = body paragraphs between the first and the second table.
+        $title = [];
+        $seen  = 0;
+        foreach ($blocks as $b) {
+            if ($b['type'] === 'tbl') {
+                if (++$seen === 2) {
+                    break;
+                }
+                continue;
+            }
+            if ($seen === 1) {
+                $title[] = $b['text'];
+            }
+        }
+
+        return [
+            'title_text'     => implode(' ', $title),
+            'approvers_text' => $approvers === [] ? null : implode(' | ', $approvers),
+            'measures'       => $this->measures($tables[1]['rows']),
+        ];
+    }
+
+    /**
+     * @param list<list<list<string>>> $rows
+     * @return list<array<string,mixed>>
+     */
+    private function measures(array $rows): array
+    {
+        $out             = [];
+        $section         = null;   // ['no'=>int,'title'=>string,'districts'=>bool]
+        $district        = null;   // ['id'=>int,'head'=>?string]
+        $seq             = 0;
+        $expectedSection = 1;
+        $headerSeen      = false;
+
+        foreach ($rows as $i => $cells) {
+            $nonEmpty = array_values(array_filter($cells, fn (array $c) => $c !== []));
+            if ($nonEmpty === []) {
+                continue;                                              // spacer row
+            }
+
+            if (! $headerSeen && mb_strtolower(implode(' ', $cells[0] ?? [])) === 'т/р') {
+                $headerSeen = true;
+                continue;
+            }
+
+            if (count($nonEmpty) === 1) {
+                $text = implode(' ', $nonEmpty[0]);
+
+                if ($h = self::matchSectionHeader($text)) {
+                    if ($h['no'] !== $expectedSection) {
+                        throw new RuntimeException("{$i}-қатор: бўлим рақами кутилган {$expectedSection}, топилди {$h['no']} («{$text}»)");
+                    }
+                    $expectedSection++;
+                    $section  = ['no' => $h['no'], 'title' => $h['title'], 'districts' => mb_stripos($h['title'], 'туман') !== false];
+                    $district = null;
+                    $seq      = 0;
+                    continue;
+                }
+
+                if ($d = self::matchDistrictHeader($text)) {
+                    if (! $section || ! $section['districts']) {
+                        throw new RuntimeException("{$i}-қатор: туман сарлавҳаси туманлар бўлимидан ташқарида («{$text}»)");
+                    }
+                    $id = ($this->resolveDistrict)($d['name']);
+                    if ($id === null) {
+                        throw new RuntimeException("{$i}-қатор: туман топилмади — «{$d['name']}». districts.alt_labels га қўшинг ёки ҳужжатни текширинг.");
+                    }
+                    $district = ['id' => $id, 'head' => $d['head']];
+                    $seq      = 0;
+                    continue;
+                }
+
+                if (count($cells) === 1) {
+                    throw new RuntimeException("{$i}-қатор: танилмаган бирлашган қатор («{$text}»)");
+                }
+                // else: a 5-cell row with only one cell filled — falls through to the measure path
+            }
+
+            $body = $cells[1] ?? [];
+            if ($body === []) {
+                throw new RuntimeException("{$i}-қатор: чора-тадбир матни (2-устун) бўш");
+            }
+            if (! $section) {
+                throw new RuntimeException("{$i}-қатор: бўлим сарлавҳасидан олдин чора-тадбир");
+            }
+            if ($section['districts'] && ! $district) {
+                throw new RuntimeException("{$i}-қатор: туман сарлавҳасидан олдин чора-тадбир");
+            }
+
+            $split = self::splitMeasure($body);
+            $out[] = [
+                'section_no'         => $section['no'],
+                'section_title'      => $section['title'],
+                'district_id'        => $district['id'] ?? null,
+                'district_head_text' => $district['head'] ?? null,
+                'seq_no'             => ++$seq,
+                'title'              => $split['title'],
+                'details'            => $split['details'],
+                'body_raw'           => implode("\n", $body),
+                'funding_text'       => self::joinLines($cells[2] ?? []) ?: null,
+                'deadline_text'      => self::joinLines($cells[3] ?? []) ?: null,
+                'responsible_text'   => self::joinLines($cells[4] ?? []) ?: null,
+                'source_row'         => $i,
+            ];
+        }
+
+        if ($out === []) {
+            throw new RuntimeException('Йўл харита жадвалида бирорта чора-тадбир топилмади.');
+        }
+
+        return $out;
     }
 
     public static function romanToInt(string $s): ?int
