@@ -17,3 +17,4 @@ Route::view('/sectors', 'pages.sectors')->name('sectors');
 Route::get('/sectors/{code}', fn (string $code) => view('pages.sector-detail', [
     'sector' => \App\Models\Sector::where('code', $code)->firstOrFail(),
 ]))->where('code', '[a-z0-9_]+')->name('sectors.detail');
+Route::view('/roadmaps', 'pages.roadmaps')->name('roadmaps');
