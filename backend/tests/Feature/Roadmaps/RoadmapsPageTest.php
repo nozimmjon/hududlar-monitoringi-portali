@@ -40,29 +40,36 @@ test('GET /roadmaps shows the empty state when no road map is loaded at all', fu
     $response->assertSee('import:roadmap --region=1703');
 });
 
-test('a session region without a road map falls back to the first loaded region with a notice', function () {
+test('direct entry with no region chosen makes the first loaded region the active one', function () {
+    roadmapImportKhorezmPage();
+    expect(Session::has('region_code'))->toBeFalse();
+
+    $response = $this->get('/roadmaps');
+
+    $response->assertOk();
+    $response->assertSee('· Хоразм вилояти');
+    $response->assertSee('«Куловот»');
+    $response->assertSee('Хоразм вилояти мониторинг платформаси');   // topbar follows the switched session
+    expect(Session::get('region_code'))->toBe(1733);
+});
+
+test('direct entry with nothing loaded leaves the session alone and shows the default region empty state', function () {
+    $response = $this->get('/roadmaps');
+
+    $response->assertOk();
+    $response->assertSee('Андижон вилояти учун сув хўжалиги йўл харитаси ҳали юкланмаган');
+    expect(Session::has('region_code'))->toBeFalse();
+});
+
+test('an explicitly chosen region without a road map keeps its own empty state', function () {
     Session::put('region_code', 1703);
     roadmapImportKhorezmPage();
 
     $response = $this->get('/roadmaps');
 
-    $response->assertOk();
-    $response->assertSee('Сув хўжалиги йўл харитаси');
-    $response->assertSee('· Хоразм вилояти');
-    $response->assertSee('Андижон вилояти учун йўл харита ҳали юкланмаган — Хоразм вилояти кўрсатилмоқда.');
-    $response->assertSee('«Куловот»');
-    $response->assertDontSee('ҳали юкланмаган</h2>', false);
-
-    Livewire::test(RoadmapsPage::class)->assertSet('regionCode', 1703);   // session region untouched
-});
-
-test('a session region with its own road map shows it without the notice', function () {
-    Session::put('region_code', 1733);
-    roadmapImportKhorezmPage();
-
-    $this->get('/roadmaps')
-        ->assertSee('· Хоразм вилояти')
-        ->assertDontSee('кўрсатилмоқда.');
+    $response->assertSee('Андижон вилояти учун сув хўжалиги йўл харитаси ҳали юкланмаган');
+    $response->assertDontSee('«Куловот»');
+    expect(Session::get('region_code'))->toBe(1703);
 });
 
 test('GET /roadmaps renders the rail, KPI strip and grouped cards for the session region', function () {

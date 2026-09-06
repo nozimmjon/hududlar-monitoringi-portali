@@ -59,30 +59,15 @@ class RoadmapsPage extends Component
 
     public function render()
     {
-        $sessionRegion = Region::where('code', $this->regionCode)->firstOrFail();
-        $roadmap       = Roadmap::where('domain', self::DOMAIN)
+        $region  = Region::where('code', $this->regionCode)->firstOrFail();
+        $roadmap = Roadmap::where('domain', self::DOMAIN)
             ->where('region_code', $this->regionCode)
             ->where('year', self::YEAR)
             ->first();
 
-        // Only some regions are loaded so far: when the session region has no road map,
-        // show the first loaded one (by region sort order) and say so, instead of a dead end.
-        $fallbackFrom = null;
         if (! $roadmap) {
-            $roadmap = Roadmap::where('domain', self::DOMAIN)
-                ->where('year', self::YEAR)
-                ->join('regions', 'regions.code', '=', 'roadmaps.region_code')
-                ->orderBy('regions.sort_order')
-                ->select('roadmaps.*')
-                ->first();
-            $fallbackFrom = $roadmap ? $sessionRegion : null;
+            return view('livewire.roadmaps-page', ['roadmap' => null, 'region' => $region]);
         }
-
-        if (! $roadmap) {
-            return view('livewire.roadmaps-page', ['roadmap' => null, 'region' => $sessionRegion]);
-        }
-
-        $region = $roadmap->region;
 
         // source_row = position in the docx table → document order, independent of insert order.
         $all = $roadmap->measures()->with('district')->orderBy('source_row')->get();
@@ -144,7 +129,6 @@ class RoadmapsPage extends Component
         return view('livewire.roadmaps-page', [
             'roadmap'           => $roadmap,
             'region'            => $region,
-            'fallbackFrom'      => $fallbackFrom,
             'sections'          => $sections,
             'districts'         => $districts,
             'districtSectionNo' => $districtSectionNo,

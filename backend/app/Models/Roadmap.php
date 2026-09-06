@@ -31,4 +31,17 @@ class Roadmap extends Model
     {
         return $this->hasMany(RoadmapMeasure::class);
     }
+
+    /** SOATO code of the first region (by regions.sort_order) that has a loaded road map, or null. */
+    public static function firstLoadedRegionCode(string $domain = 'water', int $year = 2026): ?int
+    {
+        $code = static::query()
+            ->where('roadmaps.domain', $domain)
+            ->where('roadmaps.year', $year)
+            ->join('regions', 'regions.code', '=', 'roadmaps.region_code')
+            ->orderBy('regions.sort_order')
+            ->value('roadmaps.region_code');
+
+        return $code === null ? null : (int) $code;
+    }
 }

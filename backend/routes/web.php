@@ -17,4 +17,18 @@ Route::view('/sectors', 'pages.sectors')->name('sectors');
 Route::get('/sectors/{code}', fn (string $code) => view('pages.sector-detail', [
     'sector' => \App\Models\Sector::where('code', $code)->firstOrFail(),
 ]))->where('code', '[a-z0-9_]+')->name('sectors.detail');
-Route::view('/roadmaps', 'pages.roadmaps')->name('roadmaps');
+// Direct entry with no region chosen yet: make the first loaded road-map region the
+// active one (only some regions are imported so far). An explicitly chosen region is kept.
+Route::get('/roadmaps', function () {
+    if (! session()->has('region_code')) {
+        $code = \App\Models\Roadmap::firstLoadedRegionCode(
+            \App\Livewire\RoadmapsPage::DOMAIN,
+            \App\Livewire\RoadmapsPage::YEAR,
+        );
+        if ($code !== null) {
+            \App\Support\CurrentRegion::set($code);
+        }
+    }
+
+    return view('pages.roadmaps');
+})->name('roadmaps');

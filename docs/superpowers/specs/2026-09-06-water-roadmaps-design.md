@@ -33,9 +33,10 @@
 > DocxTableReaderTest, RoadmapParserRulesTest, RoadmapSchemaTest, RoadmapParserTest,
 > ImportRoadmapTest, RoadmapsPageTest), not the three paths named below. Later the
 > same day: the document-title subtitle was dropped, the heading carries the region
-> name, and a session region without a road map falls back to the first loaded region
-> (by `regions.sort_order`) with an amber notice — the empty state appears only when
-> nothing is loaded at all.
+> name, and the `/roadmaps` route sets the session region to the first loaded region
+> (by `regions.sort_order`) when no region was chosen yet — so direct entry lands on
+> Хоразм while it is the only import; an explicitly chosen region keeps its own
+> empty state (no cross-region display).
 
 ## Background
 

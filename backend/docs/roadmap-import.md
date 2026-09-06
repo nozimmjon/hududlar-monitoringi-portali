@@ -5,9 +5,9 @@ region (N = the region's folder number, the same prefix as `regions.folder_name`
 documents are the 2026 "ЙЎЛ ХАРИТАСИ" approved by the Ministry of Water Resources,
 ТИҚХММИ and the regional hokim. They are a registry (no plan/actual numbers); the portal
 shows them at `/roadmaps` for the session region (RegionSwitcher in the sidebar; there
-is no sidebar button yet — open the URL directly). When the session region has no road
-map yet, the page shows the first loaded region (by region sort order) with a notice
-instead of an empty state.
+is no sidebar button yet — open the URL directly). On direct entry with no region chosen
+yet in the session, the route makes the first loaded region (by region sort order) the
+active region; an explicitly chosen region without a road map shows its empty state.
 
 ## Import one region
 
