@@ -64,13 +64,14 @@ class RoadmapParser
 
     /**
      * "1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)" → name + hokim text.
+     * Also accepts city rows, e.g. "N. <name> шаҳар (…)" (Фарғона: "Қувасой шаҳар").
      * The parenthesis is optional; a leading "масъул –" is stripped from it.
      *
      * @return ?array{name:string,head:?string}
      */
     public static function matchDistrictHeader(string $text): ?array
     {
-        $re = '/^\d+\s*\.\s*(.+?(?:тумани|туман|шаҳри|шахри))\s*(?:\((.*)\))?\s*$/u';
+        $re = '/^\d+\s*\.\s*(.+?(?:тумани|туман|шаҳри|шахри|шаҳар|шахар))\s*(?:\((.*)\))?\s*$/u';
         if (preg_match($re, trim($text), $m) !== 1) {
             return null;
         }

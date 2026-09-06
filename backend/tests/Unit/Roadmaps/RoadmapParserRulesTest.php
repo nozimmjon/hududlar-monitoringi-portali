@@ -31,6 +31,8 @@ test('district headers yield the district name and the hokim text', function () 
         ->toBe(['name' => 'Тупроққалъа тумани', 'head' => 'туман ҳокими А.Жималязов']);
     expect(RoadmapParser::matchDistrictHeader('3. Урганч шаҳри'))
         ->toBe(['name' => 'Урганч шаҳри', 'head' => null]);
+    expect(RoadmapParser::matchDistrictHeader('1. Қувасой шаҳар (масъул – туман ҳокими З.Тўрақулов)'))
+        ->toBe(['name' => 'Қувасой шаҳар', 'head' => 'туман ҳокими З.Тўрақулов']);
     expect(RoadmapParser::matchDistrictHeader('1. 7,8 км хўжаликлараро каналлар;'))->toBeNull();
     expect(RoadmapParser::matchDistrictHeader('II. Халқаро молия'))->toBeNull();
 });
