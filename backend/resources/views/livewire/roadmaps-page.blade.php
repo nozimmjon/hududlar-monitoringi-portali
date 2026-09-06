@@ -64,7 +64,7 @@
       @forelse($groups as $g)
         <section class="wr-group" wire:key="wr-group-{{ $g['key'] }}">
           <h3 class="wr-gtitle">
-            <span class="rn">{{ $g['roman'] }}.</span> {{ $g['section_title'] }}
+            <span class="rn">{{ $g['roman'] }}.</span> <span class="st">{{ $g['section_title'] }}</span>
             @if($g['district'])
               <span class="sep">·</span> <span class="dn">{{ $g['district']->name_full }}</span>
               @if($g['head'])<span class="hd">{{ $g['head'] }}</span>@endif
