@@ -6082,6 +6082,8 @@ body.sectors-body{
 
 .wr-main{min-width:0;display:flex;flex-direction:column;gap:16px}
 .wr-head h2{font-size:20px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
+.wr-head h2 .rg{font-weight:600;color:var(--muted)}
+.wr-head .note{margin-top:6px;display:inline-block;font-size:12px;font-weight:600;color:var(--amber);background:var(--amber-soft);border-radius:8px;padding:4px 10px}
 
 .wr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .wr-kpi{background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);padding:14px 16px}

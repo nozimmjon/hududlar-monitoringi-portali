@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->seed();
 });
 
-test('GET /roadmaps shows the empty state for a region without a road map', function () {
+test('GET /roadmaps shows the empty state when no road map is loaded at all', function () {
     Session::put('region_code', 1703);
 
     $response = $this->get('/roadmaps');
@@ -38,6 +38,31 @@ test('GET /roadmaps shows the empty state for a region without a road map', func
     $response->assertOk();
     $response->assertSee('Андижон вилояти учун сув хўжалиги йўл харитаси ҳали юкланмаган');
     $response->assertSee('import:roadmap --region=1703');
+});
+
+test('a session region without a road map falls back to the first loaded region with a notice', function () {
+    Session::put('region_code', 1703);
+    roadmapImportKhorezmPage();
+
+    $response = $this->get('/roadmaps');
+
+    $response->assertOk();
+    $response->assertSee('Сув хўжалиги йўл харитаси');
+    $response->assertSee('· Хоразм вилояти');
+    $response->assertSee('Андижон вилояти учун йўл харита ҳали юкланмаган — Хоразм вилояти кўрсатилмоқда.');
+    $response->assertSee('«Куловот»');
+    $response->assertDontSee('ҳали юкланмаган</h2>', false);
+
+    Livewire::test(RoadmapsPage::class)->assertSet('regionCode', 1703);   // session region untouched
+});
+
+test('a session region with its own road map shows it without the notice', function () {
+    Session::put('region_code', 1733);
+    roadmapImportKhorezmPage();
+
+    $this->get('/roadmaps')
+        ->assertSee('· Хоразм вилояти')
+        ->assertDontSee('кўрсатилмоқда.');
 });
 
 test('GET /roadmaps renders the rail, KPI strip and grouped cards for the session region', function () {

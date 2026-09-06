@@ -43,7 +43,10 @@
 
     <main class="wr-main">
       <header class="wr-head">
-        <h2>Сув хўжалиги йўл харитаси</h2>
+        <h2>Сув хўжалиги йўл харитаси <span class="rg">· {{ $region->name_full }}</span></h2>
+        @if($fallbackFrom)
+          <p class="note">{{ $fallbackFrom->name_full }} учун йўл харита ҳали юкланмаган — {{ $region->name_full }} кўрсатилмоқда.</p>
+        @endif
       </header>
 
       <div class="wr-kpis">

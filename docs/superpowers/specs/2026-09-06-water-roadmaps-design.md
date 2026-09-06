@@ -31,7 +31,11 @@
 > a measure before any district header aborts, a district section with no rows
 > imports empty; tests live in `tests/{Unit,Feature}/Roadmaps/` (6 files:
 > DocxTableReaderTest, RoadmapParserRulesTest, RoadmapSchemaTest, RoadmapParserTest,
-> ImportRoadmapTest, RoadmapsPageTest), not the three paths named below.
+> ImportRoadmapTest, RoadmapsPageTest), not the three paths named below. Later the
+> same day: the document-title subtitle was dropped, the heading carries the region
+> name, and a session region without a road map falls back to the first loaded region
+> (by `regions.sort_order`) with an amber notice — the empty state appears only when
+> nothing is loaded at all.
 
 ## Background
 
