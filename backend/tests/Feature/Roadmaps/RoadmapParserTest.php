@@ -5,7 +5,7 @@ use App\Services\Roadmaps\RoadmapParser;
 use Tests\Helpers\RoadmapDocxBuilder;
 
 /** Districts of the fake region: name → id. Mirrors the real resolver's contract. */
-function fakeDistricts(): Closure
+function roadmapFakeDistricts(): Closure
 {
     $map = ['боғот' => 11, 'тупроққалъа' => 12, 'тупроққала' => 12, 'урганч ш.' => 13];
 
@@ -18,14 +18,14 @@ function fakeDistricts(): Closure
     };
 }
 
-function parseFixture(array $rows): array
+function roadmapParseFixture(array $rows): array
 {
     $blocks = (new DocxTableReader())->read(RoadmapDocxBuilder::make($rows));
 
-    return (new RoadmapParser(fakeDistricts()))->parse($blocks);
+    return (new RoadmapParser(roadmapFakeDistricts()))->parse($blocks);
 }
 
-function standardRows(): array
+function roadmapStandardRows(): array
 {
     return [
         ['section', 'I. Вилоятда амалга ошириладиган йирик лойиҳалар'],
@@ -45,7 +45,7 @@ function standardRows(): array
 }
 
 test('parses title, approvers and every measure with its section/district position', function () {
-    $out = parseFixture(standardRows());
+    $out = roadmapParseFixture(roadmapStandardRows());
 
     expect($out['title_text'])->toBe('2026 йилда Тест вилоятида сув хўжалиги соҳасида амалга ошириладиган тадбирларнинг илмий ечимларига қаратилган “ЙЎЛ ХАРИТАСИ”');
     expect($out['approvers_text'])->toBe('ТАСДИҚЛАЙМАН Университет ректори | ТАСДИҚЛАЙМАН Сув хўжалиги вазири | ТАСДИҚЛАЙМАН Вилоят ҳокими');
@@ -81,7 +81,7 @@ test('parses title, approvers and every measure with its section/district positi
 });
 
 test('the Т/р cell is ignored even when it holds literal numbers; seq_no is counted by the parser', function () {
-    $out = parseFixture([
+    $out = roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['raw', [['1.'], ['Канал реконструкцияси.'], ['Бюджет'], ['2026 йил декабрь'], ['СХВ']]],
         ['raw', [['7.'], ['Насослар таъмири.'], ['Бюджет'], ['2026 йил декабрь'], ['СХВ']]],
@@ -93,7 +93,7 @@ test('the Т/р cell is ignored even when it holds literal numbers; seq_no is co
 });
 
 test('consecutive sections may repeat a title (Андижон IV and V)', function () {
-    $out = parseFixture([
+    $out = roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['measure', ['a'], ['b'], ['c'], ['d']],
         ['section', 'II. Вилоятнинг хусусиятидан келиб чиқиб амалга ошириладиган лойиҳалар'],
@@ -107,14 +107,14 @@ test('consecutive sections may repeat a title (Андижон IV and V)', functi
 });
 
 test('an unknown district aborts with the offending name', function () {
-    $rows = standardRows();
+    $rows = roadmapStandardRows();
     $rows[6] = ['district', '1. Йўқтуман тумани (масъул – туман ҳокими X)'];
 
-    expect(fn () => parseFixture($rows))->toThrow(RuntimeException::class, 'Йўқтуман тумани');
+    expect(fn () => roadmapParseFixture($rows))->toThrow(RuntimeException::class, 'Йўқтуман тумани');
 });
 
 test('a district header outside the district section aborts', function () {
-    expect(fn () => parseFixture([
+    expect(fn () => roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['district', '1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)'],
         ['measure', ['x'], ['y'], ['z'], ['w']],
@@ -122,14 +122,14 @@ test('a district header outside the district section aborts', function () {
 });
 
 test('a measure before any district header inside the district section aborts', function () {
-    expect(fn () => parseFixture([
+    expect(fn () => roadmapParseFixture([
         ['section', 'I. Туманларда амалга ошириладиган лойиҳалар'],
         ['measure', ['x'], ['y'], ['z'], ['w']],
     ]))->toThrow(RuntimeException::class, 'туман сарлавҳасидан олдин');
 });
 
 test('non-consecutive section numbers abort', function () {
-    expect(fn () => parseFixture([
+    expect(fn () => roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['measure', ['x'], ['y'], ['z'], ['w']],
         ['section', 'III. Дуал таълим'],
@@ -137,14 +137,14 @@ test('non-consecutive section numbers abort', function () {
 });
 
 test('an unrecognised merged row aborts instead of being skipped', function () {
-    expect(fn () => parseFixture([
+    expect(fn () => roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['raw', [['Изоҳ: бу қатор нима эканини билмаймиз']]],
     ]))->toThrow(RuntimeException::class, 'танилмаган');
 });
 
 test('fully empty rows are skipped and a measure row with only the body cell is still a measure', function () {
-    $out = parseFixture([
+    $out = roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['raw', [[], [], [], [], []]],
         ['raw', [[], ['Фақат матн'], [], [], []]],
@@ -155,7 +155,7 @@ test('fully empty rows are skipped and a measure row with only the body cell is 
 });
 
 test('a multi-cell row with an empty body cell aborts', function () {
-    expect(fn () => parseFixture([
+    expect(fn () => roadmapParseFixture([
         ['section', 'I. Йирик лойиҳалар'],
         ['raw', [['1.'], [], ['Бюджет'], ['2026'], ['СХВ']]],
     ]))->toThrow(RuntimeException::class, '2-устун');
@@ -164,6 +164,44 @@ test('a multi-cell row with an empty body cell aborts', function () {
 test('a document without a second table aborts', function () {
     $blocks = [['type' => 'tbl', 'rows' => [[['a']]]], ['type' => 'p', 'text' => 'title']];
 
-    expect(fn () => (new RoadmapParser(fakeDistricts()))->parse($blocks))
+    expect(fn () => (new RoadmapParser(roadmapFakeDistricts()))->parse($blocks))
         ->toThrow(RuntimeException::class, '2 та жадвал');
+});
+
+test('the same district twice in one section aborts with both row numbers', function () {
+    expect(fn () => roadmapParseFixture([
+        ['section', 'I. Туманларда амалга ошириладиган лойиҳалар'],
+        ['district', '1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)'],
+        ['measure', ['a'], ['b'], ['c'], ['d']],
+        ['district', '2. Боғот тумани'],
+        ['measure', ['e'], ['b'], ['c'], ['d']],
+    ]))->toThrow(RuntimeException::class, 'иккинчи марта');
+});
+
+test('a repeated header row is skipped, not imported as a measure', function () {
+    $out = roadmapParseFixture([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['raw', array_map(fn ($h) => [$h], RoadmapDocxBuilder::HEADER)],
+        ['measure', ['Ягона тадбир.'], ['b'], ['c'], ['d']],
+    ]);
+
+    expect($out['measures'])->toHaveCount(1);
+    expect($out['measures'][0]['title'])->toBe('Ягона тадбир.');
+});
+
+test('a road map with headers but no measures aborts; empty approvers and title are tolerated', function () {
+    expect(fn () => roadmapParseFixture([['section', 'I. Йирик лойиҳалар']]))
+        ->toThrow(RuntimeException::class, 'бирорта');
+
+    $blocks = (new DocxTableReader())->read(RoadmapDocxBuilder::make(
+        [['section', 'I. Йирик лойиҳалар'], ['measure', ['0'], ['0'], ['0'], ['0']]],
+        null,
+        [],      // no title paragraphs
+        [],      // no approvers
+    ));
+    $out = (new RoadmapParser(roadmapFakeDistricts()))->parse($blocks);
+
+    expect($out['title_text'])->toBe('');
+    expect($out['approvers_text'])->toBeNull();
+    expect($out['measures'][0])->toMatchArray(['title' => '0', 'funding_text' => '0', 'deadline_text' => '0', 'responsible_text' => '0']);
 });

@@ -85,7 +85,7 @@ class RoadmapParser
         $district        = null;   // ['id'=>int,'head'=>?string]
         $seq             = 0;
         $expectedSection = 1;
-        $headerSeen      = false;
+        $seenDistricts   = [];   // [section_no][district_id] => source_row
 
         foreach ($rows as $i => $cells) {
             $nonEmpty = array_values(array_filter($cells, fn (array $c) => $c !== []));
@@ -93,9 +93,8 @@ class RoadmapParser
                 continue;                                              // spacer row
             }
 
-            if (! $headerSeen && mb_strtolower(implode(' ', $cells[0] ?? [])) === 'т/р') {
-                $headerSeen = true;
-                continue;
+            if (mb_strtolower(implode(' ', $cells[0] ?? [])) === 'т/р') {
+                continue;                                              // repeated header row — never a measure
             }
 
             if (count($nonEmpty) === 1) {
@@ -120,6 +119,10 @@ class RoadmapParser
                     if ($id === null) {
                         throw new RuntimeException("{$i}-қатор: туман топилмади — «{$d['name']}». districts.alt_labels га қўшинг ёки ҳужжатни текширинг.");
                     }
+                    if (isset($seenDistricts[$section['no']][$id])) {
+                        throw new RuntimeException("{$i}-қатор: «{$d['name']}» шу бўлимда иккинчи марта учради (аввалги қатор: {$seenDistricts[$section['no']][$id]})");
+                    }
+                    $seenDistricts[$section['no']][$id] = $i;
                     $district = ['id' => $id, 'head' => $d['head']];
                     $seq      = 0;
                     continue;
@@ -152,9 +155,9 @@ class RoadmapParser
                 'title'              => $split['title'],
                 'details'            => $split['details'],
                 'body_raw'           => implode("\n", $body),
-                'funding_text'       => self::joinLines($cells[2] ?? []) ?: null,
-                'deadline_text'      => self::joinLines($cells[3] ?? []) ?: null,
-                'responsible_text'   => self::joinLines($cells[4] ?? []) ?: null,
+                'funding_text'       => self::nullIfEmpty(self::joinLines($cells[2] ?? [])),
+                'deadline_text'      => self::nullIfEmpty(self::joinLines($cells[3] ?? [])),
+                'responsible_text'   => self::nullIfEmpty(self::joinLines($cells[4] ?? [])),
                 'source_row'         => $i,
             ];
         }
@@ -164,6 +167,11 @@ class RoadmapParser
         }
 
         return $out;
+    }
+
+    private static function nullIfEmpty(string $s): ?string
+    {
+        return $s === '' ? null : $s;
     }
 
     public static function romanToInt(string $s): ?int
