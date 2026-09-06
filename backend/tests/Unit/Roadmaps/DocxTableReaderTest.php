@@ -2,7 +2,6 @@
 
 use App\Services\Roadmaps\DocxTableReader;
 use Tests\Helpers\RoadmapDocxBuilder;
-use ZipArchive;
 
 test('reads body blocks in order: approvers table, title paragraphs, road-map table', function () {
     $file = RoadmapDocxBuilder::make([
