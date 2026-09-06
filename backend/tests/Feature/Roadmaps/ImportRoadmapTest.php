@@ -127,6 +127,31 @@ test('a missing file is reported', function () {
     expect(Artisan::output())->toContain('топилмади');
 });
 
+test('a failing re-import keeps the previous measures (parse happens before any write)', function () {
+    $this->seed();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+    $broken = roadmapKhorezmFixture([
+        ['section', 'I. Туманларда амалга ошириладиган лойиҳалар'],
+        ['district', '1. Йўқтуман тумани (масъул – туман ҳокими X)'],
+        ['measure', ['x'], ['y'], ['z'], ['w']],
+    ]);
+
+    $exit = Artisan::call('import:roadmap', ['--region' => 1733, '--file' => $broken]);
+
+    expect($exit)->toBe(1);
+    expect(RoadmapMeasure::count())->toBe(4);
+    expect(Roadmap::where('region_code', 1733)->value('source_file'))->not->toBe(basename($broken));
+});
+
+test('an invalid year or domain is rejected before reading the file', function () {
+    $this->seed();
+
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => 'C:/nope.docx', '--year' => 'abc']))->toBe(1);
+    expect(Artisan::output())->toContain('--year');
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => 'C:/nope.docx', '--domain' => 'gas']))->toBe(1);
+    expect(Artisan::output())->toContain('--domain');
+});
+
 test('an empty title is imported with a warning', function () {
     $this->seed();
     $file = RoadmapDocxBuilder::make(

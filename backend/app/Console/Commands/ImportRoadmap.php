@@ -17,6 +17,8 @@ class ImportRoadmap extends Command
     /** Relative to base_path(); the docx files are named "<N>. <Region> …docx" where N = region folder number. */
     public const DEFAULT_DIR = '../data/Сув хўжалиги бўйича йўл хариталар';
 
+    public const DOMAINS = ['water'];
+
     protected $signature = 'import:roadmap
         {--region= : SOATO region code, e.g. 1733 (Хоразм)}
         {--file= : Path to the .docx (default: the one file under data/Сув хўжалиги бўйича йўл хариталар/ whose name starts with the region folder number)}
@@ -37,6 +39,14 @@ class ImportRoadmap extends Command
 
         $year   = (int) $this->option('year');
         $domain = (string) $this->option('domain');
+        if ($year < 2000 || $year > 2100) {
+            $this->error("--year must be a four-digit year, got «{$this->option('year')}».");
+            return self::FAILURE;
+        }
+        if (! in_array($domain, self::DOMAINS, true)) {
+            $this->error("--domain must be one of: " . implode(', ', self::DOMAINS) . " — got «{$domain}».");
+            return self::FAILURE;
+        }
 
         $file = $this->option('file') ?: $this->defaultFile($region);
         if ($file === null) {
@@ -97,7 +107,7 @@ class ImportRoadmap extends Command
     private function districtResolver(int $regionCode): callable
     {
         $map = [];
-        District::where('region_code', $regionCode)->get()->each(function (District $d) use (&$map): void {
+        District::where('region_code', $regionCode)->orderBy('sort_order')->get()->each(function (District $d) use (&$map): void {
             $aliases = array_merge([$d->name_full, $d->name_short], is_array($d->alt_labels) ? $d->alt_labels : []);
             foreach ($aliases as $alias) {
                 $key = DistrictNameNormalizer::normalize((string) $alias);
@@ -117,18 +127,25 @@ class ImportRoadmap extends Command
             $this->error("Region {$region->code} has no numeric folder_name prefix — pass --file explicitly.");
             return null;
         }
-        $hits = array_values(array_filter(
-            glob($dir . '/*.docx') ?: [],
-            fn (string $p) => preg_match('/^' . $m[1] . '[.\s]/u', basename($p)) === 1,
-        ));
-        if (count($hits) !== 1) {
-            $this->error(count($hits) === 0
-                ? "No .docx starting with «{$m[1]}.» in {$dir} — pass --file."
-                : "Several .docx start with «{$m[1]}.» in {$dir} — pass --file.");
+        $prefixed = fn (string $p) => preg_match('/^' . $m[1] . '[.\s]/u', basename($p)) === 1;
+        $all      = array_values(array_filter(glob($dir . '/*.doc*') ?: [], $prefixed));
+        $docx     = array_values(array_filter($all, fn (string $p) => str_ends_with(mb_strtolower($p), '.docx')));
+        $doc      = array_values(array_diff($all, $docx));
+
+        if (count($docx) === 1) {
+            return $docx[0];
+        }
+
+        if ($docx === [] && $doc !== []) {
+            $this->error('«' . basename($doc[0]) . '» — эски .doc формати. Word\'да .docx қилиб сақланг, сўнг --file билан кўрсатинг.');
             return null;
         }
 
-        return $hits[0];
+        $this->error(count($docx) === 0
+            ? "No .docx starting with «{$m[1]}» in {$dir} — pass --file."
+            : "Several .docx start with «{$m[1]}» in {$dir} — pass --file.");
+
+        return null;
     }
 
     /** @param list<array<string,mixed>> $measures */
