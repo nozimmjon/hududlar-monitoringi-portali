@@ -90,10 +90,10 @@ class RoadmapsPage extends Component
 
         // A filter carried in from the URL may name a district or section this road map does not
         // have (another region's link, a hand-edited query string) — fall back to the full list.
-        if ($this->district !== 'all' && ! $districts->contains('code', (int) $this->district)) {
+        if ($this->district !== 'all' && ! $districts->contains(fn (array $d) => (string) $d['code'] === $this->district)) {
             $this->district = 'all';
         }
-        if ($this->section !== 'all' && ! $sections->contains('no', (int) $this->section)) {
+        if ($this->section !== 'all' && ! $sections->contains(fn (array $s) => (string) $s['no'] === $this->section)) {
             $this->section = 'all';
         }
 

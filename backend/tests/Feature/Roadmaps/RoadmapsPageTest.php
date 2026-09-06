@@ -104,6 +104,9 @@ test('a stale district or section in the URL falls back to the full list', funct
     Livewire::withQueryParams(['section' => '99'])->test(RoadmapsPage::class)
         ->assertSet('section', 'all')
         ->assertSee('«Куловот»');
+    Livewire::withQueryParams(['section' => '02'])->test(RoadmapsPage::class)
+        ->assertSet('section', 'all')
+        ->assertSee('«Куловот»');
 });
 
 test('search narrows the cards and reports no match', function () {
