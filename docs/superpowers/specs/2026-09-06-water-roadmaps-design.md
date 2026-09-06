@@ -1,8 +1,30 @@
 # Water-management road maps (Сув хўжалиги йўл хариталари) — registry page design
 
 **Date:** 2026-09-06
-**Status:** approved, not yet implemented
+**Status:** implemented (2026-09-06) — Хоразм imported; other regions pending
 **Phase:** 1 of N (registry + district filter; status/monitoring form, sidebar entry and the other 13 regions are later phases)
+
+> **As-built deviations** (accepted during implementation, all found by auditing the
+> 12 real region files): parser classes live in `App\Services\Roadmaps\`
+> (`DocxTableReader` + `RoadmapParser`) matching the existing `App\Services\Tasks`
+> layout, not `App\Support\Roadmap`; **soft line breaks (`w:br`) are spaces, only
+> paragraph boundaries make lines** — in the documents `w:br` is a layout wrap (224 of
+> 235 fell mid-sentence), the original rule truncated 179 of 1213 titles; a measure row
+> is any multi-cell row whose second cell is non-empty (empty second cell aborts),
+> fully empty rows are skipped, a repeated `Т/р` header row is skipped; district
+> headers also accept `N. <name> шаҳар (…)` (Фарғона: Қувасой), `N)` numbering and a
+> trailing `.`/`;`, the parenthesis is optional; the same district twice in one section
+> aborts; funding/deadline/responsible lines join with `, ` after a line ending in `)`
+> or `.` and with a space otherwise; `funding_text`/`responsible_text` are `text`
+> nullable and `deadline_text` `varchar(128)`; the unique index is complemented by a
+> partial index for region-level rows (Postgres treats NULL district_id as distinct)
+> and the district FK is `restrictOnDelete`; `import:roadmap` validates `--year`/
+> `--domain` and detects a legacy `.doc`; on the page the «Туманлар» rail is in
+> document order (mirrors the list), choosing a district leaves `section=all` in the
+> URL and the rail highlights the district section, stale URL filters fall back to
+> the full list, measures are ordered by `source_row`, the district chip on cards was
+> dropped (the group heading names the district), and the sticky rail scrolls when
+> taller than the viewport.
 
 ## Background
 

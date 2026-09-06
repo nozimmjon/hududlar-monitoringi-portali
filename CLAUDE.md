@@ -53,10 +53,11 @@ Pages are Livewire components, one per nav item, mounted from `resources/views/p
 | `/profile` | `RegionProfile` | District drilldown (incl. "Туман топшириқлари" panel) |
 | `/execution` | `ExecutionPage` | Execution monitoring |
 | `/sectors` | `SectorsDashboard` | Sector enterprises (тармоқлар) guarantee-letter tasks — standalone national page, no region scoping; entered from the starter page only. Card click navigates to `/sectors/{code}` (`SectorDetail`) — full detail page with a sticky left rail (identity, ring, status filters) and wide task list; no drawer |
+| `/roadmaps` | `RoadmapsPage` | Water-management road-map measures (сув хўжалиги йўл харитаси) for the session region; rail filters by section/district, search; registry only, URL-access only (no sidebar link yet) |
 
 The active region is session state (`App\Support\CurrentRegion`, default 1703 = Andijan, switchable via `RegionSwitcher`). Region/district reference data uses SOATO codes.
 
-Styling: prebuilt `public/css/portal.css` (built via Vite/Tailwind from `resources/css/app.css`). When changing UI, prefer reusing existing classes; new CSS requires `npm run build`.
+Styling: `public/css/portal.css` is hand-maintained (not generated from `resources/css/app.css`; no `npm run build`). When changing UI, prefer reusing existing classes; new page styles get their own namespaced block appended to the file (e.g. `sec-`, `wr-`).
 
 ### Data import pipelines
 
@@ -65,6 +66,7 @@ Three separate pipelines, all Artisan commands using PhpSpreadsheet:
 1. **Indicator facts (KPI dashboard data):** `import:region` / `import:promote` / `import:all-regions` — staging→promote pipeline reading the per-region workbooks under `data/<region>/`.
 2. **Task monitoring (tasks board + district tasks):** `import:task-progress --period=2026-Q1` — reads the all-regions workbook `data/tasks/Ҳудудий_кўрсаткичлар_назорати_бўйича.xlsx` sent monthly by the partner organisation. Operator runbook: **`backend/docs/task-import.md`** (workflow, options, one-time legacy cleanup, known limitations). Key behaviors: idempotent per-period upserts, history kept in `task_progress`, binary done/open status (≥100% of plan), districts linked from the Ижрочи column, refuses files whose region columns shifted/reordered (all 14 verified).
 3. **Sector tasks (тармоқ корхоналари guarantee letters):** `import:sector-tasks --period=2026-07` — reads the all-sectors workbook `data/sectors/Вазифалар_2026_тармоқлар_кесимида.xlsx` (17 sheets, one per enterprise). Runbook: `backend/docs/sector-task-import.md`. `sector-tasks:recompute` rebuilds statuses without re-import.
+4. **Water road maps (сув хўжалиги йўл хариталари):** `import:roadmap --region=1733` — reads the per-region `.docx` under `data/Сув хўжалиги бўйича йўл хариталар/` (ZipArchive + DOM, header-text keyed; only Хоразм imported so far). Runbook: `backend/docs/roadmap-import.md`.
 
 ### Conceptual model (drives UX decisions)
 
