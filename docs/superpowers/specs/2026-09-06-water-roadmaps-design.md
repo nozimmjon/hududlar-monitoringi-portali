@@ -24,7 +24,14 @@
 > URL and the rail highlights the district section, stale URL filters fall back to
 > the full list, measures are ordered by `source_row`, the district chip on cards was
 > dropped (the group heading names the district), and the sticky rail scrolls when
-> taller than the viewport.
+> taller than the viewport. Also: the layout has no topbar title slot, so the page
+> heading «Сув хўжалиги йўл харитаси» + the document title sit in `.wr-head` instead
+> of the topbar; `deadline_text` is nullable like the other two text columns; the
+> «district section must reference ≥ 1 district» guard is not implemented as such —
+> a measure before any district header aborts, a district section with no rows
+> imports empty; tests live in `tests/{Unit,Feature}/Roadmaps/` (6 files:
+> DocxTableReaderTest, RoadmapParserRulesTest, RoadmapSchemaTest, RoadmapParserTest,
+> ImportRoadmapTest, RoadmapsPageTest), not the three paths named below.
 
 ## Background
 

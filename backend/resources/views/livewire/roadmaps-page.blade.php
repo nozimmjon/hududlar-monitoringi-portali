@@ -31,7 +31,7 @@
           <div class="kt">Туманлар</div>
           @foreach($districts as $d)
             @php $dOn = $district === (string) $d['code']; @endphp
-            <button type="button" class="{{ $dOn ? 'on' : '' }}" title="{{ $d['head'] }}"
+            <button type="button" class="{{ $dOn ? 'on' : '' }}"@if($d['head']) title="{{ $d['head'] }}"@endif
                     aria-pressed="{{ $dOn ? 'true' : 'false' }}"
                     wire:click="selectDistrict('{{ $d['code'] }}')">
               <span class="t">{{ $d['name'] }}</span><span class="n tnum">{{ $d['count'] }}</span>
