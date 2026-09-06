@@ -8,16 +8,18 @@
     <aside class="wr-rail">
       <div class="wr-search">
         <input type="search" placeholder="Чора-тадбир, масъул, манба…"
-               wire:model.live.debounce.300ms="q" aria-label="Чора-тадбирлар бўйича қидирув">
+               wire:model.live.debounce.500ms="q" aria-label="Чора-тадбирлар бўйича қидирув">
       </div>
 
       <nav class="wr-kcard" aria-label="Бўлимлар">
         <div class="kt">Бўлимлар</div>
-        <button type="button" class="{{ $section === 'all' && $district === 'all' ? 'on' : '' }}"
+        @php $allOn = $section === 'all' && $district === 'all'; @endphp
+        <button type="button" class="{{ $allOn ? 'on' : '' }}" aria-pressed="{{ $allOn ? 'true' : 'false' }}"
                 wire:click="selectSection('all')">Барчаси<span class="n tnum">{{ $kpi['total'] }}</span></button>
         @foreach($sections as $s)
           @php $on = $district === 'all' ? $section === (string) $s['no'] : $districtSectionNo === $s['no']; @endphp
           <button type="button" class="{{ $on ? 'on' : '' }}" title="{{ $s['title'] }}"
+                  aria-pressed="{{ $on ? 'true' : 'false' }}"
                   wire:click="selectSection('{{ $s['no'] }}')">
             <b>{{ $s['roman'] }}.</b> <span class="t">{{ $s['title'] }}</span><span class="n tnum">{{ $s['count'] }}</span>
           </button>
@@ -28,7 +30,9 @@
         <nav class="wr-kcard" aria-label="Туманлар">
           <div class="kt">Туманлар</div>
           @foreach($districts as $d)
-            <button type="button" class="{{ $district === (string) $d['code'] ? 'on' : '' }}" title="{{ $d['head'] }}"
+            @php $dOn = $district === (string) $d['code']; @endphp
+            <button type="button" class="{{ $dOn ? 'on' : '' }}" title="{{ $d['head'] }}"
+                    aria-pressed="{{ $dOn ? 'true' : 'false' }}"
                     wire:click="selectDistrict('{{ $d['code'] }}')">
               <span class="t">{{ $d['name'] }}</span><span class="n tnum">{{ $d['count'] }}</span>
             </button>
@@ -58,11 +62,11 @@
       @endif
 
       @forelse($groups as $g)
-        <section class="wr-group" wire:key="wr-group-{{ $loop->index }}">
+        <section class="wr-group" wire:key="wr-group-{{ $g['key'] }}">
           <h3 class="wr-gtitle">
             <span class="rn">{{ $g['roman'] }}.</span> {{ $g['section_title'] }}
             @if($g['district'])
-              <span class="sep">·</span><span class="dn">{{ $g['district']->name_full }}</span>
+              <span class="sep">·</span> <span class="dn">{{ $g['district']->name_full }}</span>
               @if($g['head'])<span class="hd">{{ $g['head'] }}</span>@endif
             @endif
           </h3>
@@ -73,7 +77,8 @@
               <div class="body">
                 <div class="ttl">{{ $m->title }}</div>
                 @if($lines !== [])
-                  <button type="button" class="wr-more" x-on:click="open = !open" :aria-expanded="open">
+                  <button type="button" class="wr-more" aria-expanded="false"
+                          x-on:click="open = !open" :aria-expanded="open">
                     <span class="c" :class="open && 'open'">▸</span>
                     <span x-text="open ? 'Ёпиш' : 'Батафсил ({{ count($lines) }} банд)'">Батафсил ({{ count($lines) }} банд)</span>
                   </button>
@@ -82,8 +87,7 @@
                   </div>
                 @endif
                 <div class="chips">
-                  @if($m->district)<span class="wr-chip d">{{ $m->district->name_full }}</span>@endif
-                  @if($m->funding_text)<span class="wr-chip">{{ $m->funding_text }}</span>@endif
+                  @if($m->funding_text)<span class="wr-chip" title="{{ $m->funding_text }}">{{ $m->funding_text }}</span>@endif
                 </div>
               </div>
               <div class="col"><b>Масъуллар</b>{{ $m->responsible_text ?? '—' }}</div>

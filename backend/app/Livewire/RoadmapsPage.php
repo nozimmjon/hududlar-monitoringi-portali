@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Region;
 use App\Models\Roadmap;
 use App\Models\RoadmapMeasure;
 use App\Support\CurrentRegion;
@@ -17,16 +18,17 @@ use Livewire\Component;
  */
 class RoadmapsPage extends Component
 {
+    // Fixed for this phase; import:roadmap accepts --year/--domain but the page shows only the 2026 water map.
     public const DOMAIN = 'water';
     public const YEAR   = 2026;
 
-    #[Url]
+    #[Url(except: 'all')]
     public string $section = 'all';
 
-    #[Url]
+    #[Url(except: 'all')]
     public string $district = 'all';   // districts.code as string
 
-    #[Url]
+    #[Url(except: '')]
     public string $q = '';
 
     public int $regionCode;
@@ -57,7 +59,7 @@ class RoadmapsPage extends Component
 
     public function render()
     {
-        $region  = CurrentRegion::current();
+        $region  = Region::where('code', $this->regionCode)->firstOrFail();
         $roadmap = Roadmap::where('domain', self::DOMAIN)
             ->where('region_code', $this->regionCode)
             ->where('year', self::YEAR)
@@ -86,6 +88,15 @@ class RoadmapsPage extends Component
             'count' => $g->count(),
         ])->values();
 
+        // A filter carried in from the URL may name a district or section this road map does not
+        // have (another region's link, a hand-edited query string) — fall back to the full list.
+        if ($this->district !== 'all' && ! $districts->contains('code', (int) $this->district)) {
+            $this->district = 'all';
+        }
+        if ($this->section !== 'all' && ! $sections->contains('no', (int) $this->section)) {
+            $this->section = 'all';
+        }
+
         $rows = $all;
         if ($this->district !== 'all') {
             $rows = $rows->filter(fn (RoadmapMeasure $m) => $m->district && (string) $m->district->code === $this->district);
@@ -105,6 +116,7 @@ class RoadmapsPage extends Component
         foreach ($rows as $m) {
             $key = $m->section_no . ':' . ($m->district_id ?? 0);
             $groups[$key] ??= [
+                'key'           => $key,
                 'roman'         => self::roman($m->section_no),
                 'section_title' => $m->section_title,
                 'district'      => $m->district,

@@ -49,8 +49,9 @@ test('GET /roadmaps renders the rail, KPI strip and grouped cards for the sessio
     $response->assertOk();
     $response->assertSee('Сув хўжалиги йўл харитаси');
     $response->assertSee('wr-card', false);
-    $response->assertSeeInOrder(['I.', 'Вилоятда амалга ошириладиган йирик лойиҳалар', 'II.', 'Дуал таълимни ташкил қилиш', 'III.', 'Боғот тумани', 'Гурлан тумани']);
-    $response->assertSee('туман ҳокими Ж.Назаров');
+    $response->assertSeeInOrder(['«Куловот» каналини реконструкция қилиш.', 'Талабаларни амалиётга юбориш.', 'Суғориш тармоқларини бетонлаштириш', '52 млн м3 сувни иқтисод қилиш.']);
+    $response->assertSeeInOrder(['<span class="dn">Боғот тумани</span>', '<span class="dn">Гурлан тумани</span>'], false);
+    $response->assertSee('<span class="hd">туман ҳокими Ж.Назаров</span>', false);
     $response->assertSee('Батафсил (2 банд)');
     $response->assertSee('7,8 км хўжаликлараро каналлар');
     $response->assertSee('жами чора-тадбир');
@@ -73,7 +74,9 @@ test('district filter shows only that district and hides region-level groups; ra
         ->assertDontSee('52 млн м3')
         ->assertSeeHtml('Барчаси<span class="n tnum">5</span>')
         ->assertSee('Кўрсатилмоқда:')
-        ->assertSet('section', 'all');
+        ->assertSet('section', 'all')
+        ->assertSeeHtml('class="on" title="Туманларда амалга ошириладиган лойиҳалар"')
+        ->assertDontSeeHtml('class="on" title="Вилоятда амалга ошириладиган йирик лойиҳалар"');
 });
 
 test('section filter shows one section and clears the district', function () {
@@ -88,6 +91,19 @@ test('section filter shows one section and clears the district', function () {
         ->assertSee('484,5 млн м3')
         ->assertDontSee('Талабаларни амалиётга')
         ->assertDontSee('Суғориш тармоқларини бетонлаштириш');
+});
+
+test('a stale district or section in the URL falls back to the full list', function () {
+    Session::put('region_code', 1733);
+    roadmapImportKhorezmPage();
+
+    Livewire::withQueryParams(['district' => '999999'])->test(RoadmapsPage::class)
+        ->assertSet('district', 'all')
+        ->assertSee('«Куловот»')
+        ->assertDontSee('Кўрсатилмоқда:');
+    Livewire::withQueryParams(['section' => '99'])->test(RoadmapsPage::class)
+        ->assertSet('section', 'all')
+        ->assertSee('«Куловот»');
 });
 
 test('search narrows the cards and reports no match', function () {
