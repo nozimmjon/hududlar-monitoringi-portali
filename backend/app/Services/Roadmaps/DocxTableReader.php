@@ -27,12 +27,12 @@ class DocxTableReader
     {
         $zip = new ZipArchive();
         if ($zip->open($path) !== true) {
-            throw new RuntimeException("Файлни docx сифатида очиб бўлмади: {$path}");
+            throw new RuntimeException("Файлни docx сифатида очиб бўлмади: {$path} (эски .doc бўлса Word'да .docx қилиб сақланг).");
         }
         $xml = $zip->getFromName('word/document.xml');
         $zip->close();
-        if ($xml === false) {
-            throw new RuntimeException("word/document.xml топилмади — {$path} .docx эмас (эски .doc бўлса Word'да .docx қилиб сақланг).");
+        if ($xml === false || trim($xml) === '') {
+            throw new RuntimeException("word/document.xml топилмади ёки бўш — {$path} .docx эмас (эски .doc бўлса Word'да .docx қилиб сақланг).");
         }
 
         $dom  = new DOMDocument();
@@ -68,7 +68,12 @@ class DocxTableReader
         return $blocks;
     }
 
-    /** @return list<list<list<string>>> */
+    /**
+     * @return list<list<list<string>>>
+     *
+     * Known limits (absent from all current files): rows wrapped in w:sdt content
+     * controls are skipped; a nested table's paragraphs flatten into the outer cell's lines.
+     */
     private function tableRows(DOMElement $tbl, DOMXPath $xp): array
     {
         $rows = [];
@@ -93,11 +98,12 @@ class DocxTableReader
     private function paragraphLines(DOMElement $p, DOMXPath $xp): array
     {
         $buf = '';
-        foreach ($xp->query('.//w:t | .//w:br | .//w:cr | .//w:tab', $p) as $n) {
+        foreach ($xp->query('.//w:t | .//w:br | .//w:cr | .//w:r/w:tab | .//w:noBreakHyphen', $p) as $n) {
             $buf .= match ($n->localName) {
-                't'     => $n->textContent,
-                'tab'   => ' ',
-                default => "\n",
+                't'             => $n->textContent,
+                'tab'           => ' ',
+                'noBreakHyphen' => '-',
+                default         => "\n",
             };
         }
 

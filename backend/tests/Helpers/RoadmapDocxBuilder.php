@@ -2,6 +2,7 @@
 
 namespace Tests\Helpers;
 
+use App\Services\Roadmaps\DocxTableReader;
 use ZipArchive;
 
 /**
@@ -19,8 +20,6 @@ use ZipArchive;
  */
 class RoadmapDocxBuilder
 {
-    private const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-
     private const CONTENT_TYPES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         . '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         . '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
@@ -46,10 +45,7 @@ class RoadmapDocxBuilder
         array $title = ['2026 йилда Тест вилоятида сув хўжалиги соҳасида амалга ошириладиган', 'тадбирларнинг илмий ечимларига қаратилган', '“ЙЎЛ ХАРИТАСИ”'],
         array $approvers = ['ТАСДИҚЛАЙМАН Университет ректори', 'ТАСДИҚЛАЙМАН Сув хўжалиги вазири', 'ТАСДИҚЛАЙМАН Вилоят ҳокими'],
     ): string {
-        $xml  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-        $xml .= '<w:document xmlns:w="' . self::W_NS . '"><w:body>';
-
-        $xml .= '<w:tbl><w:tr>' . implode('', array_map(fn (string $a) => self::tc([$a]), $approvers)) . '</w:tr></w:tbl>';
+        $xml = '<w:tbl><w:tr>' . implode('', array_map(fn (string $a) => self::tc([$a]), $approvers)) . '</w:tr></w:tbl>';
         foreach ($title as $t) {
             $xml .= self::p($t);
         }
@@ -73,14 +69,27 @@ class RoadmapDocxBuilder
         $xml .= '</w:tbl>';
 
         $xml .= '<w:tbl><w:tr>' . self::tc(['Вилоят ҳокимининг ўринбосари']) . self::tc([]) . self::tc(['Илмий маслаҳатчи']) . '</w:tr></w:tbl>';
-        $xml .= '</w:body></w:document>';
+
+        return self::write($xml, $path);
+    }
+
+    /** Wraps arbitrary body XML (w: prefix) in a minimal docx — for reader edge-case tests. */
+    public static function makeRaw(string $bodyXml, ?string $path = null): string
+    {
+        return self::write($bodyXml, $path);
+    }
+
+    private static function write(string $bodyXml, ?string $path): string
+    {
+        $document = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<w:document xmlns:w="' . DocxTableReader::W_NS . '"><w:body>' . $bodyXml . '</w:body></w:document>';
 
         $path ??= tempnam(sys_get_temp_dir(), 'roadmap_') . '.docx';
         $zip = new ZipArchive();
         $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
         $zip->addFromString('[Content_Types].xml', self::CONTENT_TYPES);
         $zip->addFromString('_rels/.rels', self::RELS);
-        $zip->addFromString('word/document.xml', $xml);
+        $zip->addFromString('word/document.xml', $document);
         $zip->close();
 
         return $path;

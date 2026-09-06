@@ -2,6 +2,7 @@
 
 use App\Services\Roadmaps\DocxTableReader;
 use Tests\Helpers\RoadmapDocxBuilder;
+use ZipArchive;
 
 test('reads body blocks in order: approvers table, title paragraphs, road-map table', function () {
     $file = RoadmapDocxBuilder::make([
@@ -49,4 +50,29 @@ test('a non-docx file is rejected with a clear message', function () {
 
     expect(fn () => (new DocxTableReader())->read($file))
         ->toThrow(RuntimeException::class, 'docx');
+});
+
+test('Word auto-numbering (w:numPr) and tab-stop definitions contribute no text', function () {
+    $body = '<w:tbl><w:tr>'
+        . '<w:tc><w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="3"/></w:numPr><w:tabs><w:tab w:val="left" w:pos="720"/></w:tabs></w:pPr></w:p></w:tc>'
+        . '<w:tc><w:p><w:pPr><w:tabs><w:tab w:val="left" w:pos="720"/></w:tabs></w:pPr><w:r><w:t>Матн</w:t></w:r></w:p><w:p><w:r><w:t>Иккинчи</w:t></w:r></w:p></w:tc>'
+        . '</w:tr></w:tbl>';
+    $file = RoadmapDocxBuilder::makeRaw($body);
+
+    $rows = (new DocxTableReader())->read($file)[0]['rows'];
+
+    expect($rows)->toBe([[[], ['Матн', 'Иккинчи']]]);
+});
+
+test('run-level tabs become a space and no-break hyphens a dash; empty document.xml is rejected', function () {
+    $body = '<w:p><w:r><w:t>Чап</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t>Ўнг</w:t></w:r><w:r><w:noBreakHyphen/></w:r><w:r><w:t>дефис</w:t></w:r></w:p>';
+    expect((new DocxTableReader())->read(RoadmapDocxBuilder::makeRaw($body)))
+        ->toBe([['type' => 'p', 'text' => 'Чап Ўнг-дефис']]);
+
+    $empty = tempnam(sys_get_temp_dir(), 'roadmap_') . '.docx';
+    $zip = new ZipArchive();
+    $zip->open($empty, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    $zip->addFromString('word/document.xml', '');
+    $zip->close();
+    expect(fn () => (new DocxTableReader())->read($empty))->toThrow(RuntimeException::class, 'бўш');
 });
