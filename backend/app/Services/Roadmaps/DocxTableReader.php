@@ -14,7 +14,8 @@ use ZipArchive;
  *
  * Horizontally merged cells (w:gridSpan) arrive as ONE cell; vertically merged
  * continuation cells arrive as an empty cell. Line breaks inside a cell come
- * from paragraph boundaries (w:p) and soft breaks (w:br / w:cr) alike.
+ * from paragraph boundaries (w:p) only; soft breaks (w:br / w:cr) are layout
+ * wraps in these documents and become spaces.
  */
 class DocxTableReader
 {
@@ -94,7 +95,7 @@ class DocxTableReader
         return $rows;
     }
 
-    /** @return list<string> cleaned, non-empty lines of one paragraph */
+    /** @return list<string> cleaned text of one paragraph as a single line, or [] when empty */
     private function paragraphLines(DOMElement $p, DOMXPath $xp): array
     {
         $buf = '';
@@ -103,19 +104,13 @@ class DocxTableReader
                 't'             => $n->textContent,
                 'tab'           => ' ',
                 'noBreakHyphen' => '-',
-                default         => "\n",
+                default         => ' ',
             };
         }
 
-        $out = [];
-        foreach (explode("\n", $buf) as $raw) {
-            $clean = self::clean($raw);
-            if ($clean !== '') {
-                $out[] = $clean;
-            }
-        }
+        $clean = self::clean($buf);
 
-        return $out;
+        return $clean === '' ? [] : [$clean];
     }
 
     /** Collapse NBSP variants and runs of whitespace to single spaces. */

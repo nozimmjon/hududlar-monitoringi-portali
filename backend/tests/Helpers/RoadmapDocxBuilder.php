@@ -16,7 +16,8 @@ use ZipArchive;
  *   ['measure',  $bodyLines, $fundingLines, $deadlineLines, $responsibleLines]  → 5 cells, first one empty
  *
  * Each *Lines value is list<string>: separate strings become separate paragraphs
- * (w:p); a "\n" inside one string becomes a soft break (w:br) inside one paragraph.
+ * (w:p); a "\n" inside one string becomes a soft break (w:br) inside one
+ * paragraph — which the reader joins with a space.
  */
 class RoadmapDocxBuilder
 {

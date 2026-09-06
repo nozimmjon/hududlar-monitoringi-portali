@@ -33,14 +33,14 @@ test('reads body blocks in order: approvers table, title paragraphs, road-map ta
     expect($blocks[5]['type'])->toBe('tbl');                                 // trailing signers table
 });
 
-test('soft breaks (w:br) split lines exactly like paragraphs', function () {
+test('soft breaks (w:br) are layout wraps and join with a space', function () {
     $file = RoadmapDocxBuilder::make([
         ['measure', ["Бетонлаштириш, жумладан:\n1. 7,8 км;\n2. 33 км."], ['x'], ['y'], ['z']],
     ]);
 
     $rows = (new DocxTableReader())->read($file)[4]['rows'];
 
-    expect($rows[1][1])->toBe(['Бетонлаштириш, жумладан:', '1. 7,8 км;', '2. 33 км.']);
+    expect($rows[1][1])->toBe(['Бетонлаштириш, жумладан: 1. 7,8 км; 2. 33 км.']);
 });
 
 test('a non-docx file is rejected with a clear message', function () {
