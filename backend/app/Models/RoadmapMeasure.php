@@ -14,9 +14,11 @@ class RoadmapMeasure extends Model
     ];
 
     protected $casts = [
-        'section_no' => 'integer',
-        'seq_no'     => 'integer',
-        'source_row' => 'integer',
+        'roadmap_id'  => 'integer',
+        'section_no'  => 'integer',
+        'district_id' => 'integer',
+        'seq_no'      => 'integer',
+        'source_row'  => 'integer',
     ];
 
     public function roadmap(): BelongsTo
@@ -48,6 +50,6 @@ class RoadmapMeasure extends Model
             return [];
         }
 
-        return explode("\n", $this->details);
+        return preg_split('/\R/u', $this->details, -1, PREG_SPLIT_NO_EMPTY) ?: [];
     }
 }
