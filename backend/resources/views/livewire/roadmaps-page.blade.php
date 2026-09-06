@@ -44,7 +44,6 @@
     <main class="wr-main">
       <header class="wr-head">
         <h2>Сув хўжалиги йўл харитаси</h2>
-        <p class="sub">{{ $roadmap->title_text }}</p>
       </header>
 
       <div class="wr-kpis">
