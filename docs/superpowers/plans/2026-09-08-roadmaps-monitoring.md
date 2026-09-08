@@ -3374,3 +3374,5 @@ Claude-Session: https://claude.ai/code/session_01513E6CDpBkN4Pfv2PaNpqC"
 - A measure whose lines all lack a plan (`lines_total = 0`) is `in_progress` even when something is reported — the spec's «else open» would have called it Бажарилмаган with nothing to be behind on.
 - `Roadmap::latestPeriod()` from the spec is not a model method; the page computes the latest period from the loaded measures.
 - Task 11 also updates one assertion in the existing page test (`wr-card` → `wr-mcard`).
+- Review-driven (Task 4): `pctOfPlan` clamps to ±`PCT_MAX`; each line contributes `max(0, min(100, pct ?? 0))` to the measure mean (a negative actual never drives a negative ring); `recompute()` returns the five computed values; a malformed stored period is reported with the measure id.
+- Review-driven (Task 2/3): `RoadmapDeadline` accepts Roman quarters, whole-word month names with Uzbek endings, «NNNN-йил», and ignores years earlier than the road map's own year (decree citations); `RoadmapKey::canonical()` normalises hand-edited keys and the reader uses it.
