@@ -7,6 +7,7 @@ use App\Services\Roadmaps\RoadmapTemplateWriter;
 use App\Support\Roadmaps\RoadmapPeriod;
 use Illuminate\Console\Command;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Throwable;
 
 class RoadmapTemplate extends Command
 {
@@ -22,6 +23,12 @@ class RoadmapTemplate extends Command
 
     public function handle(): int
     {
+        if ($this->option('all') && (string) $this->option('region') !== '') {
+            $this->error('Use either --region or --all, not both.');
+
+            return self::FAILURE;
+        }
+
         $period = strtoupper(trim((string) $this->option('period')));      // «2026-q3» → «2026-Q3»
         if (! RoadmapPeriod::isValid($period)) {
             $this->error('Provide --period as YYYY-MM or YYYY-Qn (e.g. 2026-09 or 2026-Q3).');
@@ -36,7 +43,7 @@ class RoadmapTemplate extends Command
                 'region',
                 'measures' => fn ($q) => $q->orderBy('source_row'),
                 'measures.district',
-                'measures.lines.progress',
+                'measures.lines.progress' => fn ($q) => $q->where('report_period', $period),
             ]);
 
         if ($this->option('all')) {
@@ -66,15 +73,22 @@ class RoadmapTemplate extends Command
         }
 
         $out = (string) ($this->option('out') ?: base_path(ImportRoadmap::DEFAULT_DIR . "/мониторинг/{$period}/{$name}.xlsx"));
-        if (! is_dir(dirname($out)) && ! mkdir(dirname($out), 0777, true) && ! is_dir(dirname($out))) {
-            $this->error('Cannot create ' . dirname($out));
+        $dir = dirname($out);
+        if (! is_dir($dir) && ! @mkdir($dir, 0777, true) && ! is_dir($dir)) {
+            $this->error("Cannot create {$dir}");
 
             return self::FAILURE;
         }
 
         $writer = new RoadmapTemplateWriter();
-        $book   = $writer->build($roadmaps, $period);
-        IOFactory::createWriter($book, 'Xlsx')->save($out);
+        try {
+            $book = $writer->build($roadmaps, $period);
+            IOFactory::createWriter($book, 'Xlsx')->save($out);
+        } catch (Throwable $e) {                        // the usual cause: the file is still open in Excel
+            $this->error("Cannot write {$out}: {$e->getMessage()}");
+
+            return self::FAILURE;
+        }
 
         $rows = [];
         foreach ($roadmaps as $roadmap) {

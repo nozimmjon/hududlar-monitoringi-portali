@@ -13,7 +13,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Protection;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use RuntimeException;
 
 /**
  * Builds the xlsx the regions fill: one sheet per road map shaped like the document
@@ -27,11 +29,16 @@ final class RoadmapTemplateWriter
 
     private const WIDTHS = ['A' => 14, 'B' => 5, 'C' => 60, 'D' => 40, 'E' => 9, 'F' => 10, 'G' => 10, 'H' => 28, 'I' => 16, 'J' => 30];
 
+    /** One line of Calibri 11 in points — the unit row heights are computed in. */
+    private const LINE_HEIGHT = 15.0;
+
     private const INSTRUCTIONS = [
         'Фақат сариқ устунларни тўлдиринг: G «Амалда» ва (ихтиёрий) H «Изоҳ».',
         '«Амалда» — рақам, «Ўлчов» устунидаги бирликда, йил бошидан жами (ойлик қўшимча эмас).',
         'Ҳали бошланмаган индикатор учун 0 ёзинг ёки бўш қолдиринг.',
         'Қаторларни қўшманг ва ўчирманг, бошқа устунларни ўзгартирманг — варақ ҳимояланган.',
+        'Файлни фақат .xlsx кўринишида сақланг (CSV/XLS эмас) — акс ҳолда яширин калит устуни йўқолади.',
+        'Варақларни қайта номламанг, ўчирманг ва жойини алмаштирманг.',
         'Файлни ҳисобот ойидан кейинги ойнинг 5-санасигача қайтаринг.',
         'Саволлар бўйича мониторинг платформаси маъмурига мурожаат қилинг.',
     ];
@@ -49,10 +56,18 @@ final class RoadmapTemplateWriter
         $book = new Spreadsheet();
         $book->removeSheetByIndex(0);
         $this->stats = [];
+        $titles      = [];
         foreach ($roadmaps as $roadmap) {
-            $this->addRegionSheet($book, $roadmap, $period);
+            // name_full, not name_short: 1726 and 1727 are both «Тошкент», and a clashing title
+            // would be silently renamed to «Тошкент 1» by PhpSpreadsheet — fail loudly instead.
+            $title = self::sheetTitle($roadmap->region->name_full);
+            if (in_array($title, $titles, true)) {
+                throw new RuntimeException("Duplicate sheet title «{$title}»");
+            }
+            $titles[] = $title;
+            $this->addRegionSheet($book, $roadmap, $period, $title);
         }
-        $this->addInstructionSheet($book);
+        $this->addInstructionSheet($book, $titles, $period);
         $book->setActiveSheetIndex(0);
 
         return $book;
@@ -88,10 +103,10 @@ final class RoadmapTemplateWriter
         );
     }
 
-    private function addRegionSheet(Spreadsheet $book, Roadmap $roadmap, string $period): void
+    private function addRegionSheet(Spreadsheet $book, Roadmap $roadmap, string $period, string $title): void
     {
         $sheet = $book->createSheet();
-        $sheet->setTitle(self::sheetTitle($roadmap->region->name_short));
+        $sheet->setTitle($title);
 
         $sheet->setCellValue('A1', "Сув хўжалиги йўл харитаси — {$roadmap->region->name_full} — {$roadmap->year} · Ҳисобот даври: {$period}");
         $sheet->mergeCells('A1:J1');
@@ -108,6 +123,9 @@ final class RoadmapTemplateWriter
             $sheet->getColumnDimension($col)->setWidth($w);
         }
         $sheet->getColumnDimension('A')->setVisible(false);
+
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)->setFitToWidth(1)->setFitToHeight(0);
+        $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(1, 2);
 
         $stats      = ['measures' => 0, 'lines' => 0, 'suggested' => 0];
         $row        = 3;
@@ -129,22 +147,19 @@ final class RoadmapTemplateWriter
                 $this->headerRow($sheet, $row++, "{$districtNo}. {$m->district->name_full}{$head}", 'EAF1FB');
             }
 
-            $lines = $this->linesFor($m, $period);
-            if ($lines === []) {
-                $lines = [['label' => null, 'unit' => null, 'plan' => null, 'actual' => null, 'note' => null, 'suggested' => false]];
-            }
+            $lines = $this->linesFor($m, $period);      // never empty: LineSuggester::suggest() falls back to one «Бажарилиш даражаси» line
             $start = $row;
             $sheet->setCellValueExplicit("A{$row}", RoadmapKey::make($roadmap->region_code, $m->section_no, $m->district?->code, $m->seq_no), DataType::TYPE_STRING);
             $sheet->setCellValue("B{$row}", $m->seq_no);
-            $sheet->setCellValue("C{$row}", $m->body_raw);
-            $sheet->setCellValue("I{$row}", $m->deadline_text);
-            $sheet->setCellValue("J{$row}", $m->responsible_text);
+            $this->setText($sheet, "C{$row}", $m->body_raw);
+            $this->setText($sheet, "I{$row}", $m->deadline_text);
+            $this->setText($sheet, "J{$row}", $m->responsible_text);
             foreach ($lines as $l) {
-                $sheet->setCellValue("D{$row}", $l['label']);
-                $sheet->setCellValue("E{$row}", $l['unit']);
+                $this->setText($sheet, "D{$row}", $l['label']);
+                $this->setText($sheet, "E{$row}", $l['unit']);
                 $sheet->setCellValue("F{$row}", $l['plan']);
                 $sheet->setCellValue("G{$row}", $l['actual']);
-                $sheet->setCellValue("H{$row}", $l['note']);
+                $this->setText($sheet, "H{$row}", $l['note']);
                 $this->fillCells($sheet, $row);
                 $row++;
                 $stats['lines']++;
@@ -157,14 +172,15 @@ final class RoadmapTemplateWriter
                 foreach (['A', 'B', 'C', 'I', 'J'] as $c) {
                     $sheet->mergeCells("{$c}{$start}:{$c}{$end}");
                 }
+                $this->fitMergedBlock($sheet, $m, $start, $end);
             }
+            $sheet->getStyle("A{$start}:A{$end}")->getFont()->getColor()->setRGB('999999');
             $stats['measures']++;
         }
 
         $last = max($row - 1, 3);
         $sheet->getStyle("A3:J{$last}")->getAlignment()->setVertical(Alignment::VERTICAL_TOP)->setWrapText(true);
         $sheet->getStyle("F3:G{$last}")->getNumberFormat()->setFormatCode('#,##0.##');
-        $sheet->getStyle("A3:A{$last}")->getFont()->getColor()->setRGB('999999');
 
         $protection = $sheet->getProtection();
         $protection->setSheet(true);
@@ -172,6 +188,49 @@ final class RoadmapTemplateWriter
         $protection->setFormatRows(false);
 
         $this->stats[$roadmap->region_code] = $stats;
+    }
+
+    /**
+     * Excel auto-fits wrapped text only in unmerged cells, so a measure merged down several
+     * indicator rows would clip its «Чора-тадбир» text. Give such blocks explicit heights:
+     * spread whatever the merged columns need beyond what the per-row «Индикатор» text already
+     * occupies evenly over the rows. Single-row blocks are left on auto-fit.
+     */
+    private function fitMergedBlock(Worksheet $sheet, RoadmapMeasure $m, int $start, int $end): void
+    {
+        $need = max(self::wrappedLines($m->body_raw, 58), self::wrappedLines($m->responsible_text, 28));   // C is 60 wide, J is 30
+        $base = [];
+        for ($r = $start; $r <= $end; $r++) {
+            $base[$r] = max(1, self::wrappedLines((string) $sheet->getCell("D{$r}")->getValue(), 38));     // D is 40 wide
+        }
+        $extra  = max(0, $need - array_sum($base));
+        $perRow = (int) ceil($extra / count($base));
+        foreach ($base as $r => $lines) {
+            $sheet->getRowDimension($r)->setRowHeight(self::LINE_HEIGHT * ($lines + $perRow));
+        }
+    }
+
+    /** Rough wrapped-line count of a text in a column that fits ~$perLine characters. */
+    private static function wrappedLines(?string $text, int $perLine): int
+    {
+        $n = 0;
+        foreach (preg_split('/\R/u', (string) $text) ?: [''] as $paragraph) {
+            $n += max(1, (int) ceil(mb_strlen($paragraph) / $perLine));
+        }
+
+        return max(1, $n);
+    }
+
+    /** Text is written explicitly so a cell starting with «=» never becomes a formula; null stays an empty cell. */
+    private function setText(Worksheet $sheet, string $coordinate, ?string $text): void
+    {
+        if ($text === null || $text === '') {
+            $sheet->setCellValue($coordinate, null);
+
+            return;
+        }
+
+        $sheet->setCellValueExplicit($coordinate, $text, DataType::TYPE_STRING);
     }
 
     private function headerRow(Worksheet $sheet, int $row, string $text, string $rgb): void
@@ -193,19 +252,25 @@ final class RoadmapTemplateWriter
             ->setOperator(DataValidation::OPERATOR_GREATERTHANOREQUAL)
             ->setFormula1('0')
             ->setAllowBlank(true)
+            ->setShowInputMessage(true)
+            ->setPromptTitle('Амалда')
+            ->setPrompt('Йил бошидан жами, «Ўлчов» устунидаги бирликда')
             ->setShowErrorMessage(true)
             ->setErrorTitle('Амалда')
             ->setError('Фақат рақам киритинг (ўлчов бирлигида, йил бошидан жами)');
     }
 
-    private function addInstructionSheet(Spreadsheet $book): void
+    /** @param list<string> $titles the region sheets in this workbook */
+    private function addInstructionSheet(Spreadsheet $book, array $titles, string $period): void
     {
         $sheet = $book->createSheet();
         $sheet->setTitle(self::INSTRUCTIONS_TITLE);
         $sheet->setCellValue('A1', 'Йўриқнома — файлни қандай тўлдириш керак');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+        $sheet->setCellValue('A2', 'Файл: ' . implode(', ', $titles) . " · Ҳисобот даври: {$period}");
+        $sheet->getStyle('A2')->getFont()->setBold(false)->setSize(11);
         foreach (self::INSTRUCTIONS as $i => $text) {
-            $sheet->setCellValue('A' . ($i + 3), ($i + 1) . '. ' . $text);
+            $sheet->setCellValue('A' . ($i + 4), ($i + 1) . '. ' . $text);
         }
         $sheet->getColumnDimension('A')->setWidth(110);
         $sheet->getStyle('A1:A' . (count(self::INSTRUCTIONS) + 3))->getAlignment()->setWrapText(true);

@@ -27,10 +27,39 @@ function templateFixtureImport(int $region = 1733): void
     Artisan::call('import:roadmap', ['--region' => $region, '--file' => RoadmapDocxBuilder::make($rows)]);
 }
 
+/** Paths handed out by templateOut(): $add appends one, $flush empties the list and returns it. */
+function templateTempFiles(?string $add = null, bool $flush = false): array
+{
+    static $paths = [];
+
+    if ($add !== null) {
+        $paths[] = $add;
+    }
+    if ($flush) {
+        $collected = $paths;
+        $paths     = [];
+
+        return $collected;
+    }
+
+    return $paths;
+}
+
 function templateOut(): string
 {
-    return tempnam(sys_get_temp_dir(), 'rmtpl_') . '.xlsx';
+    $stub = tempnam(sys_get_temp_dir(), 'rmtpl_');      // the 0-byte twin the .xlsx name is derived from
+    $out  = $stub . '.xlsx';
+    templateTempFiles($stub);
+    templateTempFiles($out);
+
+    return $out;
 }
+
+afterEach(function () {
+    foreach (templateTempFiles(null, true) as $path) {
+        @unlink($path);
+    }
+});
 
 test('writes a document-shaped sheet: title with period, header, section/district rows, merged measure blocks, suggested lines', function () {
     $this->seed();
@@ -41,7 +70,7 @@ test('writes a document-shaped sheet: title with period, header, section/distric
     expect(Artisan::output())->toContain($out);
 
     $book  = IOFactory::load($out);
-    $sheet = $book->getSheetByName('Хоразм');
+    $sheet = $book->getSheetByName('Хоразм вилояти');
     expect($sheet)->not->toBeNull();
     expect($book->getSheetByName('Йўриқнома'))->not->toBeNull();
     expect($book->getSheetCount())->toBe(2);
@@ -97,7 +126,7 @@ test('stored lines win over suggestions and carry the period actual and note', f
 
     Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]);
 
-    $sheet = IOFactory::load($out)->getSheetByName('Хоразм');
+    $sheet = IOFactory::load($out)->getSheetByName('Хоразм вилояти');
     expect($sheet->getCell('A5')->getValue())->toBe('1733-1-0-2');
     expect($sheet->getCell('D5')->getValue())->toBe('Тавсиялар сони');
     expect((float) $sheet->getCell('G5')->getValue())->toBe(2.0);
@@ -105,7 +134,9 @@ test('stored lines win over suggestions and carry the period actual and note', f
     expect($sheet->getCell('D6')->getValue())->toBe('Тақдимот');
     expect($sheet->getCell('G6')->getValue())->toBeNull();
     expect($sheet->getCell('A7')->getValue())->toBe('II. Туманларда амалга ошириладиган лойиҳалар');   // shifted by one row
-    expect(Artisan::output())->toContain('suggested');
+
+    // 4 measures · 6 indicator rows (1 suggested + 2 stored + 2 suggested + 1 suggested) · 4 of them suggested.
+    expect(Artisan::output())->toMatch('/Хоразм вилояти\s*\|\s*4\s*\|\s*6\s*\|\s*4\s*\|/');
 });
 
 test('--all writes one sheet per loaded region in region order; a region without a road map is an error', function () {
@@ -116,11 +147,55 @@ test('--all writes one sheet per loaded region in region order; a region without
 
     expect(Artisan::call('roadmap:template', ['--all' => true, '--period' => '2026-q3', '--out' => $out]))->toBe(0);   // lower-case period is normalised
     $book = IOFactory::load($out);
-    expect(array_map(fn ($s) => $s->getTitle(), $book->getAllSheets()))->toBe(['Андижон', 'Хоразм', 'Йўриқнома']);
-    expect($book->getSheetByName('Андижон')->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-Q3');
+    expect(array_map(fn ($s) => $s->getTitle(), $book->getAllSheets()))->toBe(['Андижон вилояти', 'Хоразм вилояти', 'Йўриқнома']);
+    expect($book->getSheetByName('Андижон вилояти')->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-Q3');
 
     expect(Artisan::call('roadmap:template', ['--region' => 1718, '--period' => '2026-09', '--out' => templateOut()]))->toBe(1);
     expect(Artisan::output())->toContain('import:roadmap');
     expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-9', '--out' => templateOut()]))->toBe(1);
     expect(Artisan::output())->toContain('--period');
+});
+
+test('merged measure blocks get explicit row heights so long text is not clipped', function () {
+    $this->seed();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => RoadmapDocxBuilder::make([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', [str_repeat('Узун матн бўлими. ', 30), '1. 7,8 км канал;', '2. 33 км ички канал.'], ['Бюджет'], ['2026 йил декабрь'], ['СХВ']],
+    ])]);
+    $out = templateOut();
+    Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]);
+
+    $sheet = IOFactory::load($out)->getSheetByName('Хоразм вилояти');
+    expect(array_keys($sheet->getMergeCells()))->toContain('C4:C5');
+    expect($sheet->getRowDimension(4)->getRowHeight())->toBeGreaterThan(15.0);
+    expect($sheet->getRowDimension(5)->getRowHeight())->toBeGreaterThan(15.0);
+    expect($sheet->getCell('A2')->getValue())->toBe('Калит');
+    expect($sheet->getStyle('A3')->getFont()->getColor()->getRGB())->not->toBe('999999');   // heading keeps its colour
+    expect($sheet->getStyle('A4')->getFont()->getColor()->getRGB())->toBe('999999');         // key cell is grey
+    expect($sheet->getPageSetup()->getOrientation())->toBe('landscape');
+});
+
+test('option conflicts and unwritable output are reported, not thrown', function () {
+    $this->seed();
+    templateFixtureImport();
+
+    expect(Artisan::call('roadmap:template', ['--all' => true, '--region' => 1733, '--period' => '2026-09', '--out' => templateOut()]))->toBe(1);
+    expect(Artisan::output())->toContain('--all');
+
+    $blocker = tempnam(sys_get_temp_dir(), 'rmblk_');                  // a FILE where a directory would be needed
+    expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $blocker . '/x/y.xlsx']))->toBe(1);
+    expect(Artisan::output())->toContain('Cannot');
+    @unlink($blocker);
+});
+
+test('instruction sheet names the file and warns about CSV', function () {
+    $this->seed();
+    templateFixtureImport();
+    $out = templateOut();
+    Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]);
+
+    $sheet = IOFactory::load($out)->getSheetByName('Йўриқнома');
+    expect($sheet->getCell('A2')->getValue())->toContain('Хоразм вилояти');
+    expect($sheet->getCell('A2')->getValue())->toContain('2026-09');
+    expect(implode(' ', array_map(fn ($r) => (string) $sheet->getCell("A{$r}")->getValue(), range(4, 11))))->toContain('CSV');
 });
