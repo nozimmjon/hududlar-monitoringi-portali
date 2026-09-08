@@ -6210,6 +6210,7 @@ body.sectors-body{
 .wr-tag.over{background:#fdecea;color:var(--task-red)}
 .wr-tag.done{background:var(--green-soft);color:var(--task-green)}
 .wr-chip.muted{opacity:.6}
+.wr-chip.period{background:var(--blue-soft);color:var(--blue)}
 
 .wr-notes{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}
 .wr-notes p{margin:0;padding:3px 0;font-size:12px;color:var(--muted);border:0}

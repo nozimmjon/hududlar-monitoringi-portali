@@ -147,20 +147,19 @@
                   @if($lineRows->isEmpty())
                     <div class="wr-line none"><span class="lb">Индикаторлар ҳали белгиланмаган</span></div>
                   @else
-                    {{-- Rows 5+ live inside one collapsible wrapper (opened mid-loop) so the
-                         «яна N» button can own it through aria-controls. --}}
-                    @foreach($lineRows as $i => $r)
-                      @if($i === 4)<div id="wr-more-{{ $m->id }}" x-show="all" x-cloak>@endif
-                      <div class="wr-line t-{{ $r['tier'] }}">
-                        <span class="lb" title="{{ $r['label'] }}">{{ $r['label'] }}</span>
-                        <span class="bar" aria-hidden="true"><i style="width:{{ $r['width'] }}%"></i><span class="tick"></span></span>
-                        <span class="pv tnum"><b>{{ MeasureDisplay::fmt($r['actual']) }}</b> / {{ MeasureDisplay::fmt($r['plan']) }} {{ $r['unit'] }}</span>
-                        <span class="pp tnum">{{ $r['pct'] === null ? '—' : round($r['pct']) . '%' }}</span>
-                      </div>
+                    {{-- Rows 5+ sit inside one collapsible wrapper the «яна N» button owns via
+                         aria-controls. Every @if/@foreach opens and closes at one DOM level, so
+                         Livewire's morph markers stay siblings. --}}
+                    @foreach($lineRows->take(4) as $r)
+                      @include('livewire.partials.wr-line', ['r' => $r])
                     @endforeach
                     @if($extra > 0)
+                      <div id="wr-more-{{ $m->id }}" x-show="all" x-cloak>
+                        @foreach($lineRows->slice(4) as $r)
+                          @include('livewire.partials.wr-line', ['r' => $r])
+                        @endforeach
                       </div>
-                      <button type="button" class="wr-more" aria-expanded="false" aria-controls="wr-more-{{ $m->id }}"
+                      <button type="button" class="wr-more" aria-controls="wr-more-{{ $m->id }}" aria-expanded="false"
                               x-on:click="all = !all" :aria-expanded="all">
                         <span class="c" :class="all && 'open'">▸</span>
                         <span x-text="all ? 'Камроқ' : 'яна {{ $extra }} индикатор'">яна {{ $extra }} индикатор</span>
@@ -171,7 +170,7 @@
                   <div class="foot">
                     <span class="wr-tag {{ $deadline['cls'] }}">{{ $deadline['label'] }}</span>
                     @if($m->latest_period && $m->latest_period !== $hero['latest'])
-                      <span class="wr-chip muted" title="Охирги ҳисобот даври">{{ RoadmapPeriod::label($m->latest_period) }}</span>
+                      <span class="wr-chip period" title="Охирги ҳисобот даври">📅 {{ RoadmapPeriod::label($m->latest_period) }}</span>
                     @endif
                     @if($m->funding_text)
                       <span class="wr-chip {{ mb_stripos($m->funding_text, 'талаб этилмайди') !== false ? 'muted' : '' }}" title="{{ $m->funding_text }}">{{ $m->funding_text }}</span>
