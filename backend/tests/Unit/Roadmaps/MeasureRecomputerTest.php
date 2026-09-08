@@ -14,6 +14,7 @@ test('pct of plan', function () {
     expect(MeasureRecomputer::pctOfPlan(0, 5))->toBeNull();
     expect(MeasureRecomputer::pctOfPlan('7.800000', '7.800000'))->toBe(100.0);   // decimal casts hand back strings
     expect(MeasureRecomputer::pctOfPlan(0.01, 20000))->toBe(999999.9999);          // clamped to what numeric(10,4) can hold
+    expect(MeasureRecomputer::pctOfPlan(0.01, -20000))->toBe(-999999.9999);      // negative side clamped too
 });
 
 test('nothing reported → in_progress, no percent, counts still truthful', function () {
@@ -53,4 +54,10 @@ test('no planned lines at all → in_progress and null percent even when somethi
     $agg = MeasureRecomputer::aggregate([rmLine(null, 5)], true);
     expect($agg['status'])->toBe('in_progress');
     expect($agg['pct'])->toBeNull();
+});
+
+test('a negative line percent contributes 0 to the mean, never a negative ring', function () {
+    $agg = MeasureRecomputer::aggregate([rmLine(10, -5), rmLine(10, 10)], true);
+    expect($agg['pct'])->toBe(50.0);
+    expect($agg['status'])->toBe('open');
 });

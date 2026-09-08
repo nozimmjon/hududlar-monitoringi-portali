@@ -64,8 +64,38 @@ test('recompute is a no-op write when nothing changed', function () {
     $updatedAt = $m->fresh()->updated_at;
 
     $again = $m->fresh();
+    $this->travel(1)->minutes();
     (new MeasureRecomputer())->recompute($again, 2026);
 
     expect($again->wasChanged())->toBeFalse();
     expect((string) $m->fresh()->updated_at)->toBe((string) $updatedAt);
+
+    $this->travelBack();
+});
+
+test('lines reporting different periods: the latest period wins and a line without a row for it counts as 0', function () {
+    $this->seed();
+    $m  = recomputeFixtureMeasure();
+    $l1 = $m->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10]);
+    $l2 = $m->lines()->create(['line_no' => 2, 'label' => 'b', 'plan_value' => 10]);
+    $l1->progress()->create(['report_period' => '2026-Q3', 'period_type' => 'quarter', 'actual_value' => 10, 'pct_of_plan' => 100]);
+    $l2->progress()->create(['report_period' => '2026-08', 'period_type' => 'month', 'actual_value' => 10, 'pct_of_plan' => 100]);
+
+    $values = (new MeasureRecomputer())->recompute($m->fresh(), 2026);
+
+    expect($values['latest_period'])->toBe('2026-Q3');       // a quarter outranks the month it closes; 2026-08 is older anyway
+    expect($values['lines_done'])->toBe(1);
+    expect((float) $values['pct'])->toBe(50.0);              // line 2 has no Q3 row → 0
+    expect($values['status'])->toBe('in_progress');          // December deadline not reached by Q3
+    expect($m->fresh()->latest_period)->toBe('2026-Q3');
+});
+
+test('a malformed stored period names the measure', function () {
+    $this->seed();
+    $m = recomputeFixtureMeasure();
+    $l = $m->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10]);
+    $l->progress()->create(['report_period' => '2026-13', 'period_type' => 'month', 'actual_value' => 1]);
+
+    expect(fn () => (new MeasureRecomputer())->recompute($m->fresh(), 2026))
+        ->toThrow(InvalidArgumentException::class, "Measure #{$m->id}");
 });
