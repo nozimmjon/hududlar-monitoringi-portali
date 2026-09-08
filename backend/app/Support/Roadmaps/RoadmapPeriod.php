@@ -8,14 +8,14 @@ use InvalidArgumentException;
 /** Report periods of the road-map monitoring: months ('2026-09') and quarters ('2026-Q3'). */
 final class RoadmapPeriod
 {
-    public const REGEX = '/^(\d{4})-(0[1-9]|1[0-2]|Q[1-4])$/';
+    public const REGEX = '/^(\d{4})-(0[1-9]|1[0-2]|Q[1-4])$/D';
 
     public static function isValid(?string $period): bool
     {
         return $period !== null && preg_match(self::REGEX, $period) === 1;
     }
 
-    /** 'month' | 'quarter' */
+    /** 'month' | 'quarter'. Assumes a valid period (see isValid()). */
     public static function type(string $period): string
     {
         return str_contains($period, 'Q') ? 'quarter' : 'month';
@@ -32,18 +32,29 @@ final class RoadmapPeriod
         return (int) $m[1] * 12 + $mm;
     }
 
+    /** Assumes month is a valid 1-12 value; not validated here. */
     public static function fromYearMonth(int $year, int $month): string
     {
         return sprintf('%04d-%02d', $year, $month);
     }
 
-    /** «2026 йил сентябрь» / «2026 йил III чорак» (same wording as the tasks board). */
+    /**
+     * «2026 йил сентябрь» / «2026 йил III чорак» (same wording as the tasks board).
+     * Assumes a valid/known period — delegates to the tasks-board helper, which
+     * would also accept its H1/H2 vocabulary.
+     */
     public static function label(?string $period): string
     {
         return $period === null ? 'ҳисобот йўқ' : TaskPeriod::reportPeriodLabel($period);
     }
 
-    /** @param iterable<string> $periods */
+    /**
+     * On an equal month index the lexically larger string wins, so a quarter
+     * ('2026-Q3') outranks the month it closes ('2026-09'). Assumes valid
+     * periods (see isValid()).
+     *
+     * @param iterable<string> $periods
+     */
     public static function latest(iterable $periods): ?string
     {
         $best = null;

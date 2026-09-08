@@ -27,3 +27,9 @@ test('type, label, latest and fromYearMonth', function () {
     expect(RoadmapPeriod::latest([]))->toBeNull();
     expect(RoadmapPeriod::fromYearMonth(2026, 4))->toBe('2026-04');
 });
+
+test('trailing whitespace is rejected and a quarter outranks the month it closes', function () {
+    expect(RoadmapPeriod::isValid("2026-09\n"))->toBeFalse();
+    expect(RoadmapPeriod::latest(['2026-09', '2026-Q3']))->toBe('2026-Q3');
+    expect(RoadmapPeriod::latest(['2026-Q3', '2026-09']))->toBe('2026-Q3');
+});

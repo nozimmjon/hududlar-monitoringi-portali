@@ -4,16 +4,29 @@ namespace App\Support\Roadmaps;
 
 /**
  * «Муддати» cell → a deadline month. The documents write «2026 йил декабрь»,
- * «2026 йил апрель-октябрь» (a range: the last month is the deadline), rarely a
- * quarter; anything unreadable means year-end.
+ * «2026 йил апрель-октябрь» (a range: the last month is the deadline), a
+ * quarter as «3-чорак» or «IV чорак» (Roman or Arabic numerals), rarely a
+ * bare year; anything unreadable means year-end. A year only counts when
+ * followed by «йил» — «ПҚ-2019 сонли қарор» is a decree number, not a year.
+ * Latin-script month names (e.g. «aprel-oktyabr») are not recognised and
+ * also fall back to year-end.
  */
 final class RoadmapDeadline
 {
-    /** Lower-cased stems that start every spelling seen (декабрь / декабр / дек). */
-    private const STEMS = [
-        'янв' => 1, 'фев' => 2, 'мар' => 3, 'апр' => 4, 'май' => 5, 'июн' => 6,
-        'июл' => 7, 'авг' => 8, 'сен' => 9, 'окт' => 10, 'ноя' => 11, 'дек' => 12,
+    /** Month stems (full words minus the soft sign) → month number. */
+    private const MONTHS = [
+        'январ' => 1, 'феврал' => 2, 'март' => 3, 'апрел' => 4, 'май' => 5, 'июн' => 6,
+        'июл' => 7, 'август' => 8, 'сентябр' => 9, 'октябр' => 10, 'ноябр' => 11, 'декабр' => 12,
     ];
+
+    /** A month word with optional Uzbek/Russian endings («декабрь», «декабрда», «майгача», «декабря»); a stem glued to a longer word («майдон», «марта») is not a month. */
+    private const MONTH_RE = '/(?<!\p{L})(январ|феврал|март|апрел|май|июн|июл|август|сентябр|октябр|ноябр|декабр)ь?(?:я|да|дан|га|гача)?(?!\p{L})/u';
+
+    /** «3-чорак», «3 чорак», «IV чорак» (Roman numerals arrive lower-cased). */
+    private const QUARTER_RE = '/(?<![\p{L}\d])(iv|iii|ii|i|[1-4])\s*-?\s*чорак/u';
+
+    /** Only a year followed by «йил» counts — «ПҚ-2019 сонли қарор» is a decree number, not a deadline. */
+    private const YEAR_RE = '/(?<!\d)(20\d{2})(?=\s*йил)/u';
 
     /** Dative forms for the countdown chip («декабргача»). */
     private const UNTIL = [
@@ -25,15 +38,17 @@ final class RoadmapDeadline
     public static function month(?string $deadlineText, int $year): string
     {
         $t = mb_strtolower(trim((string) $deadlineText));
-        if (preg_match('/(?<!\d)(20\d{2})(?!\d)/', $t, $y) === 1) {
-            $year = (int) $y[1];
+        if (preg_match_all(self::YEAR_RE, $t, $y) > 0) {
+            $years = $y[1];
+            $year  = (int) end($years);                       // last «NNNN йил» wins: «2025 йилдан 2026 йил декабргача»
         }
 
         $month = 12;
-        if (preg_match_all('/(?<!\p{L})(янв|фев|мар|апр|май|июн|июл|авг|сен|окт|ноя|дек)/u', $t, $mm) > 0) {
-            $month = self::STEMS[end($mm[1])];
-        } elseif (preg_match('/(?<!\d)([1-4])\s*-?\s*чорак/u', $t, $q) === 1) {
-            $month = ((int) $q[1]) * 3;
+        if (preg_match_all(self::MONTH_RE, $t, $mm) > 0) {
+            $stems = $mm[1];
+            $month = self::MONTHS[end($stems)];               // last month wins: «апрель-октябрь» → October
+        } elseif (preg_match(self::QUARTER_RE, $t, $q) === 1) {
+            $month = (['i' => 1, 'ii' => 2, 'iii' => 3, 'iv' => 4][$q[1]] ?? (int) $q[1]) * 3;
         }
 
         return RoadmapPeriod::fromYearMonth($year, $month);
@@ -51,8 +66,9 @@ final class RoadmapDeadline
         return RoadmapPeriod::monthIndex(self::month($deadlineText, $year)) - RoadmapPeriod::monthIndex($todayPeriod);
     }
 
+    /** «декабргача» for a 'YYYY-MM'; anything else (a quarter string) reads as December. */
     public static function untilLabel(string $deadlineMonth): string
     {
-        return self::UNTIL[(int) substr($deadlineMonth, 5, 2)];
+        return self::UNTIL[(int) substr($deadlineMonth, 5, 2)] ?? self::UNTIL[12];
     }
 }
