@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\RoadmapMeasure;
 use App\Support\Roadmaps\MeasureDisplay;
+use Illuminate\Support\Collection;
 
 test('displayed percent caps a not-done measure at 99 and keeps null', function () {
     expect(MeasureDisplay::pshow(100.0, false))->toBe(99);
@@ -37,4 +39,17 @@ test('sparkline points and ring offset', function () {
     expect(MeasureDisplay::ringOffset(null))->toBe('113.1');
     expect(MeasureDisplay::ringOffset(50))->toBe('56.6');
     expect(MeasureDisplay::ringOffset(100))->toBe('0.0');
+    expect(MeasureDisplay::ringOffset(50, 282.7))->toBe('141.4');   // the hero ring (r=45)
+});
+
+test('mean percent counts an unreported measure as 0 and ignores measures without lines', function () {
+    $measures = new Collection([
+        new RoadmapMeasure(['lines_total' => 2, 'pct' => 50]),
+        new RoadmapMeasure(['lines_total' => 1, 'pct' => null]),
+        new RoadmapMeasure(['lines_total' => 0, 'pct' => 100]),   // no indicators yet — out of the mean
+    ]);
+
+    expect(MeasureDisplay::meanPct($measures))->toBe(25);
+    expect(MeasureDisplay::meanPct(new Collection([new RoadmapMeasure(['lines_total' => 0, 'pct' => 100])])))->toBeNull();
+    expect(MeasureDisplay::meanPct(new Collection()))->toBeNull();
 });

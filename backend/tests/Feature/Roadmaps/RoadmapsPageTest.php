@@ -2,6 +2,7 @@
 
 use App\Livewire\RoadmapsPage;
 use App\Models\RoadmapMeasure;
+use App\Support\Roadmaps\MeasureDisplay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -222,6 +223,16 @@ test('cards carry ring, status chip, indicator rows, deadline chips, notes and t
     $response->assertSee('Ёмғир сабабли кечикди');                            // the reporter's note under «Батафсил»
     $response->assertSee('1 тадбирда индикатор йўқ');
     $response->assertSee('бажарилмаган');                                     // KPI tile label
+
+    $bogot = RoadmapMeasure::where('title', 'like', '%бетонлаштириш%')->firstOrFail()->load('lines.progress');
+    expect(MeasureDisplay::history($bogot))->toBe([
+        ['period' => '2026-08', 'pct' => 19.2],   // (38.46 + 0) / 2 — line 2 has no August row
+        ['period' => '2026-09', 'pct' => 80.3],   // (100 + 60.61) / 2
+    ]);
+    $response->assertSeeHtml('<span class="p tnum">80%</span>');                       // Боғот district row
+    $response->assertSeeHtml('<span class="wr-chip muted" title="Охирги ҳисобот даври">2026 йил сентябрь</span>');   // a card older than the road map's latest period
+    // Куловот 8 · 484,5 100 · Талабалар 30 · Боғот 80,31 → mean 54,5775 → 55; Гурлан has no lines and is out.
+    $response->assertSeeHtml('<div class="cv"><b class="tnum">55%</b></div>');
 });
 
 test('status filter narrows the list and combines with a district; rail counts, hero and KPI stay whole', function () {

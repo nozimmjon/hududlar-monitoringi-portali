@@ -6,6 +6,7 @@ use App\Models\Region;
 use App\Models\Roadmap;
 use App\Models\RoadmapMeasure;
 use App\Support\CurrentRegion;
+use App\Support\Roadmaps\MeasureDisplay;
 use App\Support\Roadmaps\RoadmapPeriod;
 use App\Support\Roadmaps\Roman;
 use Illuminate\Support\Collection;
@@ -100,7 +101,7 @@ class RoadmapsPage extends Component
             'name'  => $g->first()->district->name_full,
             'head'  => $g->first()->district_head_text,
             'count' => $g->count(),
-            'pct'   => self::meanPct($g),
+            'pct'   => MeasureDisplay::meanPct($g),
         ])->values();
 
         // A filter carried in from the URL may name a district or section this road map does not
@@ -152,6 +153,9 @@ class RoadmapsPage extends Component
             $counts[$s] = $all->where('status', $s)->count();
         }
 
+        // The road map's own reporting period: a card that stopped earlier is tagged with its own.
+        $latest = RoadmapPeriod::latest($all->pluck('latest_period')->filter()->all());
+
         return view('livewire.roadmaps-page', [
             'roadmap'           => $roadmap,
             'region'            => $region,
@@ -161,27 +165,19 @@ class RoadmapsPage extends Component
             'groups'            => array_values($groups),
             'counts'            => $counts,
             'hero'              => [
-                'pct'         => self::meanPct($all),
+                'pct'         => MeasureDisplay::meanPct($all),
                 'lines_total' => (int) $all->sum('lines_total'),
                 'lines_done'  => (int) $all->sum('lines_done'),
                 'no_lines'    => $all->where('lines_total', 0)->count(),
-                'period'      => RoadmapPeriod::label(RoadmapPeriod::latest($all->pluck('latest_period')->filter()->all())),
+                'latest'      => $latest,
+                'period'      => RoadmapPeriod::label($latest),
             ],
-            'today'             => now()->format('Y-m'),
+            // The deadline countdown is a calendar fact for the people reading it, and
+            // app.timezone is UTC — on the 1st of a month UTC still says «last month».
+            'today'             => now('Asia/Tashkent')->format('Y-m'),
             'shown'             => $rows->count(),
             'filtered'          => $this->section !== 'all' || $this->district !== 'all' || $this->status !== 'all' || $needle !== '',
         ]);
-    }
-
-    /** Mean of pct (unreported = 0) over measures that have planned lines; null when none has. */
-    private static function meanPct(Collection $measures): ?int
-    {
-        $withLines = $measures->filter(fn (RoadmapMeasure $m) => (int) $m->lines_total > 0);
-        if ($withLines->isEmpty()) {
-            return null;
-        }
-
-        return (int) round($withLines->avg(fn (RoadmapMeasure $m) => (float) ($m->pct ?? 0)));
     }
 
     public static function roman(int $n): string

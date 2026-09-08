@@ -23,7 +23,7 @@
             <svg viewBox="0 0 104 104">
               <circle class="tr" cx="52" cy="52" r="45"/>
               <circle class="fg" cx="52" cy="52" r="45"
-                      style="stroke-dasharray:282.7;stroke-dashoffset:{{ number_format(282.7 * (1 - min(100, $hero['pct'] ?? 0) / 100), 1, '.', '') }}"/>
+                      style="stroke-dasharray:282.7;stroke-dashoffset:{{ MeasureDisplay::ringOffset($hero['pct'], 282.7) }}"/>
             </svg>
             <div class="cv"><b class="tnum">{{ $hero['pct'] === null ? '—' : $hero['pct'] . '%' }}</b></div>
           </div>
@@ -39,7 +39,7 @@
         @foreach(['all' => 'Барчаси', 'done' => 'Бажарилди', 'in_progress' => 'Бажарилмоқда', 'open' => 'Бажарилмаган'] as $key => $label)
           <button type="button" class="f-{{ $key }} {{ $status === $key ? 'on' : '' }}"
                   aria-pressed="{{ $status === $key ? 'true' : 'false' }}"
-                  wire:click="selectStatus('{{ $key }}')"><i></i>{{ $label }}<span class="n tnum">{{ $counts[$key] }}</span></button>
+                  wire:click="selectStatus(@js($key))"><i></i>{{ $label }}<span class="n tnum">{{ $counts[$key] }}</span></button>
         @endforeach
       </nav>
 
@@ -47,12 +47,12 @@
         <div class="kt">Бўлимлар</div>
         @php $allOn = $section === 'all' && $district === 'all'; @endphp
         <button type="button" class="{{ $allOn ? 'on' : '' }}" aria-pressed="{{ $allOn ? 'true' : 'false' }}"
-                wire:click="selectSection('all')">Барчаси<span class="n tnum">{{ $counts['all'] }}</span></button>
+                wire:click="selectSection(@js('all'))">Барчаси<span class="n tnum">{{ $counts['all'] }}</span></button>
         @foreach($sections as $s)
           @php $on = $district === 'all' ? $section === (string) $s['no'] : $districtSectionNo === $s['no']; @endphp
           <button type="button" class="{{ $on ? 'on' : '' }}" title="{{ $s['title'] }}"
                   aria-pressed="{{ $on ? 'true' : 'false' }}"
-                  wire:click="selectSection('{{ $s['no'] }}')">
+                  wire:click="selectSection(@js((string) $s['no']))">
             <b>{{ $s['roman'] }}.</b> <span class="t">{{ $s['title'] }}</span><span class="n tnum">{{ $s['count'] }}</span>
           </button>
         @endforeach
@@ -66,7 +66,7 @@
             <button type="button" class="wr-drow {{ $dOn ? 'on' : '' }}"
                     title="{{ $d['count'] }} та чора-тадбир{{ $d['head'] ? ' · ' . $d['head'] : '' }}"
                     aria-pressed="{{ $dOn ? 'true' : 'false' }}"
-                    wire:click="selectDistrict('{{ $d['code'] }}')">
+                    wire:click="selectDistrict(@js((string) $d['code']))">
               <span class="t">{{ $d['name'] }}</span>
               <span class="mb" aria-hidden="true"><i style="width:{{ $d['pct'] ?? 0 }}%"></i></span>
               <span class="p tnum">{{ $d['pct'] === null ? '—' : $d['pct'] . '%' }}</span>
@@ -129,7 +129,7 @@
                 $hasMore  = $docLines !== [] || $notes->isNotEmpty() || $spark !== '';
               @endphp
               <article class="wr-mcard st-{{ $chip['cls'] }}" wire:key="wr-m-{{ $m->id }}" x-data="{ open: false, all: false }">
-                <div class="wr-ring {{ $lineRows->isEmpty() ? 'na' : '' }}" role="img"
+                <div class="wr-ring {{ $lineRows->isEmpty() || (int) $m->lines_total === 0 ? 'na' : '' }}" role="img"
                      aria-label="Бажарилиш {{ $pctShown === null ? 'маълумот йўқ' : $pctShown . '%' }}">
                   <svg viewBox="0 0 44 44">
                     <circle class="tr" cx="22" cy="22" r="18"/>
@@ -147,8 +147,11 @@
                   @if($lineRows->isEmpty())
                     <div class="wr-line none"><span class="lb">Индикаторлар ҳали белгиланмаган</span></div>
                   @else
+                    {{-- Rows 5+ live inside one collapsible wrapper (opened mid-loop) so the
+                         «яна N» button can own it through aria-controls. --}}
                     @foreach($lineRows as $i => $r)
-                      <div class="wr-line t-{{ $r['tier'] }}" @if($i >= 4) x-show="all" x-cloak @endif>
+                      @if($i === 4)<div id="wr-more-{{ $m->id }}" x-show="all" x-cloak>@endif
+                      <div class="wr-line t-{{ $r['tier'] }}">
                         <span class="lb" title="{{ $r['label'] }}">{{ $r['label'] }}</span>
                         <span class="bar" aria-hidden="true"><i style="width:{{ $r['width'] }}%"></i><span class="tick"></span></span>
                         <span class="pv tnum"><b>{{ MeasureDisplay::fmt($r['actual']) }}</b> / {{ MeasureDisplay::fmt($r['plan']) }} {{ $r['unit'] }}</span>
@@ -156,7 +159,9 @@
                       </div>
                     @endforeach
                     @if($extra > 0)
-                      <button type="button" class="wr-more" aria-expanded="false" x-on:click="all = !all" :aria-expanded="all">
+                      </div>
+                      <button type="button" class="wr-more" aria-expanded="false" aria-controls="wr-more-{{ $m->id }}"
+                              x-on:click="all = !all" :aria-expanded="all">
                         <span class="c" :class="all && 'open'">▸</span>
                         <span x-text="all ? 'Камроқ' : 'яна {{ $extra }} индикатор'">яна {{ $extra }} индикатор</span>
                       </button>
@@ -165,6 +170,9 @@
 
                   <div class="foot">
                     <span class="wr-tag {{ $deadline['cls'] }}">{{ $deadline['label'] }}</span>
+                    @if($m->latest_period && $m->latest_period !== $hero['latest'])
+                      <span class="wr-chip muted" title="Охирги ҳисобот даври">{{ RoadmapPeriod::label($m->latest_period) }}</span>
+                    @endif
                     @if($m->funding_text)
                       <span class="wr-chip {{ mb_stripos($m->funding_text, 'талаб этилмайди') !== false ? 'muted' : '' }}" title="{{ $m->funding_text }}">{{ $m->funding_text }}</span>
                     @endif
@@ -174,11 +182,12 @@
                   </div>
 
                   @if($hasMore)
-                    <button type="button" class="wr-more" aria-expanded="false" x-on:click="open = !open" :aria-expanded="open">
+                    <button type="button" class="wr-more" aria-expanded="false" aria-controls="wr-det-{{ $m->id }}"
+                            x-on:click="open = !open" :aria-expanded="open">
                       <span class="c" :class="open && 'open'">▸</span>
                       <span x-text="open ? 'Ёпиш' : '{{ $moreLabel }}'">{{ $moreLabel }}</span>
                     </button>
-                    <div class="wr-details" x-show="open" x-cloak>
+                    <div id="wr-det-{{ $m->id }}" class="wr-details" x-show="open" x-cloak>
                       @foreach($docLines as $line)<p>{{ $line }}</p>@endforeach
                       @if($notes->isNotEmpty())
                         <div class="wr-notes">

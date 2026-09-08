@@ -4,6 +4,7 @@ namespace App\Support\Roadmaps;
 
 use App\Models\RoadmapMeasure;
 use App\Support\SectorDisplay;
+use Illuminate\Support\Collection;
 
 /** View helpers for the /roadmaps cards — formatting only, no status logic (that is MeasureRecomputer). */
 final class MeasureDisplay
@@ -14,7 +15,8 @@ final class MeasureDisplay
         'open'        => ['cls' => 'bad',  'label' => 'Бажарилмаган'],
     ];
 
-    private const RING_CIRC = 113.1;   // 2π × r18
+    /** 2π × r18 — the card ring; the hero ring (r45) passes its own 282.7. */
+    private const RING_CIRC = 113.1;
 
     /** A measure that is not done never shows 100 % (cap 99). */
     public static function pshow(?float $pct, bool $done): ?int
@@ -35,7 +37,24 @@ final class MeasureDisplay
     /** Fill width in % of a bar whose full length is 120 % of plan (the tick at 83.33 % marks 100 %). Never negative. */
     public static function barWidth(?float $pct): float
     {
-        return $pct === null ? 0.0 : max(0.0, min(100.0, $pct / 120 * 100));
+        return $pct === null ? 0.0 : round(max(0.0, min(100.0, $pct / 120 * 100)), 2);
+    }
+
+    /**
+     * Mean of pct (unreported = 0) over measures that have planned lines; null when
+     * none has. Used for both the hero ring and the rail's district bars, so the two
+     * can never drift apart.
+     *
+     * @param Collection<int, RoadmapMeasure> $measures
+     */
+    public static function meanPct(Collection $measures): ?int
+    {
+        $withLines = $measures->filter(fn (RoadmapMeasure $m) => (int) $m->lines_total > 0);
+        if ($withLines->isEmpty()) {
+            return null;
+        }
+
+        return (int) round($withLines->avg(fn (RoadmapMeasure $m) => (float) ($m->pct ?? 0)));
     }
 
     public static function fmt(null|float|int|string $v): string
@@ -114,12 +133,12 @@ final class MeasureDisplay
         return implode(' ', $pts);
     }
 
-    /** stroke-dashoffset for the r=18 ring; null = empty ring. */
-    public static function ringOffset(?int $shownPct): string
+    /** stroke-dashoffset for a ring of the given circumference (default: the r=18 card ring); null = empty ring. */
+    public static function ringOffset(?int $shownPct, float $circumference = self::RING_CIRC): string
     {
         $p = $shownPct === null ? 0 : min(100, max(0, $shownPct));
 
-        return number_format(self::RING_CIRC * (1 - $p / 100), 1, '.', '');
+        return number_format($circumference * (1 - $p / 100), 1, '.', '');
     }
 
     private static function trimNum(float $v): string
