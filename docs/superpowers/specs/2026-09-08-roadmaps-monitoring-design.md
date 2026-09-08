@@ -206,7 +206,7 @@ php artisan roadmap:template --all       --period=2026-09 [--out=path]
 Writes an xlsx. `--region` → one workbook with one region sheet; `--all` → every
 region that has a loaded road map (ordered by `regions.sort_order`), one sheet each.
 Both add a final «Йўриқнома» sheet. Default `--out`:
-`data/Сув хўжалиги бўйича йўл хариталар/мониторинг/{period}/{region name_short}.xlsx`
+`data/Сув хўжалиги бўйича йўл хариталар/мониторинг/{period}/{region name_full}.xlsx`
 (or `…/{period}/Барча вилоятлар.xlsx` for `--all`); directories are created.
 Region without a road map → error, exit 1.
 
