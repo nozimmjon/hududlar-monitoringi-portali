@@ -15,17 +15,31 @@
 > rows repeating, the G validation also carries an input prompt («Йил бошидан жами, «Ўлчов»
 > устунидаги бирликда»), the «Йўриқнома» sheet has **10** numbered lines (the last two explain
 > number formats and that every indicator must be re-reported each period), `--all` together
-> with `--region` is a clear error, and an unwritable `--out` (file still open in Excel) is an
-> operator message, not a stack trace. **Reader / `import:roadmap-progress`:** beyond
+> with `--region` is a clear error, an unwritable `--out` (file still open in Excel) is an
+> operator message, not a stack trace, the **default `--out` filename** is `name_full` too (the
+> same «Тошкент» clash would otherwise overwrite one region's file with the other's), and
+> `--year`/`--domain` are validated up front exactly as `import:roadmap` validates them.
+> **`LineSuggester`:** standalone `сўм`, `%` and «фоиз» count as units (the last normalised to
+> `%`), a grammatical suffix after a unit is consumed («гектарда», «тадан», «кВтлик»,
+> «фоизга»), a leading list marker («1.», «•», «–») is stripped before matching so it cannot
+> merge into the following number, and a title quantity that equals the sum of the same-unit
+> detail lines is dropped as a duplicate total («64 нафар» over «9 нафар — Урганч, 20 нафар —
+> Хива, …»); `т` as a tonne abbreviation is **not** recognised (too many false hits) — only the
+> spelled-out «тонна». **Reader / `import:roadmap-progress`:** beyond
 > non-numeric cells, **percent-formatted, date-formatted, boolean and comma-grouped «1 240»**
 > cells are rejected naming the cell (a percent-formatted 0,5 would silently divide the report
 > by 100), formulas are evaluated, `7,8`/`7.8`/`1 240`/`1 240,5` with NBSP and narrow spaces
 > accepted; **two consecutive blank rows close a block** (one is a filler) so a stray «ЖАМИ»
 > below the table aborts instead of being absorbed; keys are canonicalised
 > (`RoadmapKey::canonical`, hand-edited padding still matches) and a duplicate key names both
-> places; the three warnings are region-prefixed (relabelled history · cleared «Амалда» ·
-> measures missing from the file) and the summary's first count column is **«Файлда/жами»**
-> (measures in the file / the road map's total) rather than «Тадбирлар». **`import:roadmap`:**
+> places; `--year`/`--domain` are options here too, validated before the workbook is opened;
+> every warning names its region (lines removed · relabelled history · cleared «Амалда» ·
+> **measures advanced to a newer period with no «Амалда» value at all** — the give-away that an
+> *unfilled* template was imported, which drops the whole region back to «Бажарилмоқда» until
+> the filled file arrives · measures missing from the file) and the summary's first count column
+> is **«Файлда/жами»** (measures in the file / the road map's total) rather than «Тадбирлар».
+> **`RoadmapKey`:** the regex is `^\d{4}-\d+-\d+-\d+$` — no digit caps on the section or seq
+> parts, since neither has a real upper bound. **`import:roadmap`:**
 > upserts measures by position as specified, and additionally warns about **retitled** measures
 > that carry indicator lines and previews both counts in `--dry-run`. **Recomputer:**
 > `pct_of_plan` is clamped to ±999999,9999 (numeric(10,4)); each line's share is floored at 0
@@ -131,7 +145,8 @@ the new columns. The `Roadmap` model gains `latestPeriod(): ?string` = the max
 
 `RoadmapPeriod::monthIndex(string $period): int` — `YYYY-MM` → `YYYY*12 + MM`,
 `YYYY-Qn` → `YYYY*12 + n*3` (last month of the quarter). Used for "latest" and for the
-deadline comparison. `RoadmapPeriod::label()` → «2026 · сентябрь» / «2026 · 3-чорак».
+deadline comparison. `RoadmapPeriod::label()` → «2026 йил сентябрь» / «2026 йил III чорак»
+(delegated to `TaskPeriod::reportPeriodLabel`, so road maps and the tasks board read alike).
 Validation regex for `--period`: `^\d{4}-(0[1-9]|1[0-2]|Q[1-4])$`.
 
 ### Deadline month
@@ -195,7 +210,7 @@ Both add a final «Йўриқнома» sheet. Default `--out`:
 (or `…/{period}/Барча вилоятлар.xlsx` for `--all`); directories are created.
 Region without a road map → error, exit 1.
 
-**Sheet title:** `regions.name_short`, forbidden characters `[]:*?/\` replaced with a
+**Sheet title:** `regions.name_full`, forbidden characters `[]:*?/\` replaced with a
 space, truncated to 31 characters. The import ignores sheet titles.
 
 **Sheet layout (template A):**

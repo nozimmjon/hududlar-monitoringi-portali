@@ -17,22 +17,23 @@ cumulative since the start of the year.
 ```powershell
 cd backend
 
-# 1. Write the file for the period (default path: data/…/мониторинг/2026-09/Хоразм.xlsx)
+# 1. Write the file for the period (default path: data/…/мониторинг/2026-09/Хоразм вилояти.xlsx)
 php artisan roadmap:template --region=1733 --period=2026-09
 php artisan roadmap:template --all --period=2026-09        # every loaded region, one sheet each
 #   --period accepts a month (2026-09) or a quarter (2026-Q3); lower case (2026-q3) is fine.
 #   --out=path.xlsx writes somewhere else; --year / --domain pick another road-map family.
+#   The default file is named after regions.name_full — «Тошкент» alone is two regions.
 
 # 2. FIRST MONTH ONLY: open the file and review the suggested indicator lines (see below).
 
 # 3. Import the reviewed, still-empty file — this stores the line definitions
-php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм.xlsx" --dry-run
-php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм.xlsx"
+php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм вилояти.xlsx" --dry-run
+php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм вилояти.xlsx"
 
 # 4. Send that same file to the region (they fill only the yellow G/H cells).
 
 # 5. Import the returned file — same command; --period defaults to the sheet title
-php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм (тўлдирилган).xlsx"
+php artisan import:roadmap-progress --file="../data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм вилояти (тўлдирилган).xlsx"
 
 # 6. Next month: the template now carries the stored lines, no heuristics
 php artisan roadmap:template --region=1733 --period=2026-10
@@ -43,6 +44,16 @@ Step 3 is what makes the definitions real: after it every measure has its lines 
 stored «Амалда»/«Изоҳ» pre-filled when that period already has values, so a correction
 round is just "edit and re-import". Steps 1–2 are needed once per region; from then on
 the loop is 1 → 4 → 5.
+
+**Never import an unfilled template for a *new* period** (step 1's own output, before
+step 4). It registers that period with no «Амалда» anywhere, and because status and
+percent are read from the latest reported period only, every card of the region falls
+back to «Бажарилмоқда» with no ring until the filled file arrives — a «Бажарилди»
+measure looks reopened. Step 3 is the one exception, and only because the first month
+has nothing to lose. The import says so when it happens:
+`{region}: N measure(s) advanced to 2026-10 with no «Амалда» values — an unfilled
+template imported for a new period? …`. The cure is to import the filled file for that
+same period; the empty rows are overwritten and the numbers come back.
 
 Rebuild the derived columns without touching any file (after a deadline-rule change, a
 hand-edited progress row, or just to check):
@@ -81,7 +92,7 @@ The generator guesses lines from the measure text (`24 та насос агре�
 +----------------+-----------+---------------------+--------------------+
 | Хоразм вилояти | 89        | 178                 | 178                |
 +----------------+-----------+---------------------+--------------------+
-Written …/data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм.xlsx
+Written …/data/Сув хўжалиги бўйича йўл хариталар/мониторинг/2026-09/Хоразм вилояти.xlsx
 ```
 
 (`of which suggested` = 178 of 178 means nothing is stored yet — this is the first
@@ -95,7 +106,7 @@ month. After step 3 it must read 0: the lines now come from the DB.)
 +----------------+-------------+----------+-----------+--------+------+-------------+------+
 | Хоразм вилояти | 89/89       | 178      | 0         | 129    | 12   | 77          | 0    |
 +----------------+-------------+----------+-----------+--------+------+-------------+------+
-Period 2026-09: 89 measure(s) processed from Хоразм.xlsx.
+Period 2026-09: 89 measure(s) processed from Хоразм вилояти.xlsx.
 ```
 
 `Файлда/жами` = measures found in the file / measures the road map has (89/89 = the
@@ -120,11 +131,12 @@ something wrote progress behind its back.
 All of these are warnings, not aborts — the import already happened (unless
 `--dry-run`), so read them and decide.
 
-- **`N line(s) removed — no longer in the file (their history went with them).`**
+- **`{region}: N line(s) removed — no longer in the file (their history went with them).`**
   Stored lines beyond the block's last row were deleted, together with every period
   they had ever reported. Intended when you deliberately dropped an indicator; if not,
   the file was sent back short — restore the missing rows and re-import (the history is
-  gone either way, only the definition comes back).
+  gone either way, only the definition comes back). One line per region, so an `--all`
+  workbook says which region lost the rows.
 - **`{region}: N line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.`**
   Line identity is the row position, so a row inserted in the middle pushes every
   following line's reported history onto the next indicator. Either fix the file (put
@@ -134,6 +146,10 @@ All of these are warnings, not aborts — the import already happened (unless
   Cells that had a value for this period arrived empty. Almost always an **older copy
   of the file** was imported over a newer one — re-import the newer file; it restores
   the values. If the region really did retract numbers, nothing to do.
+- **`{region}: N measure(s) advanced to {period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.`**
+  A period newer than the one those measures last reported arrived with every «Амалда»
+  cell empty — normally step 1's own template imported by mistake before step 4. See the
+  monthly loop above; import the filled file for that period and the numbers return.
 - **`N of M measure(s) of {region} are not in the file — left untouched.`**
   Rows (or a whole sheet) were deleted from the workbook. Those measures keep their old
   lines and status — they are *not* zeroed. Restore them from a fresh

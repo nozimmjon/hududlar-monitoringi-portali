@@ -6115,7 +6115,6 @@ body.sectors-body{
   display:inline-block;font-size:11px;font-weight:700;line-height:1.35;padding:3px 9px;border-radius:9px;
   background:var(--grey-soft);color:var(--muted);max-width:100%;white-space:normal;overflow-wrap:anywhere;
 }
-.wr-chip.d{background:var(--green-soft);color:var(--green)}
 
 .wr-more{margin-top:6px;border:0;background:none;padding:2px 0;font-size:12px;font-weight:700;color:var(--blue);display:inline-flex;align-items:center;gap:6px;transition:color .16s}
 .wr-more:hover{color:var(--blue-2)}

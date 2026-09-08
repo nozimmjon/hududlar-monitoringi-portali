@@ -201,6 +201,11 @@ test('option conflicts and unwritable output are reported, not thrown', function
     expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $blocker . '/x/y.xlsx']))->toBe(1);
     expect(Artisan::output())->toContain('Cannot');
     @unlink($blocker);
+
+    expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--domain' => 'bogus', '--out' => templateOut()]))->toBe(1);
+    expect(Artisan::output())->toContain('--domain');
+    expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--year' => '26', '--out' => templateOut()]))->toBe(1);
+    expect(Artisan::output())->toContain('--year');
 });
 
 test('instruction sheet names the file and warns about CSV', function () {

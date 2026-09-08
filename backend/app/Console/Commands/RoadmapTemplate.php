@@ -29,6 +29,19 @@ class RoadmapTemplate extends Command
             return self::FAILURE;
         }
 
+        $year   = (int) $this->option('year');
+        $domain = (string) $this->option('domain');
+        if ($year < 2000 || $year > 2100) {
+            $this->error("--year must be a four-digit year, got «{$this->option('year')}».");
+
+            return self::FAILURE;
+        }
+        if (! in_array($domain, ImportRoadmap::DOMAINS, true)) {
+            $this->error('--domain must be one of: ' . implode(', ', ImportRoadmap::DOMAINS) . " — got «{$domain}».");
+
+            return self::FAILURE;
+        }
+
         $period = strtoupper(trim((string) $this->option('period')));      // «2026-q3» → «2026-Q3»
         if (! RoadmapPeriod::isValid($period)) {
             $this->error('Provide --period as YYYY-MM or YYYY-Qn (e.g. 2026-09 or 2026-Q3).');
@@ -37,8 +50,8 @@ class RoadmapTemplate extends Command
         }
 
         $base = Roadmap::query()
-            ->where('roadmaps.domain', (string) $this->option('domain'))
-            ->where('roadmaps.year', (int) $this->option('year'))
+            ->where('roadmaps.domain', $domain)
+            ->where('roadmaps.year', $year)
             ->with([
                 'region',
                 'measures' => fn ($q) => $q->orderBy('source_row'),
@@ -69,7 +82,7 @@ class RoadmapTemplate extends Command
                 return self::FAILURE;
             }
             $roadmaps = collect([$roadmap]);
-            $name     = $roadmap->region->name_short;
+            $name     = $roadmap->region->name_full;      // name_short is not unique — two «Тошкент»
         }
 
         $out = (string) ($this->option('out') ?: base_path(ImportRoadmap::DEFAULT_DIR . "/мониторинг/{$period}/{$name}.xlsx"));

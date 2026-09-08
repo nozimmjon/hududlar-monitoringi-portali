@@ -286,3 +286,18 @@ test('sheets that disagree on the period and a keyless continuation row abort', 
     expect(Artisan::call('import:roadmap-progress', ['--file' => $keyless]))->toBe(1);
     expect(Artisan::output())->toContain('D3');
 });
+
+test('importing an unfilled template for a newer period warns that the region fell back to Бажарилмоқда', function () {
+    $this->seed();
+    progressFixtureImport();
+    $sep = progressTemplate('2026-09');
+    progressFill($sep, ['G4' => 100, 'G8' => 7.8, 'G9' => 33, 'G11' => 24]);
+    Artisan::call('import:roadmap-progress', ['--file' => $sep]);
+    expect(progressMeasure(2, 1, 1733208)->status)->toBe('done');
+
+    expect(Artisan::call('import:roadmap-progress', ['--file' => progressTemplate('2026-10')]))->toBe(0);
+    $out = Artisan::output();
+    expect($out)->toContain('advanced to 2026-10 with no «Амалда» values');
+    expect($out)->toContain('Хоразм вилояти: 4 measure(s)');
+    expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
+});

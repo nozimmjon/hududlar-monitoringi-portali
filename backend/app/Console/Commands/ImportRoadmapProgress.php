@@ -119,18 +119,19 @@ class ImportRoadmapProgress extends Command
             $work[] = ['roadmap' => $roadmap, 'items' => $items];
         }
 
-        $summary    = [];
-        $notes      = [];
-        $removedAll = 0;
+        $summary = [];
+        $notes   = [];
         DB::beginTransaction();
         try {
             $recomputer = new MeasureRecomputer();
             foreach ($work as $entry) {
                 $s = ['measures' => 0, 'total' => $entry['roadmap']->measures->count(), 'lines' => 0, 'removed' => 0,
-                    'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
+                    'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'blank_advance' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
                 foreach ($entry['items'] as [$measure, $block]) {
                     $s['measures']++;
-                    $stored = $measure->lines->keyBy('line_no');
+                    $was      = $measure->latest_period;      // to spot an unfilled template registering a new period
+                    $anyValue = false;
+                    $stored   = $measure->lines->keyBy('line_no');
                     foreach ($block['lines'] as $i => $l) {
                         $no       = $i + 1;
                         $line     = $stored->get($no);
@@ -163,6 +164,7 @@ class ImportRoadmapProgress extends Command
                         $s['lines']++;
                         if ($l['actual'] !== null) {
                             $s['reported']++;
+                            $anyValue = true;
                         }
                     }
                     if ($block['lines'] !== []) {
@@ -171,11 +173,13 @@ class ImportRoadmapProgress extends Command
                     $measure->unsetRelation('lines');
                     $values = $recomputer->recompute($measure, $entry['roadmap']->year);
                     $s[$values['status']]++;
+                    if ($was !== null && ! $anyValue && $values['latest_period'] !== $was) {
+                        $s['blank_advance']++;              // it had a reported period, now it has a newer, empty one
+                    }
                 }
-                $region      = $entry['roadmap']->region->name_full;
-                $removedAll += $s['removed'];
-                $summary[]   = [$region, "{$s['measures']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open']];
-                $notes[]     = $s + ['region' => $region, 'missing' => $s['total'] - $s['measures']];
+                $region    = $entry['roadmap']->region->name_full;
+                $summary[] = [$region, "{$s['measures']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open']];
+                $notes[]   = $s + ['region' => $region, 'missing' => $s['total'] - $s['measures']];
             }
             $this->option('dry-run') ? DB::rollBack() : DB::commit();
         } catch (\InvalidArgumentException $e) {
@@ -189,15 +193,18 @@ class ImportRoadmapProgress extends Command
         }
 
         $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'done', 'in_progress', 'open'], $summary);
-        if ($removedAll > 0) {
-            $this->warn("{$removedAll} line(s) removed — no longer in the file (their history went with them).");
-        }
         foreach ($notes as $n) {
+            if ($n['removed'] > 0) {
+                $this->warn("{$n['region']}: {$n['removed']} line(s) removed — no longer in the file (their history went with them).");
+            }
             if ($n['relabeled'] > 0) {
                 $this->warn("{$n['region']}: {$n['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
             }
             if ($n['cleared'] > 0) {
                 $this->warn("{$n['region']}: {$n['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+            }
+            if ($n['blank_advance'] > 0) {
+                $this->warn("{$n['region']}: {$n['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.");
             }
             if ($n['missing'] > 0) {
                 $this->warn("{$n['missing']} of {$n['total']} measure(s) of {$n['region']} are not in the file — left untouched.");
