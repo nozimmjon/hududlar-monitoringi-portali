@@ -1,0 +1,126 @@
+<?php
+
+use App\Models\RoadmapMeasure;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Protection;
+use Tests\Helpers\RoadmapDocxBuilder;
+
+uses(RefreshDatabase::class);
+
+function templateFixtureImport(int $region = 1733): void
+{
+    $rows = $region === 1733 ? [
+        ['section', 'I. Вилоятда амалга ошириладиган йирик лойиҳалар'],
+        ['measure', ['484,5 млн м3 сувни иқтисод қилиш.'], ['Маблағ талаб этилмайди'], ['2026 йил декабрь'], ['ИТҲБ (Э.Нурметов)']],
+        ['measure', ['Илмий тавсиялар ишлаб чиқиш.'], ['Университет маблағлари'], ['2026 йил апрель-октябрь'], ['Университет']],
+        ['section', 'II. Туманларда амалга ошириладиган лойиҳалар'],
+        ['district', '1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)'],
+        ['measure', ['Суғориш тармоқларини бетонлаштириш, жумладан:', '1. 7,8 км хўжаликлараро каналлар;', '2. 33 км ички каналлар.'], ['Республика ва маҳаллий бюджет'], ['2026 йил декабрь'], ['ИТҲБ (Э.Нурметов)']],
+        ['district', '2. Гурлан тумани (масъул – туман ҳокими Р.Ўразбоев)'],
+        ['measure', ['24 та насос агрегатларини таъмирлаш.'], ['Маҳаллий бюджет'], ['2026 йил декабрь'], ['ИТҲБ']],
+    ] : [
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', ['12 км канал.'], ['Бюджет'], ['2026 йил декабрь'], ['СХВ']],
+    ];
+    Artisan::call('import:roadmap', ['--region' => $region, '--file' => RoadmapDocxBuilder::make($rows)]);
+}
+
+function templateOut(): string
+{
+    return tempnam(sys_get_temp_dir(), 'rmtpl_') . '.xlsx';
+}
+
+test('writes a document-shaped sheet: title with period, header, section/district rows, merged measure blocks, suggested lines', function () {
+    $this->seed();
+    templateFixtureImport();
+    $out = templateOut();
+
+    expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]))->toBe(0);
+    expect(Artisan::output())->toContain($out);
+
+    $book  = IOFactory::load($out);
+    $sheet = $book->getSheetByName('Хоразм');
+    expect($sheet)->not->toBeNull();
+    expect($book->getSheetByName('Йўриқнома'))->not->toBeNull();
+    expect($book->getSheetCount())->toBe(2);
+
+    expect($sheet->getCell('A1')->getValue())->toContain('Хоразм вилояти');
+    expect($sheet->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-09');
+    expect($sheet->getCell('A2')->getValue())->toBe('Калит');
+    expect($sheet->getCell('G2')->getValue())->toBe('Амалда');
+    expect($sheet->getCell('A3')->getValue())->toBe('I. Вилоятда амалга ошириладиган йирик лойиҳалар');
+
+    expect($sheet->getCell('A4')->getValue())->toBe('1733-1-0-1');
+    expect((int) $sheet->getCell('B4')->getValue())->toBe(1);
+    expect($sheet->getCell('C4')->getValue())->toBe('484,5 млн м3 сувни иқтисод қилиш.');
+    expect($sheet->getCell('D4')->getValue())->toBe('Сувни иқтисод қилиш');
+    expect($sheet->getCell('E4')->getValue())->toBe('млн м³');
+    expect((float) $sheet->getCell('F4')->getValue())->toBe(484.5);
+    expect($sheet->getCell('G4')->getValue())->toBeNull();
+    expect($sheet->getCell('I4')->getValue())->toBe('2026 йил декабрь');
+    expect($sheet->getCell('D5')->getValue())->toBe('Бажарилиш даражаси');
+    expect($sheet->getCell('E5')->getValue())->toBe('%');
+
+    expect($sheet->getCell('A6')->getValue())->toBe('II. Туманларда амалга ошириладиган лойиҳалар');
+    expect($sheet->getCell('A7')->getValue())->toBe('1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)');
+    expect($sheet->getCell('A8')->getValue())->toBe('1733-2-1733204-1');
+    expect($sheet->getCell('D8')->getValue())->toBe('Хўжаликлараро каналлар');
+    expect($sheet->getCell('D9')->getValue())->toBe('Ички каналлар');
+    expect((float) $sheet->getCell('F9')->getValue())->toBe(33.0);
+    expect(array_keys($sheet->getMergeCells()))->toContain('C8:C9', 'A8:A9', 'J8:J9', 'A7:J7', 'A1:J1');
+    expect($sheet->getCell('A10')->getValue())->toBe('2. Гурлан тумани (масъул – туман ҳокими Р.Ўразбоев)');
+    expect($sheet->getCell('A11')->getValue())->toBe('1733-2-1733208-1');
+    expect($sheet->getCell('D11')->getValue())->toBe('Насос агрегатларини таъмирлаш');
+
+    expect($sheet->getColumnDimension('A')->getVisible())->toBeFalse();
+    expect($sheet->getProtection()->getSheet())->toBeTrue();
+    expect($sheet->getStyle('G8')->getProtection()->getLocked())->toBe(Protection::PROTECTION_UNPROTECTED);
+    expect($sheet->getStyle('H8')->getProtection()->getLocked())->toBe(Protection::PROTECTION_UNPROTECTED);
+    expect($sheet->getStyle('F8')->getProtection()->getLocked())->not->toBe(Protection::PROTECTION_UNPROTECTED);
+    expect($sheet->getStyle('G8')->getFill()->getStartColor()->getRGB())->toBe('FFF2CC');
+    expect($sheet->getStyle('A7')->getFill()->getStartColor()->getRGB())->toBe('EAF1FB');
+    expect($sheet->getCell('G8')->getDataValidation()->getType())->toBe('decimal');
+    expect($sheet->getFreezePane())->toBe('A3');
+});
+
+test('stored lines win over suggestions and carry the period actual and note', function () {
+    $this->seed();
+    templateFixtureImport();
+    $m = RoadmapMeasure::where('section_no', 1)->where('seq_no', 2)->firstOrFail();
+    $l = $m->lines()->create(['line_no' => 1, 'label' => 'Тавсиялар сони', 'unit' => 'дона', 'plan_value' => 3]);
+    $m->lines()->create(['line_no' => 2, 'label' => 'Тақдимот', 'unit' => 'та', 'plan_value' => 1]);
+    $l->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 2, 'pct_of_plan' => 66.67, 'note' => 'икки тайёр']);
+    $l->progress()->create(['report_period' => '2026-08', 'period_type' => 'month', 'actual_value' => 1, 'pct_of_plan' => 33.33]);
+    $out = templateOut();
+
+    Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]);
+
+    $sheet = IOFactory::load($out)->getSheetByName('Хоразм');
+    expect($sheet->getCell('A5')->getValue())->toBe('1733-1-0-2');
+    expect($sheet->getCell('D5')->getValue())->toBe('Тавсиялар сони');
+    expect((float) $sheet->getCell('G5')->getValue())->toBe(2.0);
+    expect($sheet->getCell('H5')->getValue())->toBe('икки тайёр');
+    expect($sheet->getCell('D6')->getValue())->toBe('Тақдимот');
+    expect($sheet->getCell('G6')->getValue())->toBeNull();
+    expect($sheet->getCell('A7')->getValue())->toBe('II. Туманларда амалга ошириладиган лойиҳалар');   // shifted by one row
+    expect(Artisan::output())->toContain('suggested');
+});
+
+test('--all writes one sheet per loaded region in region order; a region without a road map is an error', function () {
+    $this->seed();
+    templateFixtureImport(1703);
+    templateFixtureImport(1733);
+    $out = templateOut();
+
+    expect(Artisan::call('roadmap:template', ['--all' => true, '--period' => '2026-q3', '--out' => $out]))->toBe(0);   // lower-case period is normalised
+    $book = IOFactory::load($out);
+    expect(array_map(fn ($s) => $s->getTitle(), $book->getAllSheets()))->toBe(['Андижон', 'Хоразм', 'Йўриқнома']);
+    expect($book->getSheetByName('Андижон')->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-Q3');
+
+    expect(Artisan::call('roadmap:template', ['--region' => 1718, '--period' => '2026-09', '--out' => templateOut()]))->toBe(1);
+    expect(Artisan::output())->toContain('import:roadmap');
+    expect(Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-9', '--out' => templateOut()]))->toBe(1);
+    expect(Artisan::output())->toContain('--period');
+});
