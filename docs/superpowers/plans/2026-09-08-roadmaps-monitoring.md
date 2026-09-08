@@ -688,6 +688,7 @@ test('pct of plan', function () {
     expect(MeasureRecomputer::pctOfPlan(null, 14))->toBeNull();
     expect(MeasureRecomputer::pctOfPlan(24, null))->toBeNull();
     expect(MeasureRecomputer::pctOfPlan(0, 5))->toBeNull();
+    expect(MeasureRecomputer::pctOfPlan(0.01, 20000))->toBe(999999.9999);   // clamped to what numeric(10,4) can hold
 });
 
 test('nothing reported → in_progress, no percent, counts still truthful', function () {
@@ -819,14 +820,17 @@ use App\Support\TaskStatus;
  */
 final class MeasureRecomputer
 {
-    /** actual / plan × 100, 4 decimals; null when either side is missing or the plan is 0. */
+    /** Largest value the numeric(10,4) pct_of_plan column can hold — a typo like 20 000 against a plan of 0.01 must not abort the import. */
+    public const PCT_MAX = 999999.9999;
+
+    /** actual / plan × 100, 4 decimals, clamped to PCT_MAX; null when either side is missing or the plan is 0. */
     public static function pctOfPlan(null|float|int|string $plan, null|float|int|string $actual): ?float
     {
         if ($plan === null || $actual === null || (float) $plan == 0.0) {
             return null;
         }
 
-        return round((float) $actual / (float) $plan * 100, 4);
+        return min(self::PCT_MAX, round((float) $actual / (float) $plan * 100, 4));
     }
 
     /**
@@ -1727,6 +1731,8 @@ Claude-Session: https://claude.ai/code/session_01513E6CDpBkN4Pfv2PaNpqC"
 ```
 
 ---
+
+> **Execution order:** run **Task 9 before Task 8**. Task 8 creates the first real progress rows, and until Task 9 lands a docx re-import (`import:roadmap`) cascade-deletes every line and progress row of the region. Task 9 has no dependency on Task 8.
 
 ### Task 8: `RoadmapProgressReader` + `import:roadmap-progress`
 
