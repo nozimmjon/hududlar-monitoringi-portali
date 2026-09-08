@@ -27,7 +27,7 @@
 | `app/Models/RoadmapMeasureLine.php`, `app/Models/RoadmapLineProgress.php` | models; `RoadmapMeasure::lines()` added |
 | `app/Support/Roadmaps/RoadmapPeriod.php` | period regex, month index, type, label, latest |
 | `app/Support/Roadmaps/RoadmapDeadline.php` | deadline text → `YYYY-MM`, reached?, months-left label |
-| `app/Support/Roadmaps/RoadmapKey.php` | natural key make/parse; `Roman::of()` lives here too |
+| `app/Support/Roadmaps/RoadmapKey.php`, `app/Support/Roadmaps/Roman.php` | natural key make/parse/canonical; Roman numerals for section headings |
 | `app/Support/Roadmaps/LineSuggester.php` | quantity heuristic → suggested lines (pure) |
 | `app/Services/Roadmaps/MeasureRecomputer.php` | pure `aggregate()` + persisting `recompute()` |
 | `app/Services/Roadmaps/RoadmapTemplateWriter.php` | builds the xlsx `Spreadsheet` |
@@ -2010,6 +2010,7 @@ final class RoadmapProgressReader
         for ($r = 1; $r <= $last; $r++) {
             $a = self::text($sheet, "A{$r}");
             if ($a !== '' && RoadmapKey::isKey($a)) {
+                $a = RoadmapKey::canonical($a);                    // hand-edited padding («1733-05-0-2») must still match
                 if (isset($blocks[$a])) {
                     throw new RuntimeException("{$name}!A{$r}: калит {$a} файлда иккинчи марта учради.");
                 }
