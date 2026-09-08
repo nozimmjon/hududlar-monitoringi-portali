@@ -5,20 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RoadmapMeasure extends Model
 {
     protected $fillable = [
         'roadmap_id', 'section_no', 'section_title', 'district_id', 'district_head_text', 'seq_no',
         'title', 'details', 'body_raw', 'funding_text', 'deadline_text', 'responsible_text', 'source_row',
+        'latest_period', 'status', 'pct', 'lines_total', 'lines_done',
     ];
 
     protected $casts = [
-        'roadmap_id'  => 'integer',
-        'section_no'  => 'integer',
+        'roadmap_id' => 'integer',
+        'section_no' => 'integer',
         'district_id' => 'integer',
-        'seq_no'      => 'integer',
-        'source_row'  => 'integer',
+        'seq_no' => 'integer',
+        'source_row' => 'integer',
+        'lines_total' => 'integer',
+        'lines_done' => 'integer',
     ];
 
     public function roadmap(): BelongsTo
@@ -29,6 +33,12 @@ class RoadmapMeasure extends Model
     public function district(): BelongsTo
     {
         return $this->belongsTo(District::class);
+    }
+
+    /** Indicator definitions in template order. */
+    public function lines(): HasMany
+    {
+        return $this->hasMany(RoadmapMeasureLine::class)->orderBy('line_no');
     }
 
     /** Sections I–IV: measures without a district. */

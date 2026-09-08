@@ -2,7 +2,9 @@
 
 use App\Models\District;
 use App\Models\Roadmap;
+use App\Models\RoadmapLineProgress;
 use App\Models\RoadmapMeasure;
+use App\Models\RoadmapMeasureLine;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -64,8 +66,8 @@ test('a duplicate position is rejected for district-level and region-level rows 
     // (Postgres marks the enclosing transaction unusable after a failed statement).
     $this->seed();
     $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
-    $bogot   = District::where('code', 1733204)->firstOrFail();
-    $base    = ['title' => 't', 'body_raw' => 't', 'source_row' => 1, 'section_title' => 's'];
+    $bogot = District::where('code', 1733204)->firstOrFail();
+    $base = ['title' => 't', 'body_raw' => 't', 'source_row' => 1, 'section_title' => 's'];
 
     DB::transaction(fn () => $roadmap->measures()->create($base + ['section_no' => 1, 'seq_no' => 1]));
     expect(fn () => DB::transaction(fn () => $roadmap->measures()->create($base + ['section_no' => 1, 'seq_no' => 1])))
@@ -74,4 +76,45 @@ test('a duplicate position is rejected for district-level and region-level rows 
     DB::transaction(fn () => $roadmap->measures()->create($base + ['section_no' => 5, 'district_id' => $bogot->id, 'seq_no' => 1]));
     expect(fn () => DB::transaction(fn () => $roadmap->measures()->create($base + ['section_no' => 5, 'district_id' => $bogot->id, 'seq_no' => 1])))
         ->toThrow(QueryException::class);
+});
+
+test('monitoring tables and columns exist', function () {
+    expect(Schema::hasColumns('roadmap_measure_lines', ['id', 'roadmap_measure_id', 'line_no', 'label', 'unit', 'plan_value']))->toBeTrue();
+    expect(Schema::hasColumns('roadmap_line_progress', [
+        'id', 'roadmap_measure_line_id', 'report_period', 'period_type', 'actual_value', 'pct_of_plan', 'note', 'reported_at',
+    ]))->toBeTrue();
+    expect(Schema::hasColumns('roadmap_measures', ['latest_period', 'status', 'pct', 'lines_total', 'lines_done']))->toBeTrue();
+});
+
+test('a measure owns ordered lines, a line owns progress, and deletes cascade down', function () {
+    $this->seed();
+    $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
+    $m = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 't', 'body_raw' => 't', 'source_row' => 1]);
+    $m->refresh();
+    expect($m->status)->toBe('in_progress');
+    expect((int) $m->lines_total)->toBe(0);
+
+    $m->lines()->create(['line_no' => 2, 'label' => 'Ички канал', 'unit' => 'км', 'plan_value' => 33]);
+    $l1 = $m->lines()->create(['line_no' => 1, 'label' => 'Хўжаликлараро канал', 'unit' => 'км', 'plan_value' => 7.8]);
+    $l1->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 7.8, 'pct_of_plan' => 100, 'note' => 'тайёр']);
+
+    $m->refresh();
+    expect($m->lines->pluck('line_no')->all())->toBe([1, 2]);
+    expect($m->lines->first()->progress->first()->note)->toBe('тайёр');
+    expect(RoadmapLineProgress::first()->line->label)->toBe('Хўжаликлараро канал');
+
+    $m->delete();
+    expect(RoadmapMeasureLine::count())->toBe(0);
+    expect(RoadmapLineProgress::count())->toBe(0);
+});
+
+test('a line position and a progress period are unique', function () {
+    $this->seed();
+    $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
+    $m = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 't', 'body_raw' => 't', 'source_row' => 1]);
+    $line = DB::transaction(fn () => $m->lines()->create(['line_no' => 1, 'label' => 'a']));
+    expect(fn () => DB::transaction(fn () => $m->lines()->create(['line_no' => 1, 'label' => 'b'])))->toThrow(QueryException::class);
+
+    DB::transaction(fn () => $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month']));
+    expect(fn () => DB::transaction(fn () => $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month'])))->toThrow(QueryException::class);
 });
