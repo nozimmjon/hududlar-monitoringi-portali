@@ -46,3 +46,11 @@ test('zero months left and a quarter string in untilLabel', function () {
     expect(RoadmapDeadline::monthsLeft('2026 йил декабрь', 2026, '2026-12'))->toBe(0);
     expect(RoadmapDeadline::untilLabel('2026-Q4'))->toBe('декабргача');
 });
+
+test('hyphenated year and genitive month endings', function () {
+    expect(RoadmapDeadline::month('2027-йил март', 2026))->toBe('2027-03');
+    expect(RoadmapDeadline::month('2026 йил сентябри', 2026))->toBe('2026-09');
+    expect(RoadmapDeadline::month('2026 йил октябрида', 2026))->toBe('2026-10');
+    expect(RoadmapDeadline::month('декабрнинг охири', 2026))->toBe('2026-12');
+    expect(RoadmapDeadline::month('сув майдонларини кенгайтириш', 2026))->toBe('2026-12');   // still not May
+});

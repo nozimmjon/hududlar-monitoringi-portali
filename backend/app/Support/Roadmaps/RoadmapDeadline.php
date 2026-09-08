@@ -20,13 +20,13 @@ final class RoadmapDeadline
     ];
 
     /** A month word with optional Uzbek/Russian endings («декабрь», «декабрда», «майгача», «декабря»); a stem glued to a longer word («майдон», «марта») is not a month. */
-    private const MONTH_RE = '/(?<!\p{L})(январ|феврал|март|апрел|май|июн|июл|август|сентябр|октябр|ноябр|декабр)ь?(?:я|да|дан|га|гача)?(?!\p{L})/u';
+    private const MONTH_RE = '/(?<!\p{L})(январ|феврал|март|апрел|май|июн|июл|август|сентябр|октябр|ноябр|декабр)ь?(?:я|и|ида|идан|игача|да|дан|га|гача|нинг)?(?!\p{L})/u';
 
     /** «3-чорак», «3 чорак», «IV чорак» (Roman numerals arrive lower-cased). */
     private const QUARTER_RE = '/(?<![\p{L}\d])(iv|iii|ii|i|[1-4])\s*-?\s*чорак/u';
 
     /** Only a year followed by «йил» counts — «ПҚ-2019 сонли қарор» is a decree number, not a deadline. */
-    private const YEAR_RE = '/(?<!\d)(20\d{2})(?=\s*йил)/u';
+    private const YEAR_RE = '/(?<!\d)(20\d{2})(?=\s*-?\s*йил)/u';
 
     /** Dative forms for the countdown chip («декабргача»). */
     private const UNTIL = [
