@@ -7,8 +7,9 @@ use InvalidArgumentException;
 /**
  * Stable identity of a measure inside the xlsx files:
  * {region SOATO}-{section no}-{district SOATO | 0}-{seq no}, e.g. 1733-5-1733208-3.
- * Survives a docx re-import (DB ids do not). Scoped to one road map: the key
- * carries no year/domain, the importer resolves those from its options.
+ * The operator-facing identity of a measure; independent of DB ids (the docx importer
+ * also keeps ids stable by upserting on the same position). Scoped to one road map: the
+ * key carries no year/domain, the importer resolves those from its options.
  */
 final class RoadmapKey
 {

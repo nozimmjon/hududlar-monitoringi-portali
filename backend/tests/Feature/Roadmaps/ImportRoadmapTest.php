@@ -60,7 +60,7 @@ test('imports a regional road map: header row, measures, district links', functi
     expect(Artisan::output())->toContain('Total: 4 measures, 2 districts');
 });
 
-test('re-import replaces the measures instead of duplicating them', function () {
+test('re-import upserts the measures instead of duplicating them', function () {
     $this->seed();
     Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
     $firstId = Roadmap::where('region_code', 1733)->value('id');
@@ -194,4 +194,42 @@ test('re-import keeps measure ids and their monitoring rows; a vanished position
     expect(RoadmapMeasure::first()->title)->toBe('«Куловот» каналини реконструкция қилиш — янги матн.');
     expect(Artisan::output())->toContain('3 measure(s) removed');
     expect(RoadmapMeasureLine::count())->toBe(1);
+});
+
+test('a measure inserted mid-section shifts the numbering: the importer warns because monitoring rows stay on their positions', function () {
+    $this->seed();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+    RoadmapMeasure::where('section_no', 1)->where('seq_no', 2)->firstOrFail()          // «484,5 млн м3 …»
+        ->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 1]);
+
+    $shifted = roadmapKhorezmFixture([
+        ['section', 'I. Вилоятда амалга ошириладиган йирик лойиҳалар'],
+        ['measure', ['Янги биринчи тадбир.'], ['x'], ['2026 йил декабрь'], ['y']],                    // inserted at 1:0:1
+        ['measure', ['«Куловот» каналини реконструкция қилиш.'], ['x'], ['2026 йил декабрь'], ['y']],  // now 1:0:2
+        ['measure', ['484,5 млн м3 сувни иқтисод қилиш.'], ['x'], ['2026 йил декабрь'], ['y']],        // now 1:0:3
+    ]);
+
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => $shifted, '--dry-run' => true]))->toBe(0);
+    $dry = Artisan::output();
+    expect($dry)->toContain('1 measure(s) with indicator lines would change title');
+    expect($dry)->toContain('2 measure(s) would be removed');                                            // the two district rows
+    expect(RoadmapMeasure::count())->toBe(4);                                                           // dry run wrote nothing
+
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => $shifted]);
+    expect(Artisan::output())->toContain('changed their title');
+    $pos2 = RoadmapMeasure::where('section_no', 1)->where('seq_no', 2)->firstOrFail();
+    expect($pos2->title)->toContain('Куловот');
+    expect($pos2->lines()->count())->toBe(1);                                                           // the line stayed on position 1:0:2
+});
+
+test('an identical re-import writes nothing', function () {
+    $this->seed();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+    $stamps = RoadmapMeasure::orderBy('source_row')->pluck('updated_at')->map(fn ($d) => (string) $d)->all();
+
+    $this->travel(1)->minutes();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+    $this->travelBack();
+
+    expect(RoadmapMeasure::orderBy('source_row')->pluck('updated_at')->map(fn ($d) => (string) $d)->all())->toBe($stamps);
 });

@@ -74,12 +74,16 @@ class ImportRoadmap extends Command
         $this->printSummary($parsed['measures']);
 
         if ($this->option('dry-run')) {
+            $roadmap = Roadmap::where('domain', $domain)->where('region_code', $regionCode)->where('year', $year)->first();
+            if ($roadmap) {
+                $stats = $this->syncMeasures($roadmap, $parsed['measures'], false);
+                $this->warn("Dry run: {$stats['removed']} measure(s) would be removed ({$stats['removed_with_lines']} with indicator lines); {$stats['retitled']} measure(s) with indicator lines would change title.");
+            }
             $this->warn('Dry run — no changes written.');
             return self::SUCCESS;
         }
 
-        $removed = 0;
-        DB::transaction(function () use ($parsed, $domain, $regionCode, $year, $file, &$removed): void {
+        $stats = DB::transaction(function () use ($parsed, $domain, $regionCode, $year, $file): array {
             $roadmap = Roadmap::updateOrCreate(
                 ['domain' => $domain, 'region_code' => $regionCode, 'year' => $year],
                 [
@@ -90,38 +94,69 @@ class ImportRoadmap extends Command
                 ],
             );
 
-            // Upsert by position so measure ids — and the indicator lines / progress hanging
-            // off them — survive a re-import; only positions that vanished are deleted. Gone
-            // rows are deleted before the fill/create loop below: creating a row at a position
-            // a vanishing row still occupies would otherwise collide with the unique position index.
-            $existing = $roadmap->measures()->get()
-                ->keyBy(fn (RoadmapMeasure $m) => self::position($m->section_no, $m->district_id, $m->seq_no));
-            $kept = [];
-            foreach ($parsed['measures'] as $data) {
-                $kept[self::position($data['section_no'], $data['district_id'], $data['seq_no'])] = true;
-            }
-            $gone    = $existing->filter(fn (RoadmapMeasure $m, string $pos) => ! isset($kept[$pos]));
-            $removed = $gone->count();
-            if ($removed > 0) {
-                RoadmapMeasure::whereIn('id', $gone->pluck('id'))->delete();
-            }
-
-            foreach ($parsed['measures'] as $data) {
-                $pos = self::position($data['section_no'], $data['district_id'], $data['seq_no']);
-                if ($row = $existing->get($pos)) {
-                    $row->fill($data)->save();
-                } else {
-                    $roadmap->measures()->create($data);
-                }
-            }
+            return $this->syncMeasures($roadmap, $parsed['measures'], true);
         });
 
         $this->info('Imported ' . count($parsed['measures']) . " measures for {$region->name_full}.");
-        if ($removed > 0) {
-            $this->warn("{$removed} measure(s) removed — their indicator lines and progress with them.");
+        if ($stats['removed'] > 0) {
+            $this->warn("{$stats['removed']} measure(s) removed — their indicator lines and progress with them.");
+        }
+        if ($stats['retitled'] > 0) {
+            $this->warn("{$stats['retitled']} measure(s) with indicator lines changed their title — a measure inserted or dropped mid-section shifts the numbering; check that the monitoring rows still belong to the right measures.");
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Upserts $measures onto $roadmap by position (see position()): a row already at a kept
+     * position is updated in place, so its id — and the indicator lines / progress hanging off
+     * it — survive; a row whose position the new parse no longer uses is reported as removed
+     * and, when $write, deleted. Creates and vanished positions are always disjoint sets — a
+     * create only fires for a position absent from $existing, and a "gone" row is by definition
+     * one still in $existing — so the delete below can run before or after the fill/create loop
+     * without ever needing to race it. $write = false (dry run) computes the same stats without
+     * writing anything, so the operator sees the damage before it happens.
+     *
+     * @param list<array<string,mixed>> $measures
+     * @return array{removed:int, removed_with_lines:int, retitled:int}
+     */
+    private function syncMeasures(Roadmap $roadmap, array $measures, bool $write): array
+    {
+        $existing = $roadmap->measures()->withCount('lines')->get()
+            ->keyBy(fn (RoadmapMeasure $m) => self::position($m->section_no, $m->district_id, $m->seq_no));
+
+        $kept = [];
+        foreach ($measures as $data) {
+            $kept[self::position($data['section_no'], $data['district_id'], $data['seq_no'])] = true;
+        }
+        $gone = $existing->filter(fn (RoadmapMeasure $m, string $pos) => ! isset($kept[$pos]));
+
+        $retitled = 0;
+        foreach ($measures as $data) {
+            $pos = self::position($data['section_no'], $data['district_id'], $data['seq_no']);
+            if ($row = $existing->get($pos)) {
+                $row->fill($data);
+                if ($row->isDirty('title') && $row->lines_count > 0) {
+                    $retitled++;
+                }
+                if ($write) {
+                    $row->save();
+                }
+            } elseif ($write) {
+                $roadmap->measures()->create($data);
+            }
+        }
+
+        if ($write) {
+            $roadmap->measures()->whereIn('id', $gone->pluck('id'))->delete();
+        }
+
+        return [
+            'removed'            => $gone->count(),
+            'removed_with_lines' => $gone->filter(fn (RoadmapMeasure $m) => $m->lines_count > 0)->count(),
+            'retitled'           => $retitled,
+        ];
     }
 
     /**
@@ -205,6 +240,10 @@ class ImportRoadmap extends Command
         $this->info('Total: ' . count($measures) . ' measures, ' . count($byDistrict) . ' districts.');
     }
 
+    /**
+     * Position inside one road map: section:districtId:seq (district 0 = region-level).
+     * Uses district ids, not SOATO codes — the xlsx-facing RoadmapKey is a different string.
+     */
     private static function position(int $sectionNo, ?int $districtId, int $seqNo): string
     {
         return $sectionNo . ':' . ($districtId ?? 0) . ':' . $seqNo;
