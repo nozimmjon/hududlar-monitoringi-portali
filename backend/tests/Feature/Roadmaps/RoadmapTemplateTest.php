@@ -212,5 +212,8 @@ test('instruction sheet names the file and warns about CSV', function () {
     $sheet = IOFactory::load($out)->getSheetByName('Йўриқнома');
     expect($sheet->getCell('A2')->getValue())->toContain('Хоразм вилояти');
     expect($sheet->getCell('A2')->getValue())->toContain('2026-09');
-    expect(implode(' ', array_map(fn ($r) => (string) $sheet->getCell("A{$r}")->getValue(), range(4, 11))))->toContain('CSV');
+    $lines = implode(' ', array_map(fn ($r) => (string) $sheet->getCell("A{$r}")->getValue(), range(4, 13)));
+    expect($lines)->toContain('CSV')
+        ->and($lines)->toContain('50%')          // «50% эмас — 50»
+        ->and($lines)->toContain('1 240');       // thousands separated by a space, not a comma
 });
