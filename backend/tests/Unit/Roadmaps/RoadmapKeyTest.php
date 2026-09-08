@@ -20,6 +20,8 @@ test('roman numerals', function () {
     expect(Roman::of(4))->toBe('IV');
     expect(Roman::of(6))->toBe('VI');
     expect(Roman::of(9))->toBe('IX');
+    expect(Roman::of(0))->toBe('');
+    expect(Roman::of(39))->toBe('XXXIX');
 });
 
 test('round trip, padding, NBSP and non-string cells', function () {

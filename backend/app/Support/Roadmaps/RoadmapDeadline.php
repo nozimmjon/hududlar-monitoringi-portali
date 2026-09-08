@@ -8,8 +8,9 @@ namespace App\Support\Roadmaps;
  * quarter as «3-чорак» or «IV чорак» (Roman or Arabic numerals), rarely a
  * bare year; anything unreadable means year-end. A year only counts when
  * followed by «йил» — «ПҚ-2019 сонли қарор» is a decree number, not a year.
- * Latin-script month names (e.g. «aprel-oktyabr») are not recognised and
- * also fall back to year-end.
+ * A year earlier than the road map's own year is ignored, so «2025 йил
+ * декабрь» on a 2026 map resolves to 2026-12. Latin-script month names
+ * (e.g. «aprel-oktyabr») are not recognised and also fall back to year-end.
  */
 final class RoadmapDeadline
 {
