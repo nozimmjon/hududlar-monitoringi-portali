@@ -2505,7 +2505,7 @@ final class MeasureDisplay
             $sum = 0.0;
             foreach ($planned as $l) {
                 $row  = $l->progress->firstWhere('report_period', $p);
-                $sum += min(100.0, $row?->pct_of_plan !== null ? (float) $row->pct_of_plan : 0.0);
+                $sum += max(0.0, min(100.0, $row?->pct_of_plan !== null ? (float) $row->pct_of_plan : 0.0));   // same share rule as MeasureRecomputer::aggregate()
             }
             $out[] = ['period' => $p, 'pct' => round($sum / $planned->count(), 1)];
         }
