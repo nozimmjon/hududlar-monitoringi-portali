@@ -46,7 +46,7 @@ class RecomputeRoadmapMeasures extends Command
         DB::beginTransaction();
         try {
             foreach ($ids as $id) {
-                $roadmap       = Roadmap::with(['region', 'measures.lines.progress'])->findOrFail($id);
+                $roadmap       = Roadmap::with(['measures.lines.progress'])->findOrFail($id);
                 $regionCodes[] = $roadmap->region_code;
                 foreach ($roadmap->measures as $measure) {
                     $before = $measure->status;
