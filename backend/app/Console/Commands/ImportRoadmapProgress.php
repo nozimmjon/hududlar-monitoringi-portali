@@ -39,12 +39,30 @@ class ImportRoadmapProgress extends Command
             return self::FAILURE;
         }
 
+        $domain = (string) $this->option('domain');
+        $year   = (int) $this->option('year');
+        if ($year < 2000 || $year > 2100) {
+            $this->error("--year must be a four-digit year, got «{$this->option('year')}».");
+
+            return self::FAILURE;
+        }
+        if (! in_array($domain, ImportRoadmap::DOMAINS, true)) {
+            $this->error('--domain must be one of: ' . implode(', ', ImportRoadmap::DOMAINS) . " — got «{$domain}».");
+
+            return self::FAILURE;
+        }
+
+        $book = null;
         try {
-            $parsed = (new RoadmapProgressReader())->read(IOFactory::load($file));
+            $book   = IOFactory::load($file);
+            $parsed = (new RoadmapProgressReader())->read($book);
         } catch (RuntimeException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
+        } finally {
+            $book?->disconnectWorksheets();          // a road-map workbook is small, but nothing below needs it
+            unset($book);
         }
 
         $option = strtoupper(trim((string) $this->option('period')));
@@ -64,9 +82,6 @@ class ImportRoadmapProgress extends Command
 
             return self::FAILURE;
         }
-
-        $domain = (string) $this->option('domain');
-        $year   = (int) $this->option('year');
 
         // Resolve every key before writing anything.
         $byRegion = [];
@@ -105,21 +120,38 @@ class ImportRoadmapProgress extends Command
         }
 
         $summary    = [];
+        $notes      = [];
         $removedAll = 0;
         DB::beginTransaction();
         try {
             $recomputer = new MeasureRecomputer();
             foreach ($work as $entry) {
-                $s = ['measures' => 0, 'lines' => 0, 'removed' => 0, 'reported' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
+                $s = ['measures' => 0, 'total' => $entry['roadmap']->measures->count(), 'lines' => 0, 'removed' => 0,
+                    'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
                 foreach ($entry['items'] as [$measure, $block]) {
                     $s['measures']++;
                     $stored = $measure->lines->keyBy('line_no');
                     foreach ($block['lines'] as $i => $l) {
-                        $no   = $i + 1;
-                        $line = $stored->get($no) ?? new RoadmapMeasureLine(['roadmap_measure_id' => $measure->id, 'line_no' => $no]);
+                        $no       = $i + 1;
+                        $line     = $stored->get($no);
+                        $progress = null;
+                        if ($line !== null) {
+                            // Line identity is the row position, so an inserted row moves every following
+                            // line's reported history onto the next indicator — worth saying out loud.
+                            if ($line->label !== $l['label']
+                                && $line->progress->contains(fn ($p) => $p->report_period !== $period && $p->actual_value !== null)) {
+                                $s['relabeled']++;
+                            }
+                            $progress = $line->progress->firstWhere('report_period', $period);
+                            if ($progress !== null && $progress->actual_value !== null && $l['actual'] === null) {
+                                $s['cleared']++;
+                            }
+                        }
+
+                        $line ??= new RoadmapMeasureLine(['roadmap_measure_id' => $measure->id, 'line_no' => $no]);
                         $line->fill(['label' => $l['label'], 'unit' => $l['unit'], 'plan_value' => $l['plan']])->save();
 
-                        $progress = $line->progress()->firstOrNew(['report_period' => $period]);
+                        $progress ??= $line->progress()->make(['report_period' => $period]);   // a fresh line has no progress to load
                         $progress->fill([
                             'period_type'  => RoadmapPeriod::type($period),
                             'actual_value' => $l['actual'],
@@ -140,8 +172,10 @@ class ImportRoadmapProgress extends Command
                     $values = $recomputer->recompute($measure, $entry['roadmap']->year);
                     $s[$values['status']]++;
                 }
+                $region      = $entry['roadmap']->region->name_full;
                 $removedAll += $s['removed'];
-                $summary[]   = [$entry['roadmap']->region->name_full, $s['measures'], $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open']];
+                $summary[]   = [$region, "{$s['measures']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open']];
+                $notes[]     = $s + ['region' => $region, 'missing' => $s['total'] - $s['measures']];
             }
             $this->option('dry-run') ? DB::rollBack() : DB::commit();
         } catch (\InvalidArgumentException $e) {
@@ -154,9 +188,20 @@ class ImportRoadmapProgress extends Command
             throw $e;
         }
 
-        $this->table(['Вилоят', 'Тадбирлар', 'Қаторлар', 'Ўчирилди', 'Амалда', 'done', 'in_progress', 'open'], $summary);
+        $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'done', 'in_progress', 'open'], $summary);
         if ($removedAll > 0) {
             $this->warn("{$removedAll} line(s) removed — no longer in the file (their history went with them).");
+        }
+        foreach ($notes as $n) {
+            if ($n['relabeled'] > 0) {
+                $this->warn("{$n['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
+            }
+            if ($n['cleared'] > 0) {
+                $this->warn("{$n['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+            }
+            if ($n['missing'] > 0) {
+                $this->warn("{$n['missing']} of {$n['total']} measure(s) of {$n['region']} are not in the file — left untouched.");
+            }
         }
         $this->info("Period {$period}: " . count($parsed['blocks']) . ' measure(s) processed from ' . basename($file) . '.');
         if ($this->option('dry-run')) {

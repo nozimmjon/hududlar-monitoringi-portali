@@ -24,10 +24,37 @@ function progressFixtureImport(): void
     ])]);
 }
 
+/** Paths handed out by progressTemplate(): $add appends one, $flush empties the list and returns it. */
+function progressTempFiles(?string $add = null, bool $flush = false): array
+{
+    static $paths = [];
+
+    if ($add !== null) {
+        $paths[] = $add;
+    }
+    if ($flush) {
+        $collected = $paths;
+        $paths     = [];
+
+        return $collected;
+    }
+
+    return $paths;
+}
+
+afterEach(function () {
+    foreach (progressTempFiles(null, true) as $path) {
+        @unlink($path);
+    }
+});
+
 /** Template rows for this fixture: 4 = I/1 (млн м³ 484,5), 5 = I/2 (% 100), 8–9 = Боғот/1 (км 7,8 · км 33), 11 = Гурлан/1 (та 24). */
 function progressTemplate(string $period = '2026-09'): string
 {
-    $out = tempnam(sys_get_temp_dir(), 'rmprg_') . '.xlsx';
+    $stub = tempnam(sys_get_temp_dir(), 'rmprg_');      // the 0-byte twin the .xlsx name is derived from
+    $out  = $stub . '.xlsx';
+    progressTempFiles($stub);
+    progressTempFiles($out);
     Artisan::call('roadmap:template', ['--region' => 1733, '--period' => $period, '--out' => $out]);
 
     return $out;
@@ -183,4 +210,79 @@ test('structural problems abort before anything is written', function () {
     expect(Artisan::output())->toContain('Dry run');
     expect(RoadmapLineProgress::whereNotNull('actual_value')->count())->toBe(0);
     expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
+});
+
+test('operator warnings: relabelled history, cleared actuals, measures missing from the file, stray rows', function () {
+    $this->seed();
+    progressFixtureImport();
+    $aug = progressTemplate('2026-08');                 // history in an earlier period, so a relabelling can orphan it
+    progressFill($aug, ['G8' => 5, 'G9' => 10, 'G11' => 12, 'G4' => 80]);
+    Artisan::call('import:roadmap-progress', ['--file' => $aug]);
+
+    $sep = progressTemplate('2026-09');
+    progressFill($sep, ['G8' => 7.8, 'G9' => 20, 'G11' => 24, 'G4' => 100]);
+    Artisan::call('import:roadmap-progress', ['--file' => $sep]);
+
+    // A corrected September file: a row inserted at the top of the Боғот block shifts line 1's history
+    // under a new label, G4 cleared, and the Гурлан block deleted outright.
+    $fix   = progressTemplate('2026-09');               // carries September's own actuals back out
+    $book  = IOFactory::load($fix);
+    $sheet = $book->getSheetByName('Хоразм вилояти');
+    $sheet->insertNewRowBefore(9, 1);
+    $sheet->setCellValue('D8', 'Янги биринчи қатор'); $sheet->setCellValue('E8', 'та'); $sheet->setCellValue('F8', 3); $sheet->setCellValue('G8', 1);
+    $sheet->setCellValue('D9', 'Хўжаликлараро каналлар'); $sheet->setCellValue('E9', 'км'); $sheet->setCellValue('F9', 7.8); $sheet->setCellValue('G9', 7.8);
+    $sheet->setCellValue('G4', null);
+    $sheet->removeRow(12, 1);                                           // Гурлан measure row (header at 11 stays)
+    IOFactory::createWriter($book, 'Xlsx')->save($fix);
+
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $fix]))->toBe(0);
+    $out = Artisan::output();
+    expect($out)->toContain('changed their label');
+    expect($out)->toContain('1 previously reported');
+    expect($out)->toContain('1 of 4 measure(s)');
+    expect($out)->toContain('3/4');
+    expect(progressMeasure(2, 1, 1733208)->latest_period)->toBe('2026-09');   // untouched
+
+    // A stray value far below the table is an error, not a new line of the last measure.
+    $stray = progressTemplate('2026-11');
+    progressFill($stray, ['D400' => 'ЖАМИ']);
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $stray]))->toBe(1);
+    expect(Artisan::output())->toContain('D400');
+});
+
+test('a percent-formatted or grouped-comma «Амалда» cell aborts instead of being misread', function () {
+    $this->seed();
+    progressFixtureImport();
+    $pct = progressTemplate();
+    $book = IOFactory::load($pct);
+    $sheet = $book->getSheetByName('Хоразм вилояти');
+    $sheet->setCellValue('G5', 0.5);
+    $sheet->getStyle('G5')->getNumberFormat()->setFormatCode('0%');
+    IOFactory::createWriter($book, 'Xlsx')->save($pct);
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $pct]))->toBe(1);
+    expect(Artisan::output())->toContain('фоиз');
+
+    $grouped = progressTemplate();
+    progressFill($grouped, ['G4' => '1,240']);
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $grouped]))->toBe(1);
+    expect(Artisan::output())->toContain('ноаниқ');
+    expect(RoadmapLineProgress::whereNotNull('actual_value')->count())->toBe(0);
+});
+
+test('sheets that disagree on the period and a keyless continuation row abort', function () {
+    $this->seed();
+    progressFixtureImport();
+    $file = progressTemplate();
+    $book = IOFactory::load($file);
+    $extra = $book->createSheet();
+    $extra->setTitle('Бошқа');
+    $extra->setCellValue('A1', 'Сув хўжалиги йўл харитаси — X — 2026 · Ҳисобот даври: 2026-10');
+    IOFactory::createWriter($book, 'Xlsx')->save($file);
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $file]))->toBe(1);
+    expect(Artisan::output())->toContain('2026-10');
+
+    $keyless = progressTemplate();
+    progressFill($keyless, ['D3' => 'Калитсиз қатор', 'A3' => null]);   // the section header row loses its text, gains a label
+    expect(Artisan::call('import:roadmap-progress', ['--file' => $keyless]))->toBe(1);
+    expect(Artisan::output())->toContain('D3');
 });
