@@ -15,15 +15,25 @@ active region; an explicitly chosen region without a road map shows its empty st
 cd backend
 php artisan migrate --force                          # first time only (.env says APP_ENV=production)
 php artisan import:roadmap --region=1733 --dry-run   # parse + summary, no write
-php artisan import:roadmap --region=1733             # write (replaces the region's measures)
+php artisan import:roadmap --region=1733             # write (upserts measures by position; dry run previews removals)
 ```
 
 Options: `--file=` (explicit path; needed when the default lookup finds 0 or 2+ files),
 `--year=2026`, `--domain=water` (both validated; the page shows only water/2026).
 
 The command is idempotent per (domain, region, year): it upserts the `roadmaps` row and
-replaces all its `roadmap_measures` inside one transaction. Parsing happens before any
-write, so a failed re-import leaves the previous import untouched.
+its `roadmap_measures` **by position** (section · district · seq) inside one
+transaction, so a re-import keeps measure ids — and with them the monitoring rows
+(`roadmap_measure_lines` / `roadmap_line_progress`) hanging off them. Only positions
+the new parse no longer uses are deleted, reported as
+«N measure(s) removed — their indicator lines and progress with them.»; a measure whose
+text changed while keeping indicator lines is reported as «N measure(s) with indicator
+lines changed their title — a measure inserted or dropped mid-section shifts the
+numbering; check…», because the lines follow the *position*, not the text. `--dry-run`
+computes both counts without writing («Dry run: N measure(s) would be removed (M with
+indicator lines); K measure(s) with indicator lines would change title.») — run it
+first on any re-import of a region that already reports progress. Parsing happens
+before any write, so a failed re-import leaves the previous import untouched.
 
 ## What the parser expects
 
@@ -60,5 +70,7 @@ write, so a failed re-import leaves the previous import untouched.
 - Тошкент шаҳри (1726) has no road map file.
 - All other regions (ҚҚР, Андижон, Бухоро, Жиззах, Қашқадарё, Навоий, Наманган,
   Сирдарё, Тошкент вилояти, Фарғона) parse cleanly in dry run.
-- No status/progress yet. Adding it later = a `roadmap_measure_progress` table; the
-  registry schema stays as is.
+- Status and progress are a separate pipeline on top of this registry — indicator
+  lines, the monthly xlsx the regions fill and the derived statuses are documented in
+  **`docs/roadmap-monitoring.md`** (`roadmap:template` → `import:roadmap-progress` →
+  `roadmaps:recompute`).

@@ -1,9 +1,50 @@
 # Water road maps — monitoring (status + indicators per measure) design
 
 **Date:** 2026-09-08
-**Status:** approved design, not yet implemented
+**Status:** implemented (2026-09-08) on branch `roadmaps`; Хоразм lines not yet reviewed/imported
 **Phase:** 2 of N for `/roadmaps` (phase 1 = registry, see `2026-09-06-water-roadmaps-design.md`)
 **Branch:** `roadmaps`
+
+> **As-built deviations** (accepted during implementation; operator runbook:
+> `backend/docs/roadmap-monitoring.md`). **Template:** sheet titles use
+> `regions.name_full`, not `name_short` — 1726 and 1727 are both «Тошкент» and a clashing
+> title would be silently renamed by PhpSpreadsheet, so a duplicate throws instead; merged
+> measure blocks get **explicit row heights** (Excel auto-fits wrapped text only in unmerged
+> cells, so a long «Чора-тадбир» would be clipped), all text cells are written explicitly so
+> a value starting with `=` never becomes a formula, landscape print setup with the two title
+> rows repeating, the G validation also carries an input prompt («Йил бошидан жами, «Ўлчов»
+> устунидаги бирликда»), the «Йўриқнома» sheet has **10** numbered lines (the last two explain
+> number formats and that every indicator must be re-reported each period), `--all` together
+> with `--region` is a clear error, and an unwritable `--out` (file still open in Excel) is an
+> operator message, not a stack trace. **Reader / `import:roadmap-progress`:** beyond
+> non-numeric cells, **percent-formatted, date-formatted, boolean and comma-grouped «1 240»**
+> cells are rejected naming the cell (a percent-formatted 0,5 would silently divide the report
+> by 100), formulas are evaluated, `7,8`/`7.8`/`1 240`/`1 240,5` with NBSP and narrow spaces
+> accepted; **two consecutive blank rows close a block** (one is a filler) so a stray «ЖАМИ»
+> below the table aborts instead of being absorbed; keys are canonicalised
+> (`RoadmapKey::canonical`, hand-edited padding still matches) and a duplicate key names both
+> places; the three warnings are region-prefixed (relabelled history · cleared «Амалда» ·
+> measures missing from the file) and the summary's first count column is **«Файлда/жами»**
+> (measures in the file / the road map's total) rather than «Тадбирлар». **`import:roadmap`:**
+> upserts measures by position as specified, and additionally warns about **retitled** measures
+> that carry indicator lines and previews both counts in `--dry-run`. **Recomputer:**
+> `pct_of_plan` is clamped to ±999999,9999 (numeric(10,4)); each line's share is floored at 0
+> as well as capped at 100; a measure with no planned lines is `in_progress` (nothing can be
+> behind); `recompute()` returns the computed values (the callers count statuses from them) and
+> wraps a bad period in an error naming the measure. **Deadline parser:** month words accept
+> Uzbek/Russian endings («декабрда», «майгача», «декабря»), quarters accept Roman *and* Arabic
+> numerals, a year only counts when followed by «йил» and a year earlier than the road map's
+> year is ignored as a citation («2019-йил … ПФ-5742-сон қарор»); everything unrecognised —
+> including Latin-script months and Cyrillic «І» — falls back to December.
+> **`RoadmapPeriod::label()`** reuses `TaskPeriod::reportPeriodLabel()` («2026 йил сентябрь»),
+> not the «2026 · сентябрь» form named below, so road maps and the tasks board read alike.
+> **Page:** the expand toggle collapses with «Камроқ»; a card whose last report is older than
+> the road map's latest period carries a 📅 period chip; the deadline countdown is measured
+> from *today* in Asia/Tashkent; the hero ring and the district mini-bars share one helper
+> (`MeasureDisplay::meanPct`) so they cannot drift; indicator rows render through
+> `resources/views/livewire/partials/wr-line.blade.php`. **`roadmaps:recompute`** validates
+> `--region` as digits and loads one road map at a time (`measures.lines.progress` eager) to
+> keep memory flat.
 
 ## Background
 
