@@ -2,7 +2,9 @@
 
 use App\Models\District;
 use App\Models\Roadmap;
+use App\Models\RoadmapLineProgress;
 use App\Models\RoadmapMeasure;
+use App\Models\RoadmapMeasureLine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\Helpers\RoadmapDocxBuilder;
@@ -165,4 +167,31 @@ test('an empty title is imported with a warning', function () {
     expect($exit)->toBe(0);
     expect(Artisan::output())->toContain('сарлавҳа');
     expect(Roadmap::where('region_code', 1733)->value('title_text'))->toBe('');
+});
+
+test('re-import keeps measure ids and their monitoring rows; a vanished position is removed with a notice', function () {
+    $this->seed();
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+    $ids  = RoadmapMeasure::orderBy('source_row')->pluck('id')->all();
+    $line = RoadmapMeasure::orderBy('source_row')->first()->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 1]);
+    $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 1, 'pct_of_plan' => 100]);
+
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapKhorezmFixture()]);
+
+    expect(RoadmapMeasure::orderBy('source_row')->pluck('id')->all())->toBe($ids);
+    expect(RoadmapMeasureLine::count())->toBe(1);
+    expect(RoadmapLineProgress::count())->toBe(1);
+    expect(Artisan::output())->not->toContain('removed');
+
+    $shorter = roadmapKhorezmFixture([
+        ['section', 'I. Вилоятда амалга ошириладиган йирик лойиҳалар'],
+        ['measure', ['«Куловот» каналини реконструкция қилиш — янги матн.'], ['x'], ['2026 йил декабрь'], ['y']],
+    ]);
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => $shorter]);
+
+    expect(RoadmapMeasure::count())->toBe(1);
+    expect(RoadmapMeasure::first()->id)->toBe($ids[0]);
+    expect(RoadmapMeasure::first()->title)->toBe('«Куловот» каналини реконструкция қилиш — янги матн.');
+    expect(Artisan::output())->toContain('3 measure(s) removed');
+    expect(RoadmapMeasureLine::count())->toBe(1);
 });

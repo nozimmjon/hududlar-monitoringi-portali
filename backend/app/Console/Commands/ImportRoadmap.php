@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\District;
 use App\Models\Region;
 use App\Models\Roadmap;
+use App\Models\RoadmapMeasure;
 use App\Services\Roadmaps\DocxTableReader;
 use App\Services\Roadmaps\RoadmapParser;
 use App\Support\Import\DistrictNameNormalizer;
@@ -77,7 +78,8 @@ class ImportRoadmap extends Command
             return self::SUCCESS;
         }
 
-        DB::transaction(function () use ($parsed, $domain, $regionCode, $year, $file): void {
+        $removed = 0;
+        DB::transaction(function () use ($parsed, $domain, $regionCode, $year, $file, &$removed): void {
             $roadmap = Roadmap::updateOrCreate(
                 ['domain' => $domain, 'region_code' => $regionCode, 'year' => $year],
                 [
@@ -87,13 +89,37 @@ class ImportRoadmap extends Command
                     'imported_at'    => now(),
                 ],
             );
-            $roadmap->measures()->delete();             // full replace — the docx is the source of truth
-            foreach ($parsed['measures'] as $m) {
-                $roadmap->measures()->create($m);
+
+            // Upsert by position so measure ids — and the indicator lines / progress hanging
+            // off them — survive a re-import; only positions that vanished are deleted. Gone
+            // rows are deleted before the fill/create loop below: creating a row at a position
+            // a vanishing row still occupies would otherwise collide with the unique position index.
+            $existing = $roadmap->measures()->get()
+                ->keyBy(fn (RoadmapMeasure $m) => self::position($m->section_no, $m->district_id, $m->seq_no));
+            $kept = [];
+            foreach ($parsed['measures'] as $data) {
+                $kept[self::position($data['section_no'], $data['district_id'], $data['seq_no'])] = true;
+            }
+            $gone    = $existing->filter(fn (RoadmapMeasure $m, string $pos) => ! isset($kept[$pos]));
+            $removed = $gone->count();
+            if ($removed > 0) {
+                RoadmapMeasure::whereIn('id', $gone->pluck('id'))->delete();
+            }
+
+            foreach ($parsed['measures'] as $data) {
+                $pos = self::position($data['section_no'], $data['district_id'], $data['seq_no']);
+                if ($row = $existing->get($pos)) {
+                    $row->fill($data)->save();
+                } else {
+                    $roadmap->measures()->create($data);
+                }
             }
         });
 
         $this->info('Imported ' . count($parsed['measures']) . " measures for {$region->name_full}.");
+        if ($removed > 0) {
+            $this->warn("{$removed} measure(s) removed — their indicator lines and progress with them.");
+        }
 
         return self::SUCCESS;
     }
@@ -177,5 +203,10 @@ class ImportRoadmap extends Command
         }
 
         $this->info('Total: ' . count($measures) . ' measures, ' . count($byDistrict) . ' districts.');
+    }
+
+    private static function position(int $sectionNo, ?int $districtId, int $seqNo): string
+    {
+        return $sectionNo . ':' . ($districtId ?? 0) . ':' . $seqNo;
     }
 }
