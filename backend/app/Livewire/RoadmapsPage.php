@@ -6,6 +6,7 @@ use App\Models\Region;
 use App\Models\Roadmap;
 use App\Models\RoadmapMeasure;
 use App\Support\CurrentRegion;
+use App\Support\Roadmaps\Roman;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -146,14 +147,6 @@ class RoadmapsPage extends Component
 
     public static function roman(int $n): string
     {
-        $out = '';
-        foreach ([10 => 'X', 9 => 'IX', 5 => 'V', 4 => 'IV', 1 => 'I'] as $v => $r) {
-            while ($n >= $v) {
-                $out .= $r;
-                $n   -= $v;
-            }
-        }
-
-        return $out;
+        return Roman::of($n);
     }
 }
