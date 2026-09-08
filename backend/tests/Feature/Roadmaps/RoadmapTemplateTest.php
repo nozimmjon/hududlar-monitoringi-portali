@@ -173,6 +173,21 @@ test('merged measure blocks get explicit row heights so long text is not clipped
     expect($sheet->getStyle('A3')->getFont()->getColor()->getRGB())->not->toBe('999999');   // heading keeps its colour
     expect($sheet->getStyle('A4')->getFont()->getColor()->getRGB())->toBe('999999');         // key cell is grey
     expect($sheet->getPageSetup()->getOrientation())->toBe('landscape');
+
+    // A stored «Изоҳ» comes back from the region on the same merged block; an explicit row height
+    // switches auto-fit off, so the note has to be counted too (≈360 chars / 26 per line ≈ 14 lines).
+    $m    = RoadmapMeasure::firstOrFail();
+    $line = $m->lines()->create(['line_no' => 1, 'label' => 'Канал', 'unit' => 'км', 'plan_value' => 7.8]);
+    $m->lines()->create(['line_no' => 2, 'label' => 'Ички канал', 'unit' => 'км', 'plan_value' => 33]);
+    $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 4, 'pct_of_plan' => 51.28, 'note' => str_repeat('Изоҳ матни. ', 30)]);
+    $noted = templateOut();
+
+    Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $noted]);
+
+    $sheet = IOFactory::load($noted)->getSheetByName('Хоразм вилояти');
+    expect(array_keys($sheet->getMergeCells()))->toContain('C4:C5');
+    expect($sheet->getCell('H4')->getValue())->toContain('Изоҳ матни');
+    expect($sheet->getRowDimension(4)->getRowHeight())->toBeGreaterThanOrEqual(15.0 * 10);
 });
 
 test('option conflicts and unwritable output are reported, not thrown', function () {

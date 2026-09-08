@@ -193,15 +193,20 @@ final class RoadmapTemplateWriter
     /**
      * Excel auto-fits wrapped text only in unmerged cells, so a measure merged down several
      * indicator rows would clip its «Чора-тадбир» text. Give such blocks explicit heights:
-     * spread whatever the merged columns need beyond what the per-row «Индикатор» text already
-     * occupies evenly over the rows. Single-row blocks are left on auto-fit.
+     * spread whatever the merged columns need beyond what the per-row «Индикатор»/«Изоҳ» text
+     * already occupies evenly over the rows. An explicit height also switches auto-fit off, so the
+     * per-row base has to cover a stored note too. Single-row blocks are left on auto-fit.
      */
     private function fitMergedBlock(Worksheet $sheet, RoadmapMeasure $m, int $start, int $end): void
     {
         $need = max(self::wrappedLines($m->body_raw, 58), self::wrappedLines($m->responsible_text, 28));   // C is 60 wide, J is 30
         $base = [];
         for ($r = $start; $r <= $end; $r++) {
-            $base[$r] = max(1, self::wrappedLines((string) $sheet->getCell("D{$r}")->getValue(), 38));     // D is 40 wide
+            $base[$r] = max(
+                1,
+                self::wrappedLines((string) $sheet->getCell("D{$r}")->getValue(), 38),   // D is 40 wide
+                self::wrappedLines((string) $sheet->getCell("H{$r}")->getValue(), 26),   // stored «Изоҳ», H is 28 wide
+            );
         }
         $extra  = max(0, $need - array_sum($base));
         $perRow = (int) ceil($extra / count($base));
