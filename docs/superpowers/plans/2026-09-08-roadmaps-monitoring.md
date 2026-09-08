@@ -1313,7 +1313,7 @@ test('writes a document-shaped sheet: title with period, header, section/distric
     expect(Artisan::output())->toContain($out);
 
     $book  = IOFactory::load($out);
-    $sheet = $book->getSheetByName('Хоразм');
+    $sheet = $book->getSheetByName('Хоразм вилояти');
     expect($sheet)->not->toBeNull();
     expect($book->getSheetByName('Йўриқнома'))->not->toBeNull();
     expect($book->getSheetCount())->toBe(2);
@@ -1369,7 +1369,7 @@ test('stored lines win over suggestions and carry the period actual and note', f
 
     Artisan::call('roadmap:template', ['--region' => 1733, '--period' => '2026-09', '--out' => $out]);
 
-    $sheet = IOFactory::load($out)->getSheetByName('Хоразм');
+    $sheet = IOFactory::load($out)->getSheetByName('Хоразм вилояти');
     expect($sheet->getCell('A5')->getValue())->toBe('1733-1-0-2');
     expect($sheet->getCell('D5')->getValue())->toBe('Тавсиялар сони');
     expect((float) $sheet->getCell('G5')->getValue())->toBe(2.0);
@@ -1388,8 +1388,8 @@ test('--all writes one sheet per loaded region in region order; a region without
 
     expect(Artisan::call('roadmap:template', ['--all' => true, '--period' => '2026-Q3', '--out' => $out]))->toBe(0);
     $book = IOFactory::load($out);
-    expect(array_map(fn ($s) => $s->getTitle(), $book->getAllSheets()))->toBe(['Андижон', 'Хоразм', 'Йўриқнома']);
-    expect($book->getSheetByName('Андижон')->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-Q3');
+    expect(array_map(fn ($s) => $s->getTitle(), $book->getAllSheets()))->toBe(['Андижон вилояти', 'Хоразм вилояти', 'Йўриқнома']);
+    expect($book->getSheetByName('Андижон вилояти')->getCell('A1')->getValue())->toContain('Ҳисобот даври: 2026-Q3');
 
     expect(Artisan::call('roadmap:template', ['--region' => 1718, '--period' => '2026-09', '--out' => templateOut()]))->toBe(1);
     expect(Artisan::output())->toContain('import:roadmap');
@@ -1784,7 +1784,7 @@ function progressTemplate(string $period = '2026-09'): string
 function progressFill(string $path, array $cells): void
 {
     $book  = IOFactory::load($path);
-    $sheet = $book->getSheetByName('Хоразм');
+    $sheet = $book->getSheetByName('Хоразм вилояти');
     foreach ($cells as $coord => $value) {
         $sheet->setCellValue($coord, $value);
     }
@@ -1850,7 +1850,7 @@ test('reviewer edits travel with the file: relabelled, added and removed lines',
     progressFixtureImport();
     $file = progressTemplate();
     $book = IOFactory::load($file);
-    $sheet = $book->getSheetByName('Хоразм');
+    $sheet = $book->getSheetByName('Хоразм вилояти');
     $sheet->setCellValue('D8', 'Хўжаликлараро каналлар (бетон)');
     $sheet->insertNewRowBefore(10, 1);                                     // third line of the Боғот block, A stays empty
     $sheet->setCellValue('D10', 'Гидропостлар');
