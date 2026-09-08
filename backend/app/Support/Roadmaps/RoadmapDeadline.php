@@ -25,7 +25,7 @@ final class RoadmapDeadline
     /** «3-чорак», «3 чорак», «IV чорак» (Roman numerals arrive lower-cased). */
     private const QUARTER_RE = '/(?<![\p{L}\d])(iv|iii|ii|i|[1-4])\s*-?\s*чорак/u';
 
-    /** Only a year followed by «йил» counts — «ПҚ-2019 сонли қарор» is a decree number, not a deadline. */
+    /** Only a year followed by «йил» counts, and only when it is not earlier than the road map's year — «2019-йил 17-июндаги ПФ-5742-сон қарор» is a citation, not a deadline. */
     private const YEAR_RE = '/(?<!\d)(20\d{2})(?=\s*-?\s*йил)/u';
 
     /** Dative forms for the countdown chip («декабргача»). */
@@ -38,9 +38,13 @@ final class RoadmapDeadline
     public static function month(?string $deadlineText, int $year): string
     {
         $t = mb_strtolower(trim((string) $deadlineText));
+        $roadmapYear = $year;
         if (preg_match_all(self::YEAR_RE, $t, $y) > 0) {
-            $years = $y[1];
-            $year  = (int) end($years);                       // last «NNNN йил» wins: «2025 йилдан 2026 йил декабргача»
+            foreach ($y[1] as $found) {
+                if ((int) $found >= $roadmapYear) {                // «2019-йил … қарор» is a citation, not a deadline
+                    $year = (int) $found;                          // last qualifying «NNNN йил» wins
+                }
+            }
         }
 
         $month = 12;

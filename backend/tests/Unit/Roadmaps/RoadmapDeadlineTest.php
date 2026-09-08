@@ -54,3 +54,9 @@ test('hyphenated year and genitive month endings', function () {
     expect(RoadmapDeadline::month('декабрнинг охири', 2026))->toBe('2026-12');
     expect(RoadmapDeadline::month('сув майдонларини кенгайтириш', 2026))->toBe('2026-12');   // still not May
 });
+
+test('years before the road-map year are citations, not deadlines', function () {
+    expect(RoadmapDeadline::month('2019-йил 17-июндаги ПФ-5742-сон қарорга асосан декабрь', 2026))->toBe('2026-12');
+    expect(RoadmapDeadline::month('2019 йил қарори бўйича 2027 йил март', 2026))->toBe('2027-03');
+    expect(RoadmapDeadline::month('2025 йил декабрь', 2026))->toBe('2026-12');   // earlier than the map itself → map year
+});

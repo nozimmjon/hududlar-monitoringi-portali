@@ -2,6 +2,7 @@
 
 namespace App\Support\Roadmaps;
 
+/** Roman numeral for a section number: 1..39 → 'I'..'XXXIX'; anything ≤ 0 is an empty string. The inverse (with Cyrillic look-alikes) is RoadmapParser::romanToInt(). */
 final class Roman
 {
     public static function of(int $n): string

@@ -21,3 +21,14 @@ test('roman numerals', function () {
     expect(Roman::of(6))->toBe('VI');
     expect(Roman::of(9))->toBe('IX');
 });
+
+test('round trip, padding, NBSP and non-string cells', function () {
+    $key = RoadmapKey::make(1733, 12, 1733208, 999);
+    expect(RoadmapKey::isKey($key))->toBeTrue();
+    expect(RoadmapKey::make(...array_values(RoadmapKey::parse($key))))->toBe($key);
+    expect(RoadmapKey::isKey(" 1733-5-1733208-3\u{00A0}"))->toBeTrue();
+    expect(RoadmapKey::parse("\u{00A0}1733-5-1733208-3 ")['seq'])->toBe(3);
+    expect(RoadmapKey::canonical('1733-05-0-02'))->toBe('1733-5-0-2');
+    expect(RoadmapKey::isKey(1733))->toBeFalse();
+    expect(RoadmapKey::isKey(1.5))->toBeFalse();
+});
