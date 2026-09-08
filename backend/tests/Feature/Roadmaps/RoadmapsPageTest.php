@@ -1,7 +1,9 @@
 <?php
 
 use App\Livewire\RoadmapsPage;
+use App\Models\RoadmapMeasure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Session;
 use Livewire\Livewire;
@@ -29,6 +31,8 @@ function roadmapImportKhorezmPage(): void
 beforeEach(function () {
     $this->seed();
 });
+
+afterEach(fn () => Carbon::setTestNow());
 
 test('GET /roadmaps shows the empty state when no road map is loaded at all', function () {
     Session::put('region_code', 1703);
@@ -80,7 +84,7 @@ test('GET /roadmaps renders the rail, KPI strip and grouped cards for the sessio
 
     $response->assertOk();
     $response->assertSee('Сув хўжалиги йўл харитаси');
-    $response->assertSee('wr-card', false);
+    $response->assertSee('wr-mcard', false);
     $response->assertSeeInOrder(['«Куловот» каналини реконструкция қилиш.', 'Талабаларни амалиётга юбориш.', 'Суғориш тармоқларини бетонлаштириш', '52 млн м3 сувни иқтисод қилиш.']);
     $response->assertSeeInOrder(['<span class="dn">Боғот тумани</span>', '<span class="dn">Гурлан тумани</span>'], false);
     $response->assertSee('<span class="hd">туман ҳокими Ж.Назаров</span>', false);
@@ -156,4 +160,104 @@ test('search narrows the cards and reports no match', function () {
         ->call('clearFilters')
         ->assertSet('q', '')
         ->assertSee('484,5 млн м3');
+});
+
+/**
+ * Monitoring rows on top of roadmapImportKhorezmPage(). Today is pinned to 2026-11-15.
+ *  Куловот (I/1)    5 lines, 8 % reported in 2026-09          → in_progress, «яна 1 индикатор», «декабргача 1 ой»
+ *  484,5 (I/2)      1 line done                                → done, «✓ 2026 йил декабрь»
+ *  Талабалар (II/1) 1 line 30 % reported in 2026-11, Oct deadline → open, «муддат ўтган»
+ *  Боғот (III/1)    2 lines, Aug + Sep history                 → in_progress 80 %, sparkline
+ *  Гурлан (III/2)   no lines                                   → «Индикаторлар ҳали белгиланмаган»
+ */
+function roadmapPageMonitoring(): void
+{
+    Carbon::setTestNow('2026-11-15');
+    roadmapImportKhorezmPage();
+    $find = fn (string $needle) => RoadmapMeasure::where('title', 'like', "%{$needle}%")->firstOrFail();
+
+    $k = $find('Куловот');
+    $k->lines()->create(['line_no' => 1, 'label' => 'Лойиҳа босқичи', 'unit' => '%', 'plan_value' => 100])
+        ->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 40, 'pct_of_plan' => 40]);
+    foreach (['Насос', 'Затвор', 'Дамба', 'Кўприк'] as $i => $label) {
+        $k->lines()->create(['line_no' => $i + 2, 'label' => $label, 'unit' => 'та', 'plan_value' => 10])
+            ->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 0, 'pct_of_plan' => 0]);
+    }
+
+    $find('484,5')->lines()->create(['line_no' => 1, 'label' => 'Сув иқтисоди', 'unit' => 'млн м³', 'plan_value' => 484.5])
+        ->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 484.5, 'pct_of_plan' => 100]);
+
+    $find('Талабаларни')->lines()->create(['line_no' => 1, 'label' => 'Амалиётга юборилди', 'unit' => '%', 'plan_value' => 100])
+        ->progress()->create(['report_period' => '2026-11', 'period_type' => 'month', 'actual_value' => 30, 'pct_of_plan' => 30]);
+
+    $b  = $find('бетонлаштириш');
+    $l1 = $b->lines()->create(['line_no' => 1, 'label' => 'Хўжаликлараро канал', 'unit' => 'км', 'plan_value' => 7.8]);
+    $l2 = $b->lines()->create(['line_no' => 2, 'label' => 'Ички канал', 'unit' => 'км', 'plan_value' => 33]);
+    $l1->progress()->create(['report_period' => '2026-08', 'period_type' => 'month', 'actual_value' => 3, 'pct_of_plan' => 38.46]);
+    $l1->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 7.8, 'pct_of_plan' => 100]);
+    $l2->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 20, 'pct_of_plan' => 60.61, 'note' => 'Ёмғир сабабли кечикди']);
+
+    Artisan::call('roadmaps:recompute');
+}
+
+test('cards carry ring, status chip, indicator rows, deadline chips, notes and the period pill', function () {
+    Session::put('region_code', 1733);
+    roadmapPageMonitoring();
+
+    $response = $this->get('/roadmaps');
+
+    $response->assertOk();
+    $response->assertSee('wr-mcard', false);
+    $response->assertSee('2026 йил ноябрь');                                  // latest period across the road map
+    $response->assertSeeInOrder(['Бажарилди', 'Бажарилмоқда', 'Бажарилмаган']);
+    $response->assertSee('Хўжаликлараро канал');
+    $response->assertSee('Ички канал');
+    $response->assertSee('яна 1 индикатор');
+    $response->assertSee('Индикаторлар ҳали белгиланмаган');
+    $response->assertSee('⏱ декабргача 1 ой');
+    $response->assertSee('✓ 2026 йил декабрь');
+    $response->assertSee('⏱ муддат ўтган');
+    $response->assertSee('wr-spark', false);                                   // Боғот has two periods
+    $response->assertSee('wr-notes', false);
+    $response->assertSee('Ёмғир сабабли кечикди');                            // the reporter's note under «Батафсил»
+    $response->assertSee('1 тадбирда индикатор йўқ');
+    $response->assertSee('бажарилмаган');                                     // KPI tile label
+});
+
+test('status filter narrows the list and combines with a district; rail counts, hero and KPI stay whole', function () {
+    Session::put('region_code', 1733);
+    roadmapPageMonitoring();
+
+    Livewire::test(RoadmapsPage::class)
+        ->call('selectStatus', 'done')
+        ->assertSet('status', 'done')
+        ->assertSee('484,5 млн м3')
+        ->assertDontSee('«Куловот»')
+        ->assertDontSee('Талабаларни амалиётга')
+        ->assertSeeHtml('Барчаси<span class="n tnum">5</span>')
+        ->assertSee('Кўрсатилмоқда:')
+        ->call('selectDistrict', '1733204')
+        ->assertSet('status', 'done')
+        ->assertSee('Мос чора-тадбир топилмади')
+        ->call('selectStatus', 'in_progress')
+        ->assertSee('Суғориш тармоқларини бетонлаштириш')
+        ->call('clearFilters')
+        ->assertSet('status', 'all')
+        ->assertSee('«Куловот»');
+
+    Livewire::withQueryParams(['holat' => 'zzz'])->test(RoadmapsPage::class)
+        ->assertSet('status', 'all')
+        ->assertSee('«Куловот»');
+});
+
+test('a road map without any indicator lines renders the registry face everywhere', function () {
+    Session::put('region_code', 1733);
+    roadmapImportKhorezmPage();
+
+    $response = $this->get('/roadmaps');
+
+    $response->assertOk();
+    $response->assertSee('ҳисобот йўқ');
+    $response->assertSee('Индикаторлар ҳали белгиланмаган');
+    $response->assertDontSee('wr-spark', false);
 });
