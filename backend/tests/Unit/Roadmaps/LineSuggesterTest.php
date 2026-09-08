@@ -49,3 +49,30 @@ test('several quantities in one text share the label with a numbered suffix; emp
 test('a unit glued to a longer word is not a unit', function () use ($s) {
     expect($s->suggest('24 таъмирлаш иши', []))->toBe([['label' => 'Бажарилиш даражаси', 'unit' => '%', 'plan' => 100.0]]);
 });
+
+test('suffixed units and «фоиз» are still units', function () use ($s) {
+    expect($s->suggest('12 гектарда дискрет суғоришни ташкил этиш', []))
+        ->toBe([['label' => 'Дискрет суғоришни ташкил этиш', 'unit' => 'га', 'plan' => 12.0]]);
+    expect($s->suggest('Сув таъминоти даражасини 95 фоизга етказиш', []))
+        ->toBe([['label' => 'Сув таъминоти даражасини етказиш', 'unit' => '%', 'plan' => 95.0]]);
+    expect($s->suggest('10 кВтлик қуёш панеллари', []))
+        ->toBe([['label' => 'Қуёш панеллари', 'unit' => 'кВт', 'plan' => 10.0]]);
+    expect($s->suggest('5 км2 майдон', []))
+        ->toBe([['label' => 'Бажарилиш даражаси', 'unit' => '%', 'plan' => 100.0]]);
+});
+
+test('a title total that equals the sum of its detail lines is not suggested twice', function () use ($s) {
+    expect($s->suggest('64 нафар талабаларни амалиётга юбориш', ['9 нафар – Урганч', '20 нафар – Хива', '35 нафар – Хонқа']))
+        ->toBe([
+            ['label' => 'Урганч', 'unit' => 'нафар', 'plan' => 9.0],
+            ['label' => 'Хива', 'unit' => 'нафар', 'plan' => 20.0],
+            ['label' => 'Хонқа', 'unit' => 'нафар', 'plan' => 35.0],
+        ]);
+    // Different unit or a different total → the title line stays.
+    expect($s->suggest('64 нафар талабаларни юбориш', ['7,8 км канал']))->toHaveCount(2);
+    expect($s->suggest('60 нафар талабаларни юбориш', ['9 нафар – Урганч', '20 нафар – Хива']))->toHaveCount(3);
+});
+
+test('a list marker glued to a thousands group does not inflate the number', function () use ($s) {
+    expect($s->suggest('1 132,8 км канал', []))->toBe([['label' => 'Канал', 'unit' => 'км', 'plan' => 132.8]]);
+});
