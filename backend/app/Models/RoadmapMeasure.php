@@ -23,6 +23,13 @@ class RoadmapMeasure extends Model
         'source_row' => 'integer',
         'lines_total' => 'integer',
         'lines_done' => 'integer',
+        'pct' => 'decimal:2',
+    ];
+
+    protected $attributes = [
+        'status' => 'in_progress',
+        'lines_total' => 0,
+        'lines_done' => 0,
     ];
 
     public function roadmap(): BelongsTo

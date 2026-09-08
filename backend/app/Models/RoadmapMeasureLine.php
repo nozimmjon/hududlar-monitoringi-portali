@@ -13,6 +13,7 @@ class RoadmapMeasureLine extends Model
     protected $casts = [
         'roadmap_measure_id' => 'integer',
         'line_no' => 'integer',
+        'plan_value' => 'decimal:6',
     ];
 
     public function measure(): BelongsTo
@@ -22,6 +23,6 @@ class RoadmapMeasureLine extends Model
 
     public function progress(): HasMany
     {
-        return $this->hasMany(RoadmapLineProgress::class, 'roadmap_measure_line_id');
+        return $this->hasMany(RoadmapLineProgress::class, 'roadmap_measure_line_id')->orderBy('report_period');
     }
 }

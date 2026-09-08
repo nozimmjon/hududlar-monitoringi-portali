@@ -15,6 +15,8 @@ class RoadmapLineProgress extends Model
 
     protected $casts = [
         'roadmap_measure_line_id' => 'integer',
+        'actual_value' => 'decimal:6',
+        'pct_of_plan' => 'decimal:4',
         'reported_at' => 'date',
     ];
 

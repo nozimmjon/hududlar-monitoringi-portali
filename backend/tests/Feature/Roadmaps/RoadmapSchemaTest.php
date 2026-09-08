@@ -99,6 +99,8 @@ test('a measure owns ordered lines, a line owns progress, and deletes cascade do
     $l1->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 7.8, 'pct_of_plan' => 100, 'note' => 'тайёр']);
 
     $m->refresh();
+    expect($m->lines->first()->plan_value)->toBe('7.800000');
+    expect($m->lines->first()->progress->first()->pct_of_plan)->toBe('100.0000');
     expect($m->lines->pluck('line_no')->all())->toBe([1, 2]);
     expect($m->lines->first()->progress->first()->note)->toBe('тайёр');
     expect(RoadmapLineProgress::first()->line->label)->toBe('Хўжаликлараро канал');
@@ -117,4 +119,10 @@ test('a line position and a progress period are unique', function () {
 
     DB::transaction(fn () => $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month']));
     expect(fn () => DB::transaction(fn () => $line->progress()->create(['report_period' => '2026-09', 'period_type' => 'month'])))->toThrow(QueryException::class);
+
+    // Same line_no under ANOTHER measure is fine, same period under ANOTHER line is fine.
+    $m2 = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 2, 'title' => 't', 'body_raw' => 't', 'source_row' => 2]);
+    expect(DB::transaction(fn () => $m2->lines()->create(['line_no' => 1, 'label' => 'c']))->exists)->toBeTrue();
+    $line2 = DB::transaction(fn () => $m->lines()->create(['line_no' => 2, 'label' => 'd']));
+    expect(DB::transaction(fn () => $line2->progress()->create(['report_period' => '2026-09', 'period_type' => 'month']))->exists)->toBeTrue();
 });
