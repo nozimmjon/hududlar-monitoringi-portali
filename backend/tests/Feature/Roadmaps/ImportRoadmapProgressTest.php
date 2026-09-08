@@ -237,8 +237,8 @@ test('operator warnings: relabelled history, cleared actuals, measures missing f
 
     expect(Artisan::call('import:roadmap-progress', ['--file' => $fix]))->toBe(0);
     $out = Artisan::output();
-    expect($out)->toContain('changed their label');
-    expect($out)->toContain('1 previously reported');
+    expect($out)->toContain('Хоразм вилояти: 2 line(s) with reported history changed their label');
+    expect($out)->toContain('Хоразм вилояти: 1 previously reported');
     expect($out)->toContain('1 of 4 measure(s)');
     expect($out)->toContain('3/4');
     expect(progressMeasure(2, 1, 1733208)->latest_period)->toBe('2026-09');   // untouched

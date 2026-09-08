@@ -194,10 +194,10 @@ class ImportRoadmapProgress extends Command
         }
         foreach ($notes as $n) {
             if ($n['relabeled'] > 0) {
-                $this->warn("{$n['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
+                $this->warn("{$n['region']}: {$n['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
             }
             if ($n['cleared'] > 0) {
-                $this->warn("{$n['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+                $this->warn("{$n['region']}: {$n['cleared']} previously reported «Амалда» value(s) cleared by this file.");
             }
             if ($n['missing'] > 0) {
                 $this->warn("{$n['missing']} of {$n['total']} measure(s) of {$n['region']} are not in the file — left untouched.");
