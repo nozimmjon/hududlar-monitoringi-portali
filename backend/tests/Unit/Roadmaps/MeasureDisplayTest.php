@@ -28,9 +28,9 @@ test('status and deadline chips', function () {
     expect(MeasureDisplay::statusChip('open'))->toBe(['cls' => 'bad', 'label' => 'Бажарилмаган']);
 
     expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'done', '2026-09'))->toBe(['cls' => 'done', 'label' => '✓ 2026 йил декабрь']);
-    expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'in_progress', '2026-09'))->toBe(['cls' => 'soon', 'label' => '⏱ декабргача 3 ой']);
-    expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'in_progress', '2026-12'))->toBe(['cls' => 'soon', 'label' => '⏱ шу ой']);
-    expect(MeasureDisplay::deadlineChip('2026 йил апрель-октябрь', 2026, 'open', '2026-11'))->toBe(['cls' => 'over', 'label' => '⏱ муддат ўтган']);
+    expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'in_progress', '2026-09'))->toBe(['cls' => 'due', 'label' => '2026 йил декабрь']);
+    expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'in_progress', '2026-12'))->toBe(['cls' => 'due', 'label' => '2026 йил декабрь']);
+    expect(MeasureDisplay::deadlineChip('2026 йил апрель-октябрь', 2026, 'open', '2026-11'))->toBe(['cls' => 'over', 'label' => '2026 йил апрель-октябрь']);
 });
 
 test('sparkline points and ring offset', function () {

@@ -69,23 +69,24 @@ final class MeasureDisplay
     }
 
     /**
+     * The deadline exactly as the document writes it («2026 йил декабрь») — no countdown
+     * (user decision 2026-09-09). Only the colour carries state: green once done, red when
+     * the deadline month has passed (judged against $today), neutral otherwise.
+     *
      * @param  string $today 'YYYY-MM' of the current month
      * @return array{cls: string, label: string}
      */
     public static function deadlineChip(?string $deadlineText, int $year, string $status, string $today): array
     {
+        $text = $deadlineText ?? '—';
         if ($status === 'done') {
-            return ['cls' => 'done', 'label' => '✓ ' . ($deadlineText ?? '—')];
-        }
-        $left = RoadmapDeadline::monthsLeft($deadlineText, $year, $today);
-        if ($left < 0) {
-            return ['cls' => 'over', 'label' => '⏱ муддат ўтган'];
-        }
-        if ($left === 0) {
-            return ['cls' => 'soon', 'label' => '⏱ шу ой'];
+            return ['cls' => 'done', 'label' => '✓ ' . $text];
         }
 
-        return ['cls' => 'soon', 'label' => '⏱ ' . RoadmapDeadline::untilLabel(RoadmapDeadline::month($deadlineText, $year)) . " {$left} ой"];
+        return [
+            'cls'   => RoadmapDeadline::monthsLeft($deadlineText, $year, $today) < 0 ? 'over' : 'due',
+            'label' => $text,
+        ];
     }
 
     /**

@@ -210,7 +210,7 @@ naming the sheet and cell, and nothing is written.
   `Бажарилди` never displays 100 % (capped at 99), and a measure with no lines shows
   «—».
 - **The deadline chip** counts months from *today* (Asia/Tashkent), not from the report
-  period: «⏱ декабргача 3 ой», «⏱ шу ой», «⏱ муддат ўтган», or «✓ {муддат}» once done.
+  the deadline exactly as the document writes it («2026 йил декабрь»): grey while open, red once the deadline month has passed, «✓ {муддат}» once done. No countdown.
 - **A 📅 period chip on a card** means this measure's last report is **older than the
   road map's latest period** — it was missing from the newest file (a blank «Амалда»
   still registers the period, so a chip means the rows themselves were absent). The

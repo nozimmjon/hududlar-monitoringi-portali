@@ -53,8 +53,9 @@
 > **`RoadmapPeriod::label()`** reuses `TaskPeriod::reportPeriodLabel()` («2026 йил сентябрь»),
 > not the «2026 · сентябрь» form named below, so road maps and the tasks board read alike.
 > **Page:** the expand toggle collapses with «Камроқ»; a card whose last report is older than
-> the road map's latest period carries a 📅 period chip; the deadline countdown is measured
-> from *today* in Asia/Tashkent; the hero ring and the district mini-bars share one helper
+> the road map's latest period carries a 📅 period chip; the deadline chip shows the document text as written («2026 йил декабрь»), red once the
+> month has passed (judged against today in Asia/Tashkent) — the countdown («декабргача
+> 3 ой») was dropped on user feedback 2026-09-09; the hero ring and the district mini-bars share one helper
 > (`MeasureDisplay::meanPct`) so they cannot drift; indicator rows render through
 > `resources/views/livewire/partials/wr-line.blade.php`. **`roadmaps:recompute`** validates
 > `--region` as digits and loads one road map at a time (`measures.lines.progress` eager) to
