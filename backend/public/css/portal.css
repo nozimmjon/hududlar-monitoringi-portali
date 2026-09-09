@@ -6204,10 +6204,12 @@ body.sectors-body{
 .wr-line.none .lb{color:var(--muted)}
 
 .wr-mcard .foot{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.wr-tag{display:inline-block;font-size:11px;font-weight:700;line-height:1.35;padding:3px 9px;border-radius:9px}
-.wr-tag.due{background:var(--grey-soft);color:var(--muted)}
+.wr-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;line-height:1.35;padding:3px 9px;border-radius:9px}
+.wr-tag.due{background:#fff4e0;color:#a35e00}
 .wr-tag.over{background:#fdecea;color:var(--task-red)}
 .wr-tag.done{background:var(--green-soft);color:var(--task-green)}
+/* calendar icon on the left of every deadline chip, tinted by the chip's colour */
+.wr-tag.due::before,.wr-tag.over::before,.wr-tag.done::before{content:"";flex:0 0 auto;width:12px;height:12px;background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V3h5.5V1.75a.75.75 0 0 1 1.5 0V3h.75A2 2 0 0 1 15 5v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h.75V1.75A.75.75 0 0 1 4.5 1zM2.5 7v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7h-11z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V3h5.5V1.75a.75.75 0 0 1 1.5 0V3h.75A2 2 0 0 1 15 5v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h.75V1.75A.75.75 0 0 1 4.5 1zM2.5 7v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7h-11z'/%3E%3C/svg%3E") center/contain no-repeat}
 .wr-chip.muted{opacity:.6}
 .wr-chip.period{background:var(--blue-soft);color:var(--blue)}
 

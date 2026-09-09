@@ -80,7 +80,7 @@ final class MeasureDisplay
     {
         $text = $deadlineText ?? '—';
         if ($status === 'done') {
-            return ['cls' => 'done', 'label' => '✓ ' . $text];
+            return ['cls' => 'done', 'label' => $text];        // the chip's calendar icon + green carry the state
         }
 
         return [

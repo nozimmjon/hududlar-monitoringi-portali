@@ -166,7 +166,7 @@ test('search narrows the cards and reports no match', function () {
 /**
  * Monitoring rows on top of roadmapImportKhorezmPage(). Today is pinned to 2026-11-15.
  *  Куловот (I/1)    5 lines, 8 % reported in 2026-09          → in_progress, «яна 1 индикатор», neutral «2026 йил декабрь» chip
- *  484,5 (I/2)      1 line done                                → done, «✓ 2026 йил декабрь»
+ *  484,5 (I/2)      1 line done                                → done, green «2026 йил декабрь» chip
  *  Талабалар (II/1) 1 line 30 % reported in 2026-11, Oct deadline → open, red «2026 йил апрель-октябрь» chip
  *  Боғот (III/1)    2 lines, Aug + Sep history                 → in_progress 80 %, sparkline
  *  Гурлан (III/2)   no lines                                   → «Индикаторлар ҳали белгиланмаган»
@@ -216,7 +216,7 @@ test('cards carry ring, status chip, indicator rows, deadline chips, notes and t
     $response->assertSee('яна 1 индикатор');
     $response->assertSee('Индикаторлар ҳали белгиланмаган');
     $response->assertSeeHtml('<span class="wr-tag due">2026 йил декабрь</span>');
-    $response->assertSee('✓ 2026 йил декабрь');
+    $response->assertSeeHtml('<span class="wr-tag done">2026 йил декабрь</span>');
     $response->assertSeeHtml('<span class="wr-tag over">2026 йил апрель-октябрь</span>');
     $response->assertSee('wr-spark', false);                                   // Боғот has two periods
     $response->assertSee('wr-notes', false);
