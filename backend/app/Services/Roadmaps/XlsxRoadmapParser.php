@@ -2,6 +2,7 @@
 
 namespace App\Services\Roadmaps;
 
+use App\Models\RoadmapMeasureLine;
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -285,9 +286,12 @@ final class XlsxRoadmapParser
         if ($label === '') {
             throw new RuntimeException("D{$row}: индикатор номи бўш.");
         }
+        if (mb_strlen($label) > RoadmapMeasureLine::LABEL_MAX) {
+            throw new RuntimeException("D{$row}: индикатор номи жуда узун (" . mb_strlen($label) . ' белги) — катакка бутун матн ёпиштирилганми?');
+        }
 
         return [
-            'label'  => mb_substr($label, 0, 255),
+            'label'  => $label,
             'unit'   => self::unit($unit),
             'plan'   => $this->number($sheet, "F{$row}", 'plan', $row, $warnings),
             'actual' => $this->number($sheet, "G{$row}", 'actual', $row, $warnings),

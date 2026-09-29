@@ -2,6 +2,7 @@
 
 namespace App\Services\Roadmaps;
 
+use App\Models\RoadmapMeasureLine;
 use App\Support\Roadmaps\RoadmapKey;
 use App\Support\Roadmaps\RoadmapPeriod;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
@@ -162,10 +163,13 @@ final class RoadmapProgressReader
             if ($label === '') {
                 throw new RuntimeException("{$name}!D{$r}: индикатор номи бўш.");
             }
+            if (mb_strlen($label) > RoadmapMeasureLine::LABEL_MAX) {
+                throw new RuntimeException("{$name}!D{$r}: индикатор номи жуда узун (" . mb_strlen($label) . ' белги) — катакка бутун матн ёпиштирилганми?');
+            }
 
             $blocks[$current]['lines'][] = [
                 'row'    => $r,
-                'label'  => mb_substr($label, 0, 255),
+                'label'  => $label,
                 'unit'   => $unit === '' ? null : mb_substr($unit, 0, 48),
                 'plan'   => self::numberAt($sheet, "F{$r}", "{$name}!F{$r}"),
                 'actual' => self::numberAt($sheet, "G{$r}", "{$name}!G{$r}"),

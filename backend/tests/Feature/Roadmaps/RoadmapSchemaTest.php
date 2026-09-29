@@ -22,6 +22,20 @@ test('roadmaps and roadmap_measures tables exist with the expected columns', fun
     ]))->toBeTrue();
 });
 
+test('an indicator label is a text column: the regions write names longer than 255 characters', function () {
+    $this->seed();
+    expect(Schema::getColumnType('roadmap_measure_lines', 'label'))->toBe('text');
+
+    $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
+    $measure = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 't', 'body_raw' => 't', 'source_row' => 1]);
+    $label   = str_repeat('таъмирлаш-тиклаш ишлари ', 14);                 // 336 characters
+    expect(mb_strlen($label))->toBeGreaterThan(255);
+
+    $measure->lines()->create(['line_no' => 1, 'label' => $label, 'unit' => 'км', 'plan_value' => 1]);
+
+    expect(RoadmapMeasureLine::firstOrFail()->label)->toBe($label);
+});
+
 test('a roadmap owns its measures, measures resolve district and split by level', function () {
     $this->seed();
     $roadmap = Roadmap::create([

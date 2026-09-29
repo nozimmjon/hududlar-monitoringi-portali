@@ -92,6 +92,11 @@ got there (same for `title_text`, which is only written when the file actually h
 
 ### Indicator lines and «Амалда»
 
+`Индикатор` is stored whole — several regions write 290–333-character indicator names
+(Қашқадарё D17/D19, Фарғона D6) and the column is `text`; only a cell past 4 000
+characters aborts, naming it, as a paragraph pasted into the wrong column. `Ўлчов` is
+still cut at 48 characters and `Изоҳ` at 500.
+
 The indicator rows replace the measure's stored line set by row order (`line_no` 1..n);
 lines beyond n are deleted and reported. Line identity is the position, so a row inserted
 mid-block moves the following lines' history — the same rule `import:roadmap-progress`

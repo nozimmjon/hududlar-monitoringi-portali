@@ -59,7 +59,12 @@
 > (`MeasureDisplay::meanPct`) so they cannot drift; indicator rows render through
 > `resources/views/livewire/partials/wr-line.blade.php`. **`roadmaps:recompute`** validates
 > `--region` as digits and loads one road map at a time (`measures.lines.progress` eager) to
-> keep memory flat.
+> keep memory flat. **`label` is `text`, not `varchar(255)`** (migration
+> `2026_09_29_000001`): the regions' own road maps carry indicator names of 290–333
+> characters (Қашқадарё D17/D19, Фарғона D6) and the 255 cap was cutting them silently.
+> Both readers now store the label whole and abort, naming the cell, only past 4 000
+> characters (`RoadmapMeasureLine::LABEL_MAX`) — that is a pasted paragraph in the wrong
+> column, not an indicator. `unit` (48) and `note` (500) keep their caps.
 
 ## Background
 
@@ -110,7 +115,7 @@ roadmap_measure_lines                    -- indicator definitions (ours)
   id                     bigint pk
   roadmap_measure_id     bigint    FK roadmap_measures.id cascadeOnDelete
   line_no                smallint  1..n, order of the row inside the measure block in the template
-  label                  varchar(255)   «Насос агрегати таъмирланди»
+  label                  text           «Насос агрегати таъмирланди» (was varchar(255), widened 2026-09-29)
   unit                   varchar(48) null   та | км | га | минг га | нафар | дона | тонна | м³ | млн сўм | млрд сўм | кВт | % | …
   plan_value             decimal(20,6) null
   timestamps
@@ -303,7 +308,8 @@ Row classification, top to bottom, reading column A as PhpSpreadsheet reports it
   (the measure cell is merged); no current block → abort «line row without a key at
   {sheet}!{row}».
 
-Per line row: `label` = D trimmed (required, ≤255), `unit` = E trimmed or null,
+Per line row: `label` = D trimmed (required; stored whole, a cell over 4 000 characters
+aborts naming it — see the as-built note), `unit` = E trimmed or null,
 `plan` = F numeric or null, `actual` = G numeric or null, `note` = H trimmed ≤500 or
 null. Numeric parsing accepts `7,8`, `7.8`, `1 240`, `1 240,5` (spaces and non-breaking
 spaces removed, comma → dot); anything else non-empty → abort with sheet, row and

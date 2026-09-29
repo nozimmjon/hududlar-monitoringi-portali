@@ -252,6 +252,24 @@ test('an indicator row without a label, and one before any measure, abort with d
     expect(xlsxError(fn () => xlsxParse($orphan)))->toBe('D4: индикатор қатори чора-тадбирсиз.');
 });
 
+test('a long indicator name survives whole; only a pasted paragraph is refused', function () {
+    // Қашқадарё D17 is 333 characters, Фарғона D6 is 290 — the regions really write these.
+    $long = 'Туман ҳудудидаги сув хўжалиги объектларида ' . str_repeat('таъмирлаш-тиклаш ишлари ', 11) . 'бажарилиши';
+    expect(mb_strlen($long))->toBeGreaterThan(300);
+
+    $parsed = xlsxParse(xlsxFile([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', ['C' => 'а', 'D' => $long, 'E' => 'км', 'F' => 1]],
+    ]));
+    expect($parsed['measures'][0]['lines'][0]['label'])->toBe($long);
+
+    $pasted = xlsxFile([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', ['C' => 'а', 'D' => str_repeat('матн ', 900), 'E' => 'км', 'F' => 1]],
+    ]);
+    expect(xlsxError(fn () => xlsxParse($pasted)))->toContain('D4')->toContain('жуда узун');
+});
+
 test('«туманидаги» in a header position is not a district header', function () {
     expect(XlsxRoadmapParser::matchDistrictHeader('1. Боғот туманидаги каналлар'))->toBeNull();
     expect(XlsxRoadmapParser::matchDistrictHeader('Қувасой шаҳарча'))->toBeNull();

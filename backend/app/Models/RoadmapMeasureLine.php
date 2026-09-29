@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RoadmapMeasureLine extends Model
 {
+    /**
+     * `label` is a text column (the regions write indicator names of 300+ characters), but
+     * a cell longer than this is a pasted paragraph in the wrong column — the readers abort
+     * naming it rather than storing it.
+     */
+    public const LABEL_MAX = 4000;
+
     protected $fillable = ['roadmap_measure_id', 'line_no', 'label', 'unit', 'plan_value'];
 
     protected $casts = [
