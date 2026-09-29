@@ -169,7 +169,7 @@ class RoadmapParser
         return $out;
     }
 
-    private static function nullIfEmpty(string $s): ?string
+    public static function nullIfEmpty(string $s): ?string
     {
         return $s === '' ? null : $s;
     }

@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Roadmap;
-use App\Models\RoadmapMeasureLine;
-use App\Services\Roadmaps\MeasureRecomputer;
+use App\Services\Roadmaps\MeasureLineSync;
 use App\Services\Roadmaps\RoadmapProgressReader;
 use App\Support\Roadmaps\RoadmapKey;
 use App\Support\Roadmaps\RoadmapPeriod;
@@ -123,59 +122,17 @@ class ImportRoadmapProgress extends Command
         $notes   = [];
         DB::beginTransaction();
         try {
-            $recomputer = new MeasureRecomputer();
             foreach ($work as $entry) {
                 $s = ['measures' => 0, 'total' => $entry['roadmap']->measures->count(), 'lines' => 0, 'removed' => 0,
                     'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'blank_advance' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
                 foreach ($entry['items'] as [$measure, $block]) {
                     $s['measures']++;
-                    $was      = $measure->latest_period;      // to spot an unfilled template registering a new period
-                    $anyValue = false;
-                    $stored   = $measure->lines->keyBy('line_no');
-                    foreach ($block['lines'] as $i => $l) {
-                        $no       = $i + 1;
-                        $line     = $stored->get($no);
-                        $progress = null;
-                        if ($line !== null) {
-                            // Line identity is the row position, so an inserted row moves every following
-                            // line's reported history onto the next indicator — worth saying out loud.
-                            if ($line->label !== $l['label']
-                                && $line->progress->contains(fn ($p) => $p->report_period !== $period && $p->actual_value !== null)) {
-                                $s['relabeled']++;
-                            }
-                            $progress = $line->progress->firstWhere('report_period', $period);
-                            if ($progress !== null && $progress->actual_value !== null && $l['actual'] === null) {
-                                $s['cleared']++;
-                            }
-                        }
-
-                        $line ??= new RoadmapMeasureLine(['roadmap_measure_id' => $measure->id, 'line_no' => $no]);
-                        $line->fill(['label' => $l['label'], 'unit' => $l['unit'], 'plan_value' => $l['plan']])->save();
-
-                        $progress ??= $line->progress()->make(['report_period' => $period]);   // a fresh line has no progress to load
-                        $progress->fill([
-                            'period_type'  => RoadmapPeriod::type($period),
-                            'actual_value' => $l['actual'],
-                            'pct_of_plan'  => MeasureRecomputer::pctOfPlan($l['plan'], $l['actual']),
-                            'note'         => $l['note'],
-                            'reported_at'  => now()->toDateString(),
-                        ])->save();
-
-                        $s['lines']++;
-                        if ($l['actual'] !== null) {
-                            $s['reported']++;
-                            $anyValue = true;
-                        }
+                    $r = MeasureLineSync::sync($measure, $block['lines'], $period, $entry['roadmap']->year);
+                    foreach (['lines', 'removed', 'reported', 'relabeled', 'cleared'] as $k) {
+                        $s[$k] += $r[$k];
                     }
-                    if ($block['lines'] !== []) {
-                        $s['removed'] += $measure->lines()->where('line_no', '>', count($block['lines']))->delete();
-                    }
-                    $measure->unsetRelation('lines');
-                    $values = $recomputer->recompute($measure, $entry['roadmap']->year);
-                    $s[$values['status']]++;
-                    if ($was !== null && ! $anyValue && $values['latest_period'] !== $was) {
-                        $s['blank_advance']++;              // it had a reported period, now it has a newer, empty one
-                    }
+                    $s[$r['status']]++;
+                    $s['blank_advance'] += $r['blank_advance'] ? 1 : 0;
                 }
                 $region    = $entry['roadmap']->region->name_full;
                 $summary[] = [$region, "{$s['measures']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open']];
