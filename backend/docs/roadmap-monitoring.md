@@ -45,6 +45,10 @@ stored «Амалда»/«Изоҳ» pre-filled when that period already has val
 round is just "edit and re-import". Steps 1–2 are needed once per region; from then on
 the loop is 1 → 4 → 5.
 
+**Steps 1–3 are already done for a region imported from its returned xlsx road map**
+(`roadmap-import.md`): that file *is* the reviewed definition list — `import:roadmap`
+writes the lines, and this loop starts at step 1 with real stored lines from month one.
+
 **Never import an unfilled template for a *new* period** (step 1's own output, before
 step 4). It registers that period with no «Амалда» anywhere, and because status and
 percent are read from the latest reported period only, every card of the region falls
