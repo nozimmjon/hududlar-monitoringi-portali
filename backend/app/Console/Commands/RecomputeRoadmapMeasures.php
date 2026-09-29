@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Roadmap;
 use App\Models\RoadmapMeasure;
+use App\Services\Roadmaps\MeasureLineSync;
 use App\Services\Roadmaps\MeasureRecomputer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -102,8 +103,7 @@ class RecomputeRoadmapMeasures extends Command
         foreach ($measure->lines as $line) {
             foreach ($line->progress as $progress) {
                 $pct = MeasureRecomputer::pctOfPlan($line->plan_value, $progress->actual_value);
-                $was = $progress->pct_of_plan;
-                if ($pct === null ? $was === null : ($was !== null && (float) $was === $pct)) {
+                if (! MeasureLineSync::differs($progress->pct_of_plan, $pct)) {
                     continue;
                 }
                 $progress->fill(['pct_of_plan' => $pct])->save();

@@ -25,7 +25,9 @@ use App\Support\Roadmaps\RoadmapPeriod;
  * is unset before recomputing, so the fresh rows are the ones that count.
  *
  * $write = false computes every counter from the loaded relations without saving,
- * deleting or recomputing anything — the dry run previews the same damage report.
+ * deleting or recomputing anything — the dry run previews the same damage report. With
+ * $write = false the passed measure and its lines are left dirty in memory — re-read them
+ * before a real sync.
  */
 final class MeasureLineSync
 {
@@ -159,7 +161,7 @@ final class MeasureLineSync
     }
 
     /** Null-aware numeric comparison: the decimal casts hand back strings like «10.000000». */
-    private static function differs(null|string|int|float $a, null|string|int|float $b): bool
+    public static function differs(null|string|int|float $a, null|string|int|float $b): bool
     {
         if ($a === null || $b === null) {
             return $a !== $b;

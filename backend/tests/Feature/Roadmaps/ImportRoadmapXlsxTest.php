@@ -359,15 +359,18 @@ test('--dry-run previews the line-level notices a real import would print', func
     $stamps = RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all();
 
     $next = roadmapXlsxRows([5 => ['D' => 'Бетонланган хўжаликлараро каналлар', 'F' => '9,5']]);
-    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($next), '--period' => '2026-09', '--dry-run' => true]))->toBe(0);
+    unset($next[6]);                                                        // r9 — the Боғот block's second indicator
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx(array_values($next)), '--period' => '2026-09', '--dry-run' => true]))->toBe(0);
     $out = Artisan::output();
 
+    expect($out)->toContain('Хоразм вилояти: 1 indicator line(s) would be removed — no longer in the file (their history would go with them).');
     expect($out)->toContain('Хоразм вилояти: 1 line(s) with reported history changed their label');
     expect($out)->toContain('Хоразм вилояти: 1 reported percentage(s) recomputed after a plan change.');
     expect($out)->toContain('Хоразм вилояти: 4 measure(s) advanced to 2026-09 with no «Амалда» values');
     expect($out)->toContain('Dry run — no changes written.');
 
     // …and wrote none of it.
+    expect(RoadmapMeasureLine::count())->toBe(5);
     expect(RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all())->toBe($stamps);
     expect(roadmapXlsxMeasure(2, 1, 1733204)->lines->first()->label)->toBe('Хўжаликлараро каналлар');
     expect(RoadmapLineProgress::where('report_period', '2026-09')->count())->toBe(0);

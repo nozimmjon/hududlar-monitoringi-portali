@@ -125,7 +125,7 @@ class ImportRoadmap extends Command
             if ($roadmap) {
                 $stats = $this->syncMeasures($roadmap, $parsed['measures'], false);
                 $this->warn("Dry run: {$stats['removed']} measure(s) would be removed ({$stats['removed_with_lines']} with indicator lines); {$stats['retitled']} measure(s) with indicator lines would change title.");
-                $this->reportLineSync($region->name_full, $this->syncLines($roadmap, $parsed['measures'], $period, false), $period);
+                $this->reportLineSync($region->name_full, $this->syncLines($roadmap, $parsed['measures'], $period, false), $period, write: false);
             }
             if ($file0['lines'] > 0) {
                 $this->info("lines: {$file0['lines']} ({$file0['planned']} with a plan), actuals: {$file0['actuals']}, notes: {$file0['notes']}");
@@ -210,13 +210,19 @@ class ImportRoadmap extends Command
     }
 
     /**
-     * The four line-level notices import:roadmap-progress prints — the damage a re-import
-     * can do to rows that already report. Same wording, same region prefix.
+     * The line-level notices import:roadmap-progress prints — the damage a re-import can do
+     * to rows that already report. Same wording, same region prefix; $write = false phrases
+     * them as the preview they are.
      *
-     * @param array{relabeled:int, cleared:int, repct:int, blank_advance:int} $stats
+     * @param array{lines_removed:int, relabeled:int, cleared:int, repct:int, blank_advance:int} $stats
      */
-    private function reportLineSync(string $region, array $stats, ?string $period = null): void
+    private function reportLineSync(string $region, array $stats, ?string $period = null, bool $write = true): void
     {
+        if ($stats['lines_removed'] > 0) {
+            $this->warn($write
+                ? "{$region}: {$stats['lines_removed']} indicator line(s) removed — no longer in the file (their history went with them)."
+                : "{$region}: {$stats['lines_removed']} indicator line(s) would be removed — no longer in the file (their history would go with them).");
+        }
         if ($stats['relabeled'] > 0) {
             $this->warn("{$region}: {$stats['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
         }
