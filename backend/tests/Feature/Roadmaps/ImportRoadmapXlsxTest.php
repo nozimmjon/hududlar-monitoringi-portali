@@ -205,6 +205,8 @@ test('a road map imported from the March docx keeps its ids and funding text whe
     $ids = RoadmapMeasure::orderBy('source_row')->pluck('id')->all();
     expect(RoadmapMeasureLine::count())->toBe(0);
     expect(roadmapXlsxMeasure(1, 1)->funding_text)->toBe('Республика бюджети маблағлари, 32,0 млрд сўм');
+    $approvers = Roadmap::where('region_code', 1733)->value('approvers_text');
+    expect($approvers)->toContain('Вилоят ҳокими');
 
     $retitled = roadmapXlsxRows([1 => ['C' => '«Куловот» каналини реконструкция қилиш — янги таҳрир.']]);
     expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($retitled)]))->toBe(0);
@@ -215,6 +217,9 @@ test('a road map imported from the March docx keeps its ids and funding text whe
     expect(RoadmapMeasureLine::count())->toBe(5);
     expect(roadmapXlsxMeasure(1, 1)->title)->toBe('«Куловот» каналини реконструкция қилиш — янги таҳрир.');
     expect(roadmapXlsxMeasure(1, 1)->funding_text)->toBe('Республика бюджети маблағлари, 32,0 млрд сўм');
+    // The xlsx layout has no ТАСДИҚЛАЙМАН block — the docx's approvers must survive it.
+    expect(Roadmap::where('region_code', 1733)->value('approvers_text'))->toBe($approvers);
+    expect(Roadmap::where('region_code', 1733)->value('title_text'))->toBe('Сув хўжалиги йўл харитаси: Хоразм вилояти');
     expect($out)->not->toContain('changed their title');               // the measure had no lines yet
 
     // Now it has lines, so the next retitle at the same position is worth a word.
@@ -255,11 +260,21 @@ test('a structural problem in the xlsx aborts before anything is written', funct
     expect(RoadmapMeasureLine::count())->toBe(5);
 });
 
-test('pickSourceFile takes the single .docx or .xlsx candidate and explains every other case', function () {
+test('pickSourceFile prefers the xlsx over the docx and explains every other case', function () {
     expect(ImportRoadmap::pickSourceFile(['/data/13. Хоразм.xlsx']))
-        ->toBe(['file' => '/data/13. Хоразм.xlsx', 'error' => null]);
+        ->toBe(['file' => '/data/13. Хоразм.xlsx', 'error' => null, 'note' => null]);
     expect(ImportRoadmap::pickSourceFile(['/data/13. Хоразм якуний.docx']))
-        ->toBe(['file' => '/data/13. Хоразм якуний.docx', 'error' => null]);
+        ->toBe(['file' => '/data/13. Хоразм якуний.docx', 'error' => null, 'note' => null]);
+
+    // The normal state of the folder: the March document and the returned xlsx side by side.
+    $both = ImportRoadmap::pickSourceFile(['/data/13. Хоразм якуний.docx', '/data/Вилоятлар/13. Хоразм вилояти.xlsx']);
+    expect($both['file'])->toBe('/data/Вилоятлар/13. Хоразм вилояти.xlsx');
+    expect($both['error'])->toBeNull();
+    expect($both['note'])->toContain('13. Хоразм вилояти.xlsx')->toContain('--file');
+
+    // An open workbook leaves a «~$…» lock file next to it; it is never a source.
+    expect(ImportRoadmap::pickSourceFile(['/data/Вилоятлар/~$8. Самарканд.xlsx', '/data/Вилоятлар/8. Самарканд.xlsx']))
+        ->toBe(['file' => '/data/Вилоятлар/8. Самарканд.xlsx', 'error' => null, 'note' => null]);
 
     // A .doc next to nothing usable is the one case with its own hint.
     $legacy = ImportRoadmap::pickSourceFile(['/data/9. Сурхондарё.doc']);
@@ -274,7 +289,63 @@ test('pickSourceFile takes the single .docx or .xlsx candidate and explains ever
     expect($none['file'])->toBeNull();
     expect($none['error'])->toContain('--file');
 
-    $many = ImportRoadmap::pickSourceFile(['/data/13. Хоразм якуний.docx', '/data/Вилоятлар/13. Хоразм.xlsx']);
+    // Two of a kind is genuinely ambiguous.
+    $many = ImportRoadmap::pickSourceFile(['/data/13. Хоразм якуний.docx', '/data/13. Хоразм.xlsx', '/data/Вилоятлар/13. Хоразм.xlsx']);
     expect($many['file'])->toBeNull();
     expect($many['error'])->toContain('--file')->toContain('13. Хоразм.xlsx');
+});
+
+test('--range=lower and --range=upper take a bound of a plan written as a range', function () {
+    $this->seed();
+    $rows = roadmapXlsxRows([1 => ['E' => 'млн кВт/соат', 'F' => '18-25']]);
+
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows)]);
+    expect(Artisan::output())->toContain('r4: plan «18-25» is a range — stored without a plan');
+    expect(roadmapXlsxMeasure(1, 1)->lines->first()->plan_value)->toBeNull();
+
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows), '--range' => 'lower']);
+    expect(Artisan::output())->toContain('stored as 18');
+    expect((float) roadmapXlsxMeasure(1, 1)->lines->first()->plan_value)->toBe(18.0);
+
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows), '--range' => 'upper']);
+    Artisan::output();
+    expect((float) roadmapXlsxMeasure(1, 1)->lines->first()->plan_value)->toBe(25.0);
+});
+
+test('--period with a .docx warns that it has no «Амалда» column', function () {
+    $this->seed();
+
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsxTwinDocx(), '--period' => '2026-09']))->toBe(0);
+    expect(Artisan::output())->toContain('--period is ignored for a .docx');
+    expect(RoadmapLineProgress::count())->toBe(0);
+});
+
+test('a percent-formatted «Амалда» cell aborts when the period is imported', function () {
+    $this->seed();
+    $rows = roadmapXlsxRows([8 => ['G' => 0.5, 'G_format' => '0%']]);       // r11 — 50 typed as 50%
+
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows), '--period' => '2026-09']))->toBe(1);
+    expect(Artisan::output())->toContain('G11')->toContain('фоиз');
+    expect(Roadmap::count())->toBe(0);
+
+    // Without --period nothing is imported from G, so the styled read is not worth its cost.
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows)]))->toBe(0);
+    Artisan::output();
+    expect(RoadmapMeasure::count())->toBe(4);
+});
+
+test('a relabelled line that already reported actuals is called out on re-import', function () {
+    $this->seed();
+    $august = roadmapXlsxRows([5 => ['G' => 5]]);                            // r8 — Боғот line 1 reported in August
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($august), '--period' => '2026-08']);
+    Artisan::output();
+    expect((float) roadmapXlsxMeasure(2, 1, 1733204)->lines->first()->progress->first()->actual_value)->toBe(5.0);
+
+    $september = roadmapXlsxRows([5 => ['D' => 'Бетонланган хўжаликлараро каналлар']]);
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($september), '--period' => '2026-09']))->toBe(0);
+    $out = Artisan::output();
+
+    expect($out)->toContain('Хоразм вилояти: 1 line(s) with reported history changed their label');
+    expect($out)->toContain('Хоразм вилояти: 4 measure(s) advanced to 2026-09 with no «Амалда» values');
+    expect(roadmapXlsxMeasure(2, 1, 1733204)->lines->first()->label)->toBe('Бетонланган хўжаликлараро каналлар');
 });

@@ -20,7 +20,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  *   ['raw',      ['A' => '…', 'H' => '…']]                             → whatever the case needs
  *
  * 'measure', 'line' and 'raw' are the same thing — three names so the fixtures read
- * like the layout they describe.
+ * like the layout they describe. A `<COL>_format` key styles that cell instead of
+ * filling it: ['line', ['G' => 0.5, 'G_format' => '0%']] writes the trap a percent-
+ * formatted «Амалда» sets.
  */
 class RoadmapXlsxBuilder
 {
@@ -40,6 +42,10 @@ class RoadmapXlsxBuilder
         $r = 3;
         foreach ($rows as $row) {
             foreach (self::cells($row) as $col => $value) {
+                if (preg_match('/^([A-J])_format$/', $col, $m) === 1) {
+                    $sheet->getStyle($m[1] . $r)->getNumberFormat()->setFormatCode((string) $value);
+                    continue;
+                }
                 if ($value !== null) {
                     $sheet->setCellValue($col . $r, $value);
                 }

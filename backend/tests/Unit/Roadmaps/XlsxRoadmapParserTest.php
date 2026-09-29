@@ -41,11 +41,11 @@ function xlsxFile(array $rows): string
     return RoadmapXlsxBuilder::make($rows, $path);
 }
 
-function xlsxParse(string $file, string $range = 'null', bool $shifted = true): array
+function xlsxParse(string $file, string $range = 'null', bool $withStyles = false, bool $shifted = true): array
 {
     $resolve = fn (string $name): ?int => XLSX_DISTRICTS[trim($name)] ?? null;
 
-    return (new XlsxRoadmapParser($resolve, $range, $shifted))->parseFile($file);
+    return (new XlsxRoadmapParser($resolve, $range, $withStyles, $shifted))->parseFile($file);
 }
 
 /** The message of the RuntimeException $fn is expected to throw. */
@@ -235,14 +235,72 @@ test('plans and actuals: decimal comma, grouped spaces, plain integers; a range 
     expect(xlsxError(fn () => xlsxParse($bad)))->toContain('F4');
 });
 
-test('an indicator row without a label aborts, naming the cell', function () {
-    $file = xlsxFile([
+test('an indicator row without a label, and one before any measure, abort with different reasons', function () {
+    $noLabel = xlsxFile([
         ['section', 'I. Йирик лойиҳалар'],
         ['measure', ['C' => 'а', 'D' => 'и', 'E' => 'км', 'F' => 1]],
         ['line', ['E' => 'км', 'F' => 2]],
     ]);
 
-    expect(xlsxError(fn () => xlsxParse($file)))->toContain('D5');
+    expect(xlsxError(fn () => xlsxParse($noLabel)))->toBe('D5: индикатор номи бўш.');
+
+    $orphan = xlsxFile([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['line', ['D' => 'Индикатор', 'E' => 'км', 'F' => 2]],
+    ]);
+
+    expect(xlsxError(fn () => xlsxParse($orphan)))->toBe('D4: индикатор қатори чора-тадбирсиз.');
+});
+
+test('«туманидаги» in a header position is not a district header', function () {
+    expect(XlsxRoadmapParser::matchDistrictHeader('1. Боғот туманидаги каналлар'))->toBeNull();
+    expect(XlsxRoadmapParser::matchDistrictHeader('Қувасой шаҳарча'))->toBeNull();
+    expect(XlsxRoadmapParser::matchDistrictHeader('1. Боғот тумани'))->toBe(['name' => 'Боғот тумани', 'head' => null]);
+
+    // Header position, no measure text: nothing recognises it, so the row is reported, never
+    // silently swallowed as a district (the real files say «… туманидаги …» inside C, a measure).
+    $stray = xlsxFile([
+        ['section', 'I. Туманларда амалга ошириладиган лойиҳалар'],
+        ['district', '1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)'],
+        ['measure', ['C' => 'а', 'D' => 'и', 'E' => 'км', 'F' => 1]],
+        ['raw', ['A' => 'Боғот туманидаги ишлар', 'I' => '2026 йил декабрь']],
+    ]);
+    expect(xlsxError(fn () => xlsxParse($stray)))->toContain('6-қатор');
+
+    $inMeasure = xlsxParse(xlsxFile([
+        ['section', 'I. Туманларда амалга ошириладиган лойиҳалар'],
+        ['district', '1. Боғот тумани (масъул – туман ҳокими Ж.Назаров)'],
+        ['measure', ['C' => 'Боғот туманидаги каналларни тозалаш.', 'D' => 'и', 'E' => 'км', 'F' => 1]],
+    ]));
+    expect($inMeasure['measures'])->toHaveCount(1);
+    expect($inMeasure['measures'][0]['title'])->toBe('Боғот туманидаги каналларни тозалаш.');
+});
+
+test('numbers a spreadsheet can distort are refused, naming the cell', function () {
+    $rows = fn (mixed $plan, ?string $format = null) => [
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', array_filter(['C' => 'а', 'D' => 'и', 'E' => 'км', 'F' => $plan, 'F_format' => $format], fn ($v) => $v !== null)],
+    ];
+
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows('1,240')))))->toContain('F4')->toContain('ноаниқ');
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows('9 999 999 999 999')))))->toContain('F4')->toContain('жуда катта');
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows(true)))))->toContain('мантиқий');
+
+    // A percent-formatted 0,5 means 50, not 0,5 — but only a styled read can tell.
+    expect(xlsxParse(xlsxFile($rows(0.5, '0%')))['measures'][0]['lines'][0]['plan'])->toBe(0.5);
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows(0.5, '0%')), withStyles: true)))->toContain('F4')->toContain('фоиз');
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows(45000, 'dd.mm.yyyy')), withStyles: true)))->toContain('сана');
+});
+
+test('thousands separated by a no-break space still read as one number', function () {
+    $parsed = xlsxParse(xlsxFile([
+        ['section', 'I. Йирик лойиҳалар'],
+        ['measure', ['C' => 'а', 'D' => 'и', 'E' => 'га', 'F' => "1\u{00A0}240"]],
+        ['line', ['D' => 'и', 'E' => 'га', 'F' => "83\u{202F}000", 'G' => "15\u{2009}848,5"]],
+    ]));
+
+    expect(array_column($parsed['measures'][0]['lines'], 'plan'))->toBe([1240.0, 83000.0]);
+    expect($parsed['measures'][0]['lines'][1]['actual'])->toBe(15848.5);
 });
 
 test('a stray key alone in A is a blank row, and blank rows do not close the measure block', function () {
@@ -278,7 +336,8 @@ test('a row shifted one column left is read as a measure with a «Бажарил
     expect($parsed['measures'][2]['seq_no'])->toBe(3);
     expect($parsed['warnings'])->toBe(['r5: columns shifted left — read D as the measure text']);
 
-    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows), 'null', false)))->toContain('5');
+    // --no-shifted: the same row is then just an indicator line whose plan reads «%».
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows), shifted: false)))->toContain('F5');
 });
 
 test('a measure without indicator lines is kept with a warning', function () {

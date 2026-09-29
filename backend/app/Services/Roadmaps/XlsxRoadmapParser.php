@@ -4,8 +4,10 @@ namespace App\Services\Roadmaps;
 
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use RuntimeException;
+use Throwable;
 
 /**
  * Reads a regional road map returned in OUR xlsx template layout (sheet 0; «Йўриқнома»
@@ -41,10 +43,17 @@ final class XlsxRoadmapParser
     /**
      * @param callable(string):?int $resolveDistrict district name ("Боғот тумани") → districts.id, null if unknown
      * @param string $range one of RANGE_MODES: what a plan like «18-25» becomes
-     * @param bool $shiftedRows accept the one-column-left rows one region typed (see shifted())
+     * @param bool $withStyles read number formats and evaluate formulas, so a percent- or date-formatted
+     *                         cell is refused instead of silently divided by 100 — worth the load only
+     *                         when the numbers are actually being imported (--period)
+     * @param bool $shiftedRows accept the one-column-left row Сурхондарё typed; off = abort on it
      */
-    public function __construct(callable $resolveDistrict, private string $range = 'null', private bool $shiftedRows = true)
-    {
+    public function __construct(
+        callable $resolveDistrict,
+        private string $range = 'null',
+        private bool $withStyles = false,
+        private bool $shiftedRows = true,
+    ) {
         if (! in_array($this->range, self::RANGE_MODES, true)) {
             throw new InvalidArgumentException('range must be one of: ' . implode(', ', self::RANGE_MODES));
         }
@@ -55,7 +64,7 @@ final class XlsxRoadmapParser
     public function parseFile(string $file): array
     {
         $reader = IOFactory::createReaderForFile($file);
-        $reader->setReadDataOnly(true);                 // styles would be read for every cell the region ever formatted
+        $reader->setReadDataOnly(! $this->withStyles);
         $book = $reader->load($file);
 
         try {
@@ -199,7 +208,7 @@ final class XlsxRoadmapParser
                         'label' => self::COMPLETION_LABEL, 'unit' => '%', 'plan' => 100.0, 'actual' => null, 'note' => null,
                     ];
                 } elseif ($d !== '' || $e !== '' || $f !== '' || $g !== '' || $h !== '') {
-                    $measures[$current]['lines'][] = $this->line($d, $e, $cells['F'], $cells['G'], $h, $r, $warnings);
+                    $measures[$current]['lines'][] = $this->line($sheet, $d, $e, $h, $r, $warnings);
                 }
                 continue;
             }
@@ -208,7 +217,7 @@ final class XlsxRoadmapParser
                 if ($current === null) {
                     throw new RuntimeException("D{$r}: индикатор қатори чора-тадбирсиз.");
                 }
-                $measures[$current]['lines'][] = $this->line($d, $e, $cells['F'], $cells['G'], $h, $r, $warnings);
+                $measures[$current]['lines'][] = $this->line($sheet, $d, $e, $h, $r, $warnings);
                 continue;
             }
 
@@ -265,7 +274,7 @@ final class XlsxRoadmapParser
      * @param list<string> $warnings
      * @return array{label:string, unit:?string, plan:?float, actual:?float, note:?string}
      */
-    private function line(string $label, string $unit, mixed $plan, mixed $actual, string $note, int $row, array &$warnings): array
+    private function line(Worksheet $sheet, string $label, string $unit, string $note, int $row, array &$warnings): array
     {
         if ($label === '') {
             throw new RuntimeException("D{$row}: индикатор номи бўш.");
@@ -274,8 +283,8 @@ final class XlsxRoadmapParser
         return [
             'label'  => mb_substr($label, 0, 255),
             'unit'   => self::unit($unit),
-            'plan'   => $this->number($plan, "F{$row}", 'plan', $row, $warnings),
-            'actual' => $this->number($actual, "G{$row}", 'actual', $row, $warnings),
+            'plan'   => $this->number($sheet, "F{$row}", 'plan', $row, $warnings),
+            'actual' => $this->number($sheet, "G{$row}", 'actual', $row, $warnings),
             'note'   => $note === '' ? null : mb_substr($note, 0, 500),
         ];
     }
@@ -284,22 +293,54 @@ final class XlsxRoadmapParser
      * Accepts 7,8 · 7.8 · 1 240 · 15848 and the int/float a spreadsheet stores directly.
      * «18-25» is a range: one region wrote the saving it expects as one, and there is no
      * honest single plan in it — $range decides between dropping it and taking a bound.
+     * Everything a spreadsheet can silently distort — a percent-formatted 0,5 that means 50,
+     * a date cell, «1,240» that could be 1240 or 1,24 — throws instead of being guessed at,
+     * naming the cell, exactly as RoadmapProgressReader::number() does for the filled template.
+     * The style checks need $withStyles; without it the format code reads empty and only the
+     * value-shaped guards apply.
      *
      * @param list<string> $warnings
      */
-    private function number(mixed $value, string $where, string $kind, int $row, array &$warnings): ?float
+    private function number(Worksheet $sheet, string $where, string $kind, int $row, array &$warnings): ?float
     {
+        if (! $sheet->cellExists($where)) {
+            return null;
+        }
+
+        // Fetch → read, nothing in between: PhpSpreadsheet recycles Cell objects, and a stale
+        // one reports the collection's current coordinate — it would carry the last cell's style.
+        $cell   = $sheet->getCell($where);
+        $format = $this->withStyles ? (string) $cell->getStyle()->getNumberFormat()->getFormatCode() : '';
+        $value  = $cell->getValue();
+        if ($this->withStyles && $cell->isFormula()) {
+            try {
+                $value = $cell->getCalculatedValue();
+            } catch (Throwable $e) {
+                throw new RuntimeException("{$where}: формула ҳисобланмади.", 0, $e);
+            }
+        }
+
         if ($value === null || (! is_bool($value) && trim((string) $value) === '')) {
             return null;
         }
         if (is_bool($value)) {
             throw new RuntimeException("{$where}: катакда мантиқий қиймат — рақам эмас.");
         }
-        if (is_int($value) || is_float($value)) {
-            return (float) $value;
+
+        $shown  = trim((string) $value);
+        $number = is_int($value) || is_float($value);
+
+        // «50%» is stored as 0,5 — taking that at face value would quietly divide the report by 100.
+        if ($number && $format !== '' && preg_match('/(?<!\\\\)%/', $format) === 1) {
+            throw new RuntimeException("{$where}: катак фоиз форматида — 50% эмас, 50 деб ёзинг.");
+        }
+        if ($format !== '' && Date::isDateTimeFormatCode($format)) {
+            throw new RuntimeException("{$where}: катак сана форматида — рақам киритинг.");
+        }
+        if ($number) {
+            return self::magnitude((float) $value, $shown, $where);
         }
 
-        $shown = trim((string) $value);
         if (preg_match('/^(\d+(?:[,.]\d+)?)\s*[-–—]\s*(\d+(?:[,.]\d+)?)$/u', $shown, $m) === 1) {
             $bound = $this->range === 'lower' ? $m[1] : $m[2];
             $taken = $this->range === 'null' ? null : (float) str_replace(',', '.', $bound);
@@ -310,12 +351,25 @@ final class XlsxRoadmapParser
             return $taken;
         }
 
-        $plain = str_replace(',', '.', (string) preg_replace('/' . self::SPACES . '/u', '', $shown));
+        $stripped = (string) preg_replace('/' . self::SPACES . '/u', '', $shown);
+        if (preg_match('/^\d{1,3}(,\d{3})+$/D', $stripped) === 1) {
+            throw new RuntimeException("{$where}: «{$shown}» ноаниқ — 1240 бўлса «1 240», 1,24 бўлса «1,24» деб ёзинг.");
+        }
+        $plain = str_replace(',', '.', $stripped);
         if (! is_numeric($plain)) {
             throw new RuntimeException("{$where}: «{$shown}» рақам эмас.");
         }
 
-        return (float) $plain;
+        return self::magnitude((float) $plain, $shown, $where);
+    }
+
+    private static function magnitude(float $n, string $shown, string $where): float
+    {
+        if (abs($n) > 1e12) {
+            throw new RuntimeException("{$where}: «{$shown}» жуда катта.");
+        }
+
+        return $n;
     }
 
     /** «млн м3» / «млн м 3» → «млн м³», «Га» → «га»; the template and the page print these as typed. */

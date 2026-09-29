@@ -33,6 +33,7 @@ class ImportRoadmap extends Command
         {--domain=water : Road-map family}
         {--period= : YYYY-MM or YYYY-Qn — import the xlsx «Амалда»/«Изоҳ» columns as this period}
         {--range=null : What a plan written as a range («18-25») becomes: null | lower | upper}
+        {--no-shifted : Abort on an xlsx row typed one column to the left instead of reading it as a measure}
         {--dry-run : Parse and print the summary without writing}';
 
     protected $description = 'Import a regional "ЙЎЛ ХАРИТАСИ" (water-management measures) .docx or .xlsx into roadmaps / roadmap_measures (+ indicator lines from the xlsx).';
@@ -94,7 +95,12 @@ class ImportRoadmap extends Command
         $this->info("Parsing {$file} — {$region->name_full}, {$year}, {$domain}…");
         try {
             if ($isXlsx) {
-                $parsed = (new XlsxRoadmapParser($this->districtResolver($regionCode), $range))->parseFile($file);
+                $parsed = (new XlsxRoadmapParser(
+                    $this->districtResolver($regionCode),
+                    $range,
+                    withStyles: $period !== null,         // only worth the load when the numbers are imported
+                    shiftedRows: ! $this->option('no-shifted'),
+                ))->parseFile($file);
             } else {
                 $blocks = (new DocxTableReader())->read($file);
                 $parsed = (new RoadmapParser($this->districtResolver($regionCode)))->parse($blocks) + ['warnings' => []];
@@ -128,17 +134,19 @@ class ImportRoadmap extends Command
         }
 
         $stats = DB::transaction(function () use ($parsed, $domain, $regionCode, $year, $file, $period): array {
-            $roadmap = Roadmap::updateOrCreate(
-                ['domain' => $domain, 'region_code' => $regionCode, 'year' => $year],
-                [
-                    'title_text'     => $parsed['title_text'],
-                    'approvers_text' => $parsed['approvers_text'],
-                    'source_file'    => basename($file),
-                    'imported_at'    => now(),
-                ],
-            );
+            $roadmap = Roadmap::firstOrNew(['domain' => $domain, 'region_code' => $regionCode, 'year' => $year]);
+            // Only what this file actually carries: the xlsx layout has no ТАСДИҚЛАЙМАН block, and
+            // overwriting with null would throw away the approvers the March docx gave the same road map.
+            if ($parsed['title_text'] !== '' || ! $roadmap->exists) {
+                $roadmap->title_text = $parsed['title_text'];
+            }
+            if ($parsed['approvers_text'] !== null) {
+                $roadmap->approvers_text = $parsed['approvers_text'];
+            }
+            $roadmap->fill(['source_file' => basename($file), 'imported_at' => now()])->save();
 
-            $stats = $this->syncMeasures($roadmap, $parsed['measures'], true) + ['lines' => 0, 'lines_removed' => 0, 'actuals' => 0];
+            $stats = $this->syncMeasures($roadmap, $parsed['measures'], true)
+                + ['lines' => 0, 'lines_removed' => 0, 'actuals' => 0, 'relabeled' => 0, 'cleared' => 0, 'blank_advance' => 0];
 
             // Reload after the position upsert: the rows the lines hang off may have just been created.
             $rows = $roadmap->measures()->with('lines.progress')->get()
@@ -156,6 +164,9 @@ class ImportRoadmap extends Command
                 $stats['lines']         += $synced['lines'];
                 $stats['lines_removed'] += $synced['removed'];
                 $stats['actuals']       += $synced['reported'];
+                $stats['relabeled']     += $synced['relabeled'];
+                $stats['cleared']       += $synced['cleared'];
+                $stats['blank_advance'] += $synced['blank_advance'] ? 1 : 0;
             }
 
             return $stats;
@@ -172,6 +183,17 @@ class ImportRoadmap extends Command
             $actuals = $period !== null ? "actuals: {$stats['actuals']} (period {$period})" : "actuals: {$file0['actuals']} ignored";
             $this->info("Indicator lines: {$stats['lines']} written, {$stats['lines_removed']} removed; {$actuals}");
         }
+        // Same three notices import:roadmap-progress prints — the line-level damage a re-import can do.
+        $name = $region->name_full;
+        if ($stats['relabeled'] > 0) {
+            $this->warn("{$name}: {$stats['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
+        }
+        if ($stats['cleared'] > 0) {
+            $this->warn("{$name}: {$stats['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+        }
+        if ($stats['blank_advance'] > 0) {
+            $this->warn("{$name}: {$stats['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.");
+        }
         $this->reportWarnings($parsed['warnings'], $period, $file0);
 
         return self::SUCCESS;
@@ -181,25 +203,39 @@ class ImportRoadmap extends Command
      * The one candidate to import, or the reason there is no single one. Pure so the
      * selection can be reasoned about without a data folder; defaultFile() does the globbing.
      *
+     * One docx and one xlsx is the normal state of the folder today (the March document and
+     * the region's returned file side by side) — the xlsx wins, because it is the newer
+     * layout and the only one that carries indicator lines. Two of a kind is genuinely
+     * ambiguous and asks for --file.
+     *
      * @param  list<string> $candidates paths whose basename already matches the region number
-     * @return array{file: ?string, error: ?string}
+     * @return array{file: ?string, error: ?string, note: ?string}
      */
     public static function pickSourceFile(array $candidates): array
     {
-        $usable = array_values(array_filter($candidates, fn (string $p) => preg_match('/\.(docx|xlsx)$/i', $p) === 1));
-        $legacy = array_values(array_diff($candidates, $usable));
+        // «~$8. Самарканд вилояти.xlsx» — Excel's lock file for a workbook someone left open.
+        $candidates = array_values(array_filter($candidates, fn (string $p) => ! str_starts_with(basename($p), '~$')));
+        $usable     = array_values(array_filter($candidates, fn (string $p) => preg_match('/\.(docx|xlsx)$/i', $p) === 1));
+        $legacy     = array_values(array_diff($candidates, $usable));
+        $xlsx       = array_values(array_filter($usable, fn (string $p) => preg_match('/\.xlsx$/i', $p) === 1));
+        $docx       = array_values(array_diff($usable, $xlsx));
 
         if (count($usable) === 1) {
-            return ['file' => $usable[0], 'error' => null];
+            return ['file' => $usable[0], 'error' => null, 'note' => null];
+        }
+
+        if (count($xlsx) === 1 && count($docx) === 1) {
+            return ['file' => $xlsx[0], 'error' => null,
+                'note' => 'Using ' . basename($xlsx[0]) . ' (newer layout); pass --file to import the docx instead'];
         }
 
         if ($usable === []) {
-            return ['file' => null, 'error' => $legacy === []
+            return ['file' => null, 'note' => null, 'error' => $legacy === []
                 ? 'Вилоят рақами билан бошланадиган .docx/.xlsx файл топилмади — --file билан кўрсатинг.'
                 : '«' . basename($legacy[0]) . '» — эски .doc формати. Word\'да .docx қилиб сақланг, сўнг --file билан кўрсатинг.'];
         }
 
-        return ['file' => null, 'error' => 'Бир нечта мос файл топилди, --file билан танланг: '
+        return ['file' => null, 'note' => null, 'error' => 'Бир нечта мос файл топилди, --file билан танланг: '
             . implode(', ', array_map('basename', $usable))];
     }
 
@@ -294,13 +330,14 @@ class ImportRoadmap extends Command
             glob($dir . '/*.xlsx') ?: [],
             glob($dir . '/' . self::XLSX_SUBDIR . '/*.xlsx') ?: [],
         );
-        // «~$8. Самарканд вилояти.xlsx» (an open-workbook lock file) never matches: it starts with «~».
         $candidates = array_values(array_filter($candidates, fn (string $p) => preg_match('/^' . $m[1] . '[.\s]/u', basename($p)) === 1));
         sort($candidates);
 
         $picked = self::pickSourceFile($candidates);
         if ($picked['error'] !== null) {
             $this->error($picked['error'] . " ({$dir}, «{$m[1]}»)");
+        } elseif ($picked['note'] !== null) {
+            $this->info($picked['note']);
         }
 
         return $picked['file'];
