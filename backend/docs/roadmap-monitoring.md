@@ -67,6 +67,15 @@ php artisan roadmaps:recompute --dry-run          # every road map, nothing writ
 php artisan roadmaps:recompute --region=1733      # one region
 ```
 
+It also repairs `pct_of_plan`. That column is written once, when the «Амалда» value is
+imported, so a plan edited **afterwards** — by hand, or by an import that only redefined
+the lines — would otherwise leave stale percentages behind. The command derives every
+progress row again from the plan and actual it stores now and says
+«N reported percentage(s) recomputed from the stored plan and «Амалда».»; rows already
+correct are left untouched, so a second run rewrites nothing. The importers do the same
+for the lines they touch, reporting
+«{region}: N reported percentage(s) recomputed after a plan change.»
+
 ### Reviewing the suggested lines (first month)
 
 The generator guesses lines from the measure text (`24 та насос агрегатларини

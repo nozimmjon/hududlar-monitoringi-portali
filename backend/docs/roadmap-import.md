@@ -77,10 +77,10 @@ got there (same for `title_text`, which is only written when the file actually h
   `--range=lower|upper` takes a bound instead.
 - Numbers a spreadsheet can distort are refused, naming the cell, the same way
   `import:roadmap-progress` refuses them: `1,240` («ноаниқ» — write `1 240` or `1,24`),
-  anything above 1e12, a TRUE/FALSE cell. With `--period` the workbook is read **with
-  styles**, which additionally catches a percent-formatted cell («50% эмас, 50 деб
-  ёзинг» — 0,5 meaning 50 would otherwise divide the report by 100), a date-formatted
-  cell, and evaluates formulas.
+  anything above 1e12, a TRUE/FALSE cell, a percent-formatted cell («50% эмас, 50 деб
+  ёзинг» — 0,5 meaning 50 would otherwise divide the plan by 100), a date-formatted cell.
+  Formulas are evaluated. The workbook is always read **with styles** (≈3 % slower on the
+  largest file) because «Режа» is imported on every run, `--period` or not.
 - Сурхондарё r159 is typed one column to the left; it is read as a measure with a
   «Бажарилиш даражаси» % line and a warning. `--no-shifted` refuses it instead.
   Anything genuinely unclassifiable aborts with the row and its filled cells.
@@ -98,16 +98,24 @@ mid-block moves the following lines' history — the same rule `import:roadmap-p
 follows. A measure whose indicator rows are all missing from the file keeps its stored
 lines (a truncated file is likelier than a measure that stopped being measured).
 
+A **changed «Режа»** re-judges what was already reported against the old one: every
+progress row of that line has its `pct_of_plan` derived again from the new plan (a line
+reported 10 against a plan of 10 becomes 83,3 % when the plan is corrected to 12), and
+the measure's status and percent follow. `roadmaps:recompute` does the same repair for
+rows edited outside the importers.
+
 `Амалда`/`Изоҳ` are only imported with `--period=2026-09` (or `2026-Q3`); without it the
 command counts them and warns
 «N «Амалда»/«Изоҳ» value(s) ignored — pass --period=YYYY-MM to import them». Statuses are
 recomputed for every measure either way.
 
-With `--period` the command prints the same three line-level notices
-`import:roadmap-progress` prints, region-prefixed: lines whose label changed while
-carrying reported history, previously reported «Амалда» values this file cleared, and
-measures that advanced to the new period with nothing reported (status falls back to
-`Бажарилмоқда`). Read them before calling an import done.
+The command prints the same line-level notices `import:roadmap-progress` prints,
+region-prefixed: lines whose label changed while carrying reported history, previously
+reported «Амалда» values this file cleared, percentages recomputed because the plan
+changed under an already-reported actual, and measures that advanced to the new period
+with nothing reported (status falls back to `Бажарилмоқда`). `--dry-run` previews all of
+them without writing a row, so run it first on any region that already reports. Read
+them before calling an import done.
 
 The command is idempotent per (domain, region, year): it upserts the `roadmaps` row and
 its `roadmap_measures` **by position** (section · district · seq) inside one
