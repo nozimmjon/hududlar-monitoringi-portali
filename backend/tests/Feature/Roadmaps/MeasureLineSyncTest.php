@@ -46,32 +46,52 @@ test('an empty line list leaves the stored lines and their history alone', funct
     expect($measure->latest_period)->toBe('2026-08');
 });
 
-test('a definitions-only sync keeps an earlier period’s actuals', function () {
+test('a definitions-only sync keeps an earlier period’s actuals and re-judges them against the new plan', function () {
     $this->seed();
     $measure = lineSyncMeasure();
     MeasureLineSync::sync($measure, lineSyncLines(['label' => 'Биринчи', 'actual' => 10.0, 'note' => 'тайёр']), '2026-08', 2026);
     $measure->refresh();
     expect($measure->status)->toBe('done');
 
-    // The same definitions, no period: the plan may be corrected, the reported past is not touched.
+    // The same definitions with a corrected plan, no period: the reported value stands, but
+    // the percentage it earned against the old plan does not — 10 of 12 is no longer done.
     $result = MeasureLineSync::sync($measure, lineSyncLines(['label' => 'Биринчи', 'plan' => 12.0]), null, 2026);
 
-    expect($result)->toMatchArray(['lines' => 1, 'removed' => 0, 'reported' => 0, 'cleared' => 0]);
+    expect($result)->toMatchArray(['lines' => 1, 'removed' => 0, 'reported' => 0, 'cleared' => 0, 'repct' => 1]);
     expect(RoadmapLineProgress::count())->toBe(1);
     $progress = RoadmapLineProgress::firstOrFail();
     expect((float) $progress->actual_value)->toBe(10.0);
     expect($progress->note)->toBe('тайёр');
     expect($progress->report_period)->toBe('2026-08');
+    expect((float) $progress->pct_of_plan)->toBeNumericallyClose(83.3333, 0.0001);
 
     $measure->refresh();
     expect((float) $measure->lines->first()->plan_value)->toBe(12.0);
     expect($measure->latest_period)->toBe('2026-08');
-    // `pct_of_plan` is frozen at the moment the actual was imported (10/10 = 100 %), and a
-    // definitions-only sync writes no progress — so a corrected plan does not re-judge a past
-    // period. The next report of that period recomputes it; this is the same rule the template
-    // pipeline has always followed.
-    expect($measure->status)->toBe('done');
-    expect((float) RoadmapLineProgress::firstOrFail()->pct_of_plan)->toBe(100.0);
+    expect($measure->status)->toBe('in_progress');        // 10 of 12, and December is still ahead
+    expect((float) $measure->pct)->toBeNumericallyClose(83.33, 0.01);
+
+    // An unchanged re-import touches nothing.
+    expect(MeasureLineSync::sync($measure->refresh(), lineSyncLines(['label' => 'Биринчи', 'plan' => 12.0]), null, 2026)['repct'])->toBe(0);
+});
+
+test('a non-writing sync previews the counters without touching a row', function () {
+    $this->seed();
+    $measure = lineSyncMeasure();
+    MeasureLineSync::sync($measure, lineSyncLines(['label' => 'Биринчи', 'actual' => 4.0], ['label' => 'Иккинчи']), '2026-08', 2026);
+    $measure->refresh();
+    $stamps = RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all();
+
+    $result = MeasureLineSync::sync($measure, lineSyncLines(['label' => 'Биринчи (бетон)', 'plan' => 12.0]), '2026-09', 2026, write: false);
+
+    expect($result)->toMatchArray(['lines' => 1, 'removed' => 1, 'reported' => 0, 'relabeled' => 1, 'repct' => 1]);
+    expect($result['blank_advance'])->toBeTrue();
+    expect($result['latest_period'])->toBe('2026-09');
+    expect(RoadmapMeasureLine::count())->toBe(2);
+    expect(RoadmapLineProgress::count())->toBe(2);
+    expect(RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all())->toBe($stamps);
+    expect($measure->fresh()->latest_period)->toBe('2026-08');
+    expect((float) RoadmapLineProgress::orderBy('id')->first()->pct_of_plan)->toBe(40.0);
 });
 
 test('lines beyond the new count are removed with their history, and a relabel is reported', function () {

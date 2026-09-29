@@ -320,18 +320,19 @@ test('--period with a .docx warns that it has no «Амалда» column', funct
     expect(RoadmapLineProgress::count())->toBe(0);
 });
 
-test('a percent-formatted «Амалда» cell aborts when the period is imported', function () {
+test('a percent-formatted cell aborts, «Режа» on the plain registry run included', function () {
     $this->seed();
-    $rows = roadmapXlsxRows([8 => ['G' => 0.5, 'G_format' => '0%']]);       // r11 — 50 typed as 50%
+    $actual = roadmapXlsxRows([8 => ['G' => 0.5, 'G_format' => '0%']]);       // r11 — 50 typed as 50%
 
-    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows), '--period' => '2026-09']))->toBe(1);
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($actual), '--period' => '2026-09']))->toBe(1);
     expect(Artisan::output())->toContain('G11')->toContain('фоиз');
     expect(Roadmap::count())->toBe(0);
 
-    // Without --period nothing is imported from G, so the styled read is not worth its cost.
-    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($rows)]))->toBe(0);
-    Artisan::output();
-    expect(RoadmapMeasure::count())->toBe(4);
+    // «Режа» is imported on every run, so the styled read is not optional.
+    $plan = roadmapXlsxRows([1 => ['F' => 0.5, 'F_format' => '0%']]);         // r4 — a plan of 50 typed as 50%
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($plan)]))->toBe(1);
+    expect(Artisan::output())->toContain('F4')->toContain('фоиз');
+    expect(Roadmap::count())->toBe(0);
 });
 
 test('a relabelled line that already reported actuals is called out on re-import', function () {
@@ -348,4 +349,26 @@ test('a relabelled line that already reported actuals is called out on re-import
     expect($out)->toContain('Хоразм вилояти: 1 line(s) with reported history changed their label');
     expect($out)->toContain('Хоразм вилояти: 4 measure(s) advanced to 2026-09 with no «Амалда» values');
     expect(roadmapXlsxMeasure(2, 1, 1733204)->lines->first()->label)->toBe('Бетонланган хўжаликлараро каналлар');
+});
+
+test('--dry-run previews the line-level notices a real import would print', function () {
+    $this->seed();
+    $august = roadmapXlsxRows([5 => ['G' => 5]]);                            // r8 — Боғот line 1 reported in August
+    Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($august), '--period' => '2026-08']);
+    Artisan::output();
+    $stamps = RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all();
+
+    $next = roadmapXlsxRows([5 => ['D' => 'Бетонланган хўжаликлараро каналлар', 'F' => '9,5']]);
+    expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($next), '--period' => '2026-09', '--dry-run' => true]))->toBe(0);
+    $out = Artisan::output();
+
+    expect($out)->toContain('Хоразм вилояти: 1 line(s) with reported history changed their label');
+    expect($out)->toContain('Хоразм вилояти: 1 reported percentage(s) recomputed after a plan change.');
+    expect($out)->toContain('Хоразм вилояти: 4 measure(s) advanced to 2026-09 with no «Амалда» values');
+    expect($out)->toContain('Dry run — no changes written.');
+
+    // …and wrote none of it.
+    expect(RoadmapMeasureLine::orderBy('id')->pluck('updated_at')->map(fn ($d) => (string) $d)->all())->toBe($stamps);
+    expect(roadmapXlsxMeasure(2, 1, 1733204)->lines->first()->label)->toBe('Хўжаликлараро каналлар');
+    expect(RoadmapLineProgress::where('report_period', '2026-09')->count())->toBe(0);
 });

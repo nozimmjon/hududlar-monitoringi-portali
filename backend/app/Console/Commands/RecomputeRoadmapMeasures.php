@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Roadmap;
+use App\Models\RoadmapMeasure;
 use App\Services\Roadmaps\MeasureRecomputer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,7 @@ class RecomputeRoadmapMeasures extends Command
         $regionCodes = [];
         $measures    = 0;
         $updated     = 0;
+        $repct       = 0;
 
         DB::beginTransaction();
         try {
@@ -50,6 +52,7 @@ class RecomputeRoadmapMeasures extends Command
                 $regionCodes[] = $roadmap->region_code;
                 foreach ($roadmap->measures as $measure) {
                     $before = $measure->status;
+                    $repct += self::repairPercentages($measure);
                     $values = $recomputer->recompute($measure, $roadmap->year);
                     $measures++;
                     if ($measure->wasChanged()) {
@@ -76,10 +79,38 @@ class RecomputeRoadmapMeasures extends Command
         $flipText = $flips === [] ? 'no status flips' : implode(', ', array_map(fn ($k, $v) => "{$v} {$k}", array_keys($flips), $flips));
         $this->info(sprintf('%d road map(s) [%s], %d measure(s) — %d updated; done: %d, in_progress: %d, open: %d — %s.',
             count($ids), implode(', ', $regionCodes), $measures, $updated, $counts['done'], $counts['in_progress'], $counts['open'], $flipText));
+        if ($repct > 0) {
+            $this->warn("{$repct} reported percentage(s) recomputed from the stored plan and «Амалда».");
+        }
         if ($this->option('dry-run')) {
             $this->warn('Dry run — no changes written.');
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * pct_of_plan is written once, when the «Амалда» value is imported, so a plan edited
+     * afterwards — by hand, or by an import that only redefined the lines — leaves stale
+     * percentages behind. This is the universal repair: derive every row again from the
+     * plan and actual it stores now. Rows already correct are left untouched, so a second
+     * run rewrites nothing.
+     */
+    private static function repairPercentages(RoadmapMeasure $measure): int
+    {
+        $fixed = 0;
+        foreach ($measure->lines as $line) {
+            foreach ($line->progress as $progress) {
+                $pct = MeasureRecomputer::pctOfPlan($line->plan_value, $progress->actual_value);
+                $was = $progress->pct_of_plan;
+                if ($pct === null ? $was === null : ($was !== null && (float) $was === $pct)) {
+                    continue;
+                }
+                $progress->fill(['pct_of_plan' => $pct])->save();
+                $fixed++;
+            }
+        }
+
+        return $fixed;
     }
 }

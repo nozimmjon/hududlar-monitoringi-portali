@@ -167,8 +167,9 @@ final class XlsxRoadmapParser
                 }
             }
 
-            $shifted = $this->shiftedRows && $c === '' && $b === '' && $d !== ''
+            $looksShifted = $c === '' && $b === '' && $d !== ''
                 && mb_strtolower($e) === mb_strtolower(self::COMPLETION_LABEL) && $f === '%';
+            $shifted = $this->shiftedRows && $looksShifted;
 
             if ($c !== '' || $shifted) {
                 if (! $section) {
@@ -211,6 +212,11 @@ final class XlsxRoadmapParser
                     $measures[$current]['lines'][] = $this->line($sheet, $d, $e, $h, $r, $warnings);
                 }
                 continue;
+            }
+
+            if ($looksShifted) {
+                // Reading it as a line is what happens next, and «%» is not a plan — say why.
+                throw new RuntimeException("F{$r}: «{$f}» рақам эмас — қатор чапга силжиган кўринади (--no-shifted берилган).");
             }
 
             if ($d !== '' || $e !== '' || $f !== '') {

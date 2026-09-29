@@ -35,6 +35,14 @@ test('roadmaps:recompute rebuilds status/pct from progress rows and reports coun
     expect($m->fresh()->status)->toBe('in_progress');   // below plan, deadline not reached
     expect((float) $m->fresh()->pct)->toBe(40.0);
 
+    // …and so is a plan edited after the fact: pct_of_plan is stored, so the repair is the
+    // whole point of this command being the universal fix-up tool.
+    $l->update(['plan_value' => 8]);
+    expect(Artisan::call('roadmaps:recompute', ['--region' => 1733]))->toBe(0);
+    expect(Artisan::output())->toContain('1 reported percentage(s) recomputed');
+    expect((float) RoadmapLineProgress::first()->pct_of_plan)->toBe(50.0);
+    expect((float) $m->fresh()->pct)->toBe(50.0);
+
     expect(Artisan::call('roadmaps:recompute', ['--region' => 9999]))->toBe(1);
 });
 

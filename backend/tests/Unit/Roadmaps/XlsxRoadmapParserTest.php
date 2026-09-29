@@ -336,8 +336,9 @@ test('a row shifted one column left is read as a measure with a «Бажарил
     expect($parsed['measures'][2]['seq_no'])->toBe(3);
     expect($parsed['warnings'])->toBe(['r5: columns shifted left — read D as the measure text']);
 
-    // --no-shifted: the same row is then just an indicator line whose plan reads «%».
-    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows), shifted: false)))->toContain('F5');
+    // --no-shifted: the same row is refused, and the message says what it looked like.
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($rows), shifted: false)))
+        ->toBe('F5: «%» рақам эмас — қатор чапга силжиган кўринади (--no-shifted берилган).');
 });
 
 test('a measure without indicator lines is kept with a warning', function () {

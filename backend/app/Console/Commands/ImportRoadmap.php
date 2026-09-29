@@ -98,7 +98,9 @@ class ImportRoadmap extends Command
                 $parsed = (new XlsxRoadmapParser(
                     $this->districtResolver($regionCode),
                     $range,
-                    withStyles: $period !== null,         // only worth the load when the numbers are imported
+                    // Always: «Режа» is imported on every run, and a %-formatted 0,5 that means 50
+                    // would otherwise land as a plan of 0,5. Costs ~3 % on the largest file.
+                    withStyles: true,
                     shiftedRows: ! $this->option('no-shifted'),
                 ))->parseFile($file);
             } else {
@@ -123,6 +125,7 @@ class ImportRoadmap extends Command
             if ($roadmap) {
                 $stats = $this->syncMeasures($roadmap, $parsed['measures'], false);
                 $this->warn("Dry run: {$stats['removed']} measure(s) would be removed ({$stats['removed_with_lines']} with indicator lines); {$stats['retitled']} measure(s) with indicator lines would change title.");
+                $this->reportLineSync($region->name_full, $this->syncLines($roadmap, $parsed['measures'], $period, false), $period);
             }
             if ($file0['lines'] > 0) {
                 $this->info("lines: {$file0['lines']} ({$file0['planned']} with a plan), actuals: {$file0['actuals']}, notes: {$file0['notes']}");
@@ -145,31 +148,8 @@ class ImportRoadmap extends Command
             }
             $roadmap->fill(['source_file' => basename($file), 'imported_at' => now()])->save();
 
-            $stats = $this->syncMeasures($roadmap, $parsed['measures'], true)
-                + ['lines' => 0, 'lines_removed' => 0, 'actuals' => 0, 'relabeled' => 0, 'cleared' => 0, 'blank_advance' => 0];
-
-            // Reload after the position upsert: the rows the lines hang off may have just been created.
-            $rows = $roadmap->measures()->with('lines.progress')->get()
-                ->keyBy(fn (RoadmapMeasure $m) => self::position($m->section_no, $m->district_id, $m->seq_no));
-            foreach ($parsed['measures'] as $data) {
-                if (! array_key_exists('lines', $data)) {
-                    continue;                           // the docx path defines no indicator lines
-                }
-                $pos = self::position($data['section_no'], $data['district_id'], $data['seq_no']);
-                $row = $rows->get($pos);
-                if (! $row) {
-                    throw new RuntimeException("Position {$pos} vanished between the upsert and the line sync.");
-                }
-                $synced = MeasureLineSync::sync($row, $data['lines'], $period, $roadmap->year);
-                $stats['lines']         += $synced['lines'];
-                $stats['lines_removed'] += $synced['removed'];
-                $stats['actuals']       += $synced['reported'];
-                $stats['relabeled']     += $synced['relabeled'];
-                $stats['cleared']       += $synced['cleared'];
-                $stats['blank_advance'] += $synced['blank_advance'] ? 1 : 0;
-            }
-
-            return $stats;
+            return $this->syncMeasures($roadmap, $parsed['measures'], true)
+                + $this->syncLines($roadmap, $parsed['measures'], $period, true);
         });
 
         $this->info('Imported ' . count($parsed['measures']) . " measures for {$region->name_full}.");
@@ -183,20 +163,72 @@ class ImportRoadmap extends Command
             $actuals = $period !== null ? "actuals: {$stats['actuals']} (period {$period})" : "actuals: {$file0['actuals']} ignored";
             $this->info("Indicator lines: {$stats['lines']} written, {$stats['lines_removed']} removed; {$actuals}");
         }
-        // Same three notices import:roadmap-progress prints — the line-level damage a re-import can do.
-        $name = $region->name_full;
-        if ($stats['relabeled'] > 0) {
-            $this->warn("{$name}: {$stats['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
-        }
-        if ($stats['cleared'] > 0) {
-            $this->warn("{$name}: {$stats['cleared']} previously reported «Амалда» value(s) cleared by this file.");
-        }
-        if ($stats['blank_advance'] > 0) {
-            $this->warn("{$name}: {$stats['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.");
-        }
+        $this->reportLineSync($region->name_full, $stats, $period);
         $this->reportWarnings($parsed['warnings'], $period, $file0);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Writes (or, with $write = false, only measures) the indicator lines of every parsed
+     * measure that carries them. Runs after the position upsert, against a fresh read: the
+     * rows the lines hang off may have just been created.
+     *
+     * @param  list<array<string,mixed>> $measures
+     * @return array{lines:int, lines_removed:int, actuals:int, relabeled:int, cleared:int, repct:int, blank_advance:int}
+     */
+    private function syncLines(Roadmap $roadmap, array $measures, ?string $period, bool $write): array
+    {
+        $stats = ['lines' => 0, 'lines_removed' => 0, 'actuals' => 0, 'relabeled' => 0, 'cleared' => 0, 'repct' => 0, 'blank_advance' => 0];
+        $rows  = $roadmap->measures()->with('lines.progress')->get()
+            ->keyBy(fn (RoadmapMeasure $m) => self::position($m->section_no, $m->district_id, $m->seq_no));
+
+        foreach ($measures as $data) {
+            if (! array_key_exists('lines', $data)) {
+                continue;                               // the docx path defines no indicator lines
+            }
+            $pos = self::position($data['section_no'], $data['district_id'], $data['seq_no']);
+            $row = $rows->get($pos);
+            if (! $row) {
+                if (! $write) {
+                    $stats['lines'] += count($data['lines']);   // a position the dry run would create: nothing stored to disturb
+                    continue;
+                }
+                throw new RuntimeException("Position {$pos} vanished between the upsert and the line sync.");
+            }
+            $synced = MeasureLineSync::sync($row, $data['lines'], $period, $roadmap->year, $write);
+            $stats['lines']         += $synced['lines'];
+            $stats['lines_removed'] += $synced['removed'];
+            $stats['actuals']       += $synced['reported'];
+            $stats['relabeled']     += $synced['relabeled'];
+            $stats['cleared']       += $synced['cleared'];
+            $stats['repct']         += $synced['repct'];
+            $stats['blank_advance'] += $synced['blank_advance'] ? 1 : 0;
+        }
+
+        return $stats;
+    }
+
+    /**
+     * The four line-level notices import:roadmap-progress prints — the damage a re-import
+     * can do to rows that already report. Same wording, same region prefix.
+     *
+     * @param array{relabeled:int, cleared:int, repct:int, blank_advance:int} $stats
+     */
+    private function reportLineSync(string $region, array $stats, ?string $period = null): void
+    {
+        if ($stats['relabeled'] > 0) {
+            $this->warn("{$region}: {$stats['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.");
+        }
+        if ($stats['cleared'] > 0) {
+            $this->warn("{$region}: {$stats['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+        }
+        if ($stats['repct'] > 0) {
+            $this->warn("{$region}: {$stats['repct']} reported percentage(s) recomputed after a plan change.");
+        }
+        if ($stats['blank_advance'] > 0) {
+            $this->warn("{$region}: {$stats['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.");
+        }
     }
 
     /**

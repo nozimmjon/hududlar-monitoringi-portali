@@ -124,11 +124,11 @@ class ImportRoadmapProgress extends Command
         try {
             foreach ($work as $entry) {
                 $s = ['measures' => 0, 'total' => $entry['roadmap']->measures->count(), 'lines' => 0, 'removed' => 0,
-                    'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'blank_advance' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
+                    'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'repct' => 0, 'blank_advance' => 0, 'done' => 0, 'in_progress' => 0, 'open' => 0];
                 foreach ($entry['items'] as [$measure, $block]) {
                     $s['measures']++;
                     $r = MeasureLineSync::sync($measure, $block['lines'], $period, $entry['roadmap']->year);
-                    foreach (['lines', 'removed', 'reported', 'relabeled', 'cleared'] as $k) {
+                    foreach (['lines', 'removed', 'reported', 'relabeled', 'cleared', 'repct'] as $k) {
                         $s[$k] += $r[$k];
                     }
                     $s[$r['status']]++;
@@ -159,6 +159,9 @@ class ImportRoadmapProgress extends Command
             }
             if ($n['cleared'] > 0) {
                 $this->warn("{$n['region']}: {$n['cleared']} previously reported «Амалда» value(s) cleared by this file.");
+            }
+            if ($n['repct'] > 0) {
+                $this->warn("{$n['region']}: {$n['repct']} reported percentage(s) recomputed after a plan change.");
             }
             if ($n['blank_advance'] > 0) {
                 $this->warn("{$n['region']}: {$n['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.");
