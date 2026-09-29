@@ -5,6 +5,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Protection;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Tests\Helpers\RoadmapDocxBuilder;
 
 uses(RefreshDatabase::class);
@@ -71,8 +72,11 @@ test('writes a document-shaped sheet: title with period, header, section/distric
 
     $book  = IOFactory::load($out);
     $sheet = $book->getSheetByName('Хоразм вилояти');
-    expect($sheet)->not->toBeNull();
-    expect($book->getSheetByName('Йўриқнома'))->not->toBeNull();
+    // Not `->not->toBeNull()`: Pest's `not` first lets PHPUnit *fail* assertNull(), and PHPUnit
+    // builds that failure message by exporting the whole Worksheet graph (~1 GB) — fine on a
+    // fresh process, fatal late in the full suite.
+    expect($sheet)->toBeInstanceOf(Worksheet::class);
+    expect($book->getSheetByName('Йўриқнома'))->toBeInstanceOf(Worksheet::class);
     expect($book->getSheetCount())->toBe(2);
 
     expect($sheet->getCell('A1')->getValue())->toContain('Хоразм вилояти');
