@@ -26,6 +26,14 @@ document.addEventListener('alpine:init', () => {
 
       init() {
         root = this.$el;
+        /* Every answer from this component can re-key the value cells, and not all of them end in an
+           `ad-refresh` (selectPeriod does not), so the memoised index has to be dropped on any commit
+           of this component. The probe check below still covers a morph that arrives without a commit. */
+        if (window.Livewire && Livewire.hook) {
+          Livewire.hook('commit', ({ component, succeed }) => {
+            if (component.el === root) succeed(() => { this.tick++; });
+          });
+        }
         window.addEventListener('beforeunload', this._unload = (e) => {
           if (this.editedLines > 0) { e.preventDefault(); e.returnValue = ''; }
         });
@@ -76,6 +84,13 @@ document.addEventListener('alpine:init', () => {
         if (e && 'actual' in e) { try { return this.parse(e.actual); } catch { return null; } }
         return el.dataset.loaded === '' ? null : parseFloat(el.dataset.loaded);
       },
+
+      /* The getters below (pct, shown, ringText, ringStyle, statusClass, statusLabel, mstateLabel,
+         unfilled) read DOM values without touching `this.tick` themselves, and are correct only
+         because every template entry point into them goes through a getter that does read it
+         (`void this.tick` in pctText/pctClass/agg/mstate/show/count). A new getter that reads the
+         DOM must read `this.tick` too — or be reached exclusively through one that does — otherwise
+         Alpine registers no dependency and the value freezes at the render it was first evaluated in. */
 
       // ---- per line ----
       pct(id) {
@@ -170,6 +185,13 @@ document.addEventListener('alpine:init', () => {
         }
         return n;
       },
+      // Drives the «no measure matches the filter» row: with every tbody hidden the grid is a bare thead.
+      get visibleMeasures() {
+        void this.tick; void this.filter; void this.search;
+        let n = 0;
+        for (const tbody of this.measureEls()) { if (this.show(tbody)) n++; }
+        return n;
+      },
       get editedLines() { return Object.keys(this.edits).length; },
 
       // ---- typing ----
@@ -204,8 +226,10 @@ document.addEventListener('alpine:init', () => {
         if (next) { next.focus(); next.select(); }
       },
       hotkey(ev) {
-        // ev.key is «ы» on a Cyrillic layout, so the physical key decides; ev.key stays for keyboards without codes.
-        if ((ev.ctrlKey || ev.metaKey) && (ev.code === 'KeyS' || ev.key.toLowerCase() === 's')) { ev.preventDefault(); this.save(); }
+        // ev.key is «ы» on a Cyrillic layout, so the physical key decides; ev.key stays for keyboards without
+        // codes (and can be undefined on a composition event). Ctrl+Shift+S / Ctrl+Alt+S belong to the browser.
+        if (!(ev.ctrlKey || ev.metaKey) || ev.shiftKey || ev.altKey) return;
+        if (ev.code === 'KeyS' || (ev.key || '').toLowerCase() === 's') { ev.preventDefault(); this.save(); }
       },
       changePeriod(ev) {
         if (this.editedLines > 0) {
@@ -243,9 +267,30 @@ document.addEventListener('alpine:init', () => {
         }
       },
 
+      /* An Excel import rewrote the values server-side, so the unsaved buffer was typed against a sheet
+         that no longer exists: re-applying it (what `ad-refresh` does) would paint over the import and
+         the next save would silently undo it. Drop the buffer instead — the morph brings the imported
+         values with it. The entry page locks its «Excel’дан юклаш» button while the buffer is non-empty,
+         so this normally runs with nothing to discard; an import from a second tab still lands here. */
+      onImported() {
+        const n = this.editedLines;
+        this.tick++;
+        this.edits = {};
+        this.invalid = {};
+        this.$nextTick(() => this.discard());   // the fresh cells arrive with the morph: clear the typed text there too
+        if (n > 0) this.toast('Excel’дан юкланди — сақланмаган ўзгаришлар бекор қилинди');
+      },
+
       // ---- save ----
       async save() {
         if (this.saving || this.editedLines === 0) return;
+        /* keydown beats blur, so Ctrl+S can arrive while a cell still holds text only onInput() has seen —
+           and that one tolerates a number in progress («3,», «-»). Run the real parser over the buffer
+           first, so the offending cell turns red and takes the caret instead of the server refusing it. */
+        for (const [id, e] of Object.entries(this.edits)) {
+          if (!('actual' in e)) continue;
+          try { this.parse(e.actual); delete this.invalid[id]; } catch (x) { this.invalid[id] = x.message; }
+        }
         const badId = Object.keys(this.invalid)[0];
         if (badId) {
           const el = this.lineEl(badId);
@@ -264,7 +309,12 @@ document.addEventListener('alpine:init', () => {
           this.toast('Сақлаб бўлмади — алоқани текшириб, қайта уриниб кўринг');
         } finally {
           this.saving = false;
-          if (focused) this.$nextTick(() => root.querySelector(`input[data-field="${field}"][data-line="${focused}"]`)?.focus());
+          if (focused && field) {
+            this.$nextTick(() => {
+              const el = root.querySelector(`input[data-field="${field}"][data-line="${focused}"]`);
+              if (el) { el.focus(); el.select(); }
+            });
+          }
         }
       },
       toast(msg) {

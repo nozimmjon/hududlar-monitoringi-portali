@@ -17,12 +17,19 @@
       @if($done !== '')
         <div class="ad-done">✓ {{ $done }}</div>
       @else
-        <label class="f">
+        {{-- a div, not a label: the picker below is the label, and labels do not nest --}}
+        <div class="f">
           <span>Тўлдирилган шаблон (.xlsx)</span>
-          <input type="file" accept=".xlsx" wire:model="file">
+          {{-- the native control writes «Choose File / No file chosen» in English; the input stays, only hidden --}}
+          <label class="ad-file" x-data="{ name: '' }">
+            <input type="file" accept=".xlsx" wire:model="file"
+                   x-on:change="name = $event.target.files[0]?.name ?? ''" aria-label="Тўлдирилган шаблон (.xlsx)">
+            <span class="ad-file-btn">Файл танлаш</span>
+            <span class="ad-file-name" x-text="name || 'Файл танланмаган'">Файл танланмаган</span>
+          </label>
           @error('file')<em>{{ $message }}</em>@enderror
           <div wire:loading wire:target="file" class="muted">Файл юкланмоқда…</div>
-        </label>
+        </div>
         <label class="f">
           <span>Ҳисобот ойи</span>
           <select wire:model="uploadPeriod">

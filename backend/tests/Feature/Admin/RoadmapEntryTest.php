@@ -37,7 +37,10 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSeeHtml('data-measure="' . AdminFixture::measure(1, 1)->id . '" data-state="empty"')
         ->assertSee('Батафсил (2 банд)')
         ->assertSee('2026 йил декабрь')
-        ->assertSee('Қолганини ўзгаришсиз тасдиқлаш');
+        ->assertSee('Қолганини ўзгаришсиз тасдиқлаш')
+        // the arm text names what the confirm actually does: only 1 of the 4 carries anything over
+        ->assertSee('4 та чора-тадбир 2026 йил сентябрь учун ҳозирги кўринишда сақланади — 1 таси ўтган ой қийматлари билан, 3 таси бўш.')
+        ->assertSee('Фильтрга мос чора-тадбир йўқ');
 
     $this->get('/admin/roadmaps/1733?davr=2026-08')->assertOk()->assertSee('2026 йил август')->assertSee('/js/ad-entry.js', false);
 });
@@ -64,10 +67,14 @@ test('save applies the buffer, re-renders with saved cells and reports; an inval
         ->assertReturned(['ok' => false, 'message' => '«Ички каналлар»: рақам эмас'])
         ->assertSet('error', '«Ички каналлар»: рақам эмас')
         ->assertSee('«Ички каналлар»: рақам эмас')
+        // an import re-keys the cells like a save, but with `ad-imported`: the grid drops the unsaved
+        // buffer instead of re-typing it over the values the file just brought in
         ->dispatch('progress-imported')
         ->assertSet('flash', 'Excel файли юкланди')
         ->assertSet('error', '')
-        ->assertSet('version', 2);
+        ->assertSet('version', 2)
+        ->assertDispatched('ad-imported')
+        ->assertNotDispatched('ad-refresh');
     expect(RoadmapChangeLog::count())->toBe(3);
 });
 

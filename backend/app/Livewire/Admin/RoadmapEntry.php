@@ -180,13 +180,18 @@ class RoadmapEntry extends Component
         $this->historyFor = null;
     }
 
+    /**
+     * Not `ad-refresh`: that one re-types the unsaved buffer over the fresh cells, which here would
+     * paint over the values just imported and let the next save undo them. `ad-imported` drops the
+     * buffer instead (public/js/ad-entry.js: onImported).
+     */
     #[On('progress-imported')]
     public function imported(): void
     {
         $this->flash = 'Excel файли юкланди';
         $this->error = '';
         $this->version++;
-        $this->dispatch('ad-refresh');
+        $this->dispatch('ad-imported');
     }
 
     public function render()

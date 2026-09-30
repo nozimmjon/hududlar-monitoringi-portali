@@ -4,7 +4,10 @@
     use App\Support\Roadmaps\RoadmapPeriod;
     $stateLabels = ['saved' => 'сақланган', 'carry' => 'ўтган ойдан', 'empty' => 'бўш'];
 @endphp
-<div class="ad-shell ad-entry" x-data="adEntry()" x-on:keydown.window="hotkey($event)" x-on:ad-refresh.window="tick++; $nextTick(() => reapply())">
+<div class="ad-shell ad-entry" x-data="adEntry()" x-on:keydown.window="hotkey($event)"
+     x-on:ad-refresh.window="tick++; $nextTick(() => reapply())"
+     {{-- an import replaces the values: the buffer is dropped, never re-applied over them --}}
+     x-on:ad-imported.window="onImported()">
   <header class="ad-head ad-sticky">
     <div class="ad-head-row">
       <div class="ad-titles">
@@ -28,7 +31,10 @@
         </select>
       </label>
       <div class="ad-search"><input type="search" x-model.debounce.150ms="search" placeholder="Чора-тадбир, индикатор…" aria-label="Қидирув"></div>
-      <button type="button" class="ad-btn ghost" wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
+      {{-- an import overwrites the sheet, so it must not start on top of unsaved typing --}}
+      <button type="button" class="ad-btn ghost" :disabled="editedLines > 0"
+              :title="editedLines > 0 ? 'Аввал ўзгаришларни сақланг ёки бекор қилинг' : 'Тўлдирилган шаблонни юклаш'"
+              wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
     </div>
     <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
       <button type="button" :class="filter === 'all' && 'on'" :aria-pressed="filter === 'all'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ count($sheet['measures']) }}</b></button>
@@ -139,6 +145,13 @@
           </tbody>
         @endforeach
       @endforeach
+      {{-- every tbody hidden would leave a bare thead: say so, and offer the way back --}}
+      <tbody class="ad-empty" x-show="visibleMeasures === 0" x-cloak>
+        <tr><td colspan="6">
+          Фильтрга мос чора-тадбир йўқ ·
+          <button type="button" class="ad-link" x-on:click="filter = 'all'; search = ''">Барчасини кўрсатиш</button>
+        </td></tr>
+      </tbody>
     </table>
   </div>
 
@@ -155,7 +168,7 @@
       </template>
       <template x-if="arm">
         <span class="ad-arm">
-          <span>{{ $sheet['counts']['confirmable'] }} та чора-тадбир {{ RoadmapPeriod::label($period) }} учун ўтган ой қийматлари билан сақланади.</span>
+          <span>{{ $sheet['counts']['confirmable'] }} та чора-тадбир {{ RoadmapPeriod::label($period) }} учун ҳозирги кўринишда сақланади — {{ $sheet['counts']['carry'] }} таси ўтган ой қийматлари билан, {{ $sheet['counts']['empty'] }} таси бўш.</span>
           <button type="button" class="ad-btn" x-on:click="arm = false; $wire.confirmRest()">Ҳа, тасдиқлаш</button>
           <button type="button" class="ad-btn ghost" x-on:click="arm = false">Йўқ</button>
         </span>

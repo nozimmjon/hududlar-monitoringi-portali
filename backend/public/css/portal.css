@@ -6280,8 +6280,13 @@ body.sectors-body{
 .ad-btn.small{padding:5px 11px;font-size:11.5px}
 .ad-ico{width:28px;height:28px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--muted);font-size:13px;line-height:1;display:inline-grid;place-items:center;cursor:pointer;transition:color .15s,border-color .15s}
 .ad-ico:hover{color:var(--blue);border-color:var(--blue)}
+/* red at rest, not only on hover: in the grey of .ad-ico the bin reads as a disabled button */
+.ad-ico.danger{color:var(--task-red)}
 .ad-ico.danger:hover{color:var(--task-red);border-color:var(--task-red)}
 .ad-ico:disabled{opacity:.35;cursor:default}
+/* an inline button that reads as a link (empty-filter row) */
+.ad-link{border:0;background:none;padding:0;font:inherit;font-weight:700;color:var(--blue);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.ad-link:hover{filter:brightness(1.15)}
 .ad-strip{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted)}
 .ad-strip .k{display:inline-flex;align-items:center;gap:6px}
 .ad-strip .k i{width:9px;height:9px;border-radius:50%;background:var(--grey-soft)}
@@ -6329,6 +6334,9 @@ body.sectors-body{
 .ad-gridwrap{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);overflow:auto;max-height:calc(100vh - 230px)}
 .ad-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
 .ad-grid thead th{position:sticky;top:0;z-index:2;background:#f7fafd;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+/* Pinned: the group headers below stick at top:32px, and without this the row is ~31.7px — a hair
+   short, and a different hair on every font fallback, which lets a group header slide under it. */
+.ad-gridwrap thead th{height:32px;box-sizing:border-box}
 .ad-grid .c-unit{width:72px}.ad-grid .c-plan{width:96px;text-align:right}.ad-grid .c-actual{width:124px}.ad-grid .c-pct{width:64px;text-align:right}.ad-grid .c-note{width:230px}
 .ad-grid td{padding:5px 10px;border-bottom:1px solid #eef2f7;vertical-align:middle}
 .ad-group th{position:sticky;top:32px;z-index:1;background:var(--paper);padding:14px 12px 6px;text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
@@ -6356,6 +6364,7 @@ body.sectors-body{
 .ad-lrow .c-unit{color:var(--muted)}
 .ad-lrow .c-plan{text-align:right;font-weight:600}
 .ad-lrow.none td{color:var(--muted);font-style:italic}
+.ad-empty td{padding:28px 14px;text-align:center;color:var(--muted);font-size:12.5px}
 .ad-cell{position:relative}
 .ad-cell input{width:100%;border:1px solid var(--line-strong);border-radius:8px;padding:6px 9px;font:inherit;font-size:13px;font-weight:600;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
 .ad-cell.actual input{text-align:right}
@@ -6416,7 +6425,15 @@ body.sectors-body{
 .ad-upload .h{display:flex;justify-content:space-between;align-items:flex-start;font-size:15px}
 .ad-upload .h .muted{display:block;font-size:12.5px;margin-top:2px}
 .ad-upload .f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.ad-upload .f input[type=file],.ad-upload .f select{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:8px 10px;background:#fff}
+.ad-upload .f select{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:8px 10px;background:#fff}
+/* file picker: the native control writes «Choose File / No file chosen» in English and cannot be
+   relabelled, so the input is hidden inside this label (still focusable, still the wire:model target). */
+.ad-file{position:relative;display:flex;align-items:center;gap:10px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500}
+.ad-file:focus-within{border-color:var(--blue)}
+.ad-file input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+.ad-file-btn{flex:0 0 auto;border:1px solid var(--line-strong);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:750;color:var(--blue);background:var(--paper);white-space:nowrap}
+.ad-file:hover .ad-file-btn{background:var(--blue-soft)}
+.ad-file-name{min-width:0;color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ad-upload .f em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:var(--task-red)}
 .ad-upload .f .muted{text-transform:none;letter-spacing:0;font-weight:500}
 .ad-upload .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -6425,7 +6442,13 @@ body.sectors-body{
 .ad-upload .rep .ok{color:var(--ink);font-weight:600;margin:0 0 8px}
 .ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#fdecea;border-radius:10px;padding:10px 12px;margin:0}
 .ad-upload .rep .warn{color:#a35e00;background:#fff4e0;border-radius:10px;padding:8px 12px;margin:6px 0 0}
-.ad-upload .tbl{overflow:auto}
-.ad-upload table{border-collapse:collapse;width:100%;font-size:12px}
-.ad-upload th,.ad-upload td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
-.ad-upload th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+/* Eight columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
+   of running into each other. The scroll wrapper stays only as a safety net for narrow phones. */
+.ad-upload .tbl{overflow-x:auto}
+.ad-upload table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:12px}
+.ad-upload th,.ad-upload td{border-bottom:1px solid var(--line);padding:6px 5px;text-align:left}
+.ad-upload th{font-size:10px;line-height:1.15;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);white-space:normal;vertical-align:bottom;hyphens:auto;overflow-wrap:anywhere}
+.ad-upload td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-upload th:first-child,.ad-upload td:first-child{width:30%}
+.ad-upload td:first-child{white-space:normal;overflow-wrap:anywhere}
+.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:10%;text-align:right;font-variant-numeric:tabular-nums}
