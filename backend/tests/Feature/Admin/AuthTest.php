@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\Helpers\AdminFixture;
 
 uses(RefreshDatabase::class);
 
@@ -88,6 +89,7 @@ test('admin:create rotates the remember-me token when it resets a password', fun
 
 test('a logged-in user gets the admin pages themselves', function () {
     $this->seed();
+    AdminFixture::roadmap();   // the entry page 404s for a region without a road map
     $this->actingAs(authTestUser());
 
     $this->get('/admin/roadmaps')->assertOk();
