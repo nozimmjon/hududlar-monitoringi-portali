@@ -17,10 +17,13 @@ test('a line is saved for the period, carried from the latest earlier value, or 
     AdminFixture::report($bogot, '2026-08', [1 => 5.0]);                 // line 2 not reported in August (null row)
 
     $sheet = ProgressSheet::build($roadmap, '2026-09');
+    expect($sheet)->toMatchArray(['period' => '2026-09', 'year' => 2026]);
     $byId  = collect($sheet['measures'])->keyBy('id');
     $m     = $byId[$bogot->id];
     expect($m['state'])->toBe('carry');
+    expect($m['status_is_current'])->toBeFalse();       // latest_period is August; this sheet is September
     expect($m['lines'][0])->toMatchArray(['state' => 'carry', 'actual' => 5.0, 'note' => null, 'source_period' => '2026-08', 'saved_actual' => null, 'saved_note' => null]);
+    expect($m['lines'][0]['actual'])->toBe(5.0);         // strict float — toMatchArray compares loosely
     expect($m['lines'][1])->toMatchArray(['state' => 'carry', 'actual' => 10.0, 'source_period' => '2026-07']);   // August's null row is skipped
     expect($m['lines'][0])->toMatchArray(['id' => AdminFixture::line($bogot, 1)->id, 'line_no' => 1, 'label' => 'Хўжаликлараро каналлар', 'unit' => 'км', 'plan' => 7.8]);
     expect($m)->toMatchArray(['seq_no' => 1, 'district_name' => 'Боғот тумани', 'district_code' => 1733204, 'district_head' => 'туман ҳокими Ж.Назаров', 'section_no' => 2, 'status' => 'in_progress', 'deadline_reached' => false]);
@@ -29,6 +32,7 @@ test('a line is saved for the period, carried from the latest earlier value, or 
     // a saved row for the period wins even when its actual is null
     $m8 = collect(ProgressSheet::build($roadmap, '2026-08')['measures'])->keyBy('id')[$bogot->id];
     expect($m8['state'])->toBe('saved');
+    expect($m8['status_is_current'])->toBeTrue();        // latest_period is August; this sheet is August
     expect($m8['lines'][0])->toMatchArray(['state' => 'saved', 'actual' => 5.0, 'saved_actual' => 5.0, 'source_period' => null]);
     expect($m8['lines'][1])->toMatchArray(['state' => 'saved', 'actual' => null, 'saved_actual' => null]);
 
@@ -37,6 +41,19 @@ test('a line is saved for the period, carried from the latest earlier value, or 
     expect($byId[AdminFixture::measure(1, 2)->id]['deadline_reached'])->toBeTrue();
     expect($sheet['counts'])->toBe(['saved' => 0, 'carry' => 1, 'empty' => 3, 'confirmable' => 4]);
     expect(array_column($sheet['measures'], 'seq_no'))->toBe([1, 2, 1, 1]);     // document order
+
+    // a row for a period after the sheet period is ignored: October doesn't disturb September's carry from August
+    AdminFixture::report($bogot, '2026-10', [1 => 9.0]);
+    $afterOct = collect(ProgressSheet::build($roadmap, '2026-09')['measures'])->keyBy('id')[$bogot->id]['lines'][0];
+    expect($afterOct)->toMatchArray(['state' => 'carry', 'actual' => 5.0, 'source_period' => '2026-08']);
+
+    // a measure whose lines were removed reports empty and drops out of "confirmable"
+    AdminFixture::measure(1, 1)->lines()->delete();
+    $sheetNoLines = ProgressSheet::build($roadmap, '2026-09');
+    $kulovot      = collect($sheetNoLines['measures'])->keyBy('id')[AdminFixture::measure(1, 1)->id];
+    expect($kulovot['state'])->toBe('empty');
+    expect($kulovot['lines'])->toBe([]);
+    expect($sheetNoLines['counts'])->toBe(['saved' => 0, 'carry' => 1, 'empty' => 3, 'confirmable' => 3]);
 });
 
 test('a quarter carries as its last month; periods run from January to the current month, newest first', function () {
@@ -56,4 +73,17 @@ test('a quarter carries as its last month; periods run from January to the curre
     expect(ProgressSheet::periodOptions(2026))->toBe(['2026-01']);
     Carbon::setTestNow('2026-09-30 20:30:00');                            // 01:30 on 1 October in Tashkent
     expect(ProgressSheet::currentPeriod())->toBe('2026-10');
+});
+
+test('a quarter tied with the sheet month neither saves nor carries; periodOptions clamps to December', function () {
+    $roadmap = AdminFixture::roadmap();
+    $gurlan  = AdminFixture::measure(2, 1, 1733208);
+    AdminFixture::report($gurlan, '2026-Q3', [1 => 6.0]);                 // Q3 closes September — same index as the sheet month
+
+    $line = collect(ProgressSheet::build($roadmap, '2026-09')['measures'])->keyBy('id')[$gurlan->id]['lines'][0];
+    expect($line)->toMatchArray(['state' => 'empty', 'source_period' => null]);   // RoadmapPeriod::latest() would rank the quarter above the month it closes, but it's not even a candidate here
+
+    $decFirst = ['2026-12', '2026-11', '2026-10', '2026-09', '2026-08', '2026-07', '2026-06', '2026-05', '2026-04', '2026-03', '2026-02', '2026-01'];
+    expect(ProgressSheet::periodOptions(2026, '2026-12'))->toBe($decFirst);
+    expect(ProgressSheet::periodOptions(2026, '2027-02'))->toBe($decFirst);   // a month past the road-map year still clamps to December
 });

@@ -31,14 +31,17 @@ final class ProgressSheet
 
     /**
      * Months the panel offers: from January of the road-map year up to the current
-     * month (at least January), newest first.
+     * month, never past December of the year, newest first.
      *
      * @return list<string>
      */
     public static function periodOptions(int $year, ?string $current = null): array
     {
         $first = RoadmapPeriod::monthIndex(RoadmapPeriod::fromYearMonth($year, 1));
-        $last  = max($first, RoadmapPeriod::monthIndex($current ?? self::currentPeriod()));
+        $last  = max($first, min(
+            RoadmapPeriod::monthIndex($current ?? self::currentPeriod()),
+            RoadmapPeriod::monthIndex(RoadmapPeriod::fromYearMonth($year, 12)),
+        ));
 
         $out = [];
         for ($idx = $last; $idx >= $first; $idx--) {
@@ -50,12 +53,18 @@ final class ProgressSheet
     }
 
     /**
-     * @return array{measures: list<array<string, mixed>>, counts: array{saved: int, carry: int, empty: int, confirmable: int}}
+     * @return array{period: string, year: int, measures: list<array<string, mixed>>, counts: array{saved: int, carry: int, empty: int, confirmable: int}}
      */
     public static function build(Roadmap $roadmap, string $period): array
     {
-        $pIdx     = RoadmapPeriod::monthIndex($period);
-        $measures = $roadmap->measures()->with(['district', 'lines.progress'])->orderBy('source_row')->get();
+        $pIdx = RoadmapPeriod::monthIndex($period);
+        // Later-year rows can never be a 'saved' match or an earlier-period carry source, so the
+        // eager load skips them; bounded by year (not by period) because a lexical period bound
+        // would wrongly drop a quarter like '2026-Q2', which sorts after '2026-06'.
+        $measures = $roadmap->measures()
+            ->with(['district', 'lines.progress' => fn ($q) => $q->where('report_period', '<', ((int) substr($period, 0, 4) + 1) . '-')])
+            ->orderBy('source_row')
+            ->get();
 
         $out    = [];
         $counts = ['saved' => 0, 'carry' => 0, 'empty' => 0, 'confirmable' => 0];
@@ -77,7 +86,7 @@ final class ProgressSheet
             $out[] = self::measureRow($m, $roadmap->year, $period, $state, $lines);
         }
 
-        return ['measures' => $out, 'counts' => $counts];
+        return ['period' => $period, 'year' => $roadmap->year, 'measures' => $out, 'counts' => $counts];
     }
 
     /**
@@ -102,21 +111,16 @@ final class ProgressSheet
             return $base + ['actual' => $base['saved_actual'], 'note' => $saved->note, 'state' => 'saved', 'source_period' => null];
         }
 
-        $best    = null;
-        $bestIdx = -1;
+        // Candidate periods strictly before P with a value; the earlier-vs-quarter tiebreak
+        // on an equal month index is RoadmapPeriod::latest()'s own rule, not re-implemented here.
+        $candidates = [];
         foreach ($line->progress as $p) {
-            if ($p->actual_value === null) {
-                continue;
-            }
-            $idx = RoadmapPeriod::monthIndex($p->report_period);
-            if ($idx >= $pIdx) {
-                continue;
-            }
-            if ($idx > $bestIdx || ($idx === $bestIdx && strcmp($p->report_period, (string) $best?->report_period) > 0)) {
-                $best    = $p;
-                $bestIdx = $idx;
+            if ($p->actual_value !== null && RoadmapPeriod::monthIndex($p->report_period) < $pIdx) {
+                $candidates[] = $p->report_period;
             }
         }
+        $bestPeriod = RoadmapPeriod::latest($candidates);
+        $best       = $bestPeriod === null ? null : $line->progress->firstWhere('report_period', $bestPeriod);
         if ($best !== null) {
             return $base + ['actual' => (float) $best->actual_value, 'note' => $best->note, 'state' => 'carry', 'source_period' => $best->report_period];
         }
@@ -128,24 +132,25 @@ final class ProgressSheet
     private static function measureRow(RoadmapMeasure $m, int $year, string $period, string $state, array $lines): array
     {
         return [
-            'id'               => $m->id,
-            'section_no'       => (int) $m->section_no,
-            'section_title'    => $m->section_title,
-            'district_id'      => $m->district_id,
-            'district_name'    => $m->district?->name_full,
-            'district_code'    => $m->district?->code,
-            'district_head'    => $m->district_head_text,
-            'seq_no'           => (int) $m->seq_no,
-            'title'            => $m->title,
-            'details'          => $m->detailLines(),
-            'deadline_text'    => $m->deadline_text,
-            'responsible_text' => $m->responsible_text,
-            'status'           => $m->status,
-            'pct'              => $m->pct === null ? null : (float) $m->pct,
-            'latest_period'    => $m->latest_period,
-            'deadline_reached' => RoadmapDeadline::reached($period, $m->deadline_text, $year),
-            'state'            => $state,
-            'lines'            => $lines,
+            'id'                => $m->id,
+            'section_no'        => (int) $m->section_no,
+            'section_title'     => $m->section_title,
+            'district_id'       => $m->district_id,
+            'district_name'     => $m->district?->name_full,
+            'district_code'     => $m->district?->code,
+            'district_head'     => $m->district_head_text,
+            'seq_no'            => (int) $m->seq_no,
+            'title'             => $m->title,
+            'details'           => $m->detailLines(),
+            'deadline_text'     => $m->deadline_text,
+            'responsible_text'  => $m->responsible_text,
+            'status'            => $m->status,
+            'pct'               => $m->pct === null ? null : (float) $m->pct,
+            'latest_period'     => $m->latest_period,
+            'status_is_current' => $m->latest_period === $period,
+            'deadline_reached'  => RoadmapDeadline::reached($period, $m->deadline_text, $year),
+            'state'             => $state,
+            'lines'             => $lines,
         ];
     }
 }
