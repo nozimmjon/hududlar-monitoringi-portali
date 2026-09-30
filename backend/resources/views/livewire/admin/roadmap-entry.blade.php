@@ -13,7 +13,7 @@
       </div>
       <label class="ad-select">
         <span>Вилоят</span>
-        <select wire:change="switchRegion($event.target.value)" aria-label="Вилоят">
+        <select data-current="{{ $region->code }}" x-on:change="changeRegion($event)" aria-label="Вилоят">
           @foreach($regions as $r)
             <option value="{{ $r->code }}" @selected($r->code === $region->code)>{{ $r->name_full }}</option>
           @endforeach
@@ -31,11 +31,11 @@
       <button type="button" class="ad-btn ghost" wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
     </div>
     <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
-      <button type="button" :class="filter === 'all' && 'on'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ count($sheet['measures']) }}</b></button>
-      <button type="button" :class="filter === 'unfilled' && 'on'" x-on:click="filter = 'unfilled'">Тўлдирилмаган <b class="tnum" x-text="count('unfilled')">—</b></button>
-      <button type="button" :class="filter === 'edited' && 'on'" x-on:click="filter = 'edited'">Ўзгартирилган <b class="tnum" x-text="count('edited')">0</b></button>
-      <button type="button" :class="filter === 'carry' && 'on'" x-on:click="filter = 'carry'">Ўтган ойдан <b class="tnum" x-text="count('carry')">{{ $sheet['counts']['carry'] }}</b></button>
-      <button type="button" :class="filter === 'saved' && 'on'" x-on:click="filter = 'saved'">Сақланган <b class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</b></button>
+      <button type="button" :class="filter === 'all' && 'on'" :aria-pressed="filter === 'all'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ count($sheet['measures']) }}</b></button>
+      <button type="button" :class="filter === 'unfilled' && 'on'" :aria-pressed="filter === 'unfilled'" x-on:click="filter = 'unfilled'">Тўлдирилмаган <b class="tnum" x-text="count('unfilled')">—</b></button>
+      <button type="button" :class="filter === 'edited' && 'on'" :aria-pressed="filter === 'edited'" x-on:click="filter = 'edited'">Ўзгартирилган <b class="tnum" x-text="count('edited')">0</b></button>
+      <button type="button" :class="filter === 'carry' && 'on'" :aria-pressed="filter === 'carry'" x-on:click="filter = 'carry'">Ўтган ойдан <b class="tnum" x-text="count('carry')">{{ $sheet['counts']['carry'] }}</b></button>
+      <button type="button" :class="filter === 'saved' && 'on'" :aria-pressed="filter === 'saved'" x-on:click="filter = 'saved'">Сақланган <b class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</b></button>
     </nav>
   </header>
 
@@ -69,7 +69,7 @@
             $chip      = MeasureDisplay::statusChip($m['status']);
             $pctShown  = MeasureDisplay::pshow($m['pct'], $m['status'] === 'done');
             $deadline  = MeasureDisplay::deadlineChip($m['deadline_text'], $roadmap->year, $m['status'], $today);
-            $search    = mb_strtolower(implode(' ', array_merge([$m['title']], $m['details'], array_column($m['lines'], 'label'))));
+            $search    = mb_strtolower(implode(' ', array_merge([$m['title'], $g['section_title'], (string) $g['district']], $m['details'], array_column($m['lines'], 'label'))));
             $panelOpen = $panelFor === $m['id'];
           @endphp
           <tbody class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
@@ -96,7 +96,7 @@
                     @endif
                   </div>
                   <span class="wr-status" :class="statusClass({{ $m['id'] }})"
-                        @if(! $m['status_is_current'] && $m['latest_period']) title="Сақланган ҳолат: {{ RoadmapPeriod::label($m['latest_period']) }} бўйича" @endif><i></i><span x-text="statusLabel({{ $m['id'] }})">{{ $chip['label'] }}</span></span>
+                        @if(! $m['status_is_current'] && $m['latest_period']) title="Базадаги ҳолат: {{ RoadmapPeriod::label($m['latest_period']) }} ҳисоботи бўйича" @endif><i></i><span x-text="statusLabel({{ $m['id'] }})">{{ $chip['label'] }}</span></span>
                   <span class="wr-tag {{ $deadline['cls'] }}">{{ $deadline['label'] }}</span>
                   <span class="ad-state" :class="mstate({{ $m['id'] }})" x-text="mstateLabel({{ $m['id'] }})">{{ $stateLabels[$m['state']] }}</span>
                   <span class="ad-tools">
@@ -117,7 +117,7 @@
                        @if($l['state'] === 'carry') title="{{ RoadmapPeriod::label($l['source_period']) }}дан кўчирилган" @endif>
                     <input type="text" inputmode="decimal" class="tnum" value="{{ EntryValue::format($l['actual']) }}" placeholder="—"
                            data-line="{{ $l['id'] }}" data-measure="{{ $m['id'] }}" data-field="actual" data-plan="{{ $l['plan'] ?? '' }}" data-loaded="{{ $l['actual'] ?? '' }}" data-loaded-text="{{ EntryValue::format($l['actual']) }}" data-state="{{ $l['state'] }}"
-                           x-on:input="onInput($event)" x-on:keydown="cellKey($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — амалда">
+                           x-on:input="onInput($event)" x-on:keydown="cellKey($event)" x-on:blur="onBlur($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — амалда">
                     <span class="msg" x-text="invalid[{{ $l['id'] }}] || ''"></span>
                   </div>
                 </td>
@@ -149,7 +149,7 @@
       <span class="tnum" x-text="count('unfilled')">—</span> тўлдирилмаган
     </span>
     <span class="a">
-      <button type="button" class="ad-btn ghost" x-show="editedLines > 0" x-on:click="discard()">Бекор қилиш</button>
+      <button type="button" class="ad-btn ghost" x-show="editedLines > 0" x-cloak x-on:click="discard()">Бекор қилиш</button>
       <template x-if="!arm">
         <button type="button" class="ad-btn ghost" x-on:click="arm = true" @disabled($sheet['counts']['confirmable'] === 0)>Қолганини ўзгаришсиз тасдиқлаш</button>
       </template>
