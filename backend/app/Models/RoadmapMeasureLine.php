@@ -15,6 +15,13 @@ class RoadmapMeasureLine extends Model
      */
     public const LABEL_MAX = 4000;
 
+    /**
+     * `unit` is «км», «та», «млн м³» — the column is varchar(48). The xlsx readers truncate to
+     * this (a long unit is a stray sentence, not a reason to abort a 1 300-measure import); the
+     * admin panel, where a person is looking at the field, refuses it instead.
+     */
+    public const UNIT_MAX = 48;
+
     protected $fillable = ['roadmap_measure_id', 'line_no', 'label', 'unit', 'plan_value'];
 
     protected $casts = [

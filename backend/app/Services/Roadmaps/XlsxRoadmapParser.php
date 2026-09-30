@@ -405,7 +405,7 @@ final class XlsxRoadmapParser
             $unit = 'га';
         }
 
-        return mb_substr($unit, 0, 48);
+        return mb_substr($unit, 0, RoadmapMeasureLine::UNIT_MAX);
     }
 
     /** Existing cells only: asking for a missing one would materialise it on every style-only row. */

@@ -32,7 +32,9 @@ use App\Support\Roadmaps\RoadmapPeriod;
 final class MeasureLineSync
 {
     /**
-     * @param list<array{label: string, unit: ?string, plan: ?float, actual: ?float, note: ?string}> $lines
+     * @param list<array{label: string, unit: ?string, plan: float|string|null, actual: ?float, note: ?string}> $lines
+     *              `plan` may be the decimal cast's string («10.000000»): ProgressEntry::rowsFor()
+     *              hands the stored value straight back so an untouched plan never looks changed.
      * @return array{lines: int, removed: int, reported: int, status: string, relabeled: int, cleared: int, repct: int, latest_period: ?string, blank_advance: bool}
      */
     public static function sync(RoadmapMeasure $measure, array $lines, ?string $period, int $roadmapYear, bool $write = true): array

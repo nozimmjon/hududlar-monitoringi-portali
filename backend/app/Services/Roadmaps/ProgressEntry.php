@@ -14,9 +14,16 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * Write side of the admin panel. Every write goes through MeasureLineSync::sync() —
- * the same path the importer uses — so the page can never disagree with the importer,
- * and every write logs to roadmap_change_log.
+ * Write side of the admin panel. save() and confirmRest() go through
+ * MeasureLineSync::sync() — the same path the importer uses — so the page can never
+ * disagree with the importer.
+ *
+ * correct() is the exception: it writes the line definitions itself and recomputes through
+ * MeasureRecomputer. sync() keys lines by POSITION, so handing it a reordered (or shortened)
+ * list would move ids — and the reported history hanging off them — onto the neighbouring
+ * indicator; correct() exists precisely to reorder, rename and remove lines by id.
+ *
+ * Every write logs to roadmap_change_log.
  *
  * The edit buffer comes from the panel's own Alpine code and is trusted to be well-shaped
  * (line ids as keys, `actual`/`note` strings); odd shapes are refused or ignored, not sanitised.
@@ -71,8 +78,10 @@ final class ProgressEntry
         $measuresCount = 0;
         $changes       = 0;
         DB::transaction(function () use ($measureIds, $parsed, $period, $roadmap, $user, &$measuresCount, &$changes): void {
-            // Read inside the transaction: the old values logged below must come from the
-            // same snapshot MeasureLineSync::sync() is about to overwrite.
+            // Read inside the transaction: as late as possible, and committed atomically with the
+            // writes below, so the logged old values and the rows they describe land together.
+            // Not one snapshot, though — on READ COMMITTED another session's commit between this
+            // read and the sync would still be seen; that would want lockForUpdate().
             $measures = RoadmapMeasure::whereIn('id', $measureIds)->with('lines.progress')->orderBy('source_row')->get();
             foreach ($measures as $measure) {
                 foreach ($measure->lines as $line) {
@@ -109,8 +118,9 @@ final class ProgressEntry
 
         $count = 0;
         DB::transaction(function () use ($period, $roadmap, $user, &$count): void {
-            // Read inside the transaction: same reason as save() — the sheet that decides
-            // who is confirmable must be the sheet MeasureLineSync::sync() is about to act on.
+            // Read inside the transaction — same reason as save(): as late as possible, and
+            // committed atomically with the writes. Not a snapshot either (READ COMMITTED); a
+            // measure saved by someone else right after this read would be confirmed on top.
             $ids = ProgressSheet::confirmableIds(ProgressSheet::build($roadmap, $period));
             if ($ids === []) {
                 return;
@@ -143,47 +153,51 @@ final class ProgressEntry
      */
     public static function correct(RoadmapMeasure $measure, array $lines, User $user): void
     {
-        $measure->load(['lines.progress', 'roadmap']);
-        $existing = $measure->lines->keyBy('id');
-
         if ($lines === []) {
             throw new InvalidArgumentException('Камида битта индикатор қолсин.');
         }
-        $clean = [];
-        $seen  = [];
-        foreach (array_values($lines) as $i => $l) {
-            $no    = $i + 1;
-            $label = trim((string) ($l['label'] ?? ''));
-            if ($label === '') {
-                throw new InvalidArgumentException("{$no}-қатор: индикатор номи бўш.");
-            }
-            if (mb_strlen($label) > RoadmapMeasureLine::LABEL_MAX) {
-                throw new InvalidArgumentException("{$no}-қатор: индикатор номи жуда узун (" . mb_strlen($label) . ' белги).');
-            }
-            $unit = trim((string) ($l['unit'] ?? ''));
-            if (mb_strlen($unit) > 48) {
-                throw new InvalidArgumentException("{$no}-қатор: ўлчов 48 белгидан ошмасин.");
-            }
-            try {
-                $plan = EntryValue::parse(isset($l['plan']) ? (string) $l['plan'] : null);
-            } catch (InvalidArgumentException $e) {
-                throw new InvalidArgumentException("{$no}-қатор: режа — {$e->getMessage()}.");
-            }
-            $id = isset($l['id']) && $l['id'] !== '' ? (int) $l['id'] : null;
-            if ($id !== null && ! $existing->has($id)) {
-                throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} бу чора-тадбирга тегишли эмас.");
-            }
-            if ($id !== null && isset($seen[$id])) {
-                throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} рўйхатда икки марта.");
-            }
-            if ($id !== null) {
-                $seen[$id] = true;
-            }
-            $clean[] = ['id' => $id, 'label' => $label, 'unit' => $unit === '' ? null : $unit, 'plan' => $plan];
-        }
 
-        $roadmap = $measure->roadmap;
-        DB::transaction(function () use ($measure, $roadmap, $existing, $clean, $seen, $user): void {
+        DB::transaction(function () use ($measure, $lines, $user): void {
+            // Read inside the transaction: as late as possible, and committed atomically with the
+            // writes below. Validation still runs before anything is written — it only throws, and
+            // a throw out of the closure rolls back a transaction that has written nothing yet.
+            $measure->load(['lines.progress', 'roadmap']);
+            $roadmap  = $measure->roadmap;
+            $existing = $measure->lines->keyBy('id');
+
+            $clean = [];
+            $seen  = [];
+            foreach (array_values($lines) as $i => $l) {
+                $no    = $i + 1;
+                $label = trim((string) ($l['label'] ?? ''));
+                if ($label === '') {
+                    throw new InvalidArgumentException("{$no}-қатор: индикатор номи бўш.");
+                }
+                if (mb_strlen($label) > RoadmapMeasureLine::LABEL_MAX) {
+                    throw new InvalidArgumentException("{$no}-қатор: индикатор номи жуда узун (" . mb_strlen($label) . ' белги).');
+                }
+                $unit = trim((string) ($l['unit'] ?? ''));
+                if (mb_strlen($unit) > RoadmapMeasureLine::UNIT_MAX) {
+                    throw new InvalidArgumentException("{$no}-қатор: ўлчов " . RoadmapMeasureLine::UNIT_MAX . ' белгидан ошмасин.');
+                }
+                try {
+                    $plan = EntryValue::parse(isset($l['plan']) ? (string) $l['plan'] : null);
+                } catch (InvalidArgumentException $e) {
+                    throw new InvalidArgumentException("{$no}-қатор: режа — {$e->getMessage()}.");
+                }
+                $id = isset($l['id']) && $l['id'] !== '' ? (int) $l['id'] : null;
+                if ($id !== null && ! $existing->has($id)) {
+                    throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} бу чора-тадбирга тегишли эмас.");
+                }
+                if ($id !== null && isset($seen[$id])) {
+                    throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} рўйхатда икки марта.");
+                }
+                if ($id !== null) {
+                    $seen[$id] = true;
+                }
+                $clean[] = ['id' => $id, 'label' => $label, 'unit' => $unit === '' ? null : $unit, 'plan' => $plan];
+            }
+
             foreach ($existing as $line) {
                 if (isset($seen[$line->id])) {
                     continue;
@@ -291,9 +305,13 @@ final class ProgressEntry
         }
     }
 
+    /**
+     * One line, always: the grid's «Изоҳ» is a single-line input, so a note imported from an
+     * xlsx cell with hard breaks is flattened here rather than losing its tail on the next save.
+     */
     private static function note(mixed $raw): ?string
     {
-        $s = trim((string) $raw);
+        $s = (string) preg_replace('/\s+/u', ' ', trim((string) $raw));
 
         return $s === '' ? null : mb_substr($s, 0, 500);
     }

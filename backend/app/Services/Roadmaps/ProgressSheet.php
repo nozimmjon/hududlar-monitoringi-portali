@@ -80,19 +80,17 @@ final class ProgressSheet
             }
             $state = $anySaved ? 'saved' : ($anyCarry ? 'carry' : 'empty');
             $counts[$state]++;
-            if ($state !== 'saved' && $lines !== []) {
-                $counts['confirmable']++;
-            }
             $out[] = self::measureRow($m, $roadmap->year, $period, $state, $lines);
         }
+        $counts['confirmable'] = count(self::confirmableIds(['measures' => $out]));
 
         return ['period' => $period, 'year' => $roadmap->year, 'measures' => $out, 'counts' => $counts];
     }
 
     /**
-     * ids of measures not yet saved for the sheet's period but with lines to confirm — the
-     * same rule build() tallies into counts['confirmable']; callers that need the list (not
-     * just the count) go through here instead of re-deriving the rule.
+     * ids of measures not yet saved for the sheet's period but with lines to confirm — the one
+     * definition of the rule: build() counts them by calling this, and callers that need the
+     * list (not just the count) go through it too.
      *
      * @param  array{measures: list<array<string, mixed>>, ...} $sheet from build()
      * @return list<int>

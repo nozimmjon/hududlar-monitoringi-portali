@@ -45,6 +45,27 @@ test('run() with write=false reports and rolls back; with write=true it writes a
     }
 });
 
+test('run() reports a file that is not a template at all instead of throwing', function () {
+    AdminFixture::roadmap();
+    $txt = tempnam(sys_get_temp_dir(), 'rmadm_') . '.txt';
+    file_put_contents($txt, "бу шаблон эмас\nоддий матн\n");
+
+    try {
+        // Whether PhpSpreadsheet refuses the file outright (its Exception is a RuntimeException,
+        // so it is caught) or reads it as a one-column CSV with no keys in column A, the operator
+        // gets a sentence back and the database is untouched.
+        $r = (new ProgressImport())->run($txt, '2026-09', 2026, 'water', true, null, 'изоҳ.txt');
+        expect($r->ok())->toBeFalse();
+        expect($r->error)->toBeString()->not->toBe('');
+        expect($r->written)->toBeFalse();
+        expect($r->file)->toBe('изоҳ.txt');
+        expect(RoadmapLineProgress::count())->toBe(0);
+        expect(RoadmapChangeLog::count())->toBe(0);
+    } finally {
+        @unlink($txt);
+    }
+});
+
 test('run() reports a broken file as an error without writing, and refuses a period that disagrees with the sheet', function () {
     AdminFixture::roadmap();
     $bad = AdminFixture::template('2026-09', ['G8' => 'кўп']);

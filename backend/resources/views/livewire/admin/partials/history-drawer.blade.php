@@ -1,5 +1,5 @@
 {{-- Side panel with one measure's latest changes. Expects $history (Collection) and $historyTitle from RoadmapEntry. --}}
-@php use App\Models\RoadmapChangeLog; @endphp
+@php use App\Models\RoadmapChangeLog; use App\Services\Roadmaps\ProgressSheet; @endphp
 <aside class="ad-hist" role="dialog" aria-label="Ўзгаришлар тарихи">
   <div class="h">
     <b>Ўзгаришлар тарихи</b>
@@ -8,7 +8,7 @@
   <p class="t">{{ $historyTitle }}</p>
   @forelse($history as $h)
     <div class="e" wire:key="h-{{ $h->id }}">
-      <div class="w"><span class="tnum">{{ $h->created_at->timezone('Asia/Tashkent')->format('d.m.Y H:i') }}</span> · {{ $h->user?->name ?? 'терминал' }}</div>
+      <div class="w"><span class="tnum">{{ $h->created_at->timezone(ProgressSheet::TZ)->format('d.m.Y H:i') }}</span> · {{ $h->user?->name ?? 'терминал' }}</div>
       @php $lineLabel = $h->line_label ?? $h->line?->label; @endphp
       <div class="a">{{ RoadmapChangeLog::ACTION_LABELS[$h->action] ?? $h->action }}@if($lineLabel !== null) · {{ mb_strimwidth($lineLabel, 0, 60, '…') }}@endif</div>
       @if($h->old_value !== null || $h->new_value !== null)

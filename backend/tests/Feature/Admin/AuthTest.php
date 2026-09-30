@@ -2,7 +2,10 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Tests\Helpers\AdminFixture;
 
 uses(RefreshDatabase::class);
@@ -79,12 +82,34 @@ test('admin:create creates the user, then resets its password; bad input is refu
     expect(User::count())->toBe(1);
 });
 
-test('admin:create rotates the remember-me token when it resets a password', function () {
-    $user = User::factory()->create(['email' => 'boss@example.test', 'remember_token' => 'old-token']);
+test('admin:create rotates the remember-me token and drops the live sessions when it resets a password', function () {
+    config(['session.driver' => 'database']);           // the suite runs on the array driver; the purge is guarded on this
+    $user  = User::factory()->create(['email' => 'boss@example.test', 'remember_token' => 'old-token']);
+    $other = User::factory()->create(['email' => 'else@example.test']);
+    foreach ([['live-session', $user->id], ['other-session', $other->id]] as [$id, $userId]) {
+        DB::table('sessions')->insert([
+            'id' => $id, 'user_id' => $userId, 'ip_address' => '127.0.0.1',
+            'user_agent' => 'phpunit', 'payload' => base64_encode(serialize([])), 'last_activity' => time(),
+        ]);
+    }
 
     $this->artisan('admin:create', ['email' => 'boss@example.test', '--password' => 'second-pass-2'])->assertExitCode(0);
 
     expect($user->fresh()->remember_token)->not->toBe('old-token');
+    expect(DB::table('sessions')->pluck('id')->all())->toBe(['other-session']);   // only this user's session is gone
+});
+
+test('an expired session sends the visitor back to the login form with the reason', function () {
+    // ValidateCsrfToken skips itself while the suite runs (Application::runningUnitTests()), so a
+    // token-less POST would never 419 here; the 419 is raised straight from a throwaway route
+    // instead — what is under test is the handler's answer to it, not the middleware that raises it.
+    Route::middleware('web')->get('/__stale-form', fn () => throw new TokenMismatchException('CSRF token mismatch.'));
+
+    $this->get('/__stale-form')
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors(['email' => 'Сессия муддати тугади — қайта киринг.']);
+
+    $this->getJson('/__stale-form')->assertStatus(419);          // a JSON caller keeps the status
 });
 
 test('a logged-in user gets the admin pages themselves', function () {

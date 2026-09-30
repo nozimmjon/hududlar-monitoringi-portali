@@ -17,17 +17,24 @@ final class EntryValue
     /** Ordinary, no-break, narrow no-break and thin spaces — all of them turn up in pasted numbers. */
     private const SPACES = '/[ \x{00A0}\x{202F}\x{2009}]/u';
 
+    /**
+     * Everything JS `String.trim()` strips at the edges — the whole unicode blank set plus the
+     * BOM a copied cell drags along. The interior class above stays narrow on purpose: a blank
+     * BETWEEN digits is only ever a thousands separator.
+     */
+    private const EDGE_BLANKS = '[\s\x{00A0}\x{1680}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]+';
+
     /** @throws InvalidArgumentException with the short message the cell shows */
     public static function parse(?string $raw): ?float
     {
-        $s = trim((string) $raw);
+        $s = preg_replace('/^' . self::EDGE_BLANKS . '|' . self::EDGE_BLANKS . '$/u', '', (string) $raw);
+        if ($s === null) {                        // invalid UTF-8 — not an empty cell
+            throw new InvalidArgumentException('рақам эмас');
+        }
         if ($s === '') {
             return null;
         }
-        $stripped = preg_replace(self::SPACES, '', $s);
-        if ($stripped === null) {                 // invalid UTF-8 — not an empty cell
-            throw new InvalidArgumentException('рақам эмас');
-        }
+        $stripped = (string) preg_replace(self::SPACES, '', $s);
         if ($stripped === '') {                   // nothing but (unicode) spaces
             return null;
         }

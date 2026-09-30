@@ -38,10 +38,19 @@ final class ProgressImport
             $book   = IOFactory::load($file);
             $parsed = (new RoadmapProgressReader())->read($book);
         } catch (RuntimeException $e) {
+            // Both the reader's own aborts and PhpSpreadsheet's (its Exception extends
+            // RuntimeException) land here, so an unreadable or corrupt file comes back as a
+            // report the operator can read instead of a 500.
             return ImportReport::failed($name, $e->getMessage());
         } finally {
             $book?->disconnectWorksheets();          // a road-map workbook is small, but nothing below needs it
             unset($book);
+        }
+
+        // First: is this a template at all? A workbook with no keys in column A is the wrong file,
+        // and saying so beats a complaint about its missing «Ҳисобот даври».
+        if ($parsed['blocks'] === []) {
+            return ImportReport::failed($name, 'Файлда индикатор қаторлари йўқ (A устунида калитлар йўқ) — бу roadmap:template файли эмасми?');
         }
 
         $option = strtoupper(trim((string) $periodOption));
@@ -51,9 +60,6 @@ final class ProgressImport
         }
         if ($option !== '' && $parsed['period'] !== null && $parsed['period'] !== $period) {
             return ImportReport::failed($name, "--period {$period} does not match the file's own period {$parsed['period']}.");
-        }
-        if ($parsed['blocks'] === []) {
-            return ImportReport::failed($name, 'No indicator rows found (no keys in column A).');
         }
 
         // Resolve every key before writing anything.

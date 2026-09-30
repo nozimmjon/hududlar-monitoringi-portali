@@ -85,6 +85,62 @@ test('correct refuses a blank label, a bad plan, a long unit, a foreign line, a 
     expect(RoadmapChangeLog::count())->toBe(0);
 });
 
+test('correct is a no-op when nothing moved, adds several lines at once, refuses an over-long label, clears a plan and names the old label on a rename', function () {
+    AdminFixture::roadmap();
+    $user  = AdminFixture::user();
+    $bogot = AdminFixture::measure(2, 1, 1733204);
+    $l1    = AdminFixture::line($bogot, 1);          // Хўжаликлараро каналлар · км · 7,8
+    $l2    = AdminFixture::line($bogot, 2);          // Ички каналлар · км · 33
+    AdminFixture::report($bogot, '2026-08', [1 => 3.9]);      // l1 has a reported month, l2 an empty row
+    $same = [
+        ['id' => $l1->id, 'label' => 'Хўжаликлараро каналлар', 'unit' => 'км', 'plan' => '7,8'],
+        ['id' => $l2->id, 'label' => 'Ички каналлар', 'unit' => 'км', 'plan' => '33'],
+    ];
+
+    // Same lines, same order, same values: the lines are rewritten through the renumber offset
+    // and land back where they were, and nothing is worth a log entry.
+    ProgressEntry::correct($bogot, $same, $user);
+    expect(RoadmapChangeLog::count())->toBe(0);
+    expect($bogot->fresh()->lines->map(fn ($l) => [$l->line_no, $l->label])->all())
+        ->toBe([[1, 'Хўжаликлараро каналлар'], [2, 'Ички каналлар']]);
+
+    // Two new lines in one call: both created, both numbered, both logged.
+    ProgressEntry::correct($bogot, [...$same,
+        ['id' => null, 'label' => 'Гидропостлар', 'unit' => 'та', 'plan' => '4'],
+        ['id' => null, 'label' => 'Насослар', 'unit' => 'та', 'plan' => ''],
+    ], $user);
+    expect($bogot->fresh()->lines->map(fn ($l) => [$l->line_no, $l->label])->all())
+        ->toBe([[1, 'Хўжаликлараро каналлар'], [2, 'Ички каналлар'], [3, 'Гидропостлар'], [4, 'Насослар']]);
+    expect(RoadmapChangeLog::where('action', 'line_added')->orderBy('id')->pluck('new_value')->all())
+        ->toBe(['Гидропостлар · та · 4', 'Насослар · та · —']);
+
+    // A label past the column's limit is refused by row number, and the rest of the list survives.
+    expect(fn () => ProgressEntry::correct($bogot, [['id' => $l1->id, 'label' => str_repeat('а', RoadmapMeasureLine::LABEL_MAX + 1), 'unit' => 'км', 'plan' => '7,8']], $user))
+        ->toThrow(InvalidArgumentException::class, '1-қатор: индикатор номи жуда узун');
+    expect($bogot->fresh()->lines)->toHaveCount(4);
+
+    // Clear l1's plan (it has a reported August) and drop the two lines nobody ever reported.
+    ProgressEntry::correct($bogot, [
+        ['id' => $l1->id, 'label' => 'Хўжаликлараро каналлар (бетон)', 'unit' => 'км', 'plan' => ''],
+        ['id' => $l2->id, 'label' => 'Ички каналлар', 'unit' => 'км', 'plan' => '33'],
+    ], $user);
+
+    $august = RoadmapLineProgress::where('roadmap_measure_line_id', $l1->id)->where('report_period', '2026-08')->firstOrFail();
+    expect($august->actual_value)->not->toBeNull();          // the report stays; only the percentage loses its base
+    expect($august->pct_of_plan)->toBeNull();
+    $bogot->refresh();
+    expect($bogot->lines_total)->toBe(1);                    // recomputed: a line without a plan does not count
+    expect($bogot->lines->pluck('line_no')->all())->toBe([1, 2]);
+    expect(RoadmapChangeLog::where('action', 'line_removed')->orderBy('id')->pluck('old_value')->all())
+        ->toBe(['Гидропостлар · та · 4 · 0 ой', 'Насослар · та · — · 0 ой']);
+
+    // A rename's snapshot is taken before the line is written, so line_label holds the OLD name:
+    // the history reads under the name the entry was made against, not the one it changed to.
+    $rename = RoadmapChangeLog::where('action', 'label')->orderByDesc('id')->firstOrFail();
+    expect($rename->line_label)->toBe('Хўжаликлараро каналлар');
+    expect([$rename->old_value, $rename->new_value])->toBe(['Хўжаликлараро каналлар', 'Хўжаликлараро каналлар (бетон)']);
+});
+
 test('history lists a measure\'s changes newest first with the user', function () {
     $roadmap = AdminFixture::roadmap();
     $user    = AdminFixture::user();

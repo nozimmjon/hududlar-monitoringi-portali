@@ -1,4 +1,5 @@
 @php
+    use App\Services\Roadmaps\ProgressSheet;
     use App\Support\Roadmaps\MeasureDisplay;
     use App\Support\Roadmaps\RoadmapPeriod;
 @endphp
@@ -36,7 +37,7 @@
         @php $n = max(1, $c['measures']); $ct = $c['counts']; @endphp
         <article class="ad-card" wire:key="ad-card-{{ $c['region']->code }}"
                  data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}"
-                 title="Ҳолат — ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича">
+                 title="Карточкани босинг — киритиш саҳифаси. Ҳолатлар ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича.">
           <a class="stretch" href="{{ route('admin.roadmaps.entry', ['code' => $c['region']->code, 'davr' => $period]) }}" aria-label="{{ $c['region']->name_full }} — киритиш"></a>
           <div class="top">
             <h3>{{ $c['region']->name_full }}</h3>
@@ -58,12 +59,13 @@
           <div class="foot">
             <span class="last">
               @if($c['last'])
-                {{ $c['last']->user?->name ?? 'терминал' }} · {{ $c['last']->created_at->timezone('Asia/Tashkent')->format('d.m.Y H:i') }}
+                {{ $c['last']->user?->name ?? 'терминал' }} · {{ $c['last']->created_at->timezone(ProgressSheet::TZ)->format('d.m.Y H:i') }}
               @else
                 ҳали ўзгариш йўқ
               @endif
             </span>
-            <button type="button" class="ad-btn ghost small" wire:click="$dispatch('open-upload', { code: {{ $c['region']->code }} })">Excel’дан юклаш</button>
+            <button type="button" class="ad-btn ghost small" title="Тўлдирилган шаблонни юклаш"
+                    wire:click="$dispatch('open-upload', { code: {{ $c['region']->code }} })">Excel’дан юклаш</button>
           </div>
         </article>
       @endif

@@ -20,13 +20,18 @@ class AppServiceProvider extends ServiceProvider
         // per e-mail alone — the second one keeps a forged X-Forwarded-For from widening the per-IP
         // limit into an account-wide bypass. Either limit hitting gets the same form back with a message.
         RateLimiter::for('login', function (Request $request) {
-            $email = (string) $request->string('email')->lower();
+            // An array or a nested value in `email` is not a login attempt worth keying by; it
+            // buckets under '' and fails validation anyway.
+            $raw   = $request->input('email');
+            $email = is_string($raw) ? mb_strtolower(trim($raw)) : '';
 
             $response = function (Request $request, array $headers) {
+                // The fifteen-minute limit hands back a wait nobody counts in seconds.
                 $seconds = (int) ($headers['Retry-After'] ?? 60);
+                $wait    = $seconds > 120 ? ((int) ceil($seconds / 60)) . ' дақиқадан' : "{$seconds} сониядан";
 
                 return back()->withInput($request->only('email'))
-                    ->withErrors(['email' => "Жуда кўп уриниш — {$seconds} сониядан кейин қайта уриниб кўринг."]);
+                    ->withErrors(['email' => "Жуда кўп уриниш — {$wait} кейин қайта уриниб кўринг."]);
             };
 
             return [

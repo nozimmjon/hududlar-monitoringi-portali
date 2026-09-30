@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Region;
 use App\Models\Roadmap;
 use App\Models\RoadmapMeasure;
+use App\Services\Roadmaps\ProgressSheet;
 use App\Support\CurrentRegion;
 use App\Support\Roadmaps\MeasureDisplay;
 use App\Support\Roadmaps\RoadmapPeriod;
@@ -174,7 +175,7 @@ class RoadmapsPage extends Component
             ],
             // The deadline countdown is a calendar fact for the people reading it, and
             // app.timezone is UTC — on the 1st of a month UTC still says «last month».
-            'today'             => now('Asia/Tashkent')->format('Y-m'),
+            'today'             => now(ProgressSheet::TZ)->format('Y-m'),
             'shown'             => $rows->count(),
             'filtered'          => $this->section !== 'all' || $this->district !== 'all' || $this->status !== 'all' || $needle !== '',
         ]);

@@ -170,7 +170,7 @@ final class RoadmapProgressReader
             $blocks[$current]['lines'][] = [
                 'row'    => $r,
                 'label'  => $label,
-                'unit'   => $unit === '' ? null : mb_substr($unit, 0, 48),
+                'unit'   => $unit === '' ? null : mb_substr($unit, 0, RoadmapMeasureLine::UNIT_MAX),
                 'plan'   => self::numberAt($sheet, "F{$r}", "{$name}!F{$r}"),
                 'actual' => self::numberAt($sheet, "G{$r}", "{$name}!G{$r}"),
                 'note'   => $note === '' ? null : mb_substr($note, 0, 500),

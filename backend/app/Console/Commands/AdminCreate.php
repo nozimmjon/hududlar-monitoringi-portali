@@ -44,8 +44,11 @@ class AdminCreate extends Command
         $user = User::where('email', $email)->first();
         if ($user) {
             // Rotate the remember-me token and drop live sessions so a reset actually locks the old session out.
+            // Only the database driver keeps sessions in a table we can reach; file/redis/array have no such row.
             $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
-            DB::table('sessions')->where('user_id', $user->id)->delete();
+            if (config('session.driver') === 'database') {
+                DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+            }
             $this->info("Парол янгиланди: {$email}");
         } else {
             User::create(['name' => (string) $this->option('name'), 'email' => $email, 'password' => $password]);

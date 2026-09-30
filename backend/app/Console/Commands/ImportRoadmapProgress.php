@@ -55,7 +55,7 @@ class ImportRoadmapProgress extends Command
         foreach ($report->warnings as $warning) {
             $this->warn($warning);
         }
-        $this->info("Period {$report->period}: {$report->blocks} measure(s) processed from " . basename($file) . '.');
+        $this->info("Period {$report->period}: {$report->blocks} measure(s) processed from {$report->file}.");
         if ($this->option('dry-run')) {
             $this->warn('Dry run — no changes written.');
         }

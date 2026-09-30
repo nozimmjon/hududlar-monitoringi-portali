@@ -136,7 +136,7 @@ All writes run in one transaction, then recompute the touched measures through
 `MeasureLineSync::sync()` (which calls `MeasureRecomputer`) — the same path the import
 uses, so the page can never disagree with the importer.
 
-- `save(Roadmap $roadmap, string $period, array $edits, User $user): array{measures:int, lines:int}`
+- `save(Roadmap $roadmap, string $period, array $edits, User $user): array{measures:int, changes:int}`
   `$edits` = `[lineId => ['actual' => string|null, 'note' => string|null]]` for the
   **edited** lines only (raw strings from the inputs, `null` = cleared). For every
   measure that owns at least one edited line, build the **complete** line list:

@@ -41,8 +41,8 @@ test('a change-log entry records who changed what; it survives its line, its use
     // roadmap-level cascade after that is then checked against a row that actually exists.
     $other = RoadmapChangeLog::record([
         'user_id' => null, 'roadmap_id' => $roadmap->id, 'roadmap_measure_id' => $kulovot->id,
-        'roadmap_measure_line_id' => null, 'report_period' => null, 'action' => 'import',
-        'old_value' => null, 'new_value' => null,
+        'roadmap_measure_line_id' => null, 'report_period' => '2026-09', 'action' => 'confirm',
+        'old_value' => null, 'new_value' => '1 та қатор',
     ]);
 
     $bogot->delete();
