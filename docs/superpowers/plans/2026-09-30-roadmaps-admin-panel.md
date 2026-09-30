@@ -3204,7 +3204,7 @@ document.addEventListener('alpine:init', () => {
       });
     },
 
-    // ---- numbers (mirror of App\Support\Roadmaps\EntryValue) ----
+    // ---- numbers (mirror of App\Support\Roadmaps\EntryValue::parse; the grid formats server-side) ----
     parse(raw) {
       const s = String(raw ?? '').trim().replace(/[ \u00A0\u202F\u2009]/g, '').replace(',', '.');
       if (s === '') return null;
@@ -3212,7 +3212,7 @@ document.addEventListener('alpine:init', () => {
       const v = parseFloat(s);
       if (v < 0) throw new Error('манфий бўлмасин');
       if (v > 1e12) throw new Error('жуда катта');
-      return v;
+      return Math.round(v * 1e6) / 1e6 + 0;   // 6 decimals like the column; + 0 turns -0 into 0 (mirrors EntryValue::parse)
     },
     sameNumber(a, b) { try { return this.parse(a) === this.parse(b); } catch { return false; } },
 
