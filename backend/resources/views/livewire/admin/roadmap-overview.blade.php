@@ -35,7 +35,8 @@
       @else
         @php $n = max(1, $c['measures']); $ct = $c['counts']; @endphp
         <article class="ad-card" wire:key="ad-card-{{ $c['region']->code }}"
-                 data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}">
+                 data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}"
+                 title="Ҳолат — ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича">
           <a class="stretch" href="{{ route('admin.roadmaps.entry', ['code' => $c['region']->code, 'davr' => $period]) }}" aria-label="{{ $c['region']->name_full }} — киритиш"></a>
           <div class="top">
             <h3>{{ $c['region']->name_full }}</h3>
@@ -49,7 +50,7 @@
             <span class="carry">{{ $ct['carry'] }} ўтган ойдан</span>
             <span class="empty">{{ $ct['empty'] }} бўш</span>
           </div>
-          <div class="pills" title="Ҳолат — ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича">
+          <div class="pills">
             @foreach(['done', 'in_progress', 'open'] as $s)
               <span class="wr-status {{ MeasureDisplay::statusChip($s)['cls'] }}"><i></i>{{ MeasureDisplay::statusChip($s)['label'] }} <b class="tnum">{{ $c['statuses'][$s] }}</b></span>
             @endforeach

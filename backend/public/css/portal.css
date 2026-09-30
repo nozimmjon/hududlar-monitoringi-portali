@@ -6260,6 +6260,7 @@ body.sectors-body{
 
 /* ===================== admin panel: shared primitives ===================== */
 .ad-shell{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ad-shell .tnum{font-variant-numeric:tabular-nums}
 .ad-head{display:flex;flex-direction:column;gap:10px}
 .ad-head-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .ad-titles{flex:1;min-width:200px}
@@ -6288,10 +6289,9 @@ body.sectors-body{
 .ad-strip .k.carry i{background:var(--task-amber)}
 .ad-strip .k.empty i{background:var(--line-strong)}
 .ad-strip b{color:var(--ink)}
-.muted{color:var(--muted)}
 
 /* overview cards */
-.ad-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.ad-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px}
 .ad-card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px;transition:transform .18s ease,box-shadow .18s ease}
 .ad-card:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(15,42,71,.10)}
 .ad-card .stretch{position:absolute;inset:0;border-radius:16px;z-index:0}

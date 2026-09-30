@@ -46,8 +46,13 @@ class RoadmapOverview extends Component
     public function render()
     {
         abort_unless(auth()->check(), 403);
+        $this->period = self::month($this->period);
 
         $roadmaps = Roadmap::where('domain', RoadmapsPage::DOMAIN)->where('year', RoadmapsPage::YEAR)->get()->keyBy('region_code');
+        // max(id) agrees with the created_at desc, id desc order because record() stamps created_at = now().
+        $lastChanges = RoadmapChangeLog::with('user')
+            ->whereIn('id', RoadmapChangeLog::selectRaw('max(id)')->whereIn('roadmap_id', $roadmaps->pluck('id'))->groupBy('roadmap_id'))
+            ->get()->keyBy('roadmap_id');
         $cards    = [];
         $totals   = ['saved' => 0, 'carry' => 0, 'empty' => 0, 'measures' => 0, 'lines' => 0];
         foreach (Region::orderBy('sort_order')->get() as $region) {
@@ -70,7 +75,7 @@ class RoadmapOverview extends Component
                 'lines'    => $lines,
                 'counts'   => $sheet['counts'],
                 'statuses' => $statuses,
-                'last'     => RoadmapChangeLog::where('roadmap_id', $roadmap->id)->with('user')->orderByDesc('created_at')->orderByDesc('id')->first(),
+                'last'     => $lastChanges->get($roadmap->id),
             ];
             foreach (['saved', 'carry', 'empty'] as $k) {
                 $totals[$k] += $sheet['counts'][$k];
