@@ -10,6 +10,9 @@ class RoadmapChangeLog extends Model
 {
     public const UPDATED_AT = null;
 
+    /** created_at is timestamp(3); without this Eloquent writes whole seconds and the precision is wasted. */
+    protected $dateFormat = 'Y-m-d H:i:s.v';
+
     public const ACTION_LABELS = [
         'actual'       => 'Амалда',
         'note'         => 'Изоҳ',
