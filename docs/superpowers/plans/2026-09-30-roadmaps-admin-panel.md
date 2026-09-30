@@ -3695,10 +3695,18 @@ class ProgressUpload extends Component
 
     private function run(bool $write): ImportReport
     {
-        return (new ProgressImport())->run(
-            $this->file->getRealPath(), $this->uploadPeriod, RoadmapsPage::YEAR, RoadmapsPage::DOMAIN, $write,
-            auth()->user(), $this->file->getClientOriginalName(),
-        );
+        $name = $this->file->getClientOriginalName();
+        try {
+            return (new ProgressImport())->run(
+                $this->file->getRealPath(), $this->uploadPeriod, RoadmapsPage::YEAR, RoadmapsPage::DOMAIN, $write,
+                auth()->user(), $name,
+            );
+        } catch (\Throwable $e) {
+            // The service rethrows anything that is not a validation problem; in a Livewire action that would be a 500 page.
+            report($e);
+
+            return ImportReport::failed($name, 'Файлни қайта ишлашда кутилмаган хато: ' . $e->getMessage());
+        }
     }
 
     public function render()
