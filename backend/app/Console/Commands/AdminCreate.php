@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /** The portal has one admin; this creates it, or resets its password when the e-mail already exists. */
 class AdminCreate extends Command
@@ -41,7 +43,9 @@ class AdminCreate extends Command
 
         $user = User::where('email', $email)->first();
         if ($user) {
-            $user->forceFill(['password' => $password])->save();        // the model's 'hashed' cast hashes it
+            // Rotate the remember-me token and drop live sessions so a reset actually locks the old session out.
+            $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
             $this->info("Парол янгиланди: {$email}");
         } else {
             User::create(['name' => (string) $this->option('name'), 'email' => $email, 'password' => $password]);

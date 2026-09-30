@@ -11,6 +11,10 @@ use Symfony\Component\HttpFoundation\Response;
  * listed here (plus our own pages). Browsers that honour CSP ignore
  * X-Frame-Options when frame-ancestors is present, so this single
  * header is the whole policy.
+ *
+ * The login page and the whole /admin panel opt out of the allow-list above and get
+ * 'none' instead — a clickjacked login form or admin action is worse than a clickjacked
+ * public dashboard, so even the partner origin does not get to frame those pages.
  */
 class SetFrameAncestors
 {
@@ -24,10 +28,11 @@ class SetFrameAncestors
     {
         $response = $next($request);
 
-        $response->headers->set(
-            'Content-Security-Policy',
-            'frame-ancestors '.implode(' ', self::ALLOWED_ANCESTORS),
-        );
+        $policy = $request->is('login', 'logout', 'admin', 'admin/*')
+            ? "frame-ancestors 'none'"
+            : 'frame-ancestors '.implode(' ', self::ALLOWED_ANCESTORS);
+
+        $response->headers->set('Content-Security-Policy', $policy);
 
         return $response;
     }

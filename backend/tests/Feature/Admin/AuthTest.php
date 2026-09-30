@@ -77,3 +77,47 @@ test('admin:create creates the user, then resets its password; bad input is refu
     $this->artisan('admin:create', ['email' => 'x@example.test', '--password' => 'short'])->assertExitCode(1);
     expect(User::count())->toBe(1);
 });
+
+test('admin:create rotates the remember-me token when it resets a password', function () {
+    $user = User::factory()->create(['email' => 'boss@example.test', 'remember_token' => 'old-token']);
+
+    $this->artisan('admin:create', ['email' => 'boss@example.test', '--password' => 'second-pass-2'])->assertExitCode(0);
+
+    expect($user->fresh()->remember_token)->not->toBe('old-token');
+});
+
+test('a logged-in user gets the admin pages themselves', function () {
+    $this->seed();
+    $this->actingAs(authTestUser());
+
+    $this->get('/admin/roadmaps')->assertOk();
+    $this->get('/admin/roadmaps/1733')->assertOk();
+});
+
+test('the intended admin URL survives the login round trip', function () {
+    authTestUser();
+
+    $this->get('/admin/roadmaps/1733')->assertRedirect('/login');
+
+    $this->post('/login', ['email' => 'admin@example.test', 'password' => 'secret-123'])
+        ->assertRedirect('/admin/roadmaps/1733');
+});
+
+test('the throttle is scoped per e-mail; a different address is unaffected', function () {
+    authTestUser();
+    for ($i = 0; $i < 5; $i++) {
+        $this->from('/login')->post('/login', ['email' => 'admin@example.test', 'password' => 'nope']);
+    }
+
+    $this->from('/login')->post('/login', ['email' => 'other@example.test', 'password' => 'nope'])
+        ->assertRedirect('/login')
+        ->assertSessionHasErrors(['email' => 'Почта ёки парол нотўғри.']);
+    $this->assertGuest();
+});
+
+test('the login page cannot be framed at all; the public pages keep the partner allow-list', function () {
+    $this->get('/login')->assertHeader('Content-Security-Policy', "frame-ancestors 'none'");
+
+    $this->seed();
+    $this->get('/roadmaps')->assertHeader('Content-Security-Policy', "frame-ancestors 'self' https://du.egov.uz");
+});

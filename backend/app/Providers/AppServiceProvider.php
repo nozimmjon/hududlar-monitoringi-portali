@@ -16,16 +16,23 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Five login attempts a minute per e-mail + IP; the sixth gets the same form back with a message.
+        // Two limits: five attempts a minute per e-mail + IP, and twenty attempts per fifteen minutes
+        // per e-mail alone — the second one keeps a forged X-Forwarded-For from widening the per-IP
+        // limit into an account-wide bypass. Either limit hitting gets the same form back with a message.
         RateLimiter::for('login', function (Request $request) {
-            $key = mb_strtolower((string) $request->input('email')) . '|' . $request->ip();
+            $email = (string) $request->string('email')->lower();
 
-            return Limit::perMinute(5)->by($key)->response(function (Request $request, array $headers) {
+            $response = function (Request $request, array $headers) {
                 $seconds = (int) ($headers['Retry-After'] ?? 60);
 
                 return back()->withInput($request->only('email'))
                     ->withErrors(['email' => "Жуда кўп уриниш — {$seconds} сониядан кейин қайта уриниб кўринг."]);
-            });
+            };
+
+            return [
+                Limit::perMinute(5)->by($email . '|' . $request->ip())->response($response),
+                Limit::perMinutes(15, 20)->by($email)->response($response),
+            ];
         });
     }
 }
