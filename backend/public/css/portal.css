@@ -6210,7 +6210,6 @@ body.sectors-body{
 .wr-tag.done{background:var(--green-soft);color:var(--task-green)}
 /* calendar icon on the left of every deadline chip, tinted by the chip's colour */
 .wr-tag.due::before,.wr-tag.over::before,.wr-tag.done::before{content:"";flex:0 0 auto;width:12px;height:12px;background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V3h5.5V1.75a.75.75 0 0 1 1.5 0V3h.75A2 2 0 0 1 15 5v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h.75V1.75A.75.75 0 0 1 4.5 1zM2.5 7v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7h-11z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V3h5.5V1.75a.75.75 0 0 1 1.5 0V3h.75A2 2 0 0 1 15 5v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h.75V1.75A.75.75 0 0 1 4.5 1zM2.5 7v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7h-11z'/%3E%3C/svg%3E") center/contain no-repeat}
-.wr-chip.muted{opacity:.6}
 .wr-chip.period{background:var(--blue-soft);color:var(--blue)}
 
 .wr-notes{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}

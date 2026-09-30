@@ -23,7 +23,7 @@ use Throwable;
  * (section, district) and a disagreeing № is reported as a warning, never obeyed.
  *
  * Structural problems throw RuntimeException naming the row or cell; recoverable oddities
- * (a shifted row, a plan given as a range, a № that does not match) land in 'warnings'.
+ * (a completion row typed into E/F, a plan given as a range, a № that does not match) land in 'warnings'.
  */
 final class XlsxRoadmapParser
 {
@@ -47,7 +47,8 @@ final class XlsxRoadmapParser
      * @param bool $withStyles read number formats and evaluate formulas, so a percent- or date-formatted
      *                         cell is refused instead of silently divided by 100 — worth the load only
      *                         when the numbers are actually being imported (--period)
-     * @param bool $shiftedRows accept the one-column-left row Сурхондарё typed; off = abort on it
+     * @param bool $shiftedRows accept a line row whose «Бажарилиш даражаси»/«%» sit in E/F (Сурхондарё r159)
+     *                          as a 100 % completion line of the measure above; off = abort on it
      */
     public function __construct(
         callable $resolveDistrict,
@@ -168,11 +169,7 @@ final class XlsxRoadmapParser
                 }
             }
 
-            $looksShifted = $c === '' && $b === '' && $d !== ''
-                && mb_strtolower($e) === mb_strtolower(self::COMPLETION_LABEL) && $f === '%';
-            $shifted = $this->shiftedRows && $looksShifted;
-
-            if ($c !== '' || $shifted) {
+            if ($c !== '') {
                 if (! $section) {
                     throw new RuntimeException("{$r}-қатор: бўлим сарлавҳасидан олдин чора-тадбир");
                 }
@@ -180,15 +177,11 @@ final class XlsxRoadmapParser
                     throw new RuntimeException("{$r}-қатор: туман сарлавҳасидан олдин чора-тадбир");
                 }
                 $seq++;
-                if (! $shifted && preg_match('/^\d+$/', $b) === 1 && (int) $b !== $seq) {
+                if (preg_match('/^\d+$/', $b) === 1 && (int) $b !== $seq) {
                     $warnings[] = "r{$r}: № {$b} in file, counted {$seq}";
                 }
-                if ($shifted) {
-                    $warnings[] = "r{$r}: columns shifted left — read D as the measure text";
-                }
 
-                $body  = $shifted ? $d : $c;
-                $split = RoadmapParser::splitMeasure(explode("\n", $body));
+                $split = RoadmapParser::splitMeasure(explode("\n", $c));
                 $measures[] = [
                     'section_no'         => $section['no'],
                     'section_title'      => $section['title'],
@@ -197,27 +190,41 @@ final class XlsxRoadmapParser
                     'seq_no'             => $seq,
                     'title'              => $split['title'],
                     'details'            => $split['details'],
-                    'body_raw'           => $body,
-                    'deadline_text'      => $shifted ? null : RoadmapParser::nullIfEmpty(mb_substr($i, 0, 128)),
-                    'responsible_text'   => $shifted ? null : RoadmapParser::nullIfEmpty(RoadmapParser::joinLines($j === '' ? [] : explode("\n", $j))),
+                    'body_raw'           => $c,
+                    'funding_text'       => null,         // this layout has no funding column — a docx-era value is cleared
+                    'deadline_text'      => RoadmapParser::nullIfEmpty(mb_substr($i, 0, 128)),
+                    'responsible_text'   => RoadmapParser::nullIfEmpty(RoadmapParser::joinLines($j === '' ? [] : explode("\n", $j))),
                     'source_row'         => $r,
                     'lines'              => [],
                 ];
                 $current = array_key_last($measures);
 
-                if ($shifted) {
-                    $measures[$current]['lines'][] = [
-                        'label' => self::COMPLETION_LABEL, 'unit' => '%', 'plan' => 100.0, 'actual' => null, 'note' => null,
-                    ];
-                } elseif ($d !== '' || $e !== '' || $f !== '' || $g !== '' || $h !== '') {
+                if ($d !== '' || $e !== '' || $f !== '' || $g !== '' || $h !== '') {
                     $measures[$current]['lines'][] = $this->line($sheet, $d, $e, $h, $r, $warnings);
                 }
                 continue;
             }
 
-            if ($looksShifted) {
-                // Reading it as a line is what happens next, and «%» is not a plan — say why.
-                throw new RuntimeException("F{$r}: «{$f}» рақам эмас — қатор чапга силжиган кўринади (--no-shifted берилган).");
+            // Сурхондарё r159: a sub-item typed as D=«text», E=«Бажарилиш даражаси», F=«%» — the indicator
+            // name and the unit sit one column to the right and the plan (100) is missing. Its text is
+            // quoted inside the measure above, so it is an indicator line of that measure, never a
+            // measure of its own.
+            if ($b === '' && $d !== '' && mb_strtolower($e) === mb_strtolower(self::COMPLETION_LABEL) && $f === '%') {
+                if (! $this->shiftedRows) {
+                    throw new RuntimeException("F{$r}: «{$f}» рақам эмас — E/F катаклари ўнгга силжиган кўринади (--no-shifted берилган).");
+                }
+                if ($current === null) {
+                    throw new RuntimeException("D{$r}: индикатор қатори чора-тадбирсиз.");
+                }
+                if ($g !== '' || $h !== '' || $i !== '' || $j !== '') {
+                    // Is G the plan or the actual? Not for the importer to guess.
+                    throw new RuntimeException("{$r}-қатор: силжиган қаторда G–J тўлдирилган — қаторни D/E/F тартибига келтириб қайта юборинг.");
+                }
+                $warnings[] = "r{$r}: E/F carry «Бажарилиш даражаси»/«%» — read as a 100 % completion line of the measure above";
+                $measures[$current]['lines'][] = [
+                    'label' => $this->label($d, $r), 'unit' => '%', 'plan' => 100.0, 'actual' => null, 'note' => null,
+                ];
+                continue;
             }
 
             if ($d !== '' || $e !== '' || $f !== '') {
@@ -283,6 +290,17 @@ final class XlsxRoadmapParser
      */
     private function line(Worksheet $sheet, string $label, string $unit, string $note, int $row, array &$warnings): array
     {
+        return [
+            'label'  => $this->label($label, $row),
+            'unit'   => self::unit($unit),
+            'plan'   => $this->number($sheet, "F{$row}", 'plan', $row, $warnings),
+            'actual' => $this->number($sheet, "G{$row}", 'actual', $row, $warnings),
+            'note'   => $note === '' ? null : mb_substr($note, 0, 500),
+        ];
+    }
+
+    private function label(string $label, int $row): string
+    {
         if ($label === '') {
             throw new RuntimeException("D{$row}: индикатор номи бўш.");
         }
@@ -290,13 +308,7 @@ final class XlsxRoadmapParser
             throw new RuntimeException("D{$row}: индикатор номи жуда узун (" . mb_strlen($label) . ' белги) — катакка бутун матн ёпиштирилганми?');
         }
 
-        return [
-            'label'  => $label,
-            'unit'   => self::unit($unit),
-            'plan'   => $this->number($sheet, "F{$row}", 'plan', $row, $warnings),
-            'actual' => $this->number($sheet, "G{$row}", 'actual', $row, $warnings),
-            'note'   => $note === '' ? null : mb_substr($note, 0, 500),
-        ];
+        return $label;
     }
 
     /**

@@ -198,7 +198,7 @@ test('a bad --period or --range is rejected before the file is read', function (
     expect(Roadmap::count())->toBe(0);
 });
 
-test('a road map imported from the March docx keeps its ids and funding text when the xlsx arrives', function () {
+test('a road map imported from the March docx keeps its ids when the xlsx arrives; the docx funding text is cleared', function () {
     $this->seed();
     Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsxTwinDocx()]);
     Artisan::output();
@@ -216,7 +216,7 @@ test('a road map imported from the March docx keeps its ids and funding text whe
     expect(RoadmapMeasure::orderBy('source_row')->pluck('id')->all())->toBe($ids);
     expect(RoadmapMeasureLine::count())->toBe(5);
     expect(roadmapXlsxMeasure(1, 1)->title)->toBe('«Куловот» каналини реконструкция қилиш — янги таҳрир.');
-    expect(roadmapXlsxMeasure(1, 1)->funding_text)->toBe('Республика бюджети маблағлари, 32,0 млрд сўм');
+    expect(roadmapXlsxMeasure(1, 1)->funding_text)->toBeNull();      // the xlsx has no funding column and is the source of truth now
     // The xlsx layout has no ТАСДИҚЛАЙМАН block — the docx's approvers must survive it.
     expect(Roadmap::where('region_code', 1733)->value('approvers_text'))->toBe($approvers);
     expect(Roadmap::where('region_code', 1733)->value('title_text'))->toBe('Сув хўжалиги йўл харитаси: Хоразм вилояти');

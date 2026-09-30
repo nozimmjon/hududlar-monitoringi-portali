@@ -57,7 +57,9 @@
 > month has passed (judged against today in Asia/Tashkent) — the countdown («декабргача
 > 3 ой») was dropped on user feedback 2026-09-09; the hero ring and the district mini-bars share one helper
 > (`MeasureDisplay::meanPct`) so they cannot drift; indicator rows render through
-> `resources/views/livewire/partials/wr-line.blade.php`. **`roadmaps:recompute`** validates
+> `resources/views/livewire/partials/wr-line.blade.php`; the **funding chip was removed 2026-09-30** —
+> the regions' xlsx road maps have no funding column, so `import:roadmap` clears `funding_text`
+> on an xlsx import and the search ignores it. **`roadmaps:recompute`** validates
 > `--region` as digits and loads one road map at a time (`measures.lines.progress` eager) to
 > keep memory flat. **`label` is `text`, not `varchar(255)`** (migration
 > `2026_09_29_000001`): the regions' own road maps carry indicator names of 290–333

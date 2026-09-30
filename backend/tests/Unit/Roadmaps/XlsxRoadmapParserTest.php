@@ -197,7 +197,7 @@ test('the measure row carries the first indicator line, the following rows conti
         ['label' => 'Гидропостлар', 'unit' => 'та', 'plan' => 1240.0, 'actual' => 15848.0, 'note' => 'ярми бажарилди'],
     ]);
     expect($parsed['measures'][1]['lines'])->toHaveCount(1);
-    expect($parsed['measures'][0])->not->toHaveKey('funding_text');
+    expect($parsed['measures'][0]['funding_text'])->toBeNull();      // no funding column in this layout — a docx-era value is cleared
 });
 
 test('units are normalised: м3 becomes м³, a capitalised Га becomes га', function () {
@@ -337,7 +337,7 @@ test('a stray key alone in A is a blank row, and blank rows do not close the mea
     expect($parsed['measures'][1]['seq_no'])->toBe(2);
 });
 
-test('a row shifted one column left is read as a measure with a «Бажарилиш даражаси» line', function () {
+test('a row with «Бажарилиш даражаси»/«%» typed into E/F is a 100 % completion line of the measure above, not a measure', function () {
     $rows = [
         ['section', 'I. Йирик лойиҳалар'],
         ['measure', ['C' => 'а', 'D' => 'Биринчи', 'E' => 'км', 'F' => 1]],
@@ -346,17 +346,27 @@ test('a row shifted one column left is read as a measure with a «Бажарил
     ];
 
     $parsed = xlsxParse(xlsxFile($rows));
-    expect($parsed['measures'])->toHaveCount(3);
-    expect($parsed['measures'][1]['title'])->toBe('Гидротехник иншоотни тиклаш');
+    expect($parsed['measures'])->toHaveCount(2);
+    expect($parsed['measures'][0]['lines'])->toBe([
+        ['label' => 'Биринчи', 'unit' => 'км', 'plan' => 1.0, 'actual' => null, 'note' => null],
+        ['label' => 'Гидротехник иншоотни тиклаш', 'unit' => '%', 'plan' => 100.0, 'actual' => null, 'note' => null],
+    ]);
     expect($parsed['measures'][1]['seq_no'])->toBe(2);
-    expect($parsed['measures'][1]['lines'])
-        ->toBe([['label' => 'Бажарилиш даражаси', 'unit' => '%', 'plan' => 100.0, 'actual' => null, 'note' => null]]);
-    expect($parsed['measures'][2]['seq_no'])->toBe(3);
-    expect($parsed['warnings'])->toBe(['r5: columns shifted left — read D as the measure text']);
+    expect($parsed['warnings'])->toBe(['r5: E/F carry «Бажарилиш даражаси»/«%» — read as a 100 % completion line of the measure above']);
+
+    // Anything in G–J on such a row is ambiguous (is G the plan or the actual?) — refused, not guessed.
+    $filled = $rows;
+    $filled[2][1]['G'] = 100;
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($filled))))
+        ->toBe('5-қатор: силжиган қаторда G–J тўлдирилган — қаторни D/E/F тартибига келтириб қайта юборинг.');
+
+    // Before any measure it has nothing to attach to.
+    $orphan = [$rows[0], $rows[2]];
+    expect(xlsxError(fn () => xlsxParse(xlsxFile($orphan))))->toBe('D4: индикатор қатори чора-тадбирсиз.');
 
     // --no-shifted: the same row is refused, and the message says what it looked like.
     expect(xlsxError(fn () => xlsxParse(xlsxFile($rows), shifted: false)))
-        ->toBe('F5: «%» рақам эмас — қатор чапга силжиган кўринади (--no-shifted берилган).');
+        ->toBe('F5: «%» рақам эмас — E/F катаклари ўнгга силжиган кўринади (--no-shifted берилган).');
 });
 
 test('a measure without indicator lines is kept with a warning', function () {

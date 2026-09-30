@@ -128,7 +128,7 @@ class RoadmapsPage extends Component
         $needle = mb_strtolower(trim($this->q));
         if ($needle !== '') {
             $rows = $rows->filter(fn (RoadmapMeasure $m) => str_contains(
-                mb_strtolower(implode(' ', [$m->title, $m->details, $m->responsible_text, $m->funding_text])),
+                mb_strtolower(implode(' ', [$m->title, $m->details, $m->responsible_text])),
                 $needle,
             ));
         }

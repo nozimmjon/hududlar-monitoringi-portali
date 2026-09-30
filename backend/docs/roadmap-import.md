@@ -41,7 +41,7 @@ Options:
 | `--year=2026` `--domain=water` | validated; the page shows only water/2026 |
 | `--period=YYYY-MM` / `YYYY-Qn` | xlsx only: import the «Амалда»/«Изоҳ» columns as that period |
 | `--range=null\|lower\|upper` | xlsx only: what a plan written as «18-25» becomes (default: no plan) |
-| `--no-shifted` | xlsx only: abort on a row typed one column to the left instead of reading it as a measure |
+| `--no-shifted` | xlsx only: abort on a line row whose «Бажарилиш даражаси»/«%» sit in E/F instead of reading it as a 100 % completion line of the measure above |
 | `--dry-run` | parse, summarise, write nothing |
 
 ## The xlsx layout (current source)
@@ -69,8 +69,9 @@ got there (same for `title_text`, which is only written when the file actually h
 - A row with `Чора-тадбир` filled starts a measure; `Индикатор`/`Ўлчов`/`Режа` on that
   same row are its first indicator line, and the rows below it (C empty) continue the
   list. `Муддат` and `Масъуллар` are imported verbatim, as in the docx.
-- **There is no funding column**, so `funding_text` is left alone: a measure imported
-  from the March docx keeps the funding text the docx gave it.
+- **There is no funding column**, so `funding_text` is set to null — the xlsx is the
+  source of truth. Хоразм's docx-era funding texts were cleared this way on 2026-09-30
+  and the page no longer shows (or searches) funding; the column stays for the docx path.
 - Units are normalised (`млн м3` / `млн м 3` → `млн м³`, `Га` → `га`); plans accept
   `7,8`, `7.8`, `1 240` (ordinary, no-break, narrow and thin spaces all count), `15848`.
   A plan written as a range («18-25», ҚҚР) is dropped with a warning —
@@ -81,9 +82,14 @@ got there (same for `title_text`, which is only written when the file actually h
   ёзинг» — 0,5 meaning 50 would otherwise divide the plan by 100), a date-formatted cell.
   Formulas are evaluated. The workbook is always read **with styles** (≈3 % slower on the
   largest file) because «Режа» is imported on every run, `--period` or not.
-- Сурхондарё r159 is typed one column to the left; it is read as a measure with a
-  «Бажарилиш даражаси» % line and a warning. `--no-shifted` refuses it instead.
-  Anything genuinely unclassifiable aborts with the row and its filled cells.
+- Сурхондарё r159 types a sub-item as D=«text», E=«Бажарилиш даражаси», F=«%» — the
+  indicator name and the unit one column to the right, no plan. Its text is quoted
+  inside the measure above («… "Дамариқ" каналининг ПК154+00 даги гидротехник
+  иншоотни …»), so it is read as a **100 % completion line of that measure** (label = D,
+  unit `%`, plan 100) with a warning — never as a measure of its own (it was one until
+  2026-09-30). `--no-shifted` refuses the row instead, and anything typed in G–J on such
+  a row aborts (G could be the plan or the actual). Anything genuinely unclassifiable
+  aborts with the row and its filled cells.
 - Row numbers in xlsx messages are the **sheet rows** (1-based), not table indexes.
 - **Blank rows do not close a measure block**, so content typed *below* the table (a
   stray «ЖАМИ» row, say) would be absorbed as another indicator line of the last
@@ -165,11 +171,11 @@ before any write, so a failed re-import leaves the previous import untouched.
 
 **All 13 files parse**, once district 1718215 carries the `Қаттақўрғон тумани` alias
 (`SoatoSeeder`) that Самарқанд's spelling needs — the March docx needed it too.
-Totals: **1 309 measures · 2 335 indicator lines · 161 districts**.
+Totals: **1 308 measures · 2 335 indicator lines · 161 districts**.
 
 | Вилоят | Measures | Lines | Вилоят | Measures | Lines |
 | --- | --- | --- | --- | --- | --- |
-| ҚҚР | 141 | 180 | Сурхондарё | 96 | 200 |
+| ҚҚР | 141 | 180 | Сурхондарё | 95 | 200 |
 | Андижон | 105 | 143 | Сирдарё | 85 | 156 |
 | Бухоро | 105 | 213 | Тошкент вил. | 138 | 270 |
 | Жиззах | 93 | 184 | Фарғона | 103 | 224 |

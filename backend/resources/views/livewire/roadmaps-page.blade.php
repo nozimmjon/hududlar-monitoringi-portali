@@ -172,9 +172,6 @@
                     @if($m->latest_period && $m->latest_period !== $hero['latest'])
                       <span class="wr-chip period" title="Охирги ҳисобот даври">📅 {{ RoadmapPeriod::label($m->latest_period) }}</span>
                     @endif
-                    @if($m->funding_text)
-                      <span class="wr-chip {{ mb_stripos($m->funding_text, 'талаб этилмайди') !== false ? 'muted' : '' }}" title="{{ $m->funding_text }}">{{ $m->funding_text }}</span>
-                    @endif
                     @if($m->responsible_text)
                       <span class="wr-chip" title="{{ $m->responsible_text }}">{{ mb_strimwidth($m->responsible_text, 0, 60, '…') }}</span>
                     @endif

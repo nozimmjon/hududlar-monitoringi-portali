@@ -33,7 +33,7 @@ class ImportRoadmap extends Command
         {--domain=water : Road-map family}
         {--period= : YYYY-MM or YYYY-Qn — import the xlsx «Амалда»/«Изоҳ» columns as this period}
         {--range=null : What a plan written as a range («18-25») becomes: null | lower | upper}
-        {--no-shifted : Abort on an xlsx row typed one column to the left instead of reading it as a measure}
+        {--no-shifted : Abort on an xlsx line row whose «Бажарилиш даражаси»/«%» sit in E/F instead of reading it as a 100 % completion line of the measure above}
         {--dry-run : Parse and print the summary without writing}';
 
     protected $description = 'Import a regional "ЙЎЛ ХАРИТАСИ" (water-management measures) .docx or .xlsx into roadmaps / roadmap_measures (+ indicator lines from the xlsx).';
