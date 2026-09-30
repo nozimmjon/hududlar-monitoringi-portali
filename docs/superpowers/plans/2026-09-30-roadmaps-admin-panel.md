@@ -2147,7 +2147,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
     Carbon::setTestNow('2026-09-15 10:00:00');
     $roadmap = AdminFixture::roadmap();
     $user    = AdminFixture::user();
-    AdminFixture::report(AdminFixture::measure(2, 1, 1733204), '2026-08', [1 => 7.8, 2 => 33.0]);
+    AdminFixture::report(AdminFixture::measure(2, 1, 1733204), '2026-08', [1 => 7.8, 2 => 20.0]);   // one line below plan: only Гурлан closes as done
     ProgressEntry::save($roadmap, '2026-09', [AdminFixture::line(AdminFixture::measure(2, 1, 1733208), 1)->id => ['actual' => '24']], $user);
     $this->actingAs($user);
 
