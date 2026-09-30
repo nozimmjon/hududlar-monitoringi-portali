@@ -69,4 +69,5 @@
       @endif
     @endforeach
   </div>
+  <livewire:admin.progress-upload :period="$period" />
 </div>

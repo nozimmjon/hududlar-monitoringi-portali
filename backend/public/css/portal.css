@@ -6409,3 +6409,23 @@ body.sectors-body{
   .ad-grid thead .c-unit,.ad-grid thead .c-plan,.ad-lrow .c-unit,.ad-lrow .c-plan{display:none}
   .ad-grid .c-note{width:130px}
 }
+
+/* ===================== admin panel: upload slide-over ===================== */
+.ad-scrim{position:fixed;inset:0;z-index:31;background:rgba(10,17,40,.35)}
+.ad-upload{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:32;background:var(--paper);border-left:1px solid var(--line);box-shadow:-16px 0 40px rgba(16,32,51,.22);padding:18px 20px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.ad-upload .h{display:flex;justify-content:space-between;align-items:flex-start;font-size:15px}
+.ad-upload .h .muted{display:block;font-size:12.5px;margin-top:2px}
+.ad-upload .f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ad-upload .f input[type=file],.ad-upload .f select{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:8px 10px;background:#fff}
+.ad-upload .f em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:var(--task-red)}
+.ad-upload .f .muted{text-transform:none;letter-spacing:0;font-weight:500}
+.ad-upload .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ad-done{background:var(--green-soft);color:var(--task-green);border-radius:12px;padding:12px 14px;font-weight:700}
+.ad-upload .rep{border-top:1px solid var(--line);padding-top:12px;font-size:12.5px}
+.ad-upload .rep .ok{color:var(--ink);font-weight:600;margin:0 0 8px}
+.ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#fdecea;border-radius:10px;padding:10px 12px;margin:0}
+.ad-upload .rep .warn{color:#a35e00;background:#fff4e0;border-radius:10px;padding:8px 12px;margin:6px 0 0}
+.ad-upload .tbl{overflow:auto}
+.ad-upload table{border-collapse:collapse;width:100%;font-size:12px}
+.ad-upload th,.ad-upload td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+.ad-upload th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
