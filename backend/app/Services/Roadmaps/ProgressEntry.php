@@ -9,6 +9,7 @@ use App\Models\RoadmapMeasureLine;
 use App\Models\User;
 use App\Support\Roadmaps\EntryValue;
 use App\Support\Roadmaps\RoadmapPeriod;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -125,6 +126,134 @@ final class ProgressEntry
         });
 
         return $count;
+    }
+
+    /** Lines are renumbered through this offset first so the unique (measure, line_no) index never collides mid-way. */
+    private const RENUMBER_OFFSET = 10000;
+
+    /**
+     * Replace the measure's indicator definitions with $lines (complete, in order):
+     * existing lines are updated (label/unit/plan), new ones (id null) created, lines
+     * missing from the list removed (their progress rows go with them), then line_no is
+     * renumbered 1..n. A changed plan rewrites the line's pct_of_plan for every
+     * reported period. Every change is logged; the measure is recomputed at the end.
+     *
+     * @param list<array{id?: int|string|null, label?: ?string, unit?: ?string, plan?: ?string}> $lines
+     * @throws InvalidArgumentException naming the row («2-қатор: …») — nothing is written
+     */
+    public static function correct(RoadmapMeasure $measure, array $lines, User $user): void
+    {
+        $measure->load(['lines.progress', 'roadmap']);
+        $existing = $measure->lines->keyBy('id');
+
+        if ($lines === []) {
+            throw new InvalidArgumentException('Камида битта индикатор қолсин.');
+        }
+        $clean = [];
+        $seen  = [];
+        foreach (array_values($lines) as $i => $l) {
+            $no    = $i + 1;
+            $label = trim((string) ($l['label'] ?? ''));
+            if ($label === '') {
+                throw new InvalidArgumentException("{$no}-қатор: индикатор номи бўш.");
+            }
+            if (mb_strlen($label) > RoadmapMeasureLine::LABEL_MAX) {
+                throw new InvalidArgumentException("{$no}-қатор: индикатор номи жуда узун (" . mb_strlen($label) . ' белги).');
+            }
+            $unit = trim((string) ($l['unit'] ?? ''));
+            if (mb_strlen($unit) > 48) {
+                throw new InvalidArgumentException("{$no}-қатор: ўлчов 48 белгидан ошмасин.");
+            }
+            try {
+                $plan = EntryValue::parse(isset($l['plan']) ? (string) $l['plan'] : null);
+            } catch (InvalidArgumentException $e) {
+                throw new InvalidArgumentException("{$no}-қатор: режа — {$e->getMessage()}.");
+            }
+            $id = isset($l['id']) && $l['id'] !== '' ? (int) $l['id'] : null;
+            if ($id !== null && ! $existing->has($id)) {
+                throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} бу чора-тадбирга тегишли эмас.");
+            }
+            if ($id !== null && isset($seen[$id])) {
+                throw new InvalidArgumentException("{$no}-қатор: индикатор #{$id} рўйхатда икки марта.");
+            }
+            if ($id !== null) {
+                $seen[$id] = true;
+            }
+            $clean[] = ['id' => $id, 'label' => $label, 'unit' => $unit === '' ? null : $unit, 'plan' => $plan];
+        }
+
+        $roadmap = $measure->roadmap;
+        DB::transaction(function () use ($measure, $roadmap, $existing, $clean, $seen, $user): void {
+            foreach ($existing as $line) {
+                if (isset($seen[$line->id])) {
+                    continue;
+                }
+                $months = $line->progress->whereNotNull('actual_value')->count();
+                self::log($user, $roadmap, $measure, $line, null, 'line_removed',
+                    self::describe($line->label, $line->unit, $line->plan_value) . " · {$months} ой", null);
+                $line->delete();                                   // progress rows cascade
+            }
+
+            $models = [];
+            foreach ($clean as $i => $l) {
+                $no = $i + 1;
+                if ($l['id'] === null) {
+                    $line = new RoadmapMeasureLine([
+                        'roadmap_measure_id' => $measure->id, 'line_no' => self::RENUMBER_OFFSET + $no,
+                        'label' => $l['label'], 'unit' => $l['unit'], 'plan_value' => $l['plan'],
+                    ]);
+                    $line->save();
+                    self::log($user, $roadmap, $measure, $line, null, 'line_added', null, self::describe($l['label'], $l['unit'], $l['plan']));
+                } else {
+                    $line = $existing[$l['id']];
+                    if ($line->label !== $l['label']) {
+                        self::log($user, $roadmap, $measure, $line, null, 'label', $line->label, $l['label']);
+                    }
+                    if ((string) $line->unit !== (string) $l['unit']) {
+                        self::log($user, $roadmap, $measure, $line, null, 'unit', $line->unit, $l['unit']);
+                    }
+                    $planChanged = MeasureLineSync::differs($line->plan_value, $l['plan']);
+                    if ($planChanged) {
+                        self::log($user, $roadmap, $measure, $line, null, 'plan', self::num($line->plan_value), self::num($l['plan']));
+                    }
+                    $line->fill(['line_no' => self::RENUMBER_OFFSET + $no, 'label' => $l['label'], 'unit' => $l['unit'], 'plan_value' => $l['plan']])->save();
+                    if ($planChanged) {
+                        foreach ($line->progress as $p) {
+                            $pct = MeasureRecomputer::pctOfPlan($l['plan'], $p->actual_value);
+                            if (MeasureLineSync::differs($p->pct_of_plan, $pct)) {
+                                $p->fill(['pct_of_plan' => $pct])->save();
+                            }
+                        }
+                    }
+                }
+                $models[$no] = $line;
+            }
+            foreach ($models as $no => $line) {
+                $line->fill(['line_no' => $no])->save();
+            }
+
+            $measure->unsetRelation('lines');
+            (new MeasureRecomputer())->recompute($measure, $roadmap->year);
+        });
+    }
+
+    /**
+     * The measure's latest changes, newest first, with user and line loaded.
+     *
+     * @return Collection<int, RoadmapChangeLog>
+     */
+    public static function history(RoadmapMeasure $measure, int $limit = 30): Collection
+    {
+        return RoadmapChangeLog::where('roadmap_measure_id', $measure->id)
+            ->with(['user', 'line'])
+            ->orderByDesc('created_at')->orderByDesc('id')
+            ->limit($limit)->get();
+    }
+
+    /** «label · unit · plan» for the line_added / line_removed entries. */
+    private static function describe(string $label, ?string $unit, null|float|int|string $plan): string
+    {
+        return $label . ' · ' . ($unit ?? '—') . ' · ' . ($plan === null ? '—' : EntryValue::format($plan));
     }
 
     /**
