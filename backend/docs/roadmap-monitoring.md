@@ -427,5 +427,7 @@ as-built deviations at the top), implementation plan:
   lives in the DB and surfaces only as the sparkline.
 - `pct_of_plan` is `numeric(10,4)`, so a percent is clamped to ±999999,9999 (a plan of
   0,01 against an actual of 20 000 would otherwise abort the import).
-- Only Хоразм has a road map loaded, and its indicator lines are still the suggested
-  ones — nothing has been reviewed or reported yet.
+- All 13 regions have road maps loaded (from the xlsx files the regions returned,
+  2026-09-29; Тошкент шаҳри has no file). Reported actuals so far: Андижон's September
+  values from its xlsx — every other region still has to send a filled template or
+  enter values through the panel.
