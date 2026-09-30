@@ -211,6 +211,174 @@ naming the sheet and cell, and nothing is written.
   (`has N stored lines but no rows in the file — truncated file?`) rather than wiping
   the definitions.
 
+## Entering through the panel («Панель орқали киритиш»)
+
+Everything above can also be done in a browser. `/admin/roadmaps` is a logged-in panel
+that writes the same rows through the same code: the grid saves through
+`MeasureLineSync` — the importer's own path — and its Excel drawer *is*
+`import:roadmap-progress` (`App\Services\Roadmaps\ProgressImport`, which the command is
+now only a printer for). The panel replaces the terminal, not the loop: the template is
+still generated with `roadmap:template`, and «What healthy output looks like»,
+«Warnings and what to do» and «File rules the import enforces» above hold unchanged.
+
+### Access
+
+One admin account, created — and later reset — from the terminal:
+
+```powershell
+cd backend
+php artisan admin:create --email=you@example.com     # asks for the password twice, hidden
+```
+
+`--password=` exists for scripts; omit it in an interactive shell so the password never
+lands in the shell history. `--name=` sets the name the change log shows (default
+«Администратор»); the password must be at least 8 characters. Running the command again
+for an e-mail that already exists **resets that password**, rotates the remember-me
+token and deletes the user's rows from the `sessions` table, so every open session is
+locked out (the session purge needs `SESSION_DRIVER=database`, which is what
+`.env.example` ships).
+
+Login is throttled twice: 5 attempts a minute per e-mail + IP, and 20 per fifteen
+minutes per e-mail alone — the second one keeps a forged `X-Forwarded-For` from widening
+the first into an account-wide bypass. Either limit hands the form back with «Жуда кўп
+уриниш — … кейин қайта уриниб кўринг.». In production behind https — and the ngrok host
+is https — set `SESSION_SECURE_COOKIE=true` in `.env`, or the session cookie travels in
+the clear.
+
+The routes, all behind `auth` except the login form itself:
+
+- `/login` — the login card; `/logout` — a POST, sent by the sidebar form.
+- `/admin/roadmaps` — the overview, one card per region.
+- `/admin/roadmaps/{code}` — the entry grid for that region.
+
+While logged in, «Админ» appears in the sidebar and «Чиқиш» at its foot. A guest opening
+an `/admin/…` URL is sent to `/login` and back to the page afterwards; a form left open
+until its session expired comes back to the login card with «Сессия муддати тугади —
+қайта киринг.».
+
+### The overview (`/admin/roadmaps?davr=YYYY-MM`)
+
+One card per region, in the portal's own region order. A region with no road map loaded
+shows «йўл харитаси йўқ» and nothing else. Every other card carries, **for the chosen
+month**:
+
+- how many of its measures are already **сақланган** (saved for this month), how many
+  stand on **ўтган ойдан** (carried from an earlier month, nothing written yet) and how
+  many are **бўш** — as a three-segment bar with the counts under it;
+- the status split (Бажарилди · Бажарилмоқда · Бажарилмаган). These are the measures'
+  stored statuses, from each one's **latest** report — not necessarily this month's; the
+  card's tooltip says so;
+- the last change: who and when (`d.m.Y H:i`, Asia/Tashkent), «терминал» when it came
+  from a command, «ҳали ўзгариш йўқ» when the road map has never been touched;
+- its own «Excel’дан юклаш» button.
+
+The month select offers January of the road-map year up to the current month, never past
+December; a `?davr=` outside that range is clamped to the newest offered month. Clicking
+a card opens its entry grid for the same month. The header's totals cover every region
+at once.
+
+### The entry grid (`/admin/roadmaps/{code}`)
+
+Region select, month select, a search box over measure titles, section, district,
+detail lines and indicator labels, and «Excel’дан юклаш». Under them the status pills
+«Барчаси / Тўлдирилмаган / Ўзгартирилган / Ўтган ойдан / Сақланган» filter the grid with
+live counts; with everything filtered out the grid says «Фильтрга мос чора-тадбир йўқ»
+and offers the way back.
+
+The grid itself is the road map, grouped by section and district. Each measure gets its
+ring, number, title («Батафсил» opens the document's own detail lines), its status pill,
+its deadline chip, a state chip and the two tools ✎ and 🕓; under it one row per
+indicator line: label, «Ўлчов», «Режа», the «Амалда» cell, the live %, and «Изоҳ».
+
+**A new month opens pre-filled** from the latest earlier month that has values. A
+carried cell shows that value in grey italic and names its source month in the tooltip
+(«2026-09дан кўчирилган»); a cell with nothing behind it has a dashed border. The
+measure's state chip says «ўтган ойдан», «бўш» or «сақланган» accordingly — and the
+pre-fill is only a **view** until it is written (see the hazards below).
+
+- **Nothing is written until «Сақлаш»** (or Ctrl+S — the physical key, so a Cyrillic
+  layout works). Typing turns the cell amber and the state chip «ўзгартирилган»; the
+  line %, the ring and the status pill react to every keystroke with the same arithmetic
+  the server uses, and the server's answer replaces them after the save.
+- **Numbers:** decimal comma or point, spaces inside the number ignored. A negative
+  («манфий бўлмасин»), anything above 1e12 («жуда катта») and anything that is not a
+  number («рақам эмас») turn the cell red and block the save — it stops with the
+  offending cell focused and its message in a toast.
+- **Keyboard:** Enter or ↓ moves to the next «Амалда» cell, ↑ to the previous one, Esc
+  puts the cell back to the value it was loaded with. «Бекор қилиш» drops the whole
+  unsaved buffer. Leaving the page, switching the month or switching the region with
+  edits still unsaved is refused («Аввал сақланг ёки «Бекор қилиш»ни босинг»).
+- **A save writes whole measures.** Every measure that owns an edited line gets the
+  month's report for **all** of its lines — the edited ones with what was typed, the
+  rest with the value they showed (saved or carried). Measures nobody touched are left
+  alone. Statuses and percentages are recomputed on the spot, by the rule
+  `roadmaps:recompute` uses.
+- **«Қолганини ўзгаришсиз тасдиқлаш»** writes the current view for every measure not yet
+  saved this month — carried values as they stand, empty lines as empty. It is a
+  two-click arm that first states the split («N та чора-тадбир … M таси ўтган ой
+  қийматлари билан, K таси бўш»), and it logs one «Ўзгаришсиз тасдиқланди» entry per
+  measure.
+
+### Corrections (✎)
+
+The pencil opens an editor under the measure holding its complete line list: label, unit
+and plan are editable, ↑/↓ reorder, 🗑 removes a line, «+ Индикатор қўшиш» appends one.
+The measure's value cells are disabled while it is open.
+
+The list is written **whole**: lines missing from it are deleted **with every month they
+ever reported** (the bin arms in two clicks and says «N ойлик ҳисобот ҳам ўчирилади.»
+when there is history to lose), a changed plan rewrites that line's % for every reported
+month, and the positions are renumbered 1..n in list order. At least one line must
+remain («Камида битта индикатор қолсин.»). Every rename, unit, plan, addition and
+removal is logged.
+
+### History (🕓)
+
+The measure's last 30 changes, newest first: time (Asia/Tashkent), who, what («Амалда»,
+«Изоҳ», «Индикатор номи», «Ўлчов», «Режа», «Индикатор қўшилди», «Индикатор ўчирилди»,
+«Ўзгаришсиз тасдиқланди», «Excel’дан юкланди») and old → new. Imports are in there too;
+a line that has since been removed keeps its label in the entry.
+
+### Excel in the panel
+
+«Excel’дан юклаш» — on a region card or in the grid header — opens a drawer that takes
+the **filled template** (`roadmap:template`'s own file, `.xlsx`, up to 12 MB) and a
+month, and then works in two steps:
+
+1. **«Текшириш»** runs the import as a dry run — inside a transaction that is rolled
+   back — and shows the report the command prints: the table «Вилоят · Файлда/жами ·
+   Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган», the warnings
+   below it, an abort as one red line. Nothing is written.
+2. **«Қўллаш»** appears only after a clean dry run and applies exactly that file, logging
+   one «Excel’дан юкланди» entry per region touched. The drawer stays open afterwards so
+   the report stays readable; ✕, Escape or the scrim closes it.
+
+Picking another file — or one the panel refuses — clears the report, so «Қўллаш» can
+only ever apply what was previewed. The keys in the file decide which region is written,
+not the card the drawer was opened from; the report names the regions. File rules,
+aborts and warnings are the importer's own (see above), in Cyrillic. On the entry page
+the button is locked while the grid holds unsaved edits, and a successful import drops
+any unsaved typing — what stands on screen afterwards is what was imported.
+
+### Hazards
+
+- **Indicator lines are keyed by position everywhere.** `import:roadmap` (the registry)
+  and `import:roadmap-progress` both sync through `MeasureLineSync`, so a registry
+  re-import — or a template generated **before** a correction and imported after it —
+  overwrites or removes what the panel changed. After correcting lines in the panel,
+  regenerate that region's template with `roadmap:template` before sending it out, and do
+  not re-run `import:roadmap` for a region edited in the panel unless overwriting it is
+  the intent.
+- **A re-import that drops a measure deletes that measure's change history** along with
+  its lines and progress (`roadmap_change_log.roadmap_measure_id` cascades). Always dry
+  run first, as «Warnings and what to do» says.
+- **CLI imports are logged with no user** — the overview card and the history drawer show
+  «терминал» for them.
+- **The «ўтган ойдан» pre-fill is a view, not data.** Until the month is saved or
+  confirmed, nothing about it exists in the database: `/roadmaps` keeps showing the last
+  saved month, so a region can look untouched while its grid is full of grey carried
+  values.
+
 ## Reading the page (`/roadmaps`)
 
 - **Statuses** are the tasks-board three: «Бажарилди» (green) — every planned line at

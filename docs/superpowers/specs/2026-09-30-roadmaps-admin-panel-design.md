@@ -369,3 +369,43 @@ reuse `RoadmapXlsxBuilder` / the template writer.
 - Quarter periods in the panel's month select (the importer still accepts them).
 - Password reset by email; two-factor.
 - Export of the entered month to xlsx (the template writer already does the plan side).
+
+## As built (2026-09-30)
+
+Where the implementation deviates from the design above:
+
+- Upload limit is **12 MB**, not 20 — Livewire's own temporary-upload default; raising it
+  would mean publishing `config/livewire.php` for nothing.
+- A CLI import logs its change-log row with `user_id` null (the panel shows «терминал»).
+- The overview computes 13 × `ProgressSheet::build()` per render (≈ 300 ms / 53 queries on
+  the dev DB) instead of one grouped query; the aggregate-query rewrite is deferred.
+- No native `confirm()` dialogs anywhere — every destructive action is a two-click arm
+  («Ўчирилсинми? Ўчириш / Йўқ», «Ҳа, тасдиқлаш / Йўқ»).
+- `ProgressSheet::periodOptions(int $year, ?string $current = null)` — year-bound, not
+  road-map-bound, and clamped to January … the current month.
+- `ProgressEntry::correct()` refuses an empty line list («Камида битта индикатор қолсин.»).
+- Entry component state is `panelFor` / `historyFor`: a public property named like an
+  action shadows that action in `$wire`.
+- The grid JS captures the component root in a closure and keeps a memoised DOM index
+  (nested `x-data` scopes made `$root` unreliable); the index is invalidated on
+  `ad-refresh`, on any Livewire commit of the component, and when the re-keyed inputs
+  detach.
+- Overview summary wording differs from the mock: «{n} та чора-тадбир · {m} та индикатор»
+  as the subtitle, with a сақланган / ўтган ойдан / бўш strip under it.
+- `ProgressEntry::save()` returns `['measures' => n, 'changes' => n]`; the component wraps
+  it as `['ok' => …, 'measures' => …, 'changes' => …]` (or `['ok' => false, 'message']`)
+  for the JS caller.
+- Sidebar: an «Админ» nav item with a pencil icon, and a «Чиқиш» form at the sidebar foot.
+- The upload panel stays open after a successful apply (the report stays readable); the
+  entry page locks «Excel’дан юклаш» while unsaved edits exist, and an import discards the
+  edit buffer.
+- Import and sync messages are Cyrillic; PhpSpreadsheet's reader exception is wrapped as
+  «Файлни ўқиб бўлмади …».
+- `ProgressUpload::openFor()` reuses `RoadmapOverview::month()` for the clamp (sibling
+  coupling accepted over a third copy of the rule).
+- The confirm-rest arm states the carried/empty split, not just the count.
+- An empty filter result shows an in-grid row «Фильтрга мос чора-тадбир йўқ» with a way
+  back, rather than a bare `<thead>`.
+- The login card has its own minimal layout (`layouts.auth`, portal.css, no sidebar);
+  404 renders inside the portal shell, and an expired-session 419 redirects back to the
+  login form — all with Cyrillic messages.
