@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-  <div class="ad-shell"><h2 class="ad-title">Амалда киритиш · {{ $code }}</h2></div>
+  <script src="/js/ad-entry.js?v={{ filemtime(public_path('js/ad-entry.js')) }}"></script>
+  <livewire:admin.roadmap-entry :code="$code" />
 @endsection
