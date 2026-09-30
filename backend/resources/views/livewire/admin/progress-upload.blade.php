@@ -2,7 +2,10 @@
 <div class="ad-upload-host">
   @if($open)
     <div class="ad-scrim" wire:click="close" aria-hidden="true"></div>
-    <aside class="ad-upload" role="dialog" aria-label="Excel’дан юклаш">
+    {{-- rendered only while open, so the window-level Escape handler lives and dies with the panel --}}
+    <aside class="ad-upload" role="dialog" aria-modal="true" aria-label="Excel’дан юклаш"
+           x-on:keydown.escape.window="$wire.close()"
+           x-init="$nextTick(() => $el.querySelector('select, input, button')?.focus())">
       <div class="h">
         <div>
           <b>Excel’дан юклаш</b>
