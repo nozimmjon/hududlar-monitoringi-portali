@@ -1199,7 +1199,7 @@ test('save writes the whole touched measure — edited and carried lines — rec
     expect($log)->toHaveCount(1);
     expect($log[0])->toMatchArray([
         'user_id' => $user->id, 'roadmap_id' => $roadmap->id, 'roadmap_measure_id' => $bogot->id,
-        'roadmap_measure_line_id' => $l1->id, 'report_period' => '2026-09', 'action' => 'actual',
+        'roadmap_measure_line_id' => $l1->id, 'line_label' => 'Хўжаликлараро каналлар', 'report_period' => '2026-09', 'action' => 'actual',
         'old_value' => null, 'new_value' => '7,8',
     ]);
 });
@@ -1438,6 +1438,7 @@ final class ProgressEntry
             'roadmap_id'              => $roadmap->id,
             'roadmap_measure_id'      => $measure->id,
             'roadmap_measure_line_id' => $line?->id,
+            'line_label'              => $line?->label,      // snapshot: history stays readable after the line is removed
             'report_period'           => $period,
             'action'                  => $action,
             'old_value'               => $old,
@@ -1446,6 +1447,15 @@ final class ProgressEntry
     }
 }
 ```
+
+Also add to `backend/app/Models/RoadmapChangeLog.php`, right after `public const UPDATED_AT = null;`:
+
+```php
+    /** created_at is timestamp(3); without this Eloquent writes whole seconds and the precision is wasted. */
+    protected $dateFormat = 'Y-m-d H:i:s.v';
+```
+
+(Reads are safe: when Postgres returns a value without a fraction, Eloquent falls back to `Date::parse()`.) Extend the first test's log assertion with `'line_label' => 'Хўжаликлараро каналлар'`.
 
 - [ ] **Step 4: Run the tests**
 
@@ -1523,6 +1533,8 @@ test('correct updates, reorders, adds and removes lines, renumbers, rewrites rep
     $removed = RoadmapChangeLog::where('action', 'line_removed')->firstOrFail();
     expect($removed->old_value)->toBe('Хўжаликлараро каналлар (бетон) · км · 7,8 · 1 ой');
     expect($removed->roadmap_measure_line_id)->toBeNull();
+    expect($removed->line_label)->toBe('Хўжаликлараро каналлар (бетон)');
+    expect(RoadmapChangeLog::where('action', 'plan')->first()->line_label)->toBe('Ички каналлар');
     $bogot->refresh();
     expect($bogot->lines_total)->toBe(1);                                  // an unplanned line does not count
     expect($bogot->lines->pluck('line_no')->all())->toBe([1, 2]);
@@ -3090,7 +3102,8 @@ class RoadmapEntry extends Component
   @forelse($history as $h)
     <div class="e" wire:key="h-{{ $h->id }}">
       <div class="w"><span class="tnum">{{ $h->created_at->timezone('Asia/Tashkent')->format('d.m.Y H:i') }}</span> · {{ $h->user?->name ?? 'терминал' }}</div>
-      <div class="a">{{ RoadmapChangeLog::ACTION_LABELS[$h->action] ?? $h->action }}@if($h->line) · {{ mb_strimwidth($h->line->label, 0, 60, '…') }}@endif</div>
+      @php $lineLabel = $h->line_label ?? $h->line?->label; @endphp
+      <div class="a">{{ RoadmapChangeLog::ACTION_LABELS[$h->action] ?? $h->action }}@if($lineLabel !== null) · {{ mb_strimwidth($lineLabel, 0, 60, '…') }}@endif</div>
       @if($h->old_value !== null || $h->new_value !== null)
         <div class="v"><s>{{ $h->old_value ?? '—' }}</s> → <b>{{ $h->new_value ?? '—' }}</b></div>
       @endif
