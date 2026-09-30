@@ -42,7 +42,8 @@ document.addEventListener('alpine:init', () => {
 
       // ---- numbers (mirror of App\Support\Roadmaps\EntryValue::parse; the grid formats server-side) ----
       parse(raw) {
-        const s = String(raw ?? '').trim().replace(/[ \u00A0\u202F\u2009]/g, '').replace(/,/g, '.');
+        // edge trim mirrors EntryValue::EDGE_BLANKS (JS \s lacks U+200B)
+        const s = String(raw ?? '').replace(/^[\s\u200B]+|[\s\u200B]+$/g, '').replace(/[ \u00A0\u202F\u2009]/g, '').replace(/,/g, '.');
         if (s === '') return null;
         if (!/^-?\d+(\.\d+)?$/.test(s)) throw new Error('рақам эмас');
         const v = parseFloat(s);

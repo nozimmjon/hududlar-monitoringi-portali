@@ -168,7 +168,7 @@
       </template>
       <template x-if="arm">
         <span class="ad-arm">
-          <span>{{ $sheet['counts']['confirmable'] }} та чора-тадбир {{ RoadmapPeriod::label($period) }} учун ҳозирги кўринишда сақланади — {{ $sheet['counts']['carry'] }} таси ўтган ой қийматлари билан, {{ $sheet['counts']['empty'] }} таси бўш.</span>
+          <span>{{ $sheet['counts']['confirmable'] }} та чора-тадбир {{ RoadmapPeriod::label($period) }} учун ҳозирги кўринишда сақланади — {{ $sheet['counts']['carry'] }} таси ўтган ой қийматлари билан, {{ $sheet['counts']['confirmable'] - $sheet['counts']['carry'] }} таси бўш.</span>
           <button type="button" class="ad-btn" x-on:click="arm = false; $wire.confirmRest()">Ҳа, тасдиқлаш</button>
           <button type="button" class="ad-btn ghost" x-on:click="arm = false">Йўқ</button>
         </span>
