@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StarterController;
 use Illuminate\Support\Facades\Route;
@@ -32,3 +33,16 @@ Route::get('/roadmaps', function () {
 
     return view('pages.roadmaps');
 })->name('roadmaps');
+
+// ---- admin panel (road-map monitoring entry) -------------------------------------------------
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
+});
+Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::view('/roadmaps', 'pages.admin.roadmaps')->name('roadmaps');
+    Route::get('/roadmaps/{code}', fn (string $code) => view('pages.admin.roadmap-entry', ['code' => (int) $code]))
+        ->whereNumber('code')->name('roadmaps.entry');
+});

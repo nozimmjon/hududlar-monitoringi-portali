@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetFrameAncestors::class,
         ]);
 
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo('/admin/roadmaps');
+
         $middleware->trustProxies(
             at: '*',
             headers: Request::HEADER_X_FORWARDED_FOR
