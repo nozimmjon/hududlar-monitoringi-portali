@@ -1465,7 +1465,7 @@ Expected: PASS (4 tests).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/app/Services/Roadmaps/ProgressEntry.php backend/tests/Feature/Admin/ProgressEntrySaveTest.php
+git add backend/app/Services/Roadmaps/ProgressEntry.php backend/app/Models/RoadmapChangeLog.php backend/tests/Feature/Admin/ProgressEntrySaveTest.php
 git commit -m "feat(admin): ProgressEntry::save and confirmRest write whole measures through MeasureLineSync and log changes
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
