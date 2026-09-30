@@ -32,3 +32,31 @@ test('format writes the value the way the inputs show it', function () {
     expect(EntryValue::format(0.0))->toBe('0');
     expect(EntryValue::format(60.606061))->toBe('60,606061');
 });
+
+test('parse treats a unicode-blank cell as empty, converges -0 and sub-precision values, rejects a smuggled newline; format handles -0 and whole numbers', function () {
+    // NBSP-only / mixed unicode-space-only cells are blank, not errors
+    expect(EntryValue::parse("\u{00A0}"))->toBeNull();
+    expect(EntryValue::parse("\u{2009} \u{202F}"))->toBeNull();
+
+    // PHP's trim() already strips a bare trailing "\n" before validation runs, so
+    // parse("12\n") legitimately parses to 12.0 with or without the /D anchor. /D
+    // guards the case trim() cannot reach: a newline that only becomes trailing
+    // once a following unicode space (which trim() does not strip) is removed.
+    expect(fn () => EntryValue::parse("12\n\u{00A0}"))->toThrow(InvalidArgumentException::class, 'рақам эмас');
+
+    // more accepted spellings
+    expect(EntryValue::parse('1 240 000'))->toBe(1240000.0);
+    expect(EntryValue::parse('1000000000000'))->toBe(1000000000000.0); // == MAX; the guard is "greater than"
+
+    // -0 and sub-precision values converge to a clean, positive 0
+    expect(EntryValue::parse('-0'))->toBe(0.0);
+    expect(EntryValue::parse('0,0000001'))->toBe(0.0);
+
+    // rounds to the column's 6-decimal precision
+    expect(EntryValue::parse('60,6060614'))->toBe(60.606061);
+
+    expect(EntryValue::format('0.000000'))->toBe('0');
+    expect(EntryValue::format(10.0))->toBe('10');
+    expect(EntryValue::format(1200))->toBe('1200');
+    expect(EntryValue::format(-0.0))->toBe('0');
+});

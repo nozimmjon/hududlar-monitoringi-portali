@@ -6,12 +6,13 @@ use InvalidArgumentException;
 
 /**
  * Numbers typed into the admin grid. Unlike the xlsx readers (where «1,240» is
- * ambiguous and refused), a comma typed by hand is a decimal comma. Mirrored in
- * public/js/ad-entry.js (parse/fmt) — keep the two in step.
+ * ambiguous and refused), a comma typed by hand is a decimal comma. `parse` is
+ * mirrored in public/js/ad-entry.js (the grid formats server-side, so there is
+ * no JS `format`) — keep the two parsers in step.
  */
 final class EntryValue
 {
-    public const MAX = 1e12;
+    private const MAX = 1e12;
 
     /** Ordinary, no-break, narrow no-break and thin spaces — all of them turn up in pasted numbers. */
     private const SPACES = '/[ \x{00A0}\x{202F}\x{2009}]/u';
@@ -23,8 +24,15 @@ final class EntryValue
         if ($s === '') {
             return null;
         }
-        $s = str_replace(',', '.', (string) preg_replace(self::SPACES, '', $s));
-        if (preg_match('/^-?\d+(\.\d+)?$/', $s) !== 1) {
+        $stripped = preg_replace(self::SPACES, '', $s);
+        if ($stripped === null) {                 // invalid UTF-8 — not an empty cell
+            throw new InvalidArgumentException('рақам эмас');
+        }
+        if ($stripped === '') {                   // nothing but (unicode) spaces
+            return null;
+        }
+        $s = str_replace(',', '.', $stripped);
+        if (preg_match('/^-?\d+(\.\d+)?$/D', $s) !== 1) {
             throw new InvalidArgumentException('рақам эмас');
         }
         $v = (float) $s;
@@ -35,10 +43,14 @@ final class EntryValue
             throw new InvalidArgumentException('жуда катта');
         }
 
-        return $v;
+        return round($v, 6) + 0.0;
     }
 
-    /** Up to 6 decimals, trailing zeros dropped, decimal comma, no thousands separator; '' for null. */
+    /**
+     * Up to 6 decimals, trailing zeros dropped, decimal comma, no thousands separator;
+     * '' for null. '' in gives '' out; -0 renders as 0; a non-numeric string renders as
+     * '0' — callers pass floats, ints, null or the decimal cast's strings only.
+     */
     public static function format(null|float|int|string $v): string
     {
         if ($v === null || $v === '') {
