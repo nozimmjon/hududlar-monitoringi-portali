@@ -2213,10 +2213,12 @@ class RoadmapOverview extends Component
         $this->period = self::month($this->period);
     }
 
-    /** A valid month, else the current one — the panel offers months only. */
+    /** A month the panel offers (January of the road-map year … the current month, never past December), else the newest offered one. */
     public static function month(string $period): string
     {
-        return RoadmapPeriod::isValid($period) && RoadmapPeriod::type($period) === 'month' ? $period : ProgressSheet::currentPeriod();
+        $options = ProgressSheet::periodOptions(RoadmapsPage::YEAR);
+
+        return in_array($period, $options, true) ? $period : $options[0];
     }
 
     public function selectPeriod(string $period): void
@@ -2332,7 +2334,7 @@ class RoadmapOverview extends Component
             <span class="carry">{{ $ct['carry'] }} ўтган ойдан</span>
             <span class="empty">{{ $ct['empty'] }} бўш</span>
           </div>
-          <div class="pills">
+          <div class="pills" title="Ҳолат — ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича">
             @foreach(['done', 'in_progress', 'open'] as $s)
               <span class="wr-status {{ MeasureDisplay::statusChip($s)['cls'] }}"><i></i>{{ MeasureDisplay::statusChip($s)['label'] }} <b class="tnum">{{ $c['statuses'][$s] }}</b></span>
             @endforeach
@@ -2851,7 +2853,7 @@ class RoadmapEntry extends Component
             'periods'      => ProgressSheet::periodOptions($roadmap->year),
             'sheet'        => $sheet,
             'groups'       => array_values($groups),
-            'today'        => now(ProgressSheet::TZ)->format('Y-m'),
+            'today'        => ProgressSheet::currentPeriod(),
             'history'      => $history,
             'historyTitle' => $historyTitle,
         ]);
@@ -2961,7 +2963,8 @@ class RoadmapEntry extends Component
                       <div class="wr-details" x-show="det" x-cloak>@foreach($m['details'] as $line)<p>{{ $line }}</p>@endforeach</div>
                     @endif
                   </div>
-                  <span class="wr-status" :class="statusClass({{ $m['id'] }})"><i></i><span x-text="statusLabel({{ $m['id'] }})">{{ $chip['label'] }}</span></span>
+                  <span class="wr-status" :class="statusClass({{ $m['id'] }})"
+                        @if(! $m['status_is_current'] && $m['latest_period']) title="Сақланган ҳолат: {{ RoadmapPeriod::label($m['latest_period']) }} бўйича" @endif><i></i><span x-text="statusLabel({{ $m['id'] }})">{{ $chip['label'] }}</span></span>
                   <span class="wr-tag {{ $deadline['cls'] }}">{{ $deadline['label'] }}</span>
                   <span class="ad-state" :class="mstate({{ $m['id'] }})" x-text="mstateLabel({{ $m['id'] }})">{{ $stateLabels[$m['state']] }}</span>
                   <span class="ad-tools">
