@@ -55,8 +55,8 @@ percent are read from the latest reported period only, every card of the region 
 back to «Бажарилмоқда» with no ring until the filled file arrives — a «Бажарилди»
 measure looks reopened. Step 3 is the one exception, and only because the first month
 has nothing to lose. The import says so when it happens:
-`{region}: N measure(s) advanced to 2026-10 with no «Амалда» values — an unfilled
-template imported for a new period? …`. The cure is to import the filled file for that
+`{region}: N та чора-тадбир 2026-10 даврига «Амалда» қийматисиз ўтди — янги давр учун
+тўлдирилмаган шаблон юкланганми? …`. The cure is to import the filled file for that
 same period; the empty rows are overwritten and the numbers come back.
 
 Rebuild the derived columns without touching any file (after a deadline-rule change, a
@@ -73,8 +73,9 @@ the lines — would otherwise leave stale percentages behind. The command derive
 progress row again from the plan and actual it stores now and says
 «N reported percentage(s) recomputed from the stored plan and «Амалда».»; rows already
 correct are left untouched, so a second run rewrites nothing. The importers do the same
-for the lines they touch, reporting
-«{region}: N reported percentage(s) recomputed after a plan change.»
+for the lines they touch: `import:roadmap-progress` reports
+«{region}: режа ўзгаргани учун N та ҳисобот фоизи қайта ҳисобланди.» (`import:roadmap`
+still prints its own English wording).
 
 ### Reviewing the suggested lines (first month)
 
@@ -114,19 +115,20 @@ month. After step 3 it must read 0: the lines now come from the DB.)
 `import:roadmap-progress` on a filled file:
 
 ```
-+----------------+-------------+----------+-----------+--------+------+-------------+------+
-| Вилоят         | Файлда/жами | Қаторлар | Ўчирилди  | Амалда | done | in_progress | open |
-+----------------+-------------+----------+-----------+--------+------+-------------+------+
-| Хоразм вилояти | 89/89       | 178      | 0         | 129    | 12   | 77          | 0    |
-+----------------+-------------+----------+-----------+--------+------+-------------+------+
-Period 2026-09: 89 measure(s) processed from Хоразм вилояти.xlsx.
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
+| Вилоят         | Файлда/жами | Қаторлар | Ўчирилди | Амалда | Бажарилди | Бажарилмоқда | Бажарилмаган |
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
+| Хоразм вилояти | 89/89       | 178      | 0        | 129    | 12        | 77           | 0            |
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
+2026-09 даври: Хоразм вилояти.xlsx файлидан 89 та чора-тадбир ўқилди.
 ```
 
 `Файлда/жами` = measures found in the file / measures the road map has (89/89 = the
 file is complete); `Қаторлар` = indicator rows read; `Ўчирилди` = stored lines dropped
 because the file no longer has them; `Амалда` = rows carrying a value (129 of 178 — the
 rest were left blank and count as 0 for this period). No warning lines at all is the
-healthy case.
+healthy case. With `--dry-run` the same block ends with
+«Синов ишга тушириш — ҳеч нарса ёзилмади.» instead.
 
 `roadmaps:recompute`:
 
@@ -144,30 +146,31 @@ something wrote progress behind its back.
 All of these are warnings, not aborts — the import already happened (unless
 `--dry-run`), so read them and decide.
 
-- **`{region}: N line(s) removed — no longer in the file (their history went with them).`**
+- **`{region}: N та индикатор қатори файлда йўқ — ўчирилади (тарихи билан бирга).`**
   Stored lines beyond the block's last row were deleted, together with every period
   they had ever reported. Intended when you deliberately dropped an indicator; if not,
   the file was sent back short — restore the missing rows and re-import (the history is
   gone either way, only the definition comes back). One line per region, so an `--all`
   workbook says which region lost the rows.
-- **`{region}: N line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.`**
+- **`{region}: ҳисоботи бор N та индикатор қатори қайта номланди — блок ўртасига қўшилган қатор рақамлашни суради; тарих ўз индикаторида қолганини текширинг.`**
   Line identity is the row position, so a row inserted in the middle pushes every
   following line's reported history onto the next indicator. Either fix the file (put
   the new rows at the **end** of the block, restore the original order) and re-import,
   or accept it when the reshuffle was intended and the history is meaningless anyway.
-- **`{region}: N previously reported «Амалда» value(s) cleared by this file.`**
+- **`{region}: N та аввал киритилган «Амалда» қиймати бу файлда бўш — ўчирилади.`**
   Cells that had a value for this period arrived empty. Almost always an **older copy
   of the file** was imported over a newer one — re-import the newer file; it restores
   the values. If the region really did retract numbers, nothing to do.
-- **`{region}: N measure(s) advanced to {period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.`**
+- **`{region}: N та чора-тадбир {period} даврига «Амалда» қийматисиз ўтди — янги давр учун тўлдирилмаган шаблон юкланганми? Тўлдирилган файл юкланмагунча уларнинг ҳолати Бажарилмоқда бўлиб қолади.`**
   A period newer than the one those measures last reported arrived with every «Амалда»
   cell empty — normally step 1's own template imported by mistake before step 4. See the
   monthly loop above; import the filled file for that period and the numbers return.
-- **`N of M measure(s) of {region} are not in the file — left untouched.`**
+- **`{region}: M та чора-тадбирдан N таси файлда йўқ — ўзгаришсиз қолдирилди.`**
   Rows (or a whole sheet) were deleted from the workbook. Those measures keep their old
   lines and status — they are *not* zeroed. Restore them from a fresh
   `roadmap:template` and re-import, unless you split the reporting on purpose.
-- **The docx importer** (`import:roadmap`) prints its own two:
+- **The docx importer** (`import:roadmap`, which still prints its own line-sync warnings
+  in English) adds two more:
   `N measure(s) removed — their indicator lines and progress with them.` and
   `N measure(s) with indicator lines changed their title — a measure inserted or dropped mid-section shifts the numbering; check that the monitoring rows still belong to the right measures.`
   A re-imported document that gained or lost a measure mid-section renumbers everything
@@ -183,8 +186,8 @@ naming the sheet and cell, and nothing is written.
 - **Column A is the key** (`1733-5-1733206-3` = region · section · district SOATO (0 =
   region-level) · seq). It is hidden, not secret — hand-edited padding like
   `1733-05-0-2` is canonicalised and still matches. A key that the road map does not
-  have aborts (`unknown key … — the road map has no such measure`); the same key twice
-  in one workbook aborts naming both places.
+  have aborts (`номаълум калит … (A устуни) — шаблон бошқа йўл харитага тегишлими?`); the
+  same key twice in one workbook aborts naming both places.
 - **Row order is line identity.** `line_no` = position of the row inside the block, so
   the file's order defines which stored line each row updates. Rows beyond the last one
   in the file are deleted (see the warning above).
@@ -205,11 +208,12 @@ naming the sheet and cell, and nothing is written.
   `--period`, else from each sheet's A1 title («… Ҳисобот даври: 2026-09»); sheets
   disagreeing with each other, or a `--period` disagreeing with the file, abort.
 - **`.xlsx` only.** Saving as CSV or the old `.xls` loses the hidden key column (and
-  the sheet structure), and the file becomes unimportable — instruction 5 in the
-  «Йўриқнома» sheet says so to the region.
+  the sheet structure), and the file becomes unimportable
+  (`Файлни ўқиб бўлмади — бу .xlsx шаблон эмасми? (…)`, with PhpSpreadsheet's own English
+  reason in the brackets) — instruction 5 in the «Йўриқнома» sheet says so to the region.
 - A block that has stored lines but arrives with **zero rows** aborts
-  (`has N stored lines but no rows in the file — truncated file?`) rather than wiping
-  the definitions.
+  (`{key} чора-тадбирида сақланган N та индикатор қатори бор, файлда эса бирортаси ҳам
+  йўқ — файл тўлиқ эмасми?`) rather than wiping the definitions.
 
 ## Entering through the panel («Панель орқали киритиш»)
 
