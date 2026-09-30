@@ -147,7 +147,7 @@ test('reviewer edits travel with the file: relabelled, added and removed lines',
     $next = progressTemplate('2026-10');
     progressFill($next, ['D9' => null, 'E9' => null, 'F9' => null, 'D10' => null, 'E10' => null, 'F10' => null, 'G8' => 7.8]);
     expect(Artisan::call('import:roadmap-progress', ['--file' => $next]))->toBe(0);
-    expect(Artisan::output())->toContain('2 line(s) removed');
+    expect(Artisan::output())->toContain('2 та индикатор қатори файлда йўқ — ўчирилади');
     $bogot->refresh();
     expect($bogot->lines->pluck('label')->all())->toBe(['Хўжаликлараро каналлар (бетон)']);
     expect($bogot->latest_period)->toBe('2026-10');
@@ -207,7 +207,7 @@ test('structural problems abort before anything is written', function () {
     $dry = progressTemplate();
     progressFill($dry, ['G11' => 24]);
     expect(Artisan::call('import:roadmap-progress', ['--file' => $dry, '--dry-run' => true]))->toBe(0);
-    expect(Artisan::output())->toContain('Dry run');
+    expect(Artisan::output())->toContain('Синов ишга тушириш — ҳеч нарса ёзилмади.');
     expect(RoadmapLineProgress::whereNotNull('actual_value')->count())->toBe(0);
     expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
 });
@@ -237,9 +237,9 @@ test('operator warnings: relabelled history, cleared actuals, measures missing f
 
     expect(Artisan::call('import:roadmap-progress', ['--file' => $fix]))->toBe(0);
     $out = Artisan::output();
-    expect($out)->toContain('Хоразм вилояти: 2 line(s) with reported history changed their label');
-    expect($out)->toContain('Хоразм вилояти: 1 previously reported');
-    expect($out)->toContain('1 of 4 measure(s)');
+    expect($out)->toContain('Хоразм вилояти: ҳисоботи бор 2 та индикатор қатори қайта номланди');
+    expect($out)->toContain('Хоразм вилояти: 1 та аввал киритилган «Амалда» қиймати бу файлда бўш — ўчирилади.');
+    expect($out)->toContain('Хоразм вилояти: 4 та чора-тадбирдан 1 таси файлда йўқ — ўзгаришсиз қолдирилди.');
     expect($out)->toContain('3/4');
     expect(progressMeasure(2, 1, 1733208)->latest_period)->toBe('2026-09');   // untouched
 
@@ -297,7 +297,7 @@ test('importing an unfilled template for a newer period warns that the region fe
 
     expect(Artisan::call('import:roadmap-progress', ['--file' => progressTemplate('2026-10')]))->toBe(0);
     $out = Artisan::output();
-    expect($out)->toContain('advanced to 2026-10 with no «Амалда» values');
-    expect($out)->toContain('Хоразм вилояти: 4 measure(s)');
+    expect($out)->toContain('2026-10 даврига «Амалда» қийматисиз ўтди');
+    expect($out)->toContain('Хоразм вилояти: 4 та чора-тадбир');
     expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
 });

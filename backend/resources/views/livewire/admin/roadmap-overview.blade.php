@@ -64,8 +64,9 @@
                 ҳали ўзгариш йўқ
               @endif
             </span>
+            {{-- a browser event: the panel listens for it, and the overview is spared a round trip that would rebuild all 13 sheets --}}
             <button type="button" class="ad-btn ghost small" title="Тўлдирилган шаблонни юклаш"
-                    wire:click="$dispatch('open-upload', { code: {{ $c['region']->code }} })">Excel’дан юклаш</button>
+                    x-on:click="$dispatch('open-upload', { code: {{ $c['region']->code }} })">Excel’дан юклаш</button>
           </div>
         </article>
       @endif

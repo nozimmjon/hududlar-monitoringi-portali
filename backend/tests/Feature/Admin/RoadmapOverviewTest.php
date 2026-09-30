@@ -38,7 +38,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->assertSet('period', '2026-09')
         ->dispatch('progress-imported')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
-        ->assertSeeHtml('$dispatch(\'open-upload\', { code: 1733 })')
+        ->assertSeeHtml('x-on:click="$dispatch(\'open-upload\', { code: 1733 })"')   // browser-side: opening the panel must not re-render 13 sheets
         ->assertSeeHtml('<b class="tnum">1</b> сақланган')
         ->assertSeeHtml('<b class="tnum">1</b> ўтган ойдан')
         ->assertSeeHtml('<b class="tnum">2</b> бўш');

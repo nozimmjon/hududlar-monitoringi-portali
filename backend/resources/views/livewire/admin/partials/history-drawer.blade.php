@@ -1,6 +1,9 @@
-{{-- Side panel with one measure's latest changes. Expects $history (Collection) and $historyTitle from RoadmapEntry. --}}
+{{-- Side panel with one measure's latest changes. Expects $history (Collection) and $historyTitle from RoadmapEntry.
+     Included only while $historyFor is set, so the window-level Escape handler lives and dies with the drawer. --}}
 @php use App\Models\RoadmapChangeLog; use App\Services\Roadmaps\ProgressSheet; @endphp
-<aside class="ad-hist" role="dialog" aria-label="Ўзгаришлар тарихи">
+<aside class="ad-hist" role="dialog" aria-modal="true" aria-label="Ўзгаришлар тарихи"
+       x-on:keydown.escape.window="$wire.closeHistory()"
+       x-init="$nextTick(() => $el.querySelector('button, [tabindex]')?.focus())">
   <div class="h">
     <b>Ўзгаришлар тарихи</b>
     <button type="button" class="ad-ico" wire:click="closeHistory" aria-label="Ёпиш">✕</button>

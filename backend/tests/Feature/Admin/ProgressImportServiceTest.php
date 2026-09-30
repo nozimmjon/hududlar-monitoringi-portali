@@ -66,6 +66,23 @@ test('run() reports a file that is not a template at all instead of throwing', f
     }
 });
 
+test('a file PhpSpreadsheet itself refuses comes back as a Cyrillic sentence, not its own English complaint', function () {
+    AdminFixture::roadmap();
+    $bin = tempnam(sys_get_temp_dir(), 'rmadm_') . '.xlsx';
+    file_put_contents($bin, "\x89PNG\r\n\x1a\n" . str_repeat("\x00\x01\x02\x03", 16));      // a picture renamed .xlsx
+
+    try {
+        $r = (new ProgressImport())->run($bin, '2026-09', 2026, 'water', true, null, 'расм.xlsx');
+        expect($r->ok())->toBeFalse();
+        expect($r->error)->toStartWith('Файлни ўқиб бўлмади — бу .xlsx шаблон эмасми? (');
+        expect($r->written)->toBeFalse();
+        expect(RoadmapLineProgress::count())->toBe(0);
+        expect(RoadmapChangeLog::count())->toBe(0);
+    } finally {
+        @unlink($bin);
+    }
+});
+
 test('run() reports a broken file as an error without writing, and refuses a period that disagrees with the sheet', function () {
     AdminFixture::roadmap();
     $bad = AdminFixture::template('2026-09', ['G8' => 'кўп']);
@@ -81,7 +98,7 @@ test('run() reports a broken file as an error without writing, and refuses a per
         $mismatch = AdminFixture::template('2026-09');
         try {
             $r2 = (new ProgressImport())->run($mismatch, '2026-10', 2026, 'water', false);
-            expect($r2->error)->toContain('does not match');
+            expect($r2->error)->toContain('файлнинг ўз даврига (2026-09) мос келмади');
         } finally {
             @unlink($mismatch);
         }

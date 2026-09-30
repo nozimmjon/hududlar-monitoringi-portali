@@ -31,7 +31,7 @@ final class ImportReport
         return $this->error === null;
     }
 
-    /** The command's table rows: Вилоят · Файлда/жами · Қаторлар · Ўчирилди · Амалда · done · in_progress · open. @return list<array> */
+    /** The command's table rows: Вилоят · Файлда/жами · Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган. @return list<array> */
     public function rows(): array
     {
         return array_map(fn (array $s) => [

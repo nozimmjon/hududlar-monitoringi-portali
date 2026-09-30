@@ -34,12 +34,12 @@ class ImportRoadmapProgress extends Command
         $domain = (string) $this->option('domain');
         $year   = (int) $this->option('year');
         if ($year < 2000 || $year > 2100) {
-            $this->error("--year must be a four-digit year, got «{$this->option('year')}».");
+            $this->error("--year тўрт хонали йил бўлиши керак, «{$this->option('year')}» берилди.");
 
             return self::FAILURE;
         }
         if (! in_array($domain, ImportRoadmap::DOMAINS, true)) {
-            $this->error('--domain must be one of: ' . implode(', ', ImportRoadmap::DOMAINS) . " — got «{$domain}».");
+            $this->error('--domain қуйидагилардан бири бўлиши керак: ' . implode(', ', ImportRoadmap::DOMAINS) . " — «{$domain}» берилди.");
 
             return self::FAILURE;
         }
@@ -51,13 +51,13 @@ class ImportRoadmapProgress extends Command
             return self::FAILURE;
         }
 
-        $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'done', 'in_progress', 'open'], $report->rows());
+        $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'Бажарилди', 'Бажарилмоқда', 'Бажарилмаган'], $report->rows());
         foreach ($report->warnings as $warning) {
             $this->warn($warning);
         }
-        $this->info("Period {$report->period}: {$report->blocks} measure(s) processed from {$report->file}.");
+        $this->info("{$report->period} даври: {$report->file} файлидан {$report->blocks} та чора-тадбир ўқилди.");
         if ($this->option('dry-run')) {
-            $this->warn('Dry run — no changes written.');
+            $this->warn('Синов ишга тушириш — ҳеч нарса ёзилмади.');
         }
 
         return self::SUCCESS;

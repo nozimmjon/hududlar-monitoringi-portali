@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Roadmaps\RoadmapKey;
 use App\Support\Roadmaps\RoadmapPeriod;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use RuntimeException;
 
@@ -27,20 +28,24 @@ final class ProgressImport
             return ImportReport::failed($name, "Файл топилмади: {$file}");
         }
         if ($year < 2000 || $year > 2100) {
-            return ImportReport::failed($name, "--year must be a four-digit year, got «{$year}».");
+            return ImportReport::failed($name, "--year тўрт хонали йил бўлиши керак, «{$year}» берилди.");
         }
         if (! in_array($domain, ImportRoadmap::DOMAINS, true)) {
-            return ImportReport::failed($name, '--domain must be one of: ' . implode(', ', ImportRoadmap::DOMAINS) . " — got «{$domain}».");
+            return ImportReport::failed($name, '--domain қуйидагилардан бири бўлиши керак: ' . implode(', ', ImportRoadmap::DOMAINS) . " — «{$domain}» берилди.");
         }
 
         $book = null;
         try {
             $book   = IOFactory::load($file);
             $parsed = (new RoadmapProgressReader())->read($book);
+        } catch (SpreadsheetException $e) {
+            // PhpSpreadsheet refuses an unreadable or corrupt file in English, naming its own
+            // internals («Unable to identify a reader for this file») — say it in the operator's
+            // language and keep the original in brackets for the log.
+            return ImportReport::failed($name, "Файлни ўқиб бўлмади — бу .xlsx шаблон эмасми? ({$e->getMessage()})");
         } catch (RuntimeException $e) {
-            // Both the reader's own aborts and PhpSpreadsheet's (its Exception extends
-            // RuntimeException) land here, so an unreadable or corrupt file comes back as a
-            // report the operator can read instead of a 500.
+            // The reader's own aborts (already Cyrillic, naming sheet and cell) land here, so a
+            // structurally broken file comes back as a report the operator can read instead of a 500.
             return ImportReport::failed($name, $e->getMessage());
         } finally {
             $book?->disconnectWorksheets();          // a road-map workbook is small, but nothing below needs it
@@ -56,10 +61,10 @@ final class ProgressImport
         $option = strtoupper(trim((string) $periodOption));
         $period = $option !== '' ? $option : (string) $parsed['period'];
         if (! RoadmapPeriod::isValid($period)) {
-            return ImportReport::failed($name, 'Provide --period as YYYY-MM or YYYY-Qn, or a sheet title carrying «Ҳисобот даври: YYYY-MM».');
+            return ImportReport::failed($name, 'Ҳисобот даври аниқланмади — --period ни YYYY-MM ёки YYYY-Qn кўринишида беринг, ёки варақ сарлавҳасида «Ҳисобот даври: YYYY-MM» бўлсин.');
         }
         if ($option !== '' && $parsed['period'] !== null && $parsed['period'] !== $period) {
-            return ImportReport::failed($name, "--period {$period} does not match the file's own period {$parsed['period']}.");
+            return ImportReport::failed($name, "--period {$period} файлнинг ўз даврига ({$parsed['period']}) мос келмади.");
         }
 
         // Resolve every key before writing anything.
@@ -72,7 +77,7 @@ final class ProgressImport
             $roadmap = Roadmap::where('domain', $domain)->where('region_code', $regionCode)->where('year', $year)
                 ->with(['region', 'measures.district', 'measures.lines.progress'])->first();
             if (! $roadmap) {
-                return ImportReport::failed($name, "Region {$regionCode} has no road map for {$domain}/{$year} (keys like " . array_key_first($blocks) . ') — run import:roadmap first.');
+                return ImportReport::failed($name, "{$regionCode} вилояти учун {$year} йил {$domain} йўл харитаси йўқ (" . array_key_first($blocks) . ' каби калитлар) — аввал import:roadmap ишга туширинг.');
             }
             $measures = [];
             foreach ($roadmap->measures as $m) {
@@ -82,10 +87,10 @@ final class ProgressImport
             foreach ($blocks as $key => $block) {
                 $m = $measures[$key] ?? null;
                 if (! $m) {
-                    return ImportReport::failed($name, "{$block['sheet']}!A{$block['row']}: unknown key {$key} — the road map has no such measure.");
+                    return ImportReport::failed($name, "{$block['sheet']}!A{$block['row']}: номаълум калит {$key} (A устуни) — шаблон бошқа йўл харитага тегишлими?");
                 }
                 if ($block['lines'] === [] && $m->lines->isNotEmpty()) {
-                    return ImportReport::failed($name, "{$block['sheet']}!A{$block['row']}: measure {$key} has {$m->lines->count()} stored lines but no rows in the file — truncated file?");
+                    return ImportReport::failed($name, "{$block['sheet']}!A{$block['row']}: {$key} чора-тадбирида сақланган {$m->lines->count()} та индикатор қатори бор, файлда эса бирортаси ҳам йўқ — файл тўлиқ эмасми?");
                 }
                 $items[] = [$m, $block];
             }
@@ -121,7 +126,7 @@ final class ProgressImport
         } catch (\InvalidArgumentException $e) {
             DB::rollBack();
 
-            return ImportReport::failed($name, $e->getMessage() . ' — nothing written.');
+            return ImportReport::failed($name, $e->getMessage() . ' — ҳеч нарса ёзилмади.');
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;
@@ -130,28 +135,28 @@ final class ProgressImport
         return new ImportReport($period, $name, count($parsed['blocks']), $regions, self::warnings($regions, $period), null, $write);
     }
 
-    /** The operator warnings, one sentence each (identical to what the command printed before the refactor). @return list<string> */
+    /** The operator warnings, one sentence each — the command prints them, the upload panel renders them verbatim. @return list<string> */
     public static function warnings(array $regions, string $period): array
     {
         $out = [];
         foreach ($regions as $n) {
             if ($n['removed'] > 0) {
-                $out[] = "{$n['region']}: {$n['removed']} line(s) removed — no longer in the file (their history went with them).";
+                $out[] = "{$n['region']}: {$n['removed']} та индикатор қатори файлда йўқ — ўчирилади (тарихи билан бирга).";
             }
             if ($n['relabeled'] > 0) {
-                $out[] = "{$n['region']}: {$n['relabeled']} line(s) with reported history changed their label — a row inserted mid-block shifts the numbering; check that the history still belongs to the right indicator.";
+                $out[] = "{$n['region']}: ҳисоботи бор {$n['relabeled']} та индикатор қатори қайта номланди — блок ўртасига қўшилган қатор рақамлашни суради; тарих ўз индикаторида қолганини текширинг.";
             }
             if ($n['cleared'] > 0) {
-                $out[] = "{$n['region']}: {$n['cleared']} previously reported «Амалда» value(s) cleared by this file.";
+                $out[] = "{$n['region']}: {$n['cleared']} та аввал киритилган «Амалда» қиймати бу файлда бўш — ўчирилади.";
             }
             if ($n['repct'] > 0) {
-                $out[] = "{$n['region']}: {$n['repct']} reported percentage(s) recomputed after a plan change.";
+                $out[] = "{$n['region']}: режа ўзгаргани учун {$n['repct']} та ҳисобот фоизи қайта ҳисобланди.";
             }
             if ($n['blank_advance'] > 0) {
-                $out[] = "{$n['region']}: {$n['blank_advance']} measure(s) advanced to {$period} with no «Амалда» values — an unfilled template imported for a new period? Their status fell back to Бажарилмоқда until the filled file is imported.";
+                $out[] = "{$n['region']}: {$n['blank_advance']} та чора-тадбир {$period} даврига «Амалда» қийматисиз ўтди — янги давр учун тўлдирилмаган шаблон юкланганми? Тўлдирилган файл юкланмагунча уларнинг ҳолати Бажарилмоқда бўлиб қолади.";
             }
             if ($n['missing'] > 0) {
-                $out[] = "{$n['missing']} of {$n['total']} measure(s) of {$n['region']} are not in the file — left untouched.";
+                $out[] = "{$n['region']}: {$n['total']} та чора-тадбирдан {$n['missing']} таси файлда йўқ — ўзгаришсиз қолдирилди.";
             }
         }
 
