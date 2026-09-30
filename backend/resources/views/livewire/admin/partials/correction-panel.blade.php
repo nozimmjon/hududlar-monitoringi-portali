@@ -12,8 +12,8 @@
         <input type="text" wire:model="panelLines.{{ $i }}.unit" maxlength="48" aria-label="Ўлчов">
         <input type="text" inputmode="decimal" class="tnum" wire:model="panelLines.{{ $i }}.plan" aria-label="Режа">
         <span class="t">
-          <button type="button" class="ad-ico" wire:click="panelMove({{ $i }}, -1)" @disabled($i === 0) aria-label="Юқорига">↑</button>
-          <button type="button" class="ad-ico" wire:click="panelMove({{ $i }}, 1)" @disabled($i === count($panelLines) - 1) aria-label="Пастга">↓</button>
+          <button type="button" class="ad-ico" wire:click="panelMove({{ $i }}, -1)" x-on:click="armed = null" @disabled($i === 0) aria-label="Юқорига">↑</button>
+          <button type="button" class="ad-ico" wire:click="panelMove({{ $i }}, 1)" x-on:click="armed = null" @disabled($i === count($panelLines) - 1) aria-label="Пастга">↓</button>
           <template x-if="armed !== {{ $i }}">
             <button type="button" class="ad-ico danger" x-on:click="armed = {{ $i }}" aria-label="Ўчириш">🗑</button>
           </template>

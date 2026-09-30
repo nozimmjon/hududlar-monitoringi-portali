@@ -34,7 +34,7 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSeeHtml('data-line="' . $l1->id . '" data-measure="' . $bogot->id . '" data-field="actual" data-plan="7.8" data-loaded="3" data-loaded-text="3" data-state="carry"')
         ->assertSeeHtml('value="август"')
         ->assertSee('2026 йил августдан кўчирилган')
-        ->assertSeeHtml('data-state="empty"')
+        ->assertSeeHtml('data-measure="' . AdminFixture::measure(1, 1)->id . '" data-state="empty"')
         ->assertSee('Батафсил (2 банд)')
         ->assertSee('2026 йил декабрь')
         ->assertSee('Қолганини ўзгаришсиз тасдиқлаш');
@@ -63,7 +63,11 @@ test('save applies the buffer, re-renders with saved cells and reports; an inval
     $c->call('save', [$l2->id => ['actual' => 'x']])
         ->assertReturned(['ok' => false, 'message' => '«Ички каналлар»: рақам эмас'])
         ->assertSet('error', '«Ички каналлар»: рақам эмас')
-        ->assertSee('«Ички каналлар»: рақам эмас');
+        ->assertSee('«Ички каналлар»: рақам эмас')
+        ->dispatch('progress-imported')
+        ->assertSet('flash', 'Excel файли юкланди')
+        ->assertSet('error', '')
+        ->assertSet('version', 2);
     expect(RoadmapChangeLog::count())->toBe(3);
 });
 
@@ -88,12 +92,12 @@ test('confirmRest, period switching and the history drawer', function () {
         ->assertSet('period', '2026-09');
 
     $c->call('openHistory', $bogot->id)
-        ->assertSet('openHistory', $bogot->id)
+        ->assertSet('historyFor', $bogot->id)
         ->assertSee('Ўзгаришлар тарихи')
         ->assertSee('Ўзгаришсиз тасдиқланди')
         ->assertSee('2 та қатор')
         ->call('closeHistory')
-        ->assertSet('openHistory', null);
+        ->assertSet('historyFor', null);
 });
 
 test('the correction panel loads the lines, edits them in memory, saves through ProgressEntry::correct and shows its errors', function () {
@@ -106,7 +110,8 @@ test('the correction panel loads the lines, edits them in memory, saves through 
 
     $c = Livewire::test(RoadmapEntry::class, ['code' => 1733])
         ->call('openPanel', $bogot->id)
-        ->assertSet('openPanel', $bogot->id)
+        ->assertSet('panelFor', $bogot->id)
+        ->call('panelMove', 5, 1)                        // out of range: a no-op, the list below is unchanged
         ->assertSet('panelLines', [
             ['id' => $l1->id, 'label' => 'Хўжаликлараро каналлар', 'unit' => 'км', 'plan' => '7,8', 'months' => 1],
             ['id' => $l2->id, 'label' => 'Ички каналлар', 'unit' => 'км', 'plan' => '33', 'months' => 0],
@@ -120,7 +125,7 @@ test('the correction panel loads the lines, edits them in memory, saves through 
         ->call('panelMove', 2, -1)                       // [l1, new, l2]
         ->call('panelRemove', 2)                         // drops Ички каналлар
         ->call('panelSave')
-        ->assertSet('openPanel', null)
+        ->assertSet('panelFor', null)
         ->assertSet('flash', 'Индикаторлар янгиланди')
         ->assertSet('error', '')
         ->assertDispatched('ad-refresh');
@@ -130,10 +135,10 @@ test('the correction panel loads the lines, edits them in memory, saves through 
     $c->call('openPanel', $bogot->id)
         ->set('panelLines.0.label', '')
         ->call('panelSave')
-        ->assertSet('openPanel', $bogot->id)
+        ->assertSet('panelFor', $bogot->id)
         ->assertSet('error', '1-қатор: индикатор номи бўш.')
         ->call('panelClose')
-        ->assertSet('openPanel', null)
+        ->assertSet('panelFor', null)
         ->assertSet('panelLines', []);
 });
 
@@ -146,8 +151,13 @@ test('region switching redirects; an unknown region is 404; a guest is 403', fun
         ->call('switchRegion', '1733')
         ->assertRedirect(route('admin.roadmaps.entry', ['code' => 1733, 'davr' => '2026-09']));
     Livewire::test(RoadmapEntry::class, ['code' => 1703])->assertNotFound();
-    $this->get('/admin/roadmaps/1703')->assertNotFound();
+    $this->get('/admin/roadmaps/1703')->assertNotFound()->assertSee('Бу вилоят учун йўл харитаси юкланмаган')->assertSee('Чиқиш');
+
+    // a measure of another road map (here: none at all) is never reachable through the panel or the drawer
+    Livewire::test(RoadmapEntry::class, ['code' => 1733])->call('openPanel', 999999)->assertNotFound();
+    Livewire::test(RoadmapEntry::class, ['code' => 1733])->call('openHistory', 999999)->assertNotFound();
 
     auth()->logout();
     Livewire::test(RoadmapEntry::class, ['code' => 1733])->assertForbidden();
+    $this->get('/no-such-page')->assertNotFound()->assertSee('Саҳифа топилмади');
 });

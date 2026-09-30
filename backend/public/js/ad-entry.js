@@ -120,6 +120,13 @@ document.addEventListener('alpine:init', () => {
         default: return true;
       }
     },
+    showGroup(tbody) {
+      this.tick; this.search; this.filter;
+      for (let el = tbody.nextElementSibling; el && el.classList.contains('ad-m'); el = el.nextElementSibling) {
+        if (this.show(el)) return true;
+      }
+      return false;
+    },
     count(kind) {
       this.tick;
       let n = 0;
@@ -170,6 +177,20 @@ document.addEventListener('alpine:init', () => {
       for (const el of this.$root.querySelectorAll('input[data-line]')) el.value = el.dataset.loadedText ?? '';
       this.edits = {};
       this.invalid = {};
+    },
+    // After a server re-render replaced the value cells (a confirm, a panel save, an upload), put the
+    // still-unsaved edits back into the fresh inputs so the cells and the save bar agree. A successful
+    // save() clears the buffer right after the same event, so it must not re-type what was just saved.
+    reapply() {
+      if (this.saving) return;
+      for (const [id, e] of Object.entries(this.edits)) {
+        for (const field of ['actual', 'note']) {
+          if (!(field in e)) continue;
+          const el = this.$root.querySelector(`input[data-field="${field}"][data-line="${id}"]`);
+          if (el) el.value = e[field];
+          else { delete this.edits[id]; delete this.invalid[id]; break; }   // the line no longer exists
+        }
+      }
     },
 
     // ---- save ----

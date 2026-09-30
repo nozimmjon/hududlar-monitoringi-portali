@@ -4,7 +4,7 @@
     use App\Support\Roadmaps\RoadmapPeriod;
     $stateLabels = ['saved' => 'сақланган', 'carry' => 'ўтган ойдан', 'empty' => 'бўш'];
 @endphp
-<div class="ad-shell ad-entry" x-data="adEntry()" x-on:keydown.window="hotkey($event)" x-on:ad-refresh.window="tick++">
+<div class="ad-shell ad-entry" x-data="adEntry()" x-on:keydown.window="hotkey($event)" x-on:ad-refresh.window="tick++; $nextTick(() => reapply())">
   <header class="ad-head ad-sticky">
     <div class="ad-head-row">
       <div class="ad-titles">
@@ -27,7 +27,7 @@
           @endforeach
         </select>
       </label>
-      <div class="ad-search"><input type="search" x-model="search" placeholder="Чора-тадбир, индикатор…" aria-label="Қидирув"></div>
+      <div class="ad-search"><input type="search" x-model.debounce.150ms="search" placeholder="Чора-тадбир, индикатор…" aria-label="Қидирув"></div>
       <button type="button" class="ad-btn ghost" wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
     </div>
     <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
@@ -55,7 +55,7 @@
         </tr>
       </thead>
       @foreach($groups as $g)
-        <tbody class="ad-group" wire:key="g-{{ $g['key'] }}">
+        <tbody class="ad-group" wire:key="g-{{ $g['key'] }}" x-show="showGroup($el)">
           <tr><th colspan="6">
             <span class="rn">{{ $g['roman'] }}.</span> <span class="st">{{ $g['section_title'] }}</span>
             @if($g['district'])
@@ -70,7 +70,7 @@
             $pctShown  = MeasureDisplay::pshow($m['pct'], $m['status'] === 'done');
             $deadline  = MeasureDisplay::deadlineChip($m['deadline_text'], $roadmap->year, $m['status'], $today);
             $search    = mb_strtolower(implode(' ', array_merge([$m['title']], $m['details'], array_column($m['lines'], 'label'))));
-            $panelOpen = $openPanel === $m['id'];
+            $panelOpen = $panelFor === $m['id'];
           @endphp
           <tbody class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
                  data-search="{{ $search }}" :class="'st-' + statusClass({{ $m['id'] }})" x-show="show($el)" x-data="{ det: false }">
@@ -171,7 +171,7 @@
   @endif
   <div class="ad-toast warn" role="status" x-show="jsToast !== ''" x-text="jsToast" x-cloak></div>
 
-  @if($openHistory !== null)
+  @if($historyFor !== null)
     @include('livewire.admin.partials.history-drawer')
   @endif
 

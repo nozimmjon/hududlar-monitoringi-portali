@@ -31,16 +31,17 @@ class RoadmapEntry extends Component
     public int $version = 0;
     public string $flash = '';
     public string $error = '';
-    public ?int $openPanel = null;
+    // not "openPanel"/"openHistory": a public property with the same name as an action shadows it in $wire
+    public ?int $panelFor = null;
     /** @var list<array{id: ?int, label: string, unit: string, plan: string, months: int}> */
     public array $panelLines = [];
-    public ?int $openHistory = null;
+    public ?int $historyFor = null;
 
     public function mount(int $code): void
     {
         abort_unless(auth()->check(), 403);
         $this->code = $code;
-        abort_if($this->roadmap() === null, 404);
+        abort_if($this->roadmap() === null, 404, 'Бу вилоят учун йўл харитаси юкланмаган');
         $this->period = RoadmapOverview::month($this->period);
     }
 
@@ -62,12 +63,12 @@ class RoadmapEntry extends Component
 
     public function selectPeriod(string $period): void
     {
-        $this->period      = RoadmapOverview::month($period);
-        $this->openPanel   = null;
-        $this->panelLines  = [];
-        $this->openHistory = null;
-        $this->flash       = '';
-        $this->error       = '';
+        $this->period     = RoadmapOverview::month($period);
+        $this->panelFor   = null;
+        $this->panelLines = [];
+        $this->historyFor = null;
+        $this->flash      = '';
+        $this->error      = '';
         $this->version++;
     }
 
@@ -114,9 +115,9 @@ class RoadmapEntry extends Component
             'plan'   => EntryValue::format($l->plan_value),
             'months' => $l->progress->whereNotNull('actual_value')->count(),
         ])->values()->all();
-        $this->openPanel   = $measureId;
-        $this->openHistory = null;
-        $this->error       = '';
+        $this->panelFor   = $measureId;
+        $this->historyFor = null;
+        $this->error      = '';
     }
 
     public function panelAdd(): void
@@ -142,18 +143,18 @@ class RoadmapEntry extends Component
 
     public function panelClose(): void
     {
-        $this->openPanel  = null;
+        $this->panelFor   = null;
         $this->panelLines = [];
     }
 
     public function panelSave(): void
     {
         abort_unless(auth()->check(), 403);
-        if ($this->openPanel === null) {
+        if ($this->panelFor === null) {
             return;
         }
         try {
-            ProgressEntry::correct($this->measure($this->openPanel), $this->panelLines, auth()->user());
+            ProgressEntry::correct($this->measure($this->panelFor), $this->panelLines, auth()->user());
         } catch (InvalidArgumentException $e) {
             $this->error = $e->getMessage();
 
@@ -169,14 +170,14 @@ class RoadmapEntry extends Component
     public function openHistory(int $measureId): void
     {
         $this->measure($measureId);
-        $this->openHistory = $measureId;
-        $this->openPanel   = null;
-        $this->panelLines  = [];
+        $this->historyFor = $measureId;
+        $this->panelFor   = null;
+        $this->panelLines = [];
     }
 
     public function closeHistory(): void
     {
-        $this->openHistory = null;
+        $this->historyFor = null;
     }
 
     #[On('progress-imported')]
@@ -211,8 +212,8 @@ class RoadmapEntry extends Component
 
         $history      = null;
         $historyTitle = '';
-        if ($this->openHistory !== null) {
-            $hm           = $this->measure($this->openHistory);
+        if ($this->historyFor !== null) {
+            $hm           = $this->measure($this->historyFor);
             $history      = ProgressEntry::history($hm);
             $historyTitle = $hm->title;
         }
