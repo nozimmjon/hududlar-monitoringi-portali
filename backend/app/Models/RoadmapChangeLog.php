@@ -25,7 +25,7 @@ class RoadmapChangeLog extends Model
     protected $table = 'roadmap_change_log';
 
     protected $fillable = [
-        'user_id', 'roadmap_id', 'roadmap_measure_id', 'roadmap_measure_line_id',
+        'user_id', 'roadmap_id', 'roadmap_measure_id', 'roadmap_measure_line_id', 'line_label',
         'report_period', 'action', 'old_value', 'new_value',
     ];
 

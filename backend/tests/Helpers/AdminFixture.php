@@ -13,9 +13,11 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 /**
  * The Хоразм road map the admin-panel tests work on (xlsx layout, lines predefined):
  *   I/1  «Куловот» канали            · L1 Бажарилиш даражаси % 100       · deadline 2026 йил декабрь
- *   I/2  484,5 млн м3 сув             · L1 Тежалган сув млн м³ 484,5       · deadline 2026 йил июнь (reached from June on)
+ *   I/2  484,5 млн м3 сув             · L1 Тежалган сув млн м3 484,5       · deadline 2026 йил июнь (reached from June on)
  *   II · Боғот/1  бетонлаштириш       · L1 Хўжаликлараро каналлар км 7,8 · L2 Ички каналлар км 33
  *   II · Гурлан/1 насос агрегатлари   · L1 Насос агрегатлари та 24
+ * («млн м3» is the xlsx spelling; XlsxRoadmapParser normalises it to «млн м³» on import, so
+ * the stored line reads with the superscript.)
  * roadmap:template puts them on rows 4, 5, 8–9 and 11 of the «Хоразм вилояти» sheet.
  * Callers seed first ($this->seed()).
  */
@@ -73,11 +75,17 @@ final class AdminFixture
 
     /**
      * Report a period the way the importer does: every line of the measure gets a row;
-     * $actuals / $notes are keyed by line_no (missing = null).
+     * $actuals / $notes are keyed by line_no (missing = null). A key that names a line_no
+     * the measure does not have throws — silently ignoring it would let a test that targets
+     * the wrong line pass anyway.
      */
     public static function report(RoadmapMeasure $measure, string $period, array $actuals, array $notes = []): void
     {
         $measure->load('lines.progress');
+        $lineNos = $measure->lines->pluck('line_no')->all();
+        self::assertKnownLines($actuals, $lineNos, '$actuals');
+        self::assertKnownLines($notes, $lineNos, '$notes');
+
         $lines = [];
         foreach ($measure->lines as $l) {
             $lines[] = [
@@ -92,23 +100,45 @@ final class AdminFixture
         $measure->unsetRelation('lines');
     }
 
+    /** @param array<int, mixed> $values @param list<int> $lineNos */
+    private static function assertKnownLines(array $values, array $lineNos, string $argName): void
+    {
+        foreach (array_keys($values) as $lineNo) {
+            if (! in_array($lineNo, $lineNos, true)) {
+                throw new \InvalidArgumentException(
+                    "AdminFixture::report(): {$argName} has no line_no {$lineNo} on this measure (has: " . implode(', ', $lineNos) . ').'
+                );
+            }
+        }
+    }
+
     /**
      * A filled roadmap:template file for Хоразм: $cells are coordinate => value on the
      * «Хоразм вилояти» sheet (G4/G5/G8/G9/G11 are the «Амалда» cells). Caller unlinks it.
      */
     public static function template(string $period = '2026-09', array $cells = []): string
     {
-        $out = tempnam(sys_get_temp_dir(), 'rmadm_') . '.xlsx';
-        Artisan::call('roadmap:template', ['--region' => 1733, '--period' => $period, '--out' => $out]);
-        Artisan::output();
+        $stub = tempnam(sys_get_temp_dir(), 'rmadm_');
+        @unlink($stub);                                 // roadmap:template writes its own file; don't leave the tempnam twin behind
+        $out = $stub . '.xlsx';
+
+        if (Artisan::call('roadmap:template', ['--region' => 1733, '--period' => $period, '--out' => $out]) !== 0) {
+            throw new \RuntimeException('AdminFixture template failed: ' . Artisan::output());
+        }
+        Artisan::output();   // drain
+
         if ($cells !== []) {
-            $book  = IOFactory::load($out);
-            $sheet = $book->getSheetByName('Хоразм вилояти');
-            foreach ($cells as $coord => $value) {
-                $sheet->setCellValue($coord, $value);
+            $book = IOFactory::load($out);
+            try {
+                $sheet = $book->getSheetByName('Хоразм вилояти')
+                    ?? throw new \RuntimeException('sheet «Хоразм вилояти» missing in the template');
+                foreach ($cells as $coord => $value) {
+                    $sheet->setCellValue($coord, $value);
+                }
+                IOFactory::createWriter($book, 'Xlsx')->save($out);
+            } finally {
+                $book->disconnectWorksheets();
             }
-            IOFactory::createWriter($book, 'Xlsx')->save($out);
-            $book->disconnectWorksheets();
         }
 
         return $out;
