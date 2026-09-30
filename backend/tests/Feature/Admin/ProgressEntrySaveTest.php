@@ -111,3 +111,86 @@ test('confirmRest writes carried values for every unsaved measure with lines and
     expect($confirms->firstWhere('roadmap_measure_id', $bogot->id)->new_value)->toBe('2 та қатор');
     expect(ProgressEntry::confirmRest($roadmap, '2026-09', $user))->toBe(0);          // nothing left
 });
+
+test('a save touching two measures at once writes and recomputes both', function () {
+    $roadmap = AdminFixture::roadmap();
+    $user    = AdminFixture::user();
+    $bogot   = AdminFixture::measure(2, 1, 1733204);
+    $gurlan  = AdminFixture::measure(2, 1, 1733208);
+    $b1      = AdminFixture::line($bogot, 1);
+    $g1      = AdminFixture::line($gurlan, 1);
+
+    $r = ProgressEntry::save($roadmap, '2026-09', [$b1->id => ['actual' => '5'], $g1->id => ['actual' => '10']], $user);
+
+    expect($r)->toBe(['measures' => 2, 'changes' => 2]);
+    expect($bogot->fresh()->latest_period)->toBe('2026-09');
+    expect($gurlan->fresh()->latest_period)->toBe('2026-09');
+});
+
+test('a note-only edit on a line whose actual is carried leaves the actual carried and unlogged', function () {
+    $roadmap = AdminFixture::roadmap();
+    $user    = AdminFixture::user();
+    $bogot   = AdminFixture::measure(2, 1, 1733204);
+    AdminFixture::report($bogot, '2026-08', [1 => 3.0, 2 => 10.0]);
+    $l1 = AdminFixture::line($bogot, 1);
+    $l2 = AdminFixture::line($bogot, 2);
+
+    $r = ProgressEntry::save($roadmap, '2026-09', [$l1->id => ['note' => 'янги изоҳ']], $user);
+    expect($r)->toBe(['measures' => 1, 'changes' => 1]);
+
+    $log = RoadmapChangeLog::all();
+    expect($log)->toHaveCount(1);
+    expect($log[0]->action)->toBe('note');
+
+    $p1 = $l1->progress()->where('report_period', '2026-09')->firstOrFail();
+    $p2 = $l2->progress()->where('report_period', '2026-09')->firstOrFail();
+    expect((float) $p1->actual_value)->toBe(3.0);                        // carried, unlogged
+    expect($p1->note)->toBe('янги изоҳ');
+    expect((float) $p2->actual_value)->toBe(10.0);                       // carried
+});
+
+test('confirmRest on a measure with a mix of carried and empty lines writes both, one with a null actual', function () {
+    $roadmap = AdminFixture::roadmap();
+    $user    = AdminFixture::user();
+    $bogot   = AdminFixture::measure(2, 1, 1733204);
+    AdminFixture::report($bogot, '2026-08', [1 => 3.0]);                 // line 2 never reported
+    $l1 = AdminFixture::line($bogot, 1);
+    $l2 = AdminFixture::line($bogot, 2);
+
+    expect(ProgressEntry::confirmRest($roadmap, '2026-09', $user))->toBe(4);   // every measure in the roadmap
+
+    $p1 = $l1->progress()->where('report_period', '2026-09')->firstOrFail();
+    $p2 = $l2->progress()->where('report_period', '2026-09')->firstOrFail();
+    expect((float) $p1->actual_value)->toBe(3.0);
+    expect($p2->actual_value)->toBeNull();
+
+    $confirm = RoadmapChangeLog::where('action', 'confirm')->where('roadmap_measure_id', $bogot->id)->firstOrFail();
+    expect($confirm->new_value)->toBe('2 та қатор');
+});
+
+test('a save into September after a Q3 report writes the month but latest_period keeps the quarter tiebreak', function () {
+    $roadmap = AdminFixture::roadmap();
+    $user    = AdminFixture::user();
+    $gurlan  = AdminFixture::measure(2, 1, 1733208);
+    AdminFixture::report($gurlan, '2026-Q3', [1 => 6.0]);
+    $line = AdminFixture::line($gurlan, 1);
+
+    $r = ProgressEntry::save($roadmap, '2026-09', [$line->id => ['actual' => '12']], $user);
+    expect($r)->toBe(['measures' => 1, 'changes' => 1]);
+
+    $p = $line->progress()->where('report_period', '2026-09')->firstOrFail();
+    expect((float) $p->actual_value)->toBe(12.0);
+    expect($gurlan->fresh()->latest_period)->toBe('2026-Q3');            // RoadmapPeriod::latest()'s tiebreak: a quarter outranks the month it closes
+});
+
+test('a period outside the road-map year is refused', function () {
+    $roadmap = AdminFixture::roadmap();
+    $user    = AdminFixture::user();
+    $bogot   = AdminFixture::measure(2, 1, 1733204);
+    $l1      = AdminFixture::line($bogot, 1);
+
+    expect(fn () => ProgressEntry::save($roadmap, '2031-04', [$l1->id => ['actual' => '5']], $user))
+        ->toThrow(InvalidArgumentException::class, '2026 йилнинг');
+    expect(RoadmapLineProgress::count())->toBe(0);
+    expect(RoadmapChangeLog::count())->toBe(0);
+});

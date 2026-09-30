@@ -16,6 +16,9 @@ use InvalidArgumentException;
  * Write side of the admin panel. Every write goes through MeasureLineSync::sync() —
  * the same path the importer uses — so the page can never disagree with the importer,
  * and every write logs to roadmap_change_log.
+ *
+ * The edit buffer comes from the panel's own Alpine code and is trusted to be well-shaped
+ * (line ids as keys, `actual`/`note` strings); odd shapes are refused or ignored, not sanitised.
  */
 final class ProgressEntry
 {
@@ -30,7 +33,7 @@ final class ProgressEntry
      */
     public static function save(Roadmap $roadmap, string $period, array $edits, User $user): array
     {
-        self::assertMonth($period);
+        self::assertMonth($roadmap, $period);
         if ($edits === []) {
             return ['measures' => 0, 'changes' => 0];
         }
@@ -62,35 +65,36 @@ final class ProgressEntry
             }
             $parsed[(int) $id] = $entry;
         }
+        $measureIds = $owned->pluck('roadmap_measure_id')->unique();
 
-        $measures = RoadmapMeasure::whereIn('id', $owned->pluck('roadmap_measure_id')->unique())
-            ->with('lines.progress')->orderBy('source_row')->get();
-
-        $changes = 0;
-        DB::transaction(function () use ($measures, $parsed, $period, $roadmap, $user, &$changes): void {
+        $measuresCount = 0;
+        $changes       = 0;
+        DB::transaction(function () use ($measureIds, $parsed, $period, $roadmap, $user, &$measuresCount, &$changes): void {
+            // Read inside the transaction: the old values logged below must come from the
+            // same snapshot MeasureLineSync::sync() is about to overwrite.
+            $measures = RoadmapMeasure::whereIn('id', $measureIds)->with('lines.progress')->orderBy('source_row')->get();
             foreach ($measures as $measure) {
-                $rows = [];
                 foreach ($measure->lines as $line) {
-                    $r      = ProgressSheet::resolveLine($line, $period);
-                    $edit   = $parsed[$line->id] ?? [];
-                    $actual = array_key_exists('actual', $edit) ? $edit['actual'] : $r['actual'];
-                    $note   = array_key_exists('note', $edit) ? $edit['note'] : $r['note'];
-                    $rows[] = ['label' => $line->label, 'unit' => $line->unit, 'plan' => $r['plan'], 'actual' => $actual, 'note' => $note];
-
-                    if (array_key_exists('actual', $edit) && MeasureLineSync::differs($r['saved_actual'], $actual)) {
-                        self::log($user, $roadmap, $measure, $line, $period, 'actual', self::num($r['saved_actual']), self::num($actual));
+                    $edit = $parsed[$line->id] ?? [];
+                    if ($edit === []) {
+                        continue;                          // untouched line: rowsFor() below carries it forward, nothing to log
+                    }
+                    $r = ProgressSheet::resolveLine($line, $period);
+                    if (array_key_exists('actual', $edit) && MeasureLineSync::differs($r['saved_actual'], $edit['actual'])) {
+                        self::log($user, $roadmap, $measure, $line, $period, 'actual', self::num($r['saved_actual']), self::num($edit['actual']));
                         $changes++;
                     }
-                    if (array_key_exists('note', $edit) && (string) $r['saved_note'] !== (string) $note) {
-                        self::log($user, $roadmap, $measure, $line, $period, 'note', $r['saved_note'], $note);
+                    if (array_key_exists('note', $edit) && (string) $r['saved_note'] !== (string) $edit['note']) {
+                        self::log($user, $roadmap, $measure, $line, $period, 'note', $r['saved_note'], $edit['note']);
                         $changes++;
                     }
                 }
-                MeasureLineSync::sync($measure, $rows, $period, $roadmap->year);
+                MeasureLineSync::sync($measure, self::rowsFor($measure, $period, $parsed), $period, $roadmap->year);
             }
+            $measuresCount = $measures->count();
         });
 
-        return ['measures' => $measures->count(), 'changes' => $changes];
+        return ['measures' => $measuresCount, 'changes' => $changes];
     }
 
     /**
@@ -100,38 +104,61 @@ final class ProgressEntry
      */
     public static function confirmRest(Roadmap $roadmap, string $period, User $user): int
     {
-        self::assertMonth($period);
-        $sheet = ProgressSheet::build($roadmap, $period);
-        $ids   = [];
-        foreach ($sheet['measures'] as $m) {
-            if ($m['state'] !== 'saved' && $m['lines'] !== []) {
-                $ids[] = $m['id'];
-            }
-        }
-        if ($ids === []) {
-            return 0;
-        }
+        self::assertMonth($roadmap, $period);
 
-        $measures = RoadmapMeasure::whereIn('id', $ids)->with('lines.progress')->orderBy('source_row')->get();
-        DB::transaction(function () use ($measures, $period, $roadmap, $user): void {
+        $count = 0;
+        DB::transaction(function () use ($period, $roadmap, $user, &$count): void {
+            // Read inside the transaction: same reason as save() — the sheet that decides
+            // who is confirmable must be the sheet MeasureLineSync::sync() is about to act on.
+            $ids = ProgressSheet::confirmableIds(ProgressSheet::build($roadmap, $period));
+            if ($ids === []) {
+                return;
+            }
+
+            $measures = RoadmapMeasure::whereIn('id', $ids)->with('lines.progress')->orderBy('source_row')->get();
             foreach ($measures as $measure) {
-                $rows = [];
-                foreach ($measure->lines as $line) {
-                    $r      = ProgressSheet::resolveLine($line, $period);
-                    $rows[] = ['label' => $line->label, 'unit' => $line->unit, 'plan' => $r['plan'], 'actual' => $r['actual'], 'note' => $r['note']];
-                }
+                $rows = self::rowsFor($measure, $period);
                 MeasureLineSync::sync($measure, $rows, $period, $roadmap->year);
                 self::log($user, $roadmap, $measure, null, $period, 'confirm', null, count($rows) . ' та қатор');
             }
+            $count = $measures->count();
         });
 
-        return $measures->count();
+        return $count;
     }
 
-    private static function assertMonth(string $period): void
+    /**
+     * The measure's complete line set, shaped as MeasureLineSync::sync() expects it: a line
+     * present in $parsed (keyed by line id) gets its edited value, every other line its
+     * current saved-or-carried value. `plan` is the line's stored decimal string, not
+     * resolveLine()'s rounded float — so a save never nudges plan_value or fires a spurious
+     * repct recompute on a measure nobody touched the plan of.
+     *
+     * @param  array<int, array{actual?: ?float, note?: ?string}> $parsed keyed by line id; a missing key = unchanged
+     * @return list<array{label: string, unit: ?string, plan: ?string, actual: ?float, note: ?string}>
+     */
+    private static function rowsFor(RoadmapMeasure $measure, string $period, array $parsed = []): array
+    {
+        $rows = [];
+        foreach ($measure->lines as $line) {
+            $r      = ProgressSheet::resolveLine($line, $period);
+            $edit   = $parsed[$line->id] ?? [];
+            $actual = array_key_exists('actual', $edit) ? $edit['actual'] : $r['actual'];
+            $note   = array_key_exists('note', $edit) ? $edit['note'] : $r['note'];
+            $rows[] = ['label' => $line->label, 'unit' => $line->unit, 'plan' => $line->plan_value, 'actual' => $actual, 'note' => $note];
+        }
+
+        return $rows;
+    }
+
+    /** A month within the road map's own year — a save can never land on another year's period. */
+    private static function assertMonth(Roadmap $roadmap, string $period): void
     {
         if (! RoadmapPeriod::isValid($period) || RoadmapPeriod::type($period) !== 'month') {
             throw new InvalidArgumentException("Нотўғри давр «{$period}» — YYYY-MM кутилади.");
+        }
+        if ((int) substr($period, 0, 4) !== (int) $roadmap->year) {
+            throw new InvalidArgumentException("Нотўғри давр «{$period}» — {$roadmap->year} йилнинг YYYY-MM ойи кутилади.");
         }
     }
 

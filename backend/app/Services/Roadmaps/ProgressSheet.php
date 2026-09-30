@@ -90,6 +90,26 @@ final class ProgressSheet
     }
 
     /**
+     * ids of measures not yet saved for the sheet's period but with lines to confirm — the
+     * same rule build() tallies into counts['confirmable']; callers that need the list (not
+     * just the count) go through here instead of re-deriving the rule.
+     *
+     * @param  array{measures: list<array<string, mixed>>, ...} $sheet from build()
+     * @return list<int>
+     */
+    public static function confirmableIds(array $sheet): array
+    {
+        $ids = [];
+        foreach ($sheet['measures'] as $m) {
+            if ($m['state'] !== 'saved' && $m['lines'] !== []) {
+                $ids[] = $m['id'];
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
      * @return array{id: int, line_no: int, label: string, unit: ?string, plan: ?float, actual: ?float, note: ?string,
      *               state: string, source_period: ?string, saved_actual: ?float, saved_note: ?string}
      */
