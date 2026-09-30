@@ -3525,8 +3525,6 @@ uses(RefreshDatabase::class);
 
 beforeEach(fn () => $this->seed());
 
-const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
 test('the panel opens for a region, refuses a non-xlsx, previews a dry run without writing, then applies and notifies', function () {
     AdminFixture::roadmap();
     $user = AdminFixture::user();
@@ -3546,7 +3544,8 @@ test('the panel opens for a region, refuses a non-xlsx, previews a dry run witho
             ->call('check')
             ->assertHasErrors(['file'])
             ->assertSee('Фақат .xlsx файл')
-            ->set('file', new UploadedFile($file, 'Хоразм.xlsx', XLSX_MIME, null, true))
+            // a plain UploadedFile has no $name — Livewire's test harness only accepts Testing\File (fake()) uploads
+            ->set('file', UploadedFile::fake()->createWithContent('Хоразм.xlsx', file_get_contents($file)))
             ->call('check')
             ->assertHasNoErrors()
             ->assertSet('report.ok', true)
@@ -3578,7 +3577,7 @@ test('a broken file shows the error line and apply is refused; the month select 
     try {
         $c = Livewire::test(ProgressUpload::class, ['period' => '2026-09'])
             ->dispatch('open-upload', code: 1733)
-            ->set('file', new UploadedFile($bad, 'bad.xlsx', XLSX_MIME, null, true))
+            ->set('file', UploadedFile::fake()->createWithContent('bad.xlsx', file_get_contents($bad)))
             ->set('uploadPeriod', '2026-Q3')
             ->call('check')
             ->assertHasErrors(['uploadPeriod'])
