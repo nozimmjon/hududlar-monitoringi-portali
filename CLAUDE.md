@@ -60,7 +60,7 @@ Pages are Livewire components, one per nav item, mounted from `resources/views/p
 
 The active region is session state (`App\Support\CurrentRegion`, default 1703 = Andijan, switchable via `RegionSwitcher`). Region/district reference data uses SOATO codes.
 
-Styling: `public/css/portal.css` is hand-maintained (not generated from `resources/css/app.css`; no `npm run build`). When changing UI, prefer reusing existing classes; new page styles get their own namespaced block appended to the file (e.g. `sec-`, `wr-`, `ad-`).
+Styling: `public/css/portal.css` is hand-maintained (not generated from `resources/css/app.css`; no `npm run build`). When changing UI, prefer reusing existing classes; new page styles get their own namespaced block appended to the file (e.g. `sec-`, `wr-`, `ad-`). The admin panel's `ad-`/`adm-` blocks carry their own token set, declared on `.adm-body`: ground, sheet, accent, positive, warning and numerals (`--ad-*` plus `--font-num`). Panel styles use those variables, not the portal's. The login page is a separate shell (`layouts/auth.blade.php`, `body.auth-body`) that inherits none of them, so its block keeps literal values.
 
 ### Data import pipelines
 

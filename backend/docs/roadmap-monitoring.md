@@ -266,24 +266,53 @@ until its session expired comes back to the login card with «Сессия му�
 
 ### The overview (`/admin/roadmaps?davr=YYYY-MM`)
 
-One card per region **that has a road map loaded**, in the portal's own region order —
-a region without one (Тошкент шаҳри) is not listed at all, the way the entry page's
-region select is built. Every card carries, **for the chosen month**:
+One card per region **that has a road map loaded** — a region without one (Тошкент
+шаҳри) is not listed at all, the way the entry page's region select is built.
 
-- how many of its measures are already **сақланган** (saved for this month), how many
-  stand on **ўтган ойдан** (carried from an earlier month, nothing written yet) and how
-  many are **бўш** — as a three-segment bar with the counts under it;
-- the status split (Бажарилди · Бажарилмоқда · Бажарилмаган). These are the measures'
-  stored statuses, from each one's **latest** report — not necessarily this month's; the
-  card's tooltip says so;
-- the last change: who and when (`d.m.Y H:i`, Asia/Tashkent), «терминал» when it came
-  from a command, «ҳали ўзгариш йўқ» when the road map has never been touched;
-- its own «Excel’дан юклаш» button.
+The header opens with four KPI tiles, each counting across every loaded road map at
+once, **for the chosen month**:
+
+- **Тўлдирилди** — measures already saved for this month, against the total
+  («N тадан · N%»);
+- **Ўтган ойдан** — measures standing on **carried** values (taken from an earlier
+  month, nothing written for this one yet), «тасдиқлашни кутмоқда»;
+- **Кечиккан** — measures whose deadline month has passed while they are still not
+  done. The tile turns to the warning colours as soon as the number is above zero;
+- **Тегилмаган вилоят** — road maps with no change-log entry at all, «ҳали ўзгариш йўқ».
+
+**«Кечиккан» is computed, never stored.** The database holds only the deadline as the
+document writes it («2026 йил декабрь»); `App\Support\Roadmaps\RoadmapDeadline::month()`
+parses that free text into a `YYYY-MM` at render time, and
+`App\Support\Roadmaps\RoadmapOverdue::count()` calls a measure late when **the deadline
+month the document names is earlier than the current month and the measure's status is
+not `done`**. It is the same rule as the measure's own «кечиккан» chip in the grid
+(`MeasureDisplay::deadlineChip()`), so a card's count and its measures' chips can never
+disagree. The comparison is always against **today**, never against the browsed month —
+a month in the past would otherwise report nothing late and the ranking would go quiet.
+No column, no migration, nothing to filter on in SQL: the count runs over the measures
+the page has already loaded.
+
+Under the tiles the cards come in two groups, each under a thin heading with its count:
+
+- **«Диққат талаб қилади»** — every region with at least one overdue measure *or* with
+  nothing at all saved for the chosen month;
+- **«Қолганлари»** — the rest. An empty group's heading is omitted.
+
+Inside a group the order is: most overdue first, then the smallest saved share, and the
+portal's own region order breaks what is still tied. So the list is a worklist, and it
+changes with the month and with the data — it is no longer the fixed region order.
+
+Each card shows, **for the chosen month**, a ring with its saved share, «N / M
+тўлдирилди · K та индикатор» and a two-segment bar (saved in the accent gradient,
+carried in amber). Its footer is not month-scoped: either the «N кечиккан» tag in the
+warning colours, or — when nothing is late — «N кун ўзгариш йўқ» since the last change
+of any kind («ҳали ўзгариш йўқ» when the road map has never been touched); then that
+last change, who and when (`d.m.Y H:i`, Asia/Tashkent; «терминал» when it came from a
+command), and its own «Excel’дан юклаш» button.
 
 The month select offers January of the road-map year up to the current month, never past
 December; a `?davr=` outside that range is clamped to the newest offered month. Clicking
-a card opens its entry grid for the same month. The header's totals cover every region
-at once.
+a card opens its entry grid for the same month.
 
 ### The entry grid (`/admin/roadmaps/{code}`)
 
@@ -293,21 +322,45 @@ detail lines and indicator labels, and «Excel’дан юклаш». Under them
 live counts; with everything filtered out the grid says «Фильтрга мос чора-тадбир йўқ»
 and offers the way back.
 
-The grid itself is the road map, grouped by section and district. Each measure gets its
-ring, number, title («Батафсил» opens the document's own detail lines), its status pill,
-its deadline chip, a state chip and the two tools ✎ and 🕓; under it one row per
-indicator line: label, «Ўлчов», «Режа», the «Амалда» cell, the live %, and «Изоҳ».
+The region's **completion ring** — measures saved for this month over all of them —
+sits in the page header beside the region name, over a sub-line reading «2026 йил
+октябрь · 95 чора-тадбир · 200 индикатор · N кечиккан» (the last clause only when
+something is late). There is one ring for the page, not one per measure; a measure's
+stored status (Бажарилди · Бажарилмоқда · Бажарилмаган) is not shown in the panel at
+all — that is the public page's job — because what the panel asks is *what has been
+entered for this month*.
+
+The grid itself is the road map, one sheet per section-and-district group. Each sheet
+opens with a strip that sticks under the admin bar while its measures scroll past,
+carrying the section's Roman numeral and title, the district and its head, the measure
+count and the «Режа · Амалда · %» column labels. Inside, every measure gets
+
+- a **numbered badge** — grey while the measure has nothing for this month, the accent
+  blue the moment it has a value (saved, carried, or merely typed and not yet saved);
+- its title, with «Батафсил» opening the document's own detail lines;
+- the **deadline as muted inline text** («муддат: 2026 йил декабрь»), not a chip;
+- chips **only when they carry something**: «кечиккан» in the warning colours (the rule
+  above), and one state chip, which is «сақланган», «ўтган ойдан» or «ўзгартирилган». A
+  measure that is untouched and on time wears no chip at all;
+- the two tools ✎ and 🕓;
+
+and under it one row per indicator line: label, «Ўлчов», «Режа», the «Амалда» cell, the
+live %, and «Изоҳ». The page scrolls as a whole — there is no inner scroll area; what
+stays put is the admin bar, the section strips beneath it, and the save bar at the
+bottom.
 
 **A new month opens pre-filled** from the latest earlier month that has values. A
 carried cell shows that value in grey italic and names its source month in the tooltip
 («2026-09дан кўчирилган»); a cell with nothing behind it has a dashed border. The
-measure's state chip says «ўтган ойдан», «бўш» or «сақланган» accordingly — and the
-pre-fill is only a **view** until it is written (see the hazards below).
+measure's state chip says «ўтган ойдан» or «сақланган» accordingly (a measure with
+nothing entered shows no chip) — and the pre-fill is only a **view** until it is written
+(see the hazards below).
 
 - **Nothing is written until «Сақлаш»** (or Ctrl+S — the physical key, so a Cyrillic
   layout works). Typing turns the cell amber and the state chip «ўзгартирилган»; the
-  line %, the ring and the status pill react to every keystroke with the same arithmetic
-  the server uses, and the server's answer replaces them after the save.
+  line %, the measure's badge and the filter counts react to every keystroke with the
+  same arithmetic the server uses, and the server's answer — the header ring included —
+  replaces them after the save.
 - **Numbers:** decimal comma or point, spaces inside the number ignored. A negative
   («манфий бўлмасин»), anything above 1e12 («жуда катта») and anything that is not a
   number («рақам эмас») turn the cell red and block the save — it stops with the
