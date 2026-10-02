@@ -52,107 +52,92 @@
     </div>
   @endif
 
-  <div class="ad-gridwrap">
-    <table class="ad-grid">
-      <thead>
-        <tr>
-          <th class="c-label">Индикатор</th><th class="c-unit">Ўлчов</th><th class="c-plan">Режа</th>
-          <th class="c-actual">Амалда</th><th class="c-pct">%</th><th class="c-note">Изоҳ</th>
-        </tr>
-      </thead>
-      @foreach($groups as $g)
-        <tbody class="ad-group" wire:key="g-{{ $g['key'] }}" x-show="showGroup($el)">
-          <tr><th colspan="6">
-            <span class="rn">{{ $g['roman'] }}.</span> <span class="st">{{ $g['section_title'] }}</span>
-            @if($g['district'])
-              <span class="dn">{{ $g['district'] }}</span>
-              @if($g['head'])<span class="hd">{{ $g['head'] }}</span>@endif
-            @endif
-          </th></tr>
-        </tbody>
-        @foreach($g['measures'] as $m)
-          @php
-            $chip      = MeasureDisplay::statusChip($m['status']);
-            $pctShown  = MeasureDisplay::pshow($m['pct'], $m['status'] === 'done');
-            $deadline  = MeasureDisplay::deadlineChip($m['deadline_text'], $roadmap->year, $m['status'], $today);
-            $search    = mb_strtolower(implode(' ', array_merge([$m['title'], $g['section_title'], (string) $g['district']], $m['details'], array_column($m['lines'], 'label'))));
-            $panelOpen = $panelFor === $m['id'];
-          @endphp
-          <tbody class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
+  @foreach($groups as $g)
+    <section class="ad-sheet ad-sec" wire:key="g-{{ $g['key'] }}" x-show="showGroup($el)">
+      <header class="ad-sec-head">
+        <div class="t">
+          <span class="rn">{{ $g['roman'] }}</span>
+          <span class="st">{{ $g['section_title'] }}</span>
+          @if($g['district'])
+            <span class="dn">{{ $g['district'] }}</span>
+            @if($g['head'])<span class="hd">{{ $g['head'] }}</span>@endif
+          @endif
+        </div>
+        <span class="cnt tnum">{{ count($g['measures']) }} та чора-тадбир</span>
+        <span class="cols"><span>Режа</span><span>Амалда</span><span>%</span></span>
+      </header>
+
+      @foreach($g['measures'] as $m)
+        @php
+          $deadline  = MeasureDisplay::deadlineChip($m['deadline_text'], $roadmap->year, $m['status'], $today);
+          $search    = mb_strtolower(implode(' ', array_merge([$m['title'], $g['section_title'], (string) $g['district']], $m['details'], array_column($m['lines'], 'label'))));
+          $panelOpen = $panelFor === $m['id'];
+        @endphp
+        <article class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
                  data-search="{{ $search }}" :class="'st-' + statusClass({{ $m['id'] }})" x-show="show($el)" x-data="{ det: false }">
-            <tr class="ad-mrow">
-              <td colspan="6">
-                <div class="ad-mhead">
-                  <div class="wr-ring {{ $m['lines'] === [] ? 'na' : '' }}" role="img" aria-label="Бажарилиш">
-                    <svg viewBox="0 0 44 44">
-                      <circle class="tr" cx="22" cy="22" r="18"/>
-                      <circle class="fg" cx="22" cy="22" r="18" :style="ringStyle({{ $m['id'] }})" style="stroke-dasharray:113.1;stroke-dashoffset:{{ MeasureDisplay::ringOffset($pctShown) }}"/>
-                    </svg>
-                    <b class="tnum" x-text="ringText({{ $m['id'] }})">{{ $pctShown === null ? '—' : $pctShown . '%' }}</b>
-                  </div>
-                  <span class="no tnum">{{ $m['seq_no'] }}</span>
-                  <div class="ttl">
-                    <div class="t">{{ $m['title'] }}</div>
-                    @if($m['details'] !== [])
-                      <button type="button" class="wr-more" x-on:click="det = !det" :aria-expanded="det">
-                        <span class="c" :class="det && 'open'">▸</span>
-                        <span x-text="det ? 'Ёпиш' : 'Батафсил ({{ count($m['details']) }} банд)'">Батафсил ({{ count($m['details']) }} банд)</span>
-                      </button>
-                      <div class="wr-details" x-show="det" x-cloak>@foreach($m['details'] as $line)<p>{{ $line }}</p>@endforeach</div>
-                    @endif
-                  </div>
-                  <span class="wr-status" :class="statusClass({{ $m['id'] }})"
-                        @if(! $m['status_is_current'] && $m['latest_period']) title="Базадаги ҳолат: {{ RoadmapPeriod::label($m['latest_period']) }} ҳисоботи бўйича" @endif><i></i><span x-text="statusLabel({{ $m['id'] }})">{{ $chip['label'] }}</span></span>
-                  <span class="wr-tag {{ $deadline['cls'] }}">{{ $deadline['label'] }}</span>
-                  <span class="ad-state" :class="mstate({{ $m['id'] }})" x-text="mstateLabel({{ $m['id'] }})">{{ $stateLabels[$m['state']] }}</span>
-                  <span class="ad-tools">
-                    <button type="button" class="ad-ico" title="Индикаторларни тузатиш" aria-label="Тузатиш" wire:click="openPanel({{ $m['id'] }})">✎</button>
-                    <button type="button" class="ad-ico" title="Ўзгаришлар тарихи" aria-label="Тарих" wire:click="openHistory({{ $m['id'] }})">🕓</button>
-                  </span>
+          <div class="ad-mrow">
+            <span class="no ad-num" :class="mstate({{ $m['id'] }}) !== 'empty' && 'on'">{{ $m['seq_no'] }}</span>
+            <div class="ttl">
+              <div class="t">{{ $m['title'] }}</div>
+              <div class="meta">
+                <span class="due">муддат: {{ $deadline['label'] }}</span>
+                @if($deadline['cls'] === 'over')<span class="ad-chip warn">кечиккан</span>@endif
+                <span class="ad-chip" :class="mstateChip({{ $m['id'] }})" x-show="mstate({{ $m['id'] }}) !== 'empty'" x-text="mstateLabel({{ $m['id'] }})" x-cloak>{{ $stateLabels[$m['state']] }}</span>
+              </div>
+              @if($m['details'] !== [])
+                <button type="button" class="wr-more" x-on:click="det = !det" :aria-expanded="det">
+                  <span class="c" :class="det && 'open'">▸</span>
+                  <span x-text="det ? 'Ёпиш' : 'Батафсил ({{ count($m['details']) }} банд)'">Батафсил ({{ count($m['details']) }} банд)</span>
+                </button>
+                <div class="wr-details" x-show="det" x-cloak>@foreach($m['details'] as $line)<p>{{ $line }}</p>@endforeach</div>
+              @endif
+            </div>
+            <span class="ad-tools">
+              <button type="button" class="ad-ico" title="Индикаторларни тузатиш" aria-label="Тузатиш" wire:click="openPanel({{ $m['id'] }})">✎</button>
+              <button type="button" class="ad-ico" title="Ўзгаришлар тарихи" aria-label="Тарих" wire:click="openHistory({{ $m['id'] }})">🕓</button>
+            </span>
+          </div>
+
+          @forelse($m['lines'] as $l)
+            @php $pct = $l['plan'] !== null && $l['plan'] != 0.0 && $l['actual'] !== null ? $l['actual'] / $l['plan'] * 100 : null; @endphp
+            <div class="ad-lrow" wire:key="l-{{ $l['id'] }}">
+              <div class="c-label">{{ $l['label'] }}</div>
+              <div class="c-unit">{{ $l['unit'] }}</div>
+              <div class="c-plan ad-num">{{ MeasureDisplay::fmt($l['plan']) }}</div>
+              <div class="c-actual">
+                <div class="ad-cell actual {{ $l['state'] }}" :class="cellClass({{ $l['id'] }}, 'actual')" wire:key="ac-{{ $l['id'] }}-{{ $version }}"
+                     @if($l['state'] === 'carry') title="{{ RoadmapPeriod::label($l['source_period']) }}дан кўчирилган" @endif>
+                  <input type="text" inputmode="decimal" class="ad-num" value="{{ EntryValue::format($l['actual']) }}" placeholder="—"
+                         data-line="{{ $l['id'] }}" data-measure="{{ $m['id'] }}" data-field="actual" data-plan="{{ $l['plan'] ?? '' }}" data-loaded="{{ $l['actual'] ?? '' }}" data-loaded-text="{{ EntryValue::format($l['actual']) }}" data-state="{{ $l['state'] }}"
+                         x-on:input="onInput($event)" x-on:keydown="cellKey($event)" x-on:blur="onBlur($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — амалда">
+                  <span class="msg" x-text="invalid[{{ $l['id'] }}] || ''"></span>
                 </div>
-              </td>
-            </tr>
-            @forelse($m['lines'] as $l)
-              @php $pct = $l['plan'] !== null && $l['plan'] != 0.0 && $l['actual'] !== null ? $l['actual'] / $l['plan'] * 100 : null; @endphp
-              <tr class="ad-lrow" wire:key="l-{{ $l['id'] }}">
-                <td class="c-label">{{ $l['label'] }}</td>
-                <td class="c-unit">{{ $l['unit'] }}</td>
-                <td class="c-plan tnum">{{ MeasureDisplay::fmt($l['plan']) }}</td>
-                <td class="c-actual">
-                  <div class="ad-cell actual {{ $l['state'] }}" :class="cellClass({{ $l['id'] }}, 'actual')" wire:key="ac-{{ $l['id'] }}-{{ $version }}"
-                       @if($l['state'] === 'carry') title="{{ RoadmapPeriod::label($l['source_period']) }}дан кўчирилган" @endif>
-                    <input type="text" inputmode="decimal" class="tnum" value="{{ EntryValue::format($l['actual']) }}" placeholder="—"
-                           data-line="{{ $l['id'] }}" data-measure="{{ $m['id'] }}" data-field="actual" data-plan="{{ $l['plan'] ?? '' }}" data-loaded="{{ $l['actual'] ?? '' }}" data-loaded-text="{{ EntryValue::format($l['actual']) }}" data-state="{{ $l['state'] }}"
-                           x-on:input="onInput($event)" x-on:keydown="cellKey($event)" x-on:blur="onBlur($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — амалда">
-                    <span class="msg" x-text="invalid[{{ $l['id'] }}] || ''"></span>
-                  </div>
-                </td>
-                <td class="c-pct tnum"><span :class="pctClass({{ $l['id'] }})" x-text="pctText({{ $l['id'] }})">{{ $pct === null ? '—' : round($pct) . '%' }}</span></td>
-                <td class="c-note">
-                  <div class="ad-cell note {{ $l['state'] }}" :class="cellClass({{ $l['id'] }}, 'note')" wire:key="nc-{{ $l['id'] }}-{{ $version }}">
-                    <input type="text" maxlength="500" value="{{ $l['note'] }}" placeholder="Изоҳ…"
-                           data-line="{{ $l['id'] }}" data-measure="{{ $m['id'] }}" data-field="note" data-loaded-text="{{ $l['note'] }}"
-                           x-on:input="onInput($event)" x-on:keydown="cellKey($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — изоҳ">
-                  </div>
-                </td>
-              </tr>
-            @empty
-              <tr class="ad-lrow none"><td colspan="6">Индикаторлар белгиланмаган — ✎ орқали қўшинг</td></tr>
-            @endforelse
-            @if($panelOpen)
-              <tr class="ad-prow" wire:key="p-{{ $m['id'] }}"><td colspan="6">@include('livewire.admin.partials.correction-panel')</td></tr>
-            @endif
-          </tbody>
-        @endforeach
+              </div>
+              <div class="c-pct ad-num"><span :class="pctClass({{ $l['id'] }})" x-text="pctText({{ $l['id'] }})">{{ $pct === null ? '—' : round($pct) . '%' }}</span></div>
+              <div class="c-note">
+                <div class="ad-cell note {{ $l['state'] }}" :class="cellClass({{ $l['id'] }}, 'note')" wire:key="nc-{{ $l['id'] }}-{{ $version }}">
+                  <input type="text" maxlength="500" value="{{ $l['note'] }}" placeholder="Изоҳ…"
+                         data-line="{{ $l['id'] }}" data-measure="{{ $m['id'] }}" data-field="note" data-loaded-text="{{ $l['note'] }}"
+                         x-on:input="onInput($event)" x-on:keydown="cellKey($event)" @disabled($panelOpen) aria-label="{{ $l['label'] }} — изоҳ">
+                </div>
+              </div>
+            </div>
+          @empty
+            <div class="ad-lrow none">Индикаторлар белгиланмаган — ✎ орқали қўшинг</div>
+          @endforelse
+
+          @if($panelOpen)
+            <div class="ad-prow" wire:key="p-{{ $m['id'] }}">@include('livewire.admin.partials.correction-panel')</div>
+          @endif
+        </article>
       @endforeach
-      {{-- every tbody hidden would leave a bare thead: say so, and offer the way back --}}
-      <tbody class="ad-empty" x-show="visibleMeasures === 0" x-cloak>
-        <tr><td colspan="6">
-          Фильтрга мос чора-тадбир йўқ ·
-          <button type="button" class="ad-link" x-on:click="filter = 'all'; search = ''">Барчасини кўрсатиш</button>
-        </td></tr>
-      </tbody>
-    </table>
+    </section>
+  @endforeach
+
+  {{-- with every sheet hidden the page would be blank: say so, and offer the way back --}}
+  <div class="ad-sheet ad-empty" x-show="visibleMeasures === 0" x-cloak>
+    Фильтрга мос чора-тадбир йўқ ·
+    <button type="button" class="ad-link" x-on:click="filter = 'all'; search = ''">Барчасини кўрсатиш</button>
   </div>
 
   <div class="ad-savebar" x-data="{ arm: false }">

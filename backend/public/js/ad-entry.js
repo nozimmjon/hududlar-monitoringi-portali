@@ -6,7 +6,7 @@
    server re-render (the `ad-refresh` window event) so DOM-derived counts recompute.
 
    DOM access goes through `root`, captured once in init(), never through `$root`: the
-   view nests x-data on each measure tbody and on the save bar, and inside those scopes
+   view nests x-data on each measure article and on the save bar, and inside those scopes
    `$root` is that element, not the grid. `idx` is the per-tick index of that root. */
 document.addEventListener('alpine:init', () => {
   Alpine.data('adEntry', () => {
@@ -62,7 +62,7 @@ document.addEventListener('alpine:init', () => {
          lives in the closure, out of the reactive object, so reading it registers no dependency. */
       _index() {
         if (idx.tick === this.tick && (idx.probe === null || idx.probe.isConnected)) return idx;
-        const tbodies = Array.from(root.querySelectorAll('tbody.ad-m'));
+        const tbodies = Array.from(root.querySelectorAll('.ad-m'));
         const byMeasure = new Map();
         const byLine = new Map();
         let probe = null;
@@ -79,7 +79,7 @@ document.addEventListener('alpine:init', () => {
       lineEl(id) { return this._index().byLine.get(String(id))?.actual ?? null; },
       inputs(mid) { return this._index().byMeasure.get(String(mid))?.actuals ?? []; },
       measureEls() { return this._index().tbodies; },
-      tbodyOf(mid) { return this._index().byMeasure.get(String(mid))?.tbody ?? null; },
+      measureOf(mid) { return this._index().byMeasure.get(String(mid))?.tbody ?? null; },
       actualOf(el) {
         const e = this.edits[el.dataset.line];
         if (e && 'actual' in e) { try { return this.parse(e.actual); } catch { return null; } }
@@ -114,8 +114,8 @@ document.addEventListener('alpine:init', () => {
       // ---- per measure (mirror of MeasureRecomputer::aggregate) ----
       agg(mid) {
         void this.tick;
-        const tbody = this.tbodyOf(mid);
-        const deadline = !!tbody && tbody.dataset.deadline === '1';
+        const measure = this.measureOf(mid);
+        const deadline = !!measure && measure.dataset.deadline === '1';
         let total = 0, done = 0, hasActual = false, sum = 0;
         for (const el of this.inputs(mid)) {
           const plan = el.dataset.plan === '' ? null : parseFloat(el.dataset.plan);
@@ -147,10 +147,15 @@ document.addEventListener('alpine:init', () => {
         for (const el of this.inputs(mid)) {
           if (this.edits[el.dataset.line]) return 'edited';
         }
-        const tbody = this.tbodyOf(mid);
-        return tbody ? tbody.dataset.state : 'empty';
+        const measure = this.measureOf(mid);
+        return measure ? measure.dataset.state : 'empty';
       },
       mstateLabel(mid) { return { saved: 'сақланган', carry: 'ўтган ойдан', empty: 'бўш', edited: 'ўзгартирилган' }[this.mstate(mid)]; },
+      /** chip colour for a measure's state: saved reads positive, carry and edited read as pending */
+      mstateChip(mid) {
+        const s = this.mstate(mid);
+        return s === 'saved' ? 'ok' : (s === 'empty' ? '' : 'edit');
+      },
       unfilled(mid) {
         for (const el of this.inputs(mid)) { if (this.actualOf(el) === null) return true; }
         return false;
@@ -170,11 +175,10 @@ document.addEventListener('alpine:init', () => {
           default: return true;
         }
       },
-      showGroup(tbody) {
+      /** a section sheet is shown when any measure inside it passes the filter */
+      showGroup(sheet) {
         void this.tick; void this.search; void this.filter;
-        for (let el = tbody.nextElementSibling; el && el.classList.contains('ad-m'); el = el.nextElementSibling) {
-          if (this.show(el)) return true;
-        }
+        for (const el of sheet.querySelectorAll('.ad-m')) { if (this.show(el)) return true; }
         return false;
       },
       count(kind) {
@@ -186,7 +190,7 @@ document.addEventListener('alpine:init', () => {
         }
         return n;
       },
-      // Drives the «no measure matches the filter» row: with every tbody hidden the grid is a bare thead.
+      // Drives the «no measure matches the filter» sheet: with every sheet hidden the page would be blank.
       get visibleMeasures() {
         void this.tick; void this.filter; void this.search;
         let n = 0;
