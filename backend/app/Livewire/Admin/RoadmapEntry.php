@@ -9,6 +9,7 @@ use App\Models\RoadmapMeasure;
 use App\Services\Roadmaps\ProgressEntry;
 use App\Services\Roadmaps\ProgressSheet;
 use App\Support\Roadmaps\EntryValue;
+use App\Support\Roadmaps\RoadmapOverdue;
 use App\Support\Roadmaps\Roman;
 use InvalidArgumentException;
 use Livewire\Attributes\On;
@@ -233,6 +234,9 @@ class RoadmapEntry extends Component
             'sheet'        => $sheet,
             'groups'       => array_values($groups),
             'today'        => ProgressSheet::currentPeriod(),
+            // against today, never $this->period: judged by the browsed month, looking back at an older
+            // one would report every deadline as still ahead and the header count would read 0.
+            'overdue'      => RoadmapOverdue::count($sheet['measures'], $roadmap->year, ProgressSheet::currentPeriod()),
             'history'      => $history,
             'historyTitle' => $historyTitle,
         ]);

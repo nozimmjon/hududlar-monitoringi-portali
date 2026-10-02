@@ -8,41 +8,47 @@
      x-on:ad-refresh.window="tick++; $nextTick(() => reapply())"
      {{-- an import replaces the values: the buffer is dropped, never re-applied over them --}}
      x-on:ad-imported.window="onImported()">
-  <header class="ad-head ad-sticky">
+  <header class="ad-head">
     <div class="ad-head-row">
-      <div class="ad-titles">
-        <h2 class="ad-title">Амалда киритиш <span class="rg">· {{ $region->name_full }}</span></h2>
-        <p class="ad-sub">{{ RoadmapPeriod::label($period) }} · {{ count($sheet['measures']) }} та чора-тадбир · йил бошидан жами қийматлар</p>
+      @php $done = count($sheet['measures']) > 0 ? (int) round($sheet['counts']['saved'] / count($sheet['measures']) * 100) : 0; @endphp
+      <div class="ad-ring" style="background:conic-gradient(from 180deg, var(--ad-accent) 0 {{ $done }}%, #E2EAF4 {{ $done }}% 100%)" aria-hidden="true">
+        <i><b class="ad-num">{{ $done }}%</b><em>бажарилди</em></i>
       </div>
-      <label class="ad-select">
-        <span>Вилоят</span>
-        <select data-current="{{ $region->code }}" x-on:change="changeRegion($event)" aria-label="Вилоят">
-          @foreach($regions as $r)
-            <option value="{{ $r->code }}" @selected($r->code === $region->code)>{{ $r->name_full }}</option>
-          @endforeach
-        </select>
-      </label>
-      <label class="ad-select">
-        <span>Ой</span>
-        <select data-current="{{ $period }}" x-on:change="changePeriod($event)" aria-label="Ҳисобот ойи">
-          @foreach($periods as $p)
-            <option value="{{ $p }}" @selected($p === $period)>{{ RoadmapPeriod::label($p) }}</option>
-          @endforeach
-        </select>
-      </label>
-      <div class="ad-search"><input type="search" x-model.debounce.150ms="search" placeholder="Чора-тадбир, индикатор…" aria-label="Қидирув"></div>
-      {{-- an import overwrites the sheet, so it must not start on top of unsaved typing --}}
-      <button type="button" class="ad-btn ghost" :disabled="editedLines > 0"
-              :title="editedLines > 0 ? 'Аввал ўзгаришларни сақланг ёки бекор қилинг' : 'Тўлдирилган шаблонни юклаш'"
-              wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
+      <div class="ad-titles">
+        <h2 class="ad-title">{{ $region->name_full }}</h2>
+        <p class="ad-sub">{{ RoadmapPeriod::label($period) }} · {{ count($sheet['measures']) }} та чора-тадбир · {{ array_sum(array_map(fn ($m) => count($m['lines']), $sheet['measures'])) }} та индикатор@if($overdue > 0) · <span class="over">{{ $overdue }} кечиккан</span>@endif</p>
+        <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
+          <button type="button" :class="filter === 'all' && 'on'" :aria-pressed="filter === 'all'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ count($sheet['measures']) }}</b></button>
+          <button type="button" :class="filter === 'unfilled' && 'on'" :aria-pressed="filter === 'unfilled'" x-on:click="filter = 'unfilled'">Тўлдирилмаган <b class="tnum" x-text="count('unfilled')">—</b></button>
+          <button type="button" :class="filter === 'edited' && 'on'" :aria-pressed="filter === 'edited'" x-on:click="filter = 'edited'">Ўзгартирилган <b class="tnum" x-text="count('edited')">0</b></button>
+          <button type="button" :class="filter === 'carry' && 'on'" :aria-pressed="filter === 'carry'" x-on:click="filter = 'carry'">Ўтган ойдан <b class="tnum" x-text="count('carry')">{{ $sheet['counts']['carry'] }}</b></button>
+          <button type="button" :class="filter === 'saved' && 'on'" :aria-pressed="filter === 'saved'" x-on:click="filter = 'saved'">Сақланган <b class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</b></button>
+        </nav>
+      </div>
+      <div class="ad-controls">
+        <label class="ad-select">
+          <span>Вилоят</span>
+          <select data-current="{{ $region->code }}" x-on:change="changeRegion($event)" aria-label="Вилоят">
+            @foreach($regions as $r)
+              <option value="{{ $r->code }}" @selected($r->code === $region->code)>{{ $r->name_full }}</option>
+            @endforeach
+          </select>
+        </label>
+        <label class="ad-select">
+          <span>Ой</span>
+          <select data-current="{{ $period }}" x-on:change="changePeriod($event)" aria-label="Ҳисобот ойи">
+            @foreach($periods as $p)
+              <option value="{{ $p }}" @selected($p === $period)>{{ RoadmapPeriod::label($p) }}</option>
+            @endforeach
+          </select>
+        </label>
+        <div class="ad-search"><input type="search" x-model.debounce.150ms="search" placeholder="Чора-тадбир, индикатор…" aria-label="Қидирув"></div>
+        {{-- an import overwrites the sheet, so it must not start on top of unsaved typing --}}
+        <button type="button" class="ad-btn ghost" :disabled="editedLines > 0"
+                :title="editedLines > 0 ? 'Аввал ўзгаришларни сақланг ёки бекор қилинг' : 'Тўлдирилган шаблонни юклаш'"
+                wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
+      </div>
     </div>
-    <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
-      <button type="button" :class="filter === 'all' && 'on'" :aria-pressed="filter === 'all'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ count($sheet['measures']) }}</b></button>
-      <button type="button" :class="filter === 'unfilled' && 'on'" :aria-pressed="filter === 'unfilled'" x-on:click="filter = 'unfilled'">Тўлдирилмаган <b class="tnum" x-text="count('unfilled')">—</b></button>
-      <button type="button" :class="filter === 'edited' && 'on'" :aria-pressed="filter === 'edited'" x-on:click="filter = 'edited'">Ўзгартирилган <b class="tnum" x-text="count('edited')">0</b></button>
-      <button type="button" :class="filter === 'carry' && 'on'" :aria-pressed="filter === 'carry'" x-on:click="filter = 'carry'">Ўтган ойдан <b class="tnum" x-text="count('carry')">{{ $sheet['counts']['carry'] }}</b></button>
-      <button type="button" :class="filter === 'saved' && 'on'" :aria-pressed="filter === 'saved'" x-on:click="filter = 'saved'">Сақланган <b class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</b></button>
-    </nav>
   </header>
 
   @if($error !== '')
