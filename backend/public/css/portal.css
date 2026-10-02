@@ -6240,18 +6240,23 @@ body.sectors-body{
 }
 
 /* ===================== admin panel (2026-09-30): login page + sidebar auth ===================== */
-.auth-body{display:block;min-height:100vh;margin:0;background:linear-gradient(160deg,#0a1128 0%,#12305e 55%,#2b61af 100%);font-family:var(--font-sans);color:var(--ink)}
+/* Literal hex, not the --ad-* tokens: layouts/auth.blade.php is its own shell (body.auth-body, Inter
+   only, no Manrope), so nothing here ever inherits the token block declared on .adm-body. */
+.auth-body{display:block;min-height:100vh;margin:0;background:
+    radial-gradient(760px 320px at 80% -10%, rgba(23,105,224,.18), transparent 60%),
+    radial-gradient(620px 280px at 10% 10%, rgba(99,179,237,.16), transparent 60%),
+    linear-gradient(160deg,#0A1128 0%,#12305E 55%,#2B61AF 100%);font-family:var(--font-sans);color:var(--ink)}
 .auth-wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-.auth-card{width:min(100%,380px);background:var(--paper);border-radius:20px;padding:28px 28px 26px;box-shadow:0 30px 70px rgba(5,20,45,.45);display:flex;flex-direction:column}
-.auth-brand{align-self:center;background:#0a1128;border-radius:14px;padding:12px 18px;margin-bottom:16px}
+.auth-card{width:min(100%,390px);background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.5);border-radius:22px;padding:30px 30px 28px;box-shadow:0 30px 70px rgba(5,20,45,.45);display:flex;flex-direction:column;backdrop-filter:blur(12px)}
+.auth-brand{align-self:center;background:#0A1128;border-radius:16px;padding:12px 18px;margin-bottom:16px;box-shadow:0 10px 26px rgba(10,17,40,.35)}
 .auth-brand img{height:30px;display:block}
-.auth-card h1{font-size:19px;font-weight:800;letter-spacing:-.01em;text-align:center;margin:0}
-.auth-card .sub{text-align:center;font-size:12.5px;color:var(--muted);margin:4px 0 18px}
-.auth-card label{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:10px 0 5px}
-.auth-card input{border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
-.auth-card input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,97,175,.16)}
-.auth-card button{margin-top:18px;border:0;border-radius:999px;padding:11px 16px;font:inherit;font-size:14px;font-weight:800;color:#fff;background:var(--accent-grad);box-shadow:0 10px 24px rgba(23,105,224,.32);cursor:pointer}
-.auth-card button:hover{filter:brightness(1.06)}
+.auth-card h1{font-size:19px;font-weight:800;letter-spacing:-.02em;text-align:center;margin:0}
+.auth-card .sub{text-align:center;font-size:12.5px;color:var(--muted);margin:5px 0 20px}
+.auth-card label{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+.auth-card input{border:1.5px solid #D3DEEB;border-radius:12px;padding:11px 13px;font:inherit;font-size:14px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.auth-card input:focus{border-color:#1769E0;box-shadow:0 0 0 4px rgba(23,105,224,.14)}
+.auth-card button{margin-top:20px;border:0;border-radius:999px;padding:12px 16px;font:inherit;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#1769E0,#3E8BFF);box-shadow:0 12px 26px rgba(23,105,224,.36);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.auth-card button:hover{transform:translateY(-1px);box-shadow:0 16px 32px rgba(23,105,224,.44)}
 .auth-error{background:#fdecea;color:var(--task-red);border-radius:10px;padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:4px}
 .side-auth{display:flex;align-items:center;gap:8px;padding:10px 6px 0;margin-top:8px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:rgba(255,255,255,.7)}
 .side-auth .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
@@ -6440,38 +6445,46 @@ body.sectors-body{
 }
 
 /* ===================== admin panel: upload slide-over ===================== */
-.ad-scrim{position:fixed;inset:0;z-index:31;background:rgba(10,17,40,.35)}
-.ad-upload{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:32;background:var(--paper);border-left:1px solid var(--line);box-shadow:-16px 0 40px rgba(16,32,51,.22);padding:18px 20px;overflow:auto;display:flex;flex-direction:column;gap:14px}
-.ad-upload .h{display:flex;justify-content:space-between;align-items:flex-start;font-size:15px}
-.ad-upload .h .muted{display:block;font-size:12.5px;margin-top:2px}
-.ad-upload .f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.ad-upload .f select{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:8px 10px;background:#fff}
+.ad-scrim{position:fixed;inset:0;z-index:31;background:rgba(10,17,40,.35);backdrop-filter:blur(2px)}
+.ad-upload{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:32;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.20);padding:20px 22px;overflow:auto;backdrop-filter:blur(10px)}
+/* The sheet stacks on the children's own margins, not a flex gap on the panel, so each block below
+   owns its spacing. The heading is a <b> and the region name a .muted span, not an h3 + .sub. */
+.ad-upload .h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.ad-upload .h b{font-size:16px;font-weight:800;letter-spacing:-.015em}
+.ad-upload .h .muted{display:block;font-size:12px;color:var(--ad-muted);margin-top:3px}
+.ad-upload .f{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.ad-upload .f > span{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ad-faint)}
+.ad-upload select{width:100%;border:1.5px solid #D3DEEB;border-radius:12px;padding:10px 13px;font:inherit;font-size:13px;font-weight:700;background:#fff;outline:none}
+.ad-upload select:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
 /* file picker: the native control writes «Choose File / No file chosen» in English and cannot be
    relabelled, so the input is hidden inside this label (still focusable, still the wire:model target). */
-.ad-file{position:relative;display:flex;align-items:center;gap:10px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500}
-.ad-file:focus-within{border-color:var(--blue)}
+.ad-file{position:relative;display:flex;align-items:center;gap:11px;border:1.5px dashed #CBD9E8;border-radius:14px;padding:12px 14px;cursor:pointer;background:linear-gradient(180deg,#fff,#FBFCFE);transition:border-color .15s,box-shadow .15s}
+.ad-file:hover{border-color:var(--ad-accent)}
+/* after :hover on purpose — at equal specificity only source order keeps the focus ring visible */
+.ad-file:focus-within{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
 .ad-file input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
-.ad-file-btn{flex:0 0 auto;border:1px solid var(--line-strong);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:750;color:var(--blue);background:var(--paper);white-space:nowrap}
-.ad-file:hover .ad-file-btn{background:var(--blue-soft)}
-.ad-file-name{min-width:0;color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ad-upload .f em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:var(--task-red)}
-.ad-upload .f .muted{text-transform:none;letter-spacing:0;font-weight:500}
+.ad-file-btn{flex:0 0 auto;font-size:11.5px;font-weight:800;color:var(--ad-accent);background:#EAF2FE;border-radius:999px;padding:6px 13px;white-space:nowrap}
+/* min-width:0 or the flex item will not shrink, and a long file name pushes out of the drawer */
+.ad-file-name{min-width:0;font-size:12.5px;color:var(--ad-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-upload .f em{font-style:normal;font-size:12px;font-weight:600;color:var(--task-red)}
+/* .f and .acts no longer set a font-size, and nothing up the chain does either, so the two
+   wire:loading lines would fall back to the 16px default without this. */
+.ad-upload .f .muted,.ad-upload .acts .muted{font-size:12px}
 .ad-upload .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ad-done{background:var(--green-soft);color:var(--task-green);border-radius:12px;padding:12px 14px;font-weight:700}
-.ad-upload .rep{border-top:1px solid var(--line);padding-top:12px;font-size:12.5px}
-.ad-upload .rep .ok{color:var(--ink);font-weight:600;margin:0 0 8px}
-.ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#fdecea;border-radius:10px;padding:10px 12px;margin:0}
-.ad-upload .rep .warn{color:#a35e00;background:#fff4e0;border-radius:10px;padding:8px 12px;margin:6px 0 0}
+.ad-done{background:linear-gradient(135deg,#E8F6EF,#D9F0E4);color:#0F7A4F;border-radius:14px;padding:12px 14px;font-weight:700}
+.ad-upload .rep{margin-top:16px;border-top:1px solid var(--ad-hair-strong);padding-top:12px;font-size:12.5px}
+.ad-upload .rep .ok{color:var(--ad-ink);font-weight:600;margin:0 0 8px}
+.ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#FDECEA;border-radius:12px;padding:10px 12px;margin:0}
+.ad-upload .rep .warn{color:var(--ad-warn-ink);background:var(--ad-warn-bg);border-radius:12px;padding:8px 12px;margin:6px 0 0}
 /* Eight columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
    of running into each other. The scroll wrapper stays only as a safety net for narrow phones. */
 .ad-upload .tbl{overflow-x:auto}
-.ad-upload table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:12px}
-.ad-upload th,.ad-upload td{border-bottom:1px solid var(--line);padding:6px 5px;text-align:left}
-.ad-upload th{font-size:10px;line-height:1.15;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);white-space:normal;vertical-align:bottom;hyphens:auto;overflow-wrap:anywhere}
-.ad-upload td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-upload table{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:14px;font-size:12px}
+.ad-upload th{font-size:10px;font-weight:800;line-height:1.15;text-transform:uppercase;letter-spacing:.04em;color:var(--ad-faint);text-align:left;vertical-align:bottom;white-space:normal;hyphens:auto;overflow-wrap:anywhere;padding:6px 7px;border-bottom:1px solid var(--ad-hair-strong)}
+.ad-upload td{padding:8px 7px;border-bottom:1px solid var(--ad-hair);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ad-upload th:first-child,.ad-upload td:first-child{width:30%}
 .ad-upload td:first-child{white-space:normal;overflow-wrap:anywhere}
-.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:10%;text-align:right;font-variant-numeric:tabular-nums}
+.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:10%;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num)}
 
 /* ===================== admin panel: its own shell (layouts/admin.blade.php) ===================== */
 /* No portal sidebar here, so body drops the two-column grid the portal layout needs. */
