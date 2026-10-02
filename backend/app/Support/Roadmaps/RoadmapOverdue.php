@@ -7,8 +7,9 @@ namespace App\Support\Roadmaps;
  * passed and the measure is not done. Same rule as the red «over» deadline chip in
  * MeasureDisplay::deadlineChip(), so the card count and the grid chips can never disagree.
  *
- * Deadlines are never stored — RoadmapDeadline parses «2026 йил декабрь» on the way past —
- * so this reads the measures ProgressSheet::build() already loaded and costs no query.
+ * The deadline month is never stored — only the free text, which RoadmapDeadline parses
+ * («2026 йил декабрь») on the way past — so there is nothing to filter on in SQL. This counts
+ * over the measures ProgressSheet::build() already loaded and costs no extra query.
  */
 final class RoadmapOverdue
 {
