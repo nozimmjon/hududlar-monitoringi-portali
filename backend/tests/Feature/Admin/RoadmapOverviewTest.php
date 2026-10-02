@@ -41,10 +41,12 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->dispatch('progress-imported')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('x-on:click="$dispatch(\'open-upload\', { code: 1733 })"')   // browser-side: opening the panel must not re-render 13 sheets
-        ->assertSee('Тўлдирилди')                                      // the KPI tiles carry the same three totals the strip used to
+        ->assertSee('Тўлдирилди')                                      // the KPI tiles carry the totals the strip used to
         ->assertSee('4 тадан · 25%')
-        ->assertSeeHtml('<b class="v ad-num">1</b>')                   // «Ўтган ойдан» = 1
-        ->assertSee('Тегилмаган вилоят');
+        ->assertSee('Ўтган ойдан')
+        ->assertSee('Тегилмаган вилоят')
+        // the four tile numbers, which the markup renders in identical <b> tags
+        ->assertViewHas('totals', fn ($t) => [$t['saved'], $t['carry'], $t['overdue'], $t['untouched']] === [1, 1, 1, 0]);
 
     $this->get('/admin/roadmaps')->assertOk()->assertSee('Хоразм вилояти')->assertSee('Чиқиш');
     $this->get('/admin/roadmaps?davr=2026-07')->assertOk()->assertSee('2026 йил июль');

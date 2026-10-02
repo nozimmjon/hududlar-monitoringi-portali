@@ -94,9 +94,15 @@ final class AdminFixture
         return User::factory()->create(['name' => 'Админ', 'email' => $email, 'password' => 'secret-123']);
     }
 
+    /**
+     * One measure of the Хоразм road map above — and only of that one: bareRoadmap() lays its
+     * measures out at the same (section_no 1, district_id null, seq_no 1…n) coordinates, so an
+     * unscoped lookup would resolve whichever row the database happened to return first.
+     */
     public static function measure(int $sectionNo, int $seqNo, ?int $districtCode = null): RoadmapMeasure
     {
-        $q = RoadmapMeasure::where('section_no', $sectionNo)->where('seq_no', $seqNo);
+        $q = RoadmapMeasure::whereRelation('roadmap', 'region_code', 1733)
+            ->where('section_no', $sectionNo)->where('seq_no', $seqNo);
         $q = $districtCode === null
             ? $q->whereNull('district_id')
             : $q->whereHas('district', fn ($d) => $d->where('code', $districtCode));
