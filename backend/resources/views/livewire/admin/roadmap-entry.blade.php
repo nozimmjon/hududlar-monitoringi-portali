@@ -80,7 +80,7 @@
           $panelOpen = $panelFor === $m['id'];
         @endphp
         <article class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
-                 data-search="{{ $search }}" :class="'st-' + statusClass({{ $m['id'] }})" x-show="show($el)" x-data="{ det: false }">
+                 data-search="{{ $search }}" x-show="show($el)" x-data="{ det: false }">
           <div class="ad-mrow">
             <span class="no ad-num" :class="mstate({{ $m['id'] }}) !== 'empty' && 'on'">{{ $m['seq_no'] }}</span>
             <div class="ttl">

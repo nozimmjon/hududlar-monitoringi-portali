@@ -12,9 +12,9 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('adEntry', () => {
     let root = null;                                   // the component root element, captured in init()
     let idx  = { tick: -1, tbodies: [], byMeasure: new Map(), bySheet: new Map(), byLine: new Map(), probe: null };   // DOM index, rebuilt per tick
-    /* A measure is addressed by the attribute contract, never by `.ad-m`: Alpine rewrites that class
-       attribute (`:class="'st-' + statusClass(…)"`). The value inputs carry data-measure too — they are
-       the ones with a data-line, so excluding it leaves exactly the measure elements. */
+    /* A measure is addressed by the attribute contract, never by its class: a class is cosmetic and
+       Alpine may rewrite it. The value inputs carry data-measure too — they are the ones with a
+       data-line, so excluding it leaves exactly the measure elements. */
     const MEASURE = '[data-measure]:not([data-line])';
 
     return {
@@ -95,9 +95,9 @@ document.addEventListener('alpine:init', () => {
         return el.dataset.loaded === '' ? null : parseFloat(el.dataset.loaded);
       },
 
-      /* The getters below (pct, statusClass, mstateLabel, mstateChip, unfilled) read DOM values without
+      /* The getters below (pct, mstateLabel, mstateChip, unfilled) read DOM values without
          touching `this.tick` themselves, and are correct only because every template entry point into
-         them goes through a getter that does read it (`void this.tick` in pctText/pctClass/agg/mstate/
+         them goes through a getter that does read it (`void this.tick` in pctText/pctClass/mstate/
          show/count). A new getter that reads the DOM must read `this.tick` too — or be reached exclusively
          through one that does — otherwise Alpine registers no dependency and the value freezes at the
          render it was first evaluated in. */
@@ -120,28 +120,6 @@ document.addEventListener('alpine:init', () => {
         return e && field in e ? 'edited' : '';
       },
 
-      // ---- per measure (mirror of MeasureRecomputer::aggregate) ----
-      agg(mid) {
-        void this.tick;
-        const measure = this.measureOf(mid);
-        const deadline = !!measure && measure.dataset.deadline === '1';
-        let total = 0, done = 0, hasActual = false, sum = 0;
-        for (const el of this.inputs(mid)) {
-          const plan = el.dataset.plan === '' ? null : parseFloat(el.dataset.plan);
-          const actual = this.actualOf(el);
-          if (actual !== null && actual !== 0) hasActual = true;
-          if (plan === null) continue;
-          total++;
-          const p = (actual === null || plan === 0) ? null : actual / plan * 100;
-          if (p !== null && p >= 100) done++;
-          sum += Math.max(0, Math.min(100, p ?? 0));
-        }
-        let status = !hasActual ? 'in_progress' : (total > 0 && done === total ? 'done' : 'open');
-        if (total === 0) status = 'in_progress';
-        else if (status === 'open' && !deadline) status = 'in_progress';
-        return { status, pct: hasActual && total > 0 ? sum / total : null };
-      },
-      statusClass(mid) { return { done: 'ok', in_progress: 'wait', open: 'bad' }[this.agg(mid).status]; },
       mstate(mid) {
         void this.tick;
         for (const el of this.inputs(mid)) {

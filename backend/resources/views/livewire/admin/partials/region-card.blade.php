@@ -7,7 +7,7 @@
 @endphp
 <article class="ad-card" wire:key="ad-card-{{ $c['region']->code }}"
          data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}" data-overdue="{{ $c['overdue'] }}"
-         title="Карточкани босинг — киритиш саҳифаси. Ҳолатлар ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича.">
+         title="Карточкани босинг — киритиш саҳифаси. «Кечиккан» — муддати ўтган, бажарилмаган чора-тадбирлар.">
   <a class="stretch" href="{{ route('admin.roadmaps.entry', ['code' => $c['region']->code, 'davr' => $period]) }}" aria-label="{{ $c['region']->name_full }} — киритиш"></a>
   <div class="top">
     <div class="gauge" style="background:conic-gradient(from 180deg, var(--ad-accent) 0 {{ $pct }}%, var(--ad-track) {{ $pct }}% 100%)" aria-hidden="true">
