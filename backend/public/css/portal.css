@@ -6462,7 +6462,7 @@ body.sectors-body{
 
 /* ===================== admin panel: its own shell (layouts/admin.blade.php) ===================== */
 /* No portal sidebar here, so body drops the two-column grid the portal layout needs. */
-.adm-body{display:block;min-height:100vh;background:#FBFDFF;
+.adm-body{display:block;min-height:100vh;background:#EFF4FB;
   --ad-sheet:rgba(255,255,255,.92);
   --ad-sheet-line:rgba(14,28,50,.07);
   --ad-sheet-shadow:0 2px 4px rgba(12,26,48,.04), 0 20px 46px rgba(12,26,48,.10);
@@ -6489,9 +6489,9 @@ body.sectors-body{
    page is long. The flat body colour propagates to the canvas, so this z-index:-1 layer paints over it. */
 .adm-body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(760px 300px at 85% -10%, rgba(23,105,224,.10), transparent 60%),
-    radial-gradient(620px 260px at 5% 0%, rgba(99,179,237,.12), transparent 60%),
-    linear-gradient(180deg,#FBFDFF,#EEF3FA)}
+    radial-gradient(760px 300px at 85% -10%, rgba(23,105,224,.14), transparent 60%),
+    radial-gradient(620px 260px at 5% 0%, rgba(99,179,237,.16), transparent 60%),
+    linear-gradient(180deg,#F8FBFF,#E4ECF7)}
 /* errors/404.blade.php extends layouts.admin on an /admin URL, so the portal empty state gets a glass sheet. */
 .adm-body .wr-empty{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);padding:34px 24px;text-align:center}
 /* Below the upload scrim (31) and drawers (30/32) on purpose, so a drawer covers the bar like it covers the portal topbar. */
