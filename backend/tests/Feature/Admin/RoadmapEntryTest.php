@@ -35,6 +35,11 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSeeHtml('<article class="ad-m" wire:key="m-' . $bogot->id . '" data-measure="' . $bogot->id . '" data-state="carry" data-deadline="0"')
         ->assertSeeHtml('<div class="ad-lrow" wire:key="l-' . $l1->id . '">')
         ->assertSeeHtml('data-line="' . $l1->id . '" data-measure="' . $bogot->id . '" data-field="actual" data-plan="7.8" data-loaded="3" data-loaded-text="3" data-state="carry"')
+        ->assertSeeHtml('data-line="' . $l1->id . '" data-measure="' . $bogot->id . '" data-field="note" data-loaded-text="август"')
+        // both value cells are keyed by $version: that is what re-keys them on a save, which is how the
+        // JS index notices its cached cells were replaced (ad-entry.js `_index()`, the probe check)
+        ->assertSeeHtml('wire:key="ac-' . $l1->id . '-0"')
+        ->assertSeeHtml('wire:key="nc-' . $l1->id . '-0"')
         ->assertSeeHtml('value="август"')
         ->assertSee('2026 йил августдан кўчирилган')
         ->assertSeeHtml('data-measure="' . AdminFixture::measure(1, 1)->id . '" data-state="empty"')
@@ -64,7 +69,10 @@ test('save applies the buffer, re-renders with saved cells and reports; an inval
         ->assertSet('version', 1)
         ->assertDispatched('ad-refresh')
         ->assertSeeHtml('data-measure="' . $bogot->id . '" data-state="saved"')
-        ->assertSeeHtml('data-loaded="7.8" data-loaded-text="7,8" data-state="saved"');
+        ->assertSeeHtml('data-loaded="7.8" data-loaded-text="7,8" data-state="saved"')
+        // the version moved, so both cells of the line come back under new keys and the JS index rebuilds
+        ->assertSeeHtml('wire:key="ac-' . $l1->id . '-1"')
+        ->assertSeeHtml('wire:key="nc-' . $l1->id . '-1"');
     expect((float) RoadmapLineProgress::where('roadmap_measure_line_id', $l2->id)->where('report_period', '2026-09')->value('actual_value'))->toBe(20.0);
     expect($bogot->fresh()->status)->toBe('in_progress');
 

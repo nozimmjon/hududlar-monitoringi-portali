@@ -11,7 +11,11 @@
 document.addEventListener('alpine:init', () => {
   Alpine.data('adEntry', () => {
     let root = null;                                   // the component root element, captured in init()
-    let idx  = { tick: -1, tbodies: [], byMeasure: new Map(), byLine: new Map(), probe: null };   // DOM index, rebuilt per tick
+    let idx  = { tick: -1, tbodies: [], byMeasure: new Map(), bySheet: new Map(), byLine: new Map(), probe: null };   // DOM index, rebuilt per tick
+    /* A measure is addressed by the attribute contract, never by `.ad-m`: Alpine rewrites that class
+       attribute (`:class="'st-' + statusClass(…)"`). The value inputs carry data-measure too — they are
+       the ones with a data-line, so excluding it leaves exactly the measure elements. */
+    const MEASURE = '[data-measure]:not([data-line])';
 
     return {
       edits: {},        // lineId -> { actual?: string, note?: string } — changed cells only
@@ -62,18 +66,23 @@ document.addEventListener('alpine:init', () => {
          lives in the closure, out of the reactive object, so reading it registers no dependency. */
       _index() {
         if (idx.tick === this.tick && (idx.probe === null || idx.probe.isConnected)) return idx;
-        const tbodies = Array.from(root.querySelectorAll('.ad-m'));
+        const tbodies = Array.from(root.querySelectorAll(MEASURE));
         const byMeasure = new Map();
+        const bySheet = new Map();
         const byLine = new Map();
         let probe = null;
-        for (const tbody of tbodies) byMeasure.set(tbody.dataset.measure, { tbody, actuals: [] });
+        for (const tbody of tbodies) {
+          byMeasure.set(tbody.dataset.measure, { tbody, actuals: [] });
+          const sheet = tbody.parentElement;                           // its section sheet, for showGroup()
+          if (sheet) { const l = bySheet.get(sheet); l ? l.push(tbody) : bySheet.set(sheet, [tbody]); }
+        }
         for (const el of root.querySelectorAll('input[data-line]')) {
           const m = byMeasure.get(el.dataset.measure);
           if (m && el.dataset.field === 'actual') m.actuals.push(el);   // every line row has one, so this is the line set
           byLine.set(el.dataset.line, { ...(byLine.get(el.dataset.line) || {}), [el.dataset.field]: el });
           probe ??= el;
         }
-        idx = { tick: this.tick, tbodies, byMeasure, byLine, probe };
+        idx = { tick: this.tick, tbodies, byMeasure, bySheet, byLine, probe };
         return idx;
       },
       lineEl(id) { return this._index().byLine.get(String(id))?.actual ?? null; },
@@ -86,12 +95,12 @@ document.addEventListener('alpine:init', () => {
         return el.dataset.loaded === '' ? null : parseFloat(el.dataset.loaded);
       },
 
-      /* The getters below (pct, shown, ringText, ringStyle, statusClass, statusLabel, mstateLabel,
-         unfilled) read DOM values without touching `this.tick` themselves, and are correct only
-         because every template entry point into them goes through a getter that does read it
-         (`void this.tick` in pctText/pctClass/agg/mstate/show/count). A new getter that reads the
-         DOM must read `this.tick` too — or be reached exclusively through one that does — otherwise
-         Alpine registers no dependency and the value freezes at the render it was first evaluated in. */
+      /* The getters below (pct, statusClass, mstateLabel, mstateChip, unfilled) read DOM values without
+         touching `this.tick` themselves, and are correct only because every template entry point into
+         them goes through a getter that does read it (`void this.tick` in pctText/pctClass/agg/mstate/
+         show/count). A new getter that reads the DOM must read `this.tick` too — or be reached exclusively
+         through one that does — otherwise Alpine registers no dependency and the value freezes at the
+         render it was first evaluated in. */
 
       // ---- per line ----
       pct(id) {
@@ -132,16 +141,7 @@ document.addEventListener('alpine:init', () => {
         else if (status === 'open' && !deadline) status = 'in_progress';
         return { status, pct: hasActual && total > 0 ? sum / total : null };
       },
-      shown(mid) {
-        const a = this.agg(mid);
-        if (a.pct === null) return null;
-        const r = Math.round(a.pct);
-        return a.status === 'done' ? r : Math.min(99, r);
-      },
-      ringText(mid) { const s = this.shown(mid); return s === null ? '—' : s + '%'; },
-      ringStyle(mid) { const s = this.shown(mid) ?? 0; return `stroke-dasharray:113.1;stroke-dashoffset:${(113.1 * (1 - s / 100)).toFixed(1)}`; },
       statusClass(mid) { return { done: 'ok', in_progress: 'wait', open: 'bad' }[this.agg(mid).status]; },
-      statusLabel(mid) { return { done: 'Бажарилди', in_progress: 'Бажарилмоқда', open: 'Бажарилмаган' }[this.agg(mid).status]; },
       mstate(mid) {
         void this.tick;
         for (const el of this.inputs(mid)) {
@@ -178,7 +178,9 @@ document.addEventListener('alpine:init', () => {
       /** a section sheet is shown when any measure inside it passes the filter */
       showGroup(sheet) {
         void this.tick; void this.search; void this.filter;
-        for (const el of sheet.querySelectorAll('.ad-m')) { if (this.show(el)) return true; }
+        // read from the index, never a fresh query: this runs per sheet on every keystroke. The map is
+        // keyed by the sheet node, so a morph that replaced that node falls back to reading it live.
+        for (const el of this._index().bySheet.get(sheet) ?? sheet.querySelectorAll(MEASURE)) { if (this.show(el)) return true; }
         return false;
       },
       count(kind) {
