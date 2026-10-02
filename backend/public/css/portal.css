@@ -6264,6 +6264,7 @@ body.sectors-body{
 .ad-num{font-family:var(--font-num);letter-spacing:-.03em;font-weight:800}
 .ad-head{display:flex;flex-direction:column;gap:12px}
 .ad-head-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.ad-titles{flex:1 1 300px}
 .ad-titles{flex:1;min-width:240px}
 .ad-title{font-family:var(--font-num);font-size:27px;font-weight:800;letter-spacing:-.03em;margin:0;color:var(--ad-ink)}
 .ad-title .rg{font-weight:700;color:var(--ad-muted)}
@@ -6271,7 +6272,7 @@ body.sectors-body{
 .ad-sub .over{color:var(--ad-warn-ink);font-weight:700}
 .ad-select{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.9);border:1px solid rgba(14,28,50,.08);border-radius:13px;padding:8px 10px 8px 15px;box-shadow:var(--ad-ctl-shadow)}
 .ad-select span{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--ad-faint)}
-.ad-select select{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--ad-ink);outline:none;max-width:220px;cursor:pointer}
+.ad-select select{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--ad-ink);outline:none;max-width:168px;cursor:pointer}
 .ad-btn{border:0;border-radius:999px;padding:9px 16px;font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;color:#fff;background:var(--ad-accent);transition:filter .15s,transform .15s,box-shadow .15s;white-space:nowrap}
 .ad-btn:hover{filter:brightness(1.06)}
 .ad-btn.primary{background:var(--ad-accent-grad);box-shadow:var(--ad-accent-glow)}
@@ -6334,7 +6335,7 @@ body.sectors-body{
 .ad-ring b{font-family:var(--font-num);font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ad-ink)}
 .ad-ring em{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ad-faint);margin-top:2px}
 .ad-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-left:auto}
-.ad-search input{border:1px solid rgba(14,28,50,.08);border-radius:13px;padding:9px 15px;font:inherit;font-size:13px;min-width:230px;background:rgba(255,255,255,.9);outline:none;box-shadow:var(--ad-ctl-shadow)}
+.ad-search input{border:1px solid rgba(14,28,50,.08);border-radius:13px;padding:9px 15px;font:inherit;font-size:13px;min-width:180px;background:rgba(255,255,255,.9);outline:none;box-shadow:var(--ad-ctl-shadow)}
 .ad-search input:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
 .ad-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
 .ad-pills button{border:1px solid var(--ad-sheet-line);border-radius:999px;background:rgba(255,255,255,.85);padding:6px 13px;font:inherit;font-size:11.5px;font-weight:700;color:var(--ad-muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(12,26,48,.05);transition:background .15s,color .15s,box-shadow .15s}
@@ -6371,7 +6372,7 @@ body.sectors-body{
 .ad-mrow .meta .due{font-size:11px;color:var(--ad-faint)}
 .ad-tools{display:inline-flex;gap:6px;margin-left:auto}
 .ad-lrow{display:grid;grid-template-columns:1fr 92px 112px 168px 64px 240px;gap:14px;align-items:center;padding:9px 18px 9px 59px;border-top:1px solid var(--ad-hair)}
-.ad-lrow .c-label{font-size:12.5px;color:#4C5E75;max-width:58ch;overflow-wrap:anywhere}
+.ad-lrow .c-label{font-size:12.5px;color:#4C5E75;max-width:66ch;overflow-wrap:anywhere}
 .ad-lrow .c-unit{font-size:11.5px;font-weight:600;color:var(--ad-faint)}
 .ad-lrow .c-plan{font-size:14px;font-weight:700;text-align:right;color:#2D4159}
 .ad-lrow .c-pct{text-align:right;font-size:13px}
@@ -6528,7 +6529,8 @@ body.sectors-body{
 .adm-user{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:rgba(255,255,255,.76)}
 .adm-out{border:0;border-radius:999px;padding:6px 13px;font:inherit;font-size:11.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.14);cursor:pointer;transition:background .15s}
 .adm-out:hover{background:rgba(255,255,255,.26)}
-.adm-main{min-width:0;padding:18px clamp(16px,2.4vw,30px) 34px}
+/* a reading width: on a 1700px screen an uncapped row puts the entry cell a long eye-travel from its label */
+.adm-main{min-width:0;max-width:1440px;margin:0 auto;padding:18px clamp(16px,2.4vw,30px) 34px}
 @media (max-width:840px){
   .adm-top{flex-wrap:wrap;row-gap:8px}
   .adm-nav{order:3;width:100%;flex:none;overflow-x:auto}
