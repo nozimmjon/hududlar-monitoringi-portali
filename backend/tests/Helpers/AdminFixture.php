@@ -53,6 +53,42 @@ final class AdminFixture
         return Roadmap::where('region_code', 1733)->firstOrFail();
     }
 
+    /**
+     * A road map with no workbook behind it: just the row and the measures a test needs, so a
+     * second region costs no import. $measures are [seq_no, title, deadline_text, status].
+     *
+     * @param list<array{int, string, string, string}> $measures
+     */
+    public static function bareRoadmap(int $regionCode, array $measures, int $year = 2026): Roadmap
+    {
+        $roadmap = Roadmap::create([
+            'domain'      => 'water',
+            'region_code' => $regionCode,
+            'year'        => $year,
+            'title_text'  => 'Йўл харитаси (тест)',
+            'source_file' => 'test',
+            'imported_at' => now(),
+        ]);
+
+        foreach ($measures as $i => [$seq, $title, $deadline, $status]) {
+            RoadmapMeasure::create([
+                'roadmap_id'    => $roadmap->id,
+                'section_no'    => 1,
+                'section_title' => 'I. Вилоятда амалга ошириладиган йирик лойиҳалар',
+                'seq_no'        => $seq,
+                'title'         => $title,
+                'body_raw'      => $title,
+                'deadline_text' => $deadline,
+                'source_row'    => $i + 1,
+                'status'        => $status,
+                'lines_total'   => 0,
+                'lines_done'    => 0,
+            ]);
+        }
+
+        return $roadmap;
+    }
+
     public static function user(string $email = 'admin@example.test'): User
     {
         return User::factory()->create(['name' => 'Админ', 'email' => $email, 'password' => 'secret-123']);

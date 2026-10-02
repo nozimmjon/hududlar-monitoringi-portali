@@ -7,6 +7,7 @@ use App\Models\Region;
 use App\Models\Roadmap;
 use App\Models\RoadmapChangeLog;
 use App\Services\Roadmaps\ProgressSheet;
+use App\Support\Roadmaps\RoadmapOverdue;
 use App\Support\Roadmaps\RoadmapPeriod;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
@@ -54,7 +55,10 @@ class RoadmapOverview extends Component
             ->whereIn('id', RoadmapChangeLog::selectRaw('max(id)')->whereIn('roadmap_id', $roadmaps->pluck('id'))->groupBy('roadmap_id'))
             ->get()->keyBy('roadmap_id');
         $cards    = [];
-        $totals   = ['saved' => 0, 'carry' => 0, 'empty' => 0, 'measures' => 0, 'lines' => 0];
+        $totals   = ['saved' => 0, 'carry' => 0, 'empty' => 0, 'measures' => 0, 'lines' => 0, 'overdue' => 0, 'untouched' => 0];
+        // «Кечиккан» is always judged against today, never against the browsed month: a month in
+        // the past would otherwise report nothing late and the ranking would go quiet.
+        $today    = ProgressSheet::currentPeriod();
         // Only regions that actually have a road map: a card with nothing to enter is noise
         // (Тошкент шаҳри has no file), and the entry page's region select is built the same way.
         foreach (Region::whereIn('code', $roadmaps->keys())->orderBy('sort_order')->get() as $region) {
@@ -66,24 +70,38 @@ class RoadmapOverview extends Component
                 $statuses[$m['status']]++;
                 $lines += count($m['lines']);
             }
+            $last    = $lastChanges->get($roadmap->id);
+            $overdue = RoadmapOverdue::count($sheet['measures'], $roadmap->year, $today);
             $cards[] = [
-                'region'   => $region,
-                'roadmap'  => $roadmap,
-                'measures' => count($sheet['measures']),
-                'lines'    => $lines,
-                'counts'   => $sheet['counts'],
-                'statuses' => $statuses,
-                'last'     => $lastChanges->get($roadmap->id),
+                'region'    => $region,
+                'roadmap'   => $roadmap,
+                'measures'  => count($sheet['measures']),
+                'lines'     => $lines,
+                'counts'    => $sheet['counts'],
+                'statuses'  => $statuses,
+                'last'      => $last,
+                'overdue'   => $overdue,
+                'idle_days' => $last ? (int) $last->created_at->diffInDays(now(ProgressSheet::TZ)) : null,
+                // a region with nothing saved this month needs attention as much as a late one
+                'attention' => $overdue > 0 || $sheet['counts']['saved'] === 0,
             ];
             foreach (['saved', 'carry', 'empty'] as $k) {
                 $totals[$k] += $sheet['counts'][$k];
             }
-            $totals['measures'] += count($sheet['measures']);
-            $totals['lines']    += $lines;
+            $totals['measures']  += count($sheet['measures']);
+            $totals['lines']     += $lines;
+            $totals['overdue']   += $overdue;
+            $totals['untouched'] += $last ? 0 : 1;
         }
+
+        // most overdue first, then the least filled; regions tie-break on the portal's own order
+        usort($cards, fn ($a, $b) => [$b['overdue'], $a['counts']['saved'] / max(1, $a['measures'])]
+                                 <=> [$a['overdue'], $b['counts']['saved'] / max(1, $b['measures'])]);
 
         return view('livewire.admin.roadmap-overview', [
             'cards'       => $cards,
+            'attention'   => array_values(array_filter($cards, fn ($c) => $c['attention'])),
+            'rest'        => array_values(array_filter($cards, fn ($c) => ! $c['attention'])),
             'totals'      => $totals,
             'periods'     => ProgressSheet::periodOptions(RoadmapsPage::YEAR),
             'periodLabel' => RoadmapPeriod::label($this->period),

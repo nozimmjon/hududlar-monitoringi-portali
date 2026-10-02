@@ -1,6 +1,4 @@
 @php
-    use App\Services\Roadmaps\ProgressSheet;
-    use App\Support\Roadmaps\MeasureDisplay;
     use App\Support\Roadmaps\RoadmapPeriod;
 @endphp
 <div class="ad-shell">
@@ -19,51 +17,44 @@
         </select>
       </label>
     </div>
-    <div class="ad-strip">
-      <span class="k saved"><i></i><b class="tnum">{{ $totals['saved'] }}</b> сақланган</span>
-      <span class="k carry"><i></i><b class="tnum">{{ $totals['carry'] }}</b> ўтган ойдан</span>
-      <span class="k empty"><i></i><b class="tnum">{{ $totals['empty'] }}</b> бўш</span>
+    <div class="ad-kpis">
+      <div class="ad-kpi">
+        <span class="k">Тўлдирилди</span>
+        <b class="v ad-num">{{ $totals['saved'] }}</b>
+        <span class="d">{{ $totals['measures'] }} тадан · {{ $totals['measures'] > 0 ? round($totals['saved'] / $totals['measures'] * 100, 1) : 0 }}%</span>
+      </div>
+      <div class="ad-kpi">
+        <span class="k">Ўтган ойдан</span>
+        <b class="v ad-num">{{ $totals['carry'] }}</b>
+        <span class="d">тасдиқлашни кутмоқда</span>
+      </div>
+      <div class="ad-kpi {{ $totals['overdue'] > 0 ? 'warn' : '' }}">
+        <span class="k">Кечиккан</span>
+        <b class="v ad-num">{{ $totals['overdue'] }}</b>
+        <span class="d">муддати ўтган, бажарилмаган</span>
+      </div>
+      <div class="ad-kpi">
+        <span class="k">Тегилмаган вилоят</span>
+        <b class="v ad-num">{{ $totals['untouched'] }}</b>
+        <span class="d">ҳали ўзгариш йўқ</span>
+      </div>
     </div>
   </header>
 
-  <div class="ad-cards">
-    @foreach($cards as $c)
-      @php $n = max(1, $c['measures']); $ct = $c['counts']; @endphp
-      <article class="ad-card" wire:key="ad-card-{{ $c['region']->code }}"
-               data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}"
-               title="Карточкани босинг — киритиш саҳифаси. Ҳолатлар ҳар бир чора-тадбирнинг сўнгги ҳисоботи бўйича.">
-        <a class="stretch" href="{{ route('admin.roadmaps.entry', ['code' => $c['region']->code, 'davr' => $period]) }}" aria-label="{{ $c['region']->name_full }} — киритиш"></a>
-        <div class="top">
-          <h3>{{ $c['region']->name_full }}</h3>
-          <span class="n">{{ $c['measures'] }} та чора-тадбир · {{ $c['lines'] }} та индикатор</span>
-        </div>
-        <div class="bar" aria-hidden="true">
-          <i class="saved" style="width:{{ round($ct['saved'] / $n * 100, 1) }}%"></i><i class="carry" style="width:{{ round($ct['carry'] / $n * 100, 1) }}%"></i><i class="empty" style="width:{{ round($ct['empty'] / $n * 100, 1) }}%"></i>
-        </div>
-        <div class="legend tnum">
-          <span class="saved">{{ $ct['saved'] }} сақланган</span>
-          <span class="carry">{{ $ct['carry'] }} ўтган ойдан</span>
-          <span class="empty">{{ $ct['empty'] }} бўш</span>
-        </div>
-        <div class="pills">
-          @foreach(['done', 'in_progress', 'open'] as $s)
-            <span class="wr-status {{ MeasureDisplay::statusChip($s)['cls'] }}"><i></i>{{ MeasureDisplay::statusChip($s)['label'] }} <b class="tnum">{{ $c['statuses'][$s] }}</b></span>
-            @endforeach
-          </div>
-          <div class="foot">
-            <span class="last">
-              @if($c['last'])
-                {{ $c['last']->user?->name ?? 'терминал' }} · {{ $c['last']->created_at->timezone(ProgressSheet::TZ)->format('d.m.Y H:i') }}
-              @else
-                ҳали ўзгариш йўқ
-              @endif
-            </span>
-            {{-- a browser event: the panel listens for it, and the overview is spared a round trip that would rebuild all 13 sheets --}}
-            <button type="button" class="ad-btn ghost small" title="Тўлдирилган шаблонни юклаш"
-                    x-on:click="$dispatch('open-upload', { code: {{ $c['region']->code }} })">Excel’дан юклаш</button>
-          </div>
-        </article>
-    @endforeach
-  </div>
+  @foreach([['Диққат талаб қилади', $attention], ['Қолганлари', $rest]] as [$heading, $group])
+    @if($group !== [])
+      <section class="ad-group-head" wire:key="grp-{{ $loop->index }}">
+        <h3>{{ $heading }}</h3>
+        <span class="rule"></span>
+        <span class="n tnum">{{ count($group) }}</span>
+      </section>
+      <div class="ad-cards">
+        @foreach($group as $c)
+          @include('livewire.admin.partials.region-card', ['c' => $c])
+        @endforeach
+      </div>
+    @endif
+  @endforeach
+
   <livewire:admin.progress-upload :period="$period" />
 </div>
