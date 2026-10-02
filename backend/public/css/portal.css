@@ -6274,18 +6274,19 @@ body.sectors-body{
 .ad-select select{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--ad-ink);outline:none;max-width:220px;cursor:pointer}
 .ad-btn{border:0;border-radius:999px;padding:9px 16px;font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;color:#fff;background:var(--ad-accent);transition:filter .15s,transform .15s,box-shadow .15s;white-space:nowrap}
 .ad-btn:hover{filter:brightness(1.06)}
-.ad-btn:disabled{opacity:.45;cursor:default;filter:none;box-shadow:none}
 .ad-btn.primary{background:var(--ad-accent-grad);box-shadow:var(--ad-accent-glow)}
 .ad-btn.primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 26px rgba(23,105,224,.38)}
 .ad-btn.ghost{background:rgba(255,255,255,.9);color:var(--ad-accent);border:1px solid rgba(14,28,50,.08);box-shadow:0 2px 8px rgba(12,26,48,.05)}
 .ad-btn.ghost:hover:not(:disabled){background:#fff;box-shadow:var(--ad-ctl-shadow)}
 .ad-btn.danger{background:var(--task-red)}
 .ad-btn.small{padding:6px 13px;font-size:11.5px}
+/* after the variants on purpose: at equal specificity only source order drops the primary glow. */
+.ad-btn:disabled{opacity:.45;cursor:default;filter:none;box-shadow:none}
 .ad-ico{width:30px;height:30px;border:1px solid rgba(14,28,50,.08);border-radius:10px;background:rgba(255,255,255,.9);color:var(--ad-muted);font-size:13px;line-height:1;display:inline-grid;place-items:center;cursor:pointer;transition:color .15s,border-color .15s,box-shadow .15s}
 .ad-ico:hover{color:var(--ad-accent);border-color:var(--ad-accent);box-shadow:0 4px 12px rgba(23,105,224,.18)}
 /* red at rest, not only on hover: in the grey of .ad-ico the bin reads as a disabled button */
 .ad-ico.danger{color:var(--task-red)}
-.ad-ico.danger:hover{color:var(--task-red);border-color:var(--task-red);box-shadow:0 4px 12px rgba(192,57,43,.18)}
+.ad-ico.danger:hover{color:var(--task-red);border-color:var(--task-red);box-shadow:0 4px 12px rgba(230,48,47,.18)}
 .ad-ico:disabled{opacity:.35;cursor:default;box-shadow:none}
 /* an inline button that reads as a link (empty-filter row) */
 .ad-link{border:0;background:none;padding:0;font:inherit;font-weight:800;color:var(--ad-accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
@@ -6461,12 +6462,7 @@ body.sectors-body{
 
 /* ===================== admin panel: its own shell (layouts/admin.blade.php) ===================== */
 /* No portal sidebar here, so body drops the two-column grid the portal layout needs. */
-.adm-body{display:block;min-height:100vh;
-  background:
-    radial-gradient(760px 300px at 85% -10%, rgba(23,105,224,.10), transparent 60%),
-    radial-gradient(620px 260px at 5% 0%, rgba(99,179,237,.12), transparent 60%),
-    linear-gradient(180deg,#FBFDFF,#EEF3FA);
-  background-attachment:fixed;
+.adm-body{display:block;min-height:100vh;background:#FBFDFF;
   --ad-sheet:rgba(255,255,255,.92);
   --ad-sheet-line:rgba(14,28,50,.07);
   --ad-sheet-shadow:0 2px 4px rgba(12,26,48,.04), 0 20px 46px rgba(12,26,48,.10);
@@ -6481,14 +6477,23 @@ body.sectors-body{
   --ad-warn-bg:linear-gradient(135deg,#FFF4E3,#FFE9CC);
   --ad-carry:#F0B860;
   --ad-chip-bg:#F2F6FB;
-  --ad-chip-ink:#64748B;
+  --ad-chip-ink:#5A6B82;
   --ad-ink:#0B1424;
   --ad-muted:#5A6B82;
-  --ad-faint:#8A99AC;
+  --ad-faint:#64748B;
   --ad-hair:#F0F4F9;
   --ad-hair-strong:#E8EEF6;
   --ad-track:#E7EDF5;
   --font-num:'Manrope','Inter',system-ui,sans-serif}
+/* The ground is one fixed layer, not background-attachment:fixed: that de-composites scrolling and the entry
+   page is long. The flat body colour propagates to the canvas, so this z-index:-1 layer paints over it. */
+.adm-body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(760px 300px at 85% -10%, rgba(23,105,224,.10), transparent 60%),
+    radial-gradient(620px 260px at 5% 0%, rgba(99,179,237,.12), transparent 60%),
+    linear-gradient(180deg,#FBFDFF,#EEF3FA)}
+/* errors/404.blade.php extends layouts.admin on an /admin URL, so the portal empty state gets a glass sheet. */
+.adm-body .wr-empty{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);padding:34px 24px;text-align:center}
 /* Below the upload scrim (31) and drawers (30/32) on purpose, so a drawer covers the bar like it covers the portal topbar. */
 .adm-top{position:sticky;top:0;z-index:28;display:flex;align-items:center;gap:14px;min-height:52px;padding:8px clamp(14px,2.2vw,30px);background:#0a1128;box-shadow:0 10px 30px rgba(7,26,45,.22)}
 .adm-brand{display:flex;align-items:center;gap:11px;min-width:0;transition:opacity .15s ease-out}
