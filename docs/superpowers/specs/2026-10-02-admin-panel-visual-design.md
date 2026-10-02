@@ -157,13 +157,13 @@ A measure is a block inside the sheet:
 Indicator lines sit under the title on a grid, indented to clear the badge:
 
 ```
-grid-template-columns: 1fr 92px 112px 168px 64px;   /* label · unit · plan · input · % */
+grid-template-columns: 1fr 92px 112px 168px 64px 240px;  /* label · unit · plan · input · % · note */
 padding: 10px 18px 10px 59px;
 ```
 
-The note field moves under the input as a second line of the same row on narrow screens; on
-wide screens it keeps its own column to the right of the percentage, restyled as a quiet
-underline field. Everything else about notes is unchanged.
+The note keeps its own column to the right of the percentage, restyled as a quiet underline
+field rather than a boxed input. Below 1 100px the note drops to a second line spanning the
+row, under the input. Everything else about notes is unchanged.
 
 ### 5.4 The input cell
 
