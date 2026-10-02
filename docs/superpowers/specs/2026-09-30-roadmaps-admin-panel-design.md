@@ -409,3 +409,10 @@ Where the implementation deviates from the design above:
 - The login card has its own minimal layout (`layouts.auth`, portal.css, no sidebar);
   404 renders inside the portal shell, and an expired-session 419 redirects back to the
   login form — all with Cyrillic messages.
+
+**Amended 2026-10-02 (user request):** the panel no longer reuses the portal shell. It
+has its own layout (`layouts/admin.blade.php`, `adm-` CSS block): a dark top bar with
+the panel's name, «Вилоятлар», a new-tab link to the public portal, the user and
+«Чиқиш»; the portal sidebar lost its «Админ» button and its logout form, and a 404
+under `/admin/…` renders in the panel's shell. The overview lists only regions that
+have a road map loaded, so Тошкент шаҳри is gone with the «йўл харитаси йўқ» card.

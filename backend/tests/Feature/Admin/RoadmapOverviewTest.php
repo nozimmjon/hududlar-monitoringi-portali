@@ -29,8 +29,8 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->assertSee('4 та чора-тадбир · 5 та индикатор')
         ->assertSeeHtml('Бажарилди <b class="tnum">1</b>')
         ->assertSee('Админ · 15.09.2026 15:00')                       // Tashkent time
-        ->assertSee('йўл харитаси йўқ')                                // the regions without a road map
-        ->assertSee('Тошкент шаҳри')
+        ->assertDontSee('йўл харитаси йўқ')                            // regions without one are not listed at all
+        ->assertDontSee('Тошкент шаҳри')
         ->call('selectPeriod', '2026-08')
         ->assertSet('period', '2026-08')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="0" data-empty="3"')

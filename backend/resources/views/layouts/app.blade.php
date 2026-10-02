@@ -15,6 +15,7 @@
   @livewireStyles
 </head>
 <body>
+  {{-- The admin panel lives in its own shell (layouts/admin.blade.php) — no admin link, no logout here. --}}
   <aside class="sidebar">
     <a class="side-brand" href="{{ route('home') }}" title="Бош саҳифа">
       <img class="brand-logo" src="/logo.svg" alt="CERR">
@@ -36,15 +37,6 @@
       </svg>
       <span>Топшириқлар</span>
     </a>
-    @auth
-      <a class="nav-btn {{ Route::is('admin.*') ? 'active' : '' }}"
-         href="{{ route('admin.roadmaps') }}" title="Админ">
-        <svg viewBox="0 0 256 256" fill="currentColor">
-          <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/>
-        </svg>
-        <span>Админ</span>
-      </a>
-    @endauth
     {{-- Туманлар page hidden from nav for now; restore by uncommenting --}}
     {{-- <a class="nav-btn {{ Route::is('districts') ? 'active' : '' }}"
        href="{{ route('districts') }}" title="Туманлар">
@@ -54,13 +46,6 @@
       <span>Туманлар</span>
     </a> --}}
     <livewire:region-switcher />
-    @auth
-      <form method="post" action="{{ route('logout') }}" class="side-auth">
-        @csrf
-        <span class="who" title="{{ auth()->user()->email }}">{{ auth()->user()->name }}</span>
-        <button type="submit">Чиқиш</button>
-      </form>
-    @endauth
   </aside>
 
   <div class="content-col">

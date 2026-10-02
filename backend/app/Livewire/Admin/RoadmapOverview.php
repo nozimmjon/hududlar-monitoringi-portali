@@ -55,12 +55,10 @@ class RoadmapOverview extends Component
             ->get()->keyBy('roadmap_id');
         $cards    = [];
         $totals   = ['saved' => 0, 'carry' => 0, 'empty' => 0, 'measures' => 0, 'lines' => 0];
-        foreach (Region::orderBy('sort_order')->get() as $region) {
-            $roadmap = $roadmaps->get($region->code);
-            if (! $roadmap) {
-                $cards[] = ['region' => $region, 'roadmap' => null];
-                continue;
-            }
+        // Only regions that actually have a road map: a card with nothing to enter is noise
+        // (Тошкент шаҳри has no file), and the entry page's region select is built the same way.
+        foreach (Region::whereIn('code', $roadmaps->keys())->orderBy('sort_order')->get() as $region) {
+            $roadmap  = $roadmaps->get($region->code);
             $sheet    = ProgressSheet::build($roadmap, $this->period);
             $statuses = ['done' => 0, 'in_progress' => 0, 'open' => 0];
             $lines    = 0;

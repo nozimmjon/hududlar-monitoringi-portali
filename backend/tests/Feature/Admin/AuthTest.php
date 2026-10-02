@@ -58,11 +58,24 @@ test('admin routes redirect guests to the login page', function () {
     $this->get('/admin/roadmaps/1733')->assertRedirect('/login');
 });
 
-test('the sidebar shows Админ and Чиқиш only to a logged-in user', function () {
+test('the public portal never shows the panel: no admin link, no logout, logged in or not', function () {
     $this->seed();
 
-    $this->get('/roadmaps')->assertOk()->assertDontSee('Чиқиш')->assertDontSee('href="' . route('admin.roadmaps') . '"', false);
-    $this->actingAs(authTestUser())->get('/roadmaps')->assertOk()->assertSee('Чиқиш')->assertSee('href="' . route('admin.roadmaps') . '"', false);
+    // the panel has its own shell (layouts/admin.blade.php); the portal sidebar stays public
+    $user = authTestUser();
+    foreach ([null, $user] as $as) {
+        ($as ? $this->actingAs($as) : $this)->get('/roadmaps')->assertOk()
+            ->assertDontSee('Чиқиш')
+            ->assertDontSee('href="' . route('admin.roadmaps') . '"', false)
+            ->assertDontSee(route('logout'), false);
+    }
+
+    // and the panel's own shell carries them, without the portal's nav
+    $this->actingAs($user)->get('/admin/roadmaps')->assertOk()
+        ->assertSee('Админ панели')
+        ->assertSee('Чиқиш')
+        ->assertDontSee('Топшириқлар')
+        ->assertDontSee('class="sidebar"', false);
 });
 
 test('admin:create creates the user, then resets its password; bad input is refused', function () {

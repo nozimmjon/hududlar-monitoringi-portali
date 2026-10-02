@@ -1,4 +1,6 @@
-@extends('layouts.app')
+{{-- Inside the panel the portal shell would be the wrong way out: no admin nav, no logout. --}}
+@php $inPanel = request()->is('admin/*') && auth()->check(); @endphp
+@extends($inPanel ? 'layouts.admin' : 'layouts.app')
 
 @section('content')
   @php
@@ -9,6 +11,6 @@
   @endphp
   <div class="wr-empty">
     <h2>{{ preg_match('/\p{Cyrillic}/u', $message) === 1 ? $message : 'Саҳифа топилмади' }}</h2>
-    <p><a href="{{ route('home') }}">Бош саҳифага қайтиш</a></p>
+    <p><a href="{{ $inPanel ? route('admin.roadmaps') : route('home') }}">{{ $inPanel ? 'Вилоятлар рўйхатига қайтиш' : 'Бош саҳифага қайтиш' }}</a></p>
   </div>
 @endsection

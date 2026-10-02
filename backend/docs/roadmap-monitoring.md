@@ -255,16 +255,20 @@ The routes, all behind `auth` except the login form itself:
 - `/admin/roadmaps` — the overview, one card per region.
 - `/admin/roadmaps/{code}` — the entry grid for that region.
 
-While logged in, «Админ» appears in the sidebar and «Чиқиш» at its foot. A guest opening
-an `/admin/…` URL is sent to `/login` and back to the page afterwards; a form left open
+The panel is a **separate shell**, not a page of the portal: its own dark top bar
+(«Админ панели» · «Вилоятлар» · the user and «Чиқиш» on the right, «Портал» opening the
+public site in a new tab), no portal sidebar, no region switcher. The public portal in
+turn carries no link to the panel and no logout, logged in or not — reach the panel by
+its URL or by signing in at `/login`, which lands on the overview. A guest opening an
+`/admin/…` URL is sent to `/login` and back to the page afterwards; a form left open
 until its session expired comes back to the login card with «Сессия муддати тугади —
 қайта киринг.».
 
 ### The overview (`/admin/roadmaps?davr=YYYY-MM`)
 
-One card per region, in the portal's own region order. A region with no road map loaded
-shows «йўл харитаси йўқ» and nothing else. Every other card carries, **for the chosen
-month**:
+One card per region **that has a road map loaded**, in the portal's own region order —
+a region without one (Тошкент шаҳри) is not listed at all, the way the entry page's
+region select is built. Every card carries, **for the chosen month**:
 
 - how many of its measures are already **сақланган** (saved for this month), how many
   stand on **ўтган ойдан** (carried from an earlier month, nothing written yet) and how
