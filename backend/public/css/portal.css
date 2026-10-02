@@ -6253,7 +6253,7 @@ body.sectors-body{
 .auth-card h1{font-size:19px;font-weight:800;letter-spacing:-.02em;text-align:center;margin:0}
 .auth-card .sub{text-align:center;font-size:12.5px;color:var(--muted);margin:5px 0 20px}
 .auth-card label{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
-.auth-card input{border:1.5px solid #D3DEEB;border-radius:12px;padding:11px 13px;font:inherit;font-size:14px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.auth-card input{border:1.5px solid #8494AF;border-radius:12px;padding:11px 13px;font:inherit;font-size:14px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
 .auth-card input:focus{border-color:#1769E0;box-shadow:0 0 0 4px rgba(23,105,224,.14)}
 .auth-card button{margin-top:20px;border:0;border-radius:999px;padding:12px 16px;font:inherit;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#1769E0,#3E8BFF);box-shadow:0 12px 26px rgba(23,105,224,.36);cursor:pointer;transition:transform .15s,box-shadow .15s}
 .auth-card button:hover{transform:translateY(-1px);box-shadow:0 16px 32px rgba(23,105,224,.44)}
@@ -6269,7 +6269,6 @@ body.sectors-body{
 .ad-num{font-family:var(--font-num);letter-spacing:-.03em;font-weight:800}
 .ad-head{display:flex;flex-direction:column;gap:12px}
 .ad-head-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
-.ad-titles{flex:1 1 300px}
 .ad-titles{flex:1;min-width:240px}
 .ad-title{font-family:var(--font-num);font-size:27px;font-weight:800;letter-spacing:-.03em;margin:0;color:var(--ad-ink)}
 .ad-title .rg{font-weight:700;color:var(--ad-muted)}
@@ -6349,11 +6348,14 @@ body.sectors-body{
 .ad-pills button.on{background:var(--ad-accent-grad);border-color:transparent;color:#fff;box-shadow:var(--ad-accent-glow)}
 .ad-pills button.on b{color:#fff}
 .ad-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FDECEA;color:var(--task-red);border-radius:14px;padding:11px 15px;font-size:13px;font-weight:600}
-/* one sheet per section; the strip parks under the 52px admin bar. `clip`, not the sheet's `hidden`:
-   both clip the rounded corners, but `hidden` is a scroll container, and a sticky child measures
-   against the nearest one — against a box that never scrolls the strip would simply never stick. */
+/* One sheet per section. The strip parks under the admin bar through --ad-bar, which the bar also
+   wears as its min-height, so the offset cannot drift from the bar it hides behind. `clip`, not the
+   sheet's `hidden`: both clip the rounded corners, but `hidden` is a scroll container, and a sticky
+   child measures against the nearest one — against a box that never scrolls the strip would simply
+   never stick. No backdrop-filter: a page carries tens of these, each would re-blur a full-width
+   band every frame, and at 94–97% opacity there is nothing left to see through. */
 .ad-sec{display:flex;flex-direction:column;overflow:clip}
-.ad-sec-head{position:sticky;top:52px;z-index:4;display:flex;align-items:center;gap:12px;padding:11px 18px;background:linear-gradient(180deg,rgba(248,251,255,.97),rgba(241,246,252,.94));border-bottom:1px solid var(--ad-hair-strong);backdrop-filter:blur(6px)}
+.ad-sec-head{position:sticky;top:var(--ad-bar);z-index:4;display:flex;align-items:center;gap:12px;padding:11px 18px;background:linear-gradient(180deg,rgba(248,251,255,.97),rgba(241,246,252,.94));border-bottom:1px solid var(--ad-hair-strong)}
 .ad-sec-head .t{min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7B8AA0}
 .ad-sec-head .rn{color:var(--ad-accent)}
 .ad-sec-head .dn{font-size:13px;font-weight:800;letter-spacing:0;text-transform:none;color:var(--ad-ink)}
@@ -6362,15 +6364,19 @@ body.sectors-body{
 /* The three labels head the plan / actual / % tracks, so they carry those tracks' widths and stop
    where the % track does: 240px note column + its 14px gap short of the row's right padding. Without
    the offset they would sit over the «Изоҳ» field instead and name the wrong column. */
-.ad-sec-head .cols{display:flex;gap:14px;margin-right:254px;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:#9AA8BA}
+.ad-sec-head .cols{display:flex;flex:none;gap:14px;margin-right:254px;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--ad-faint)}
+/* flex:none on both: a long section title would otherwise shrink the captions off the tracks they name */
+.ad-sec-head .cols span{flex:none}
 .ad-sec-head .cols span:nth-child(1){width:112px;text-align:right}
 .ad-sec-head .cols span:nth-child(2){width:168px;text-align:center}
 .ad-sec-head .cols span:nth-child(3){width:64px;text-align:right}
 .ad-m{display:flex;flex-direction:column;border-bottom:1px solid var(--ad-hair)}
 .ad-m:last-child{border-bottom:0}
 .ad-mrow{display:flex;gap:13px;align-items:flex-start;padding:15px 18px 8px}
-.ad-mrow .no{width:28px;height:28px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:12px;color:#fff;background:linear-gradient(135deg,#8FA5BF,#AEC0D5);box-shadow:0 5px 12px rgba(12,26,48,.14)}
-.ad-mrow .no.on{background:var(--ad-accent-grad);box-shadow:0 6px 16px rgba(23,105,224,.35)}
+/* Quiet shadows on purpose: a page carries ~95 of these badges, and the entry cell — not the
+   numbering — has to be the loudest thing on it. The accent gradient alone marks «has a value». */
+.ad-mrow .no{width:28px;height:28px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:12px;color:#fff;background:linear-gradient(135deg,#8FA5BF,#AEC0D5);box-shadow:0 1px 3px rgba(12,26,48,.10)}
+.ad-mrow .no.on{background:var(--ad-accent-grad);box-shadow:0 2px 6px rgba(23,105,224,.18)}
 .ad-mrow .ttl{flex:1;min-width:0}
 .ad-mrow .ttl .t{font-size:14px;font-weight:700;line-height:1.45;letter-spacing:-.005em;color:var(--ad-ink);max-width:74ch;overflow-wrap:anywhere}
 .ad-mrow .meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
@@ -6384,21 +6390,32 @@ body.sectors-body{
 .ad-lrow.none{display:block;padding:12px 18px 12px 59px;color:var(--ad-muted);font-style:italic;font-size:12.5px}
 .ad-empty{padding:34px 18px;text-align:center;color:var(--ad-muted);font-size:12.5px}
 .ad-cell{position:relative}
-.ad-cell input{width:100%;border:1.5px solid #D3DEEB;border-radius:12px;padding:9px 13px;font:inherit;font-size:15px;font-weight:800;color:var(--ad-ink);background:linear-gradient(180deg,#fff,#FBFCFE);outline:none;box-shadow:inset 0 1px 3px rgba(12,26,48,.05);transition:border-color .15s,box-shadow .15s,background .15s}
+/* #8494AF reads 3.07:1 against the sheet — the floor for an interactive boundary; the #D3DEEB this
+   replaces sat at 1.36:1 and the cell the whole screen is built around looked like a disabled field.
+   The scroll margins keep Enter/Arrow-to-next-cell from parking the focused cell under the sticky
+   strip above or the floating save pill below; `scroll-padding` cannot do it — the scroll container
+   is the viewport, whose properties come from <html>, which is outside this panel's scope.
+   `background` is out of the transition: every state here swaps one gradient for another, and
+   background-image does not interpolate, so the browser was told to animate a snap. */
+.ad-cell input{width:100%;border:1.5px solid #8494AF;border-radius:12px;padding:9px 13px;font:inherit;font-size:15px;font-weight:800;color:var(--ad-ink);background:linear-gradient(180deg,#fff,#FBFCFE);outline:none;box-shadow:inset 0 1px 3px rgba(12,26,48,.05);scroll-margin:calc(var(--ad-bar) + 46px) 0 88px;transition:border-color .15s,box-shadow .15s}
 .ad-cell.actual input{text-align:right;font-family:var(--font-num);letter-spacing:-.02em}
 .ad-cell.note input{border:0;border-bottom:1.5px solid #E2E9F2;border-radius:0;padding:7px 2px;font-size:12.5px;font-weight:500;color:var(--ad-muted);background:transparent;box-shadow:none}
 .ad-cell input:focus{border-color:var(--ad-accent);background:#fff;box-shadow:var(--ad-focus), inset 0 1px 3px rgba(12,26,48,.04)}
 .ad-cell.note input:focus{box-shadow:0 2px 0 0 var(--ad-accent)}
 .ad-cell input:disabled{background:#F4F7FB;color:var(--ad-faint);box-shadow:none}
-.ad-cell.carry input{color:#98A4B3;font-style:italic;border-style:dashed}
+.ad-cell.carry input{color:#7C8CA0;font-style:italic;border-style:dashed}
 .ad-cell.empty input{border-style:dashed}
 .ad-cell.edited input{border-color:#E0A33F;border-style:solid;background:linear-gradient(180deg,#FFFDF8,#FFF8EC);color:var(--ad-ink);font-style:normal}
-.ad-cell.invalid input{border-color:var(--task-red);border-style:solid;background:#FFF5F4;color:var(--ad-ink);font-style:normal;box-shadow:0 0 0 4px rgba(192,57,43,.14)}
+/* one red: the halo is --task-red (#e6302f) at .14, not a second, unrelated red */
+.ad-cell.invalid input{border-color:var(--task-red);border-style:solid;background:#FFF5F4;color:var(--ad-ink);font-style:normal;box-shadow:0 0 0 4px rgba(230,48,47,.14)}
 /* Always reserved: a message appearing under a cell must not push every row below it down. */
 .ad-cell .msg{display:block;font-size:10.5px;color:var(--task-red);min-height:13px;line-height:1.2}
 .c-pct span{font-family:var(--font-num);font-weight:800;letter-spacing:-.02em}
-.c-pct .t-green{background:var(--ad-pos-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c-pct .t-amber{color:#B8791F}.c-pct .t-red{color:var(--task-red)}.c-pct .t-none{color:#A3B1C2;font-weight:700}
+/* Solid inks, not the positive gradient clipped to the glyphs: that measured 2.4–3.5:1 across its own
+   ramp, and these four are the numbers the operator reads all day. #0A7A4B is 5.4:1, --ad-warn-ink
+   6.5:1, --ad-faint 4.8:1 against the sheet. */
+.c-pct .t-green{color:#0A7A4B}
+.c-pct .t-amber{color:var(--ad-warn-ink)}.c-pct .t-red{color:var(--task-red)}.c-pct .t-none{color:var(--ad-faint);font-weight:700}
 .ad-savebar{position:sticky;bottom:16px;z-index:6;margin:4px auto 0;width:fit-content;max-width:100%;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#0D1832,#16294E);color:#fff;border-radius:999px;padding:11px 14px 11px 22px;box-shadow:0 16px 38px rgba(10,22,45,.35)}
 .ad-savebar .s{font-size:12px;color:rgba(255,255,255,.65)}
 .ad-savebar .s b,.ad-savebar .s span{color:#fff;font-family:var(--font-num)}
@@ -6416,12 +6433,12 @@ body.sectors-body{
 .ad-panel .rows{display:flex;flex-direction:column;gap:7px}
 .ad-panel .r{display:grid;grid-template-columns:minmax(0,1fr) 90px 110px 150px;gap:9px;align-items:start}
 .ad-panel .r.head{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ad-faint)}
-.ad-panel textarea,.ad-panel input{width:100%;border:1.5px solid #D3DEEB;border-radius:10px;padding:8px 11px;font:inherit;font-size:12.5px;color:var(--ad-ink);background:#fff;outline:none;resize:vertical}
+.ad-panel textarea,.ad-panel input{width:100%;border:1.5px solid #8494AF;border-radius:10px;padding:8px 11px;font:inherit;font-size:12.5px;color:var(--ad-ink);background:#fff;outline:none;resize:vertical}
 .ad-panel textarea:focus,.ad-panel input:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
 .ad-panel .t{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}
 .ad-panel .f{display:flex;gap:8px;align-items:center;margin-top:12px}
 .ad-panel .f .sp{flex:1}
-.ad-hist{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:30;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.18);padding:18px 20px;overflow:auto;backdrop-filter:blur(10px)}
+.ad-hist{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:30;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.18);padding:18px 20px;overflow:auto}
 .ad-hist .h{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;margin-bottom:6px}
 .ad-hist .t{font-size:12.5px;color:var(--ad-muted);margin:0 0 14px;line-height:1.45}
 .ad-hist .e{border-top:1px solid var(--ad-hair);padding:10px 0;font-size:12.5px}
@@ -6432,21 +6449,22 @@ body.sectors-body{
 .ad-hist .e .v b{color:#0F7A4F}
 @media (max-width:1100px){
   .ad-lrow{grid-template-columns:1fr 92px 112px 168px 64px}
-  .ad-lrow .c-note{grid-column:1 / -1;padding-left:0}
+  .ad-lrow .c-note{grid-column:1 / -1}
   .ad-sec-head .cols{display:none}
 }
 @media (max-width:800px){
-  .ad-lrow{grid-template-columns:1fr 140px 64px;row-gap:8px}
-  .ad-lrow .c-unit,.ad-lrow .c-plan{grid-column:auto}
+  /* Two tracks for six children, so the rows read label / unit+plan / cell+% / note. Without the
+     span the label took one track and the browser auto-placed the rest: the cell landed in the
+     flexible track, the % in the fixed one, and the third track stayed empty on every line. */
+  .ad-lrow{grid-template-columns:1fr 64px;row-gap:8px;padding-left:14px}
+  .ad-lrow .c-label{grid-column:1 / -1}
   .ad-mrow{padding:13px 14px 8px}
-  .ad-lrow{padding-left:14px}
   .ad-prow{padding-left:14px}
-  .ad-sec-head{top:0}
 }
 
 /* ===================== admin panel: upload slide-over ===================== */
 .ad-scrim{position:fixed;inset:0;z-index:31;background:rgba(10,17,40,.35);backdrop-filter:blur(2px)}
-.ad-upload{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:32;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.20);padding:20px 22px;overflow:auto;backdrop-filter:blur(10px)}
+.ad-upload{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:32;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.20);padding:20px 22px;overflow:auto}
 /* The sheet stacks on the children's own margins, not a flex gap on the panel, so each block below
    owns its spacing. The heading is a <b> and the region name a .muted span, not an h3 + .sub. */
 .ad-upload .h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
@@ -6454,7 +6472,7 @@ body.sectors-body{
 .ad-upload .h .muted{display:block;font-size:12px;color:var(--ad-muted);margin-top:3px}
 .ad-upload .f{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
 .ad-upload .f > span{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ad-faint)}
-.ad-upload select{width:100%;border:1.5px solid #D3DEEB;border-radius:12px;padding:10px 13px;font:inherit;font-size:13px;font-weight:700;background:#fff;outline:none}
+.ad-upload select{width:100%;border:1.5px solid #8494AF;border-radius:12px;padding:10px 13px;font:inherit;font-size:13px;font-weight:700;background:#fff;outline:none}
 .ad-upload select:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
 /* file picker: the native control writes «Choose File / No file chosen» in English and cannot be
    relabelled, so the input is hidden inside this label (still focusable, still the wire:model target). */
@@ -6510,6 +6528,8 @@ body.sectors-body{
   --ad-hair:#F0F4F9;
   --ad-hair-strong:#E8EEF6;
   --ad-track:#E7EDF5;
+  /* height of the sticky top bar: .adm-top wears it as min-height and the section strips stick to it */
+  --ad-bar:52px;
   --font-num:'Manrope','Inter',system-ui,sans-serif}
 /* The ground is one fixed layer, not background-attachment:fixed: that de-composites scrolling and the entry
    page is long. The flat body colour propagates to the canvas, so this z-index:-1 layer paints over it. */
@@ -6521,7 +6541,7 @@ body.sectors-body{
 /* errors/404.blade.php extends layouts.admin on an /admin URL, so the portal empty state gets a glass sheet. */
 .adm-body .wr-empty{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);padding:34px 24px;text-align:center}
 /* Below the upload scrim (31) and drawers (30/32) on purpose, so a drawer covers the bar like it covers the portal topbar. */
-.adm-top{position:sticky;top:0;z-index:28;display:flex;align-items:center;gap:14px;min-height:52px;padding:8px clamp(14px,2.2vw,30px);background:#0a1128;box-shadow:0 10px 30px rgba(7,26,45,.22)}
+.adm-top{position:sticky;top:0;z-index:28;display:flex;align-items:center;gap:14px;min-height:var(--ad-bar);padding:8px clamp(14px,2.2vw,30px);background:#0a1128;box-shadow:0 10px 30px rgba(7,26,45,.22)}
 .adm-brand{display:flex;align-items:center;gap:11px;min-width:0;transition:opacity .15s ease-out}
 .adm-brand:hover{opacity:.8}
 .adm-brand img{height:26px;width:auto;display:block}
@@ -6545,6 +6565,11 @@ body.sectors-body{
 /* a reading width: on a 1700px screen an uncapped row puts the entry cell a long eye-travel from its label */
 .adm-main{min-width:0;max-width:1440px;margin:0 auto;padding:18px clamp(16px,2.4vw,30px) 34px}
 @media (max-width:840px){
+  /* The bar wraps to two rows here (.adm-nav takes the full width), so it is no longer 52px and the
+     strips have to follow: 8px padding + 29px brand/side row + 8px row-gap + 30px nav row + 8px
+     padding = 83, and min-height rounds it up to 88 so the two cannot disagree by a font metric.
+     Below ~350px .adm-side wraps as well and the bar outgrows this; the panel is a desktop tool. */
+  .adm-body{--ad-bar:88px}
   .adm-top{flex-wrap:wrap;row-gap:8px}
   .adm-nav{order:3;width:100%;flex:none;overflow-x:auto}
   .adm-side{gap:8px}
