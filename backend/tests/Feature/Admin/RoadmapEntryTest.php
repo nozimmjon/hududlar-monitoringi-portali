@@ -26,8 +26,11 @@ test('the grid renders groups, measure rows with their state, and cells carrying
 
     Livewire::test(RoadmapEntry::class, ['code' => 1733])
         ->assertSet('period', '2026-09')
-        ->assertSee('Амалда киритиш')
         ->assertSee('Хоразм вилояти')
+        // the header's sub-line: measures, their indicator lines, and the overdue count — judged
+        // against today (2026-09), never against the browsed month
+        ->assertSee('2026 йил сентябрь · 4 та чора-тадбир · 5 та индикатор')
+        ->assertSee('1 кечиккан')
         ->assertSeeInOrder(['Вилоятда амалга ошириладиган йирик лойиҳалар', '«Куловот» каналини реконструкция қилиш.', 'Туманларда амалга ошириладиган лойиҳалар', 'Боғот тумани', 'Хўжаликлараро каналлар', 'Ички каналлар', 'Гурлан тумани', 'Насос агрегатлари'])
         ->assertSee('туман ҳокими Ж.Назаров')
         // one sheet per section, one article per measure, one row per indicator line — the shape the JS indexes
