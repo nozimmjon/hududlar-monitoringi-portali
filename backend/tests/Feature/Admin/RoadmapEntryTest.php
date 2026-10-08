@@ -34,9 +34,9 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSeeInOrder(['Вилоятда амалга ошириладиган йирик лойиҳалар', '«Куловот» каналини реконструкция қилиш.', 'Туманларда амалга ошириладиган лойиҳалар', 'Боғот тумани', 'Хўжаликлараро каналлар', 'Ички каналлар', 'Гурлан тумани', 'Насос агрегатлари'])
         ->assertSee('туман ҳокими Ж.Назаров')
         // one sheet per section, one article per measure, one row per indicator line — the shape the JS indexes
-        ->assertSeeHtml('<section class="ad-sheet ad-sec" wire:key="g-1:0"')
+        ->assertSeeHtml('<section class="ad-sec" wire:key="g-1:0"')
         ->assertSeeHtml('<article class="ad-m" wire:key="m-' . $bogot->id . '" data-measure="' . $bogot->id . '" data-state="carry" data-deadline="0"')
-        ->assertSeeHtml('<div class="ad-lrow" wire:key="l-' . $l1->id . '">')
+        ->assertSeeHtml('<div class="ad-row line" wire:key="l-' . $l1->id . '">')          // Боғот has two lines: title row, then one row per line
         ->assertSeeHtml('data-line="' . $l1->id . '" data-measure="' . $bogot->id . '" data-field="actual" data-plan="7.8" data-loaded="3" data-loaded-text="3" data-state="carry"')
         ->assertSeeHtml('data-line="' . $l1->id . '" data-measure="' . $bogot->id . '" data-field="note" data-loaded-text="август"')
         // both value cells are keyed by $version: that is what re-keys them on a save, which is how the
@@ -47,9 +47,9 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSee('2026 йил августдан кўчирилган')
         ->assertSeeHtml('data-measure="' . AdminFixture::measure(1, 1)->id . '" data-state="empty"')
         ->assertSee('Батафсил (2 банд)')
-        ->assertSee('муддат: 2026 йил декабрь')
+        ->assertDontSee('муддат: 2026 йил декабрь')                         // the year-end default is noise and stays off the row
         // the clock is pinned to September, so the June measure nobody reported wears the overdue chip
-        ->assertSeeHtml('<span class="ad-chip warn">кечиккан</span>')
+        ->assertSeeHtml('<span class="over">кечиккан · 2026 йил июнь</span>')
         ->assertSee('Қолганини ўзгаришсиз тасдиқлаш')
         // the arm text names what the confirm actually does: only 1 of the 4 carries anything over
         ->assertSee('4 та чора-тадбир 2026 йил сентябрь учун ҳозирги кўринишда сақланади — 1 таси ўтган ой қийматлари билан, 3 таси бўш.')

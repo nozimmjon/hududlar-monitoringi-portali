@@ -6334,131 +6334,138 @@ body.sectors-body{
 .ad-card .foot .last{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ===================== admin panel: entry grid ===================== */
-.ad-ring{width:88px;height:88px;border-radius:50%;flex:none;display:grid;place-items:center;box-shadow:0 14px 34px rgba(23,105,224,.22)}
-.ad-ring i{width:68px;height:68px;border-radius:50%;background:linear-gradient(180deg,#fff,#F7FAFE);display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;box-shadow:inset 0 1px 2px rgba(12,26,48,.06)}
-.ad-ring b{font-family:var(--font-num);font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ad-ink)}
-.ad-ring em{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ad-faint);margin-top:2px}
-.ad-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-left:auto}
-.ad-search input{border:1px solid rgba(14,28,50,.08);border-radius:13px;padding:9px 15px;font:inherit;font-size:13px;min-width:180px;background:rgba(255,255,255,.9);outline:none;box-shadow:var(--ad-ctl-shadow)}
-.ad-search input:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
-.ad-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-.ad-pills button{border:1px solid var(--ad-sheet-line);border-radius:999px;background:rgba(255,255,255,.85);padding:6px 13px;font:inherit;font-size:11.5px;font-weight:700;color:var(--ad-muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(12,26,48,.05);transition:background .15s,color .15s,box-shadow .15s}
-.ad-pills button b{font-family:var(--font-num);font-weight:800;color:var(--ad-ink)}
-.ad-pills button:hover{background:#fff}
-.ad-pills button.on{background:var(--ad-accent-grad);border-color:transparent;color:#fff;box-shadow:var(--ad-accent-glow)}
+/* A worksheet, not a dashboard: every row sits on the same tracks, state lives in the cell itself,
+   and nothing on the page is louder than the field the operator types into. */
+.ad-entry .ad-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.ad-entry .ad-sub{font-size:12.5px;color:var(--ad-muted);margin-top:3px}
+.ad-entry .ad-sub .over{color:var(--task-red);font-weight:700}
+.ad-entry .ad-select{border-radius:8px;box-shadow:none;background:#fff;border:1px solid #C9D3E0;padding:6px 8px 6px 12px}
+.ad-entry .ad-select span{font-size:10px;letter-spacing:.08em;color:var(--ad-muted)}
+.ad-entry .ad-select select{font-size:13px;max-width:190px}
+.ad-entry .ad-btn.ghost{border-radius:8px;box-shadow:none;border:1px solid #C9D3E0;background:#fff;color:var(--ad-ink);font-weight:600}
+.ad-entry .ad-btn.ghost:hover:not(:disabled){background:#F4F7FB;box-shadow:none}
+.ad-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+.ad-toolrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.ad-search{margin-left:auto}
+.ad-search input{border:1px solid #C9D3E0;border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;min-width:300px;background:#fff;outline:none}
+.ad-search input:focus{border-color:var(--ad-accent);box-shadow:0 0 0 3px rgba(23,105,224,.15)}
+/* the filters are one segmented control: flat, bordered, the active segment inked, no pills */
+.ad-pills{display:inline-flex;border:1px solid #C9D3E0;border-radius:8px;background:#fff;overflow:hidden}
+.ad-pills button{border:0;border-right:1px solid #E3E9F1;background:transparent;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ad-muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ad-pills button:last-child{border-right:0}
+.ad-pills button b{font-weight:700;color:var(--ad-ink)}
+.ad-pills button:hover{background:#F4F7FB}
+.ad-pills button.on{background:#111827;color:#fff}
 .ad-pills button.on b{color:#fff}
-.ad-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FDECEA;color:var(--task-red);border-radius:14px;padding:11px 15px;font-size:13px;font-weight:600}
-/* One sheet per section. The strip parks under the admin bar through --ad-bar, which the bar also
-   wears as its min-height, so the offset cannot drift from the bar it hides behind. `clip`, not the
-   sheet's `hidden`: both clip the rounded corners, but `hidden` is a scroll container, and a sticky
-   child measures against the nearest one — against a box that never scrolls the strip would simply
-   never stick. No backdrop-filter: a page carries tens of these, each would re-blur a full-width
-   band every frame, and at 94–97% opacity there is nothing left to see through. */
-.ad-sec{display:flex;flex-direction:column;overflow:clip}
-.ad-sec-head{position:sticky;top:var(--ad-bar);z-index:4;display:flex;align-items:center;gap:12px;padding:11px 18px;background:linear-gradient(180deg,rgba(248,251,255,.97),rgba(241,246,252,.94));border-bottom:1px solid var(--ad-hair-strong)}
-.ad-sec-head .t{min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7B8AA0}
+.ad-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FDECEA;color:var(--task-red);border:1px solid #F5C2BE;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600}
+/* the worksheet: one border, one set of tracks shared by the column header and every row below it */
+.ad-grid{--ad-cols:44px minmax(0,1fr) 72px 96px 148px 60px 220px 64px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
+.ad-cols,.ad-row{display:grid;grid-template-columns:var(--ad-cols);column-gap:12px;align-items:center}
+.ad-cols{position:sticky;top:var(--ad-bar);z-index:5;height:34px;padding:0 14px;background:#F7F9FC;border-bottom:1px solid #D5DEE9;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
+.ad-cols .c-no{text-align:right}
+.ad-cols .c-plan,.ad-cols .c-pct{text-align:right}
+.ad-cols .c-actual{text-align:center;color:var(--ad-accent)}
+/* the section band parks under the column header; `clip` on the worksheet keeps it a non-scrolling ancestor */
+.ad-sec{display:flex;flex-direction:column}
+.ad-sec-head{position:sticky;top:calc(var(--ad-bar) + 34px);z-index:4;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;padding:9px 14px;background:#EEF2F7;border-top:1px solid #D5DEE9;border-bottom:1px solid #D5DEE9;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4B5B70}
 .ad-sec-head .rn{color:var(--ad-accent)}
-.ad-sec-head .dn{font-size:13px;font-weight:800;letter-spacing:0;text-transform:none;color:var(--ad-ink)}
-.ad-sec-head .hd{font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ad-muted)}
-.ad-sec-head .cnt{margin-left:auto;font-size:11px;font-weight:700;color:var(--ad-muted);background:#fff;border:1px solid var(--ad-hair-strong);border-radius:999px;padding:3px 10px;white-space:nowrap}
-/* The three labels head the plan / actual / % tracks, so they carry those tracks' widths and stop
-   where the % track does: 240px note column + its 14px gap short of the row's right padding. Without
-   the offset they would sit over the «Изоҳ» field instead and name the wrong column. */
-.ad-sec-head .cols{display:flex;flex:none;gap:14px;margin-right:254px;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--ad-faint)}
-/* flex:none on both: a long section title would otherwise shrink the captions off the tracks they name */
-.ad-sec-head .cols span{flex:none}
-.ad-sec-head .cols span:nth-child(1){width:112px;text-align:right}
-.ad-sec-head .cols span:nth-child(2){width:168px;text-align:center}
-.ad-sec-head .cols span:nth-child(3){width:64px;text-align:right}
-.ad-m{display:flex;flex-direction:column;border-bottom:1px solid var(--ad-hair)}
-.ad-m:last-child{border-bottom:0}
-.ad-mrow{display:flex;gap:13px;align-items:flex-start;padding:15px 18px 8px}
-/* Quiet shadows on purpose: a page carries ~95 of these badges, and the entry cell — not the
-   numbering — has to be the loudest thing on it. The accent gradient alone marks «has a value». */
-.ad-mrow .no{width:28px;height:28px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:12px;color:#fff;background:linear-gradient(135deg,#8FA5BF,#AEC0D5);box-shadow:0 1px 3px rgba(12,26,48,.10)}
-.ad-mrow .no.on{background:var(--ad-accent-grad);box-shadow:0 2px 6px rgba(23,105,224,.18)}
-.ad-mrow .ttl{flex:1;min-width:0}
-.ad-mrow .ttl .t{font-size:14px;font-weight:700;line-height:1.45;letter-spacing:-.005em;color:var(--ad-ink);max-width:74ch;overflow-wrap:anywhere}
-.ad-mrow .meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
-.ad-mrow .meta .due{font-size:11px;color:var(--ad-faint)}
-.ad-tools{display:inline-flex;gap:6px;margin-left:auto}
-.ad-lrow{display:grid;grid-template-columns:1fr 92px 112px 168px 64px 240px;gap:14px;align-items:center;padding:9px 18px 9px 59px;border-top:1px solid var(--ad-hair)}
-.ad-lrow .c-label{font-size:12.5px;color:#4C5E75;max-width:66ch;overflow-wrap:anywhere}
-.ad-lrow .c-unit{font-size:11.5px;font-weight:600;color:var(--ad-faint)}
-.ad-lrow .c-plan{font-size:14px;font-weight:700;text-align:right;color:#2D4159}
-.ad-lrow .c-pct{text-align:right;font-size:13px}
-.ad-lrow.none{display:block;padding:12px 18px 12px 59px;color:var(--ad-muted);font-style:italic;font-size:12.5px}
+.ad-sec-head .dn{font-size:13px;letter-spacing:0;text-transform:none;color:var(--ad-ink)}
+.ad-sec-head .hd{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ad-muted)}
+.ad-sec-head .cnt{margin-left:auto;font-weight:600;letter-spacing:0;color:var(--ad-muted)}
+.ad-m{display:flex;flex-direction:column}
+.ad-row{padding:7px 14px;border-top:1px solid #EDF1F6}
+.ad-row:hover{background:#FBFCFE}
+.ad-m:first-of-type .ad-row.one,.ad-m:first-of-type .ad-row.head{border-top:0}
+.ad-row.one,.ad-row.head{padding:10px 14px 9px}
+.ad-row.head{border-bottom:0}
+.ad-row.line{padding:6px 14px}
+.ad-row.line + .ad-row.line{border-top-color:#F3F6FA}
+.ad-row.head .ttl{grid-column:2 / 8}
+.ad-row .c-no{font-size:12px;font-weight:600;color:var(--ad-faint);text-align:right;font-variant-numeric:tabular-nums}
+.ad-row .ttl .t{font-size:13.5px;font-weight:600;line-height:1.4;color:var(--ad-ink);max-width:80ch;overflow-wrap:anywhere}
+.ad-row .ttl .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;line-height:1.3}
+.ad-row .ttl .meta:empty{display:none}
+.ad-row .ttl .meta .over{color:var(--task-red);font-weight:700}
+.ad-row .ttl .meta .due{color:var(--ad-muted)}
+/* the state is a word, not a badge: it matters only when there is something to say */
+.ad-state{color:var(--ad-muted);font-weight:600}
+.ad-row .ttl .wr-more{margin-top:3px}
+.ad-row .c-label.sub{font-size:12.5px;line-height:1.4;color:#374151;padding-left:14px;border-left:2px solid #E3E9F1;max-width:80ch;overflow-wrap:anywhere}
+.ad-row .c-unit{font-size:12px;color:var(--ad-muted)}
+.ad-row .c-plan{font-size:13.5px;font-weight:600;text-align:right;color:var(--ad-ink)}
+.ad-row .c-pct{text-align:right;font-size:12.5px}
+.ad-row.none{display:block;color:var(--ad-muted);font-style:italic;font-size:12.5px;padding:8px 14px 8px 70px}
+.ad-tools,.c-tools{display:inline-flex;justify-content:flex-end;gap:4px}
+.ad-row .c-tools .ad-ico{width:26px;height:26px;border-radius:6px;font-size:12px;opacity:.6;box-shadow:none}
+.ad-row:hover .c-tools .ad-ico,.ad-row .c-tools .ad-ico:focus-visible{opacity:1}
 .ad-empty{padding:34px 18px;text-align:center;color:var(--ad-muted);font-size:12.5px}
+/* The cell. A real field: white, a visible border, a strong focus ring. Its states are the only colour
+   on the row — amber while an edit is unsaved, red when the text is not a number, grey italic while
+   the value is last month's and dashed while there is nothing yet. */
 .ad-cell{position:relative}
-/* #8494AF reads 3.07:1 against the sheet — the floor for an interactive boundary; the #D3DEEB this
-   replaces sat at 1.36:1 and the cell the whole screen is built around looked like a disabled field.
-   The scroll margins keep Enter/Arrow-to-next-cell from parking the focused cell under the sticky
-   strip above or the floating save pill below; `scroll-padding` cannot do it — the scroll container
-   is the viewport, whose properties come from <html>, which is outside this panel's scope.
-   `background` is out of the transition: every state here swaps one gradient for another, and
-   background-image does not interpolate, so the browser was told to animate a snap. */
-.ad-cell input{width:100%;border:1.5px solid #8494AF;border-radius:12px;padding:9px 13px;font:inherit;font-size:15px;font-weight:800;color:var(--ad-ink);background:linear-gradient(180deg,#fff,#FBFCFE);outline:none;box-shadow:inset 0 1px 3px rgba(12,26,48,.05);scroll-margin:calc(var(--ad-bar) + 46px) 0 88px;transition:border-color .15s,box-shadow .15s}
-.ad-cell.actual input{text-align:right;font-family:var(--font-num);letter-spacing:-.02em}
-.ad-cell.note input{border:0;border-bottom:1.5px solid #E2E9F2;border-radius:0;padding:7px 2px;font-size:12.5px;font-weight:500;color:var(--ad-muted);background:transparent;box-shadow:none}
-.ad-cell input:focus{border-color:var(--ad-accent);background:#fff;box-shadow:var(--ad-focus), inset 0 1px 3px rgba(12,26,48,.04)}
-.ad-cell.note input:focus{box-shadow:0 2px 0 0 var(--ad-accent)}
-.ad-cell input:disabled{background:#F4F7FB;color:var(--ad-faint);box-shadow:none}
-.ad-cell.carry input{color:#7C8CA0;font-style:italic;border-style:dashed}
+.ad-cell input{width:100%;height:34px;border:1px solid #AEBBCC;border-radius:6px;padding:0 10px;font:inherit;font-size:14px;color:var(--ad-ink);background:#fff;outline:none;transition:border-color .12s,box-shadow .12s;scroll-margin-top:calc(var(--ad-bar) + 80px);scroll-margin-bottom:90px}
+.ad-cell.actual input{text-align:right;font-family:var(--font-num);font-weight:600;letter-spacing:-.01em}
+.ad-cell.note input{border-color:#D5DEE9;font-size:12.5px;color:#374151}
+.ad-cell input::placeholder{color:#B4BFCC;font-weight:400}
+.ad-cell input:focus{border-color:var(--ad-accent);box-shadow:0 0 0 3px rgba(23,105,224,.18)}
+.ad-cell input:disabled{background:#F4F7FB;color:var(--ad-faint)}
+.ad-cell.carry input{color:#6B7A8F;font-style:italic;border-style:dashed}
 .ad-cell.empty input{border-style:dashed}
-.ad-cell.edited input{border-color:#E0A33F;border-style:solid;background:linear-gradient(180deg,#FFFDF8,#FFF8EC);color:var(--ad-ink);font-style:normal}
-/* one red: the halo is --task-red (#e6302f) at .14, not a second, unrelated red */
-.ad-cell.invalid input{border-color:var(--task-red);border-style:solid;background:#FFF5F4;color:var(--ad-ink);font-style:normal;box-shadow:0 0 0 4px rgba(230,48,47,.14)}
+.ad-cell.edited input{border-color:#D18A00;border-style:solid;background:#FFF9EC;color:var(--ad-ink);font-style:normal}
+.ad-cell.invalid input{border-color:var(--task-red);border-style:solid;background:#FFF5F4;color:var(--ad-ink);font-style:normal;box-shadow:0 0 0 3px rgba(230,48,47,.14)}
 /* Always reserved: a message appearing under a cell must not push every row below it down. */
-.ad-cell .msg{display:block;font-size:10.5px;color:var(--task-red);min-height:13px;line-height:1.2}
-.c-pct span{font-family:var(--font-num);font-weight:800;letter-spacing:-.02em}
-/* Solid inks, not the positive gradient clipped to the glyphs: that measured 2.4–3.5:1 across its own
-   ramp, and these four are the numbers the operator reads all day. #0A7A4B is 5.4:1, --ad-warn-ink
-   6.5:1, --ad-faint 4.8:1 against the sheet. */
+.ad-cell .msg{display:block;font-size:10.5px;color:var(--task-red);min-height:13px;line-height:1.2;margin-top:1px}
+.ad-cell.note .msg{display:none}
+.c-pct span{font-family:var(--font-num);font-weight:700}
 .c-pct .t-green{color:#0A7A4B}
-.c-pct .t-amber{color:var(--ad-warn-ink)}.c-pct .t-red{color:var(--task-red)}.c-pct .t-none{color:var(--ad-faint);font-weight:700}
-.ad-savebar{position:sticky;bottom:16px;z-index:6;margin:4px auto 0;width:fit-content;max-width:100%;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#0D1832,#16294E);color:#fff;border-radius:999px;padding:11px 14px 11px 22px;box-shadow:0 16px 38px rgba(10,22,45,.35)}
-.ad-savebar .s{font-size:12px;color:rgba(255,255,255,.65)}
-.ad-savebar .s b,.ad-savebar .s span{color:#fff;font-family:var(--font-num)}
+.c-pct .t-amber{color:var(--ad-warn-ink)}.c-pct .t-red{color:var(--task-red)}.c-pct .t-none{color:var(--ad-faint);font-weight:600}
+/* the save bar: a flat bar at the bottom of the viewport, the width of the worksheet */
+.ad-savebar{position:sticky;bottom:0;z-index:6;margin:0 -2px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid #D5DEE9;border-radius:10px 10px 0 0;padding:10px 16px;box-shadow:0 -8px 24px rgba(12,26,48,.08)}
+.ad-savebar .s{font-size:12.5px;color:var(--ad-muted)}
+.ad-savebar .s b,.ad-savebar .s span{color:var(--ad-ink);font-weight:700}
 .ad-savebar .a{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ad-savebar .ad-btn.ghost{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.22);box-shadow:none}
-.ad-savebar .ad-btn.ghost:hover{background:rgba(255,255,255,.22)}
-.ad-arm{display:inline-flex;align-items:center;gap:8px;font-size:12px;background:rgba(255,255,255,.12);border-radius:999px;padding:6px 12px}
-.ad-arm.small{background:var(--ad-warn-bg);color:var(--ad-warn-ink);font-size:11.5px;padding:4px 10px;border-radius:999px}
-.ad-toast{position:fixed;right:22px;bottom:92px;z-index:40;background:linear-gradient(135deg,#0F9D63,#2FBE85);color:#fff;border-radius:14px;padding:11px 18px;font-size:13px;font-weight:700;box-shadow:0 14px 34px rgba(15,157,99,.35)}
-.ad-toast.warn{bottom:144px;background:linear-gradient(135deg,#C97A12,#E8A33F);box-shadow:0 14px 34px rgba(201,122,18,.35)}
-.ad-prow{padding:4px 18px 16px 59px}
-.ad-panel{background:#fff;border:1px solid var(--ad-sheet-line);border-radius:16px;padding:14px 16px;box-shadow:var(--ad-card-shadow)}
+.ad-entry .ad-savebar .ad-btn{border-radius:8px}
+.ad-entry .ad-savebar .ad-btn.primary{background:var(--ad-accent);box-shadow:none;font-weight:700;padding:9px 20px}
+.ad-entry .ad-savebar .ad-btn.primary:hover:not(:disabled){transform:none;filter:brightness(1.08);box-shadow:none}
+.ad-arm{display:inline-flex;align-items:center;gap:8px;font-size:12px;background:#FFF9EC;border:1px solid #F0D9A8;border-radius:8px;padding:6px 10px;color:var(--ad-ink)}
+.ad-arm.small{background:var(--ad-warn-bg);color:var(--ad-warn-ink);font-size:11.5px;padding:4px 10px;border-radius:999px;border:0}
+.ad-toast{position:fixed;right:22px;bottom:80px;z-index:40;background:#0F7A4F;color:#fff;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 10px 26px rgba(15,122,79,.3)}
+.ad-toast.warn{bottom:130px;background:#B8640A;box-shadow:0 10px 26px rgba(184,100,10,.3)}
+.ad-prow{padding:4px 14px 14px 56px;border-top:1px solid #EDF1F6;background:#F7FAFF}
+.ad-panel{background:#fff;border:1px solid #C9D3E0;border-radius:10px;padding:14px 16px}
 .ad-panel .h{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;font-size:13px;font-weight:700}
 .ad-panel .h .muted{font-size:11.5px;font-weight:500}
 .ad-panel .rows{display:flex;flex-direction:column;gap:7px}
 .ad-panel .r{display:grid;grid-template-columns:minmax(0,1fr) 90px 110px 150px;gap:9px;align-items:start}
-.ad-panel .r.head{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ad-faint)}
-.ad-panel textarea,.ad-panel input{width:100%;border:1.5px solid #8494AF;border-radius:10px;padding:8px 11px;font:inherit;font-size:12.5px;color:var(--ad-ink);background:#fff;outline:none;resize:vertical}
-.ad-panel textarea:focus,.ad-panel input:focus{border-color:var(--ad-accent);box-shadow:var(--ad-focus)}
+.ad-panel .r.head{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ad-muted)}
+.ad-panel textarea,.ad-panel input{width:100%;border:1px solid #AEBBCC;border-radius:6px;padding:7px 10px;font:inherit;font-size:12.5px;color:var(--ad-ink);background:#fff;outline:none;resize:vertical}
+.ad-panel textarea:focus,.ad-panel input:focus{border-color:var(--ad-accent);box-shadow:0 0 0 3px rgba(23,105,224,.18)}
 .ad-panel .t{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}
 .ad-panel .f{display:flex;gap:8px;align-items:center;margin-top:12px}
 .ad-panel .f .sp{flex:1}
-.ad-hist{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:30;background:var(--ad-sheet);border-left:1px solid var(--ad-sheet-line);box-shadow:-20px 0 50px rgba(12,26,48,.18);padding:18px 20px;overflow:auto}
-.ad-hist .h{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;margin-bottom:6px}
+.ad-hist{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:30;background:#fff;border-left:1px solid #D5DEE9;box-shadow:-16px 0 40px rgba(12,26,48,.14);padding:18px 20px;overflow:auto}
+.ad-hist .h{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:700;margin-bottom:6px}
 .ad-hist .t{font-size:12.5px;color:var(--ad-muted);margin:0 0 14px;line-height:1.45}
-.ad-hist .e{border-top:1px solid var(--ad-hair);padding:10px 0;font-size:12.5px}
+.ad-hist .e{border-top:1px solid #EDF1F6;padding:10px 0;font-size:12.5px}
 .ad-hist .e .w{font-size:11px;color:var(--ad-faint)}
 .ad-hist .e .a{font-weight:700;color:var(--ad-ink);margin-top:3px}
 .ad-hist .e .v{margin-top:3px;color:var(--ad-muted)}
 .ad-hist .e .v s{color:var(--task-red)}
 .ad-hist .e .v b{color:#0F7A4F}
 @media (max-width:1100px){
-  .ad-lrow{grid-template-columns:1fr 92px 112px 168px 64px}
-  .ad-lrow .c-note{grid-column:1 / -1}
-  .ad-sec-head .cols{display:none}
+  .ad-grid{--ad-cols:40px minmax(0,1fr) 64px 84px 128px 54px 64px}
+  .ad-cols .c-note,.ad-row .c-note{display:none}
+  .ad-row.head .ttl{grid-column:2 / 7}
 }
 @media (max-width:800px){
-  /* Two tracks for six children, so the rows read label / unit+plan / cell+% / note. Without the
-     span the label took one track and the browser auto-placed the rest: the cell landed in the
-     flexible track, the % in the fixed one, and the third track stayed empty on every line. */
-  .ad-lrow{grid-template-columns:1fr 64px;row-gap:8px;padding-left:14px}
-  .ad-lrow .c-label{grid-column:1 / -1}
-  .ad-mrow{padding:13px 14px 8px}
+  /* label on its own line, then unit+plan, cell, % — the tools and the note drop off the row */
+  .ad-grid{--ad-cols:1fr 72px 120px 52px}
+  .ad-cols{display:none}
+  .ad-row .c-no,.ad-row .c-tools,.ad-row .c-note{display:none}
+  .ad-row .ttl,.ad-row .c-label.sub{grid-column:1 / -1}
+  .ad-row.head .ttl{grid-column:1 / -1}
+  .ad-row .c-unit{text-align:right;color:var(--ad-muted)}
+  .ad-row.none{padding-left:14px}
   .ad-prow{padding-left:14px}
 }
 

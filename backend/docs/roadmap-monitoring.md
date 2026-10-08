@@ -322,45 +322,48 @@ detail lines and indicator labels, and «Excel’дан юклаш». Under them
 live counts; with everything filtered out the grid says «Фильтрга мос чора-тадбир йўқ»
 and offers the way back.
 
-The region's **completion ring** — measures saved for this month over all of them —
-sits in the page header beside the region name, over a sub-line reading «2026 йил
-октябрь · 95 чора-тадбир · 200 индикатор · N кечиккан» (the last clause only when
-something is late). There is one ring for the page, not one per measure; a measure's
-stored status (Бажарилди · Бажарилмоқда · Бажарилмаган) is not shown in the panel at
-all — that is the public page's job — because what the panel asks is *what has been
-entered for this month*.
+The page header is the region name over one line of numbers — «2026 йил октябрь · 95 та
+чора-тадбир · 200 та индикатор · 0 тўлдирилди · N кечиккан» (the last clause only when
+something is late) — with the region and month selects beside it, and under that the
+filters and the search box. A measure's stored status (Бажарилди · Бажарилмоқда ·
+Бажарилмаган) is not shown in the panel at all — that is the public page's job — because
+what the panel asks is *what has been entered for this month*.
 
-The grid itself is the road map, one sheet per section-and-district group. Each sheet
-opens with a strip that sticks under the admin bar while its measures scroll past,
-carrying the section's Roman numeral and title, the district and its head, the measure
-count and the «Режа · Амалда · %» column labels. Inside, every measure gets
+The grid is one worksheet. A column header row («№ · Чора-тадбир · индикатор · Ўлчов ·
+Режа · Амалда · % · Изоҳ») sticks under the admin bar, each section's band («I ·
+Вилоятда …», with the district and its head where there is one, and the measure count)
+sticks under that, and every row below sits on the same column tracks, so the eye reads
+straight down the «Амалда» column.
 
-- a **numbered badge** — grey while the measure has nothing for this month, the accent
-  blue the moment it has a value (saved, carried, or merely typed and not yet saved);
-- its title, with «Батафсил» opening the document's own detail lines;
-- the **deadline as muted inline text** («муддат: 2026 йил декабрь»), not a chip;
-- chips **only when they carry something**: «кечиккан» in the warning colours (the rule
-  above), and one state chip, which is «сақланган», «ўтган ойдан» or «ўзгартирилган». A
-  measure that is untouched and on time wears no chip at all;
-- the two tools ✎ and 🕓;
+- A measure with **one indicator line** takes **one row**: its number, its title, then
+  that line's unit, plan, «Амалда» cell, % and note. In these documents the single
+  indicator almost always restates the title, so the label is not repeated; it is still
+  there as the row's tooltip and in the cell's accessible name.
+- A measure with **several lines** takes a title row and then one row per line, the
+  line's label indented under the title with a thin left rule.
+- The deadline is shown only when it says something: «кечиккан · 2026 йил июнь» in red
+  when it has passed and the measure is not done (the rule above), «муддат: …» when it
+  is anything other than the year-end default. Nine measures in ten carry «… декабрь»
+  and show nothing.
+- The month's state — «ўтган ойдан», «сақланган», «ўзгартирилган» — is a quiet word next
+  to the title, and only when there is one; an untouched measure shows no word.
+- «Батафсил» opens the document's own detail lines; the two tools ✎ and 🕓 sit at the end
+  of the title row.
 
-and under it one row per indicator line: label, «Ўлчов», «Режа», the «Амалда» cell, the
-live %, and «Изоҳ». The page scrolls as a whole — there is no inner scroll area; what
-stays put is the admin bar, the section strips beneath it, and the save bar at the
-bottom.
+The page scrolls as a whole — there is no inner scroll area; what stays put is the admin
+bar, the column header and section band beneath it, and the save bar at the bottom.
 
 **A new month opens pre-filled** from the latest earlier month that has values. A
 carried cell shows that value in grey italic and names its source month in the tooltip
 («2026-09дан кўчирилган»); a cell with nothing behind it has a dashed border. The
-measure's state chip says «ўтган ойдан» or «сақланган» accordingly (a measure with
-nothing entered shows no chip) — and the pre-fill is only a **view** until it is written
-(see the hazards below).
+state word next to the title says «ўтган ойдан» or «сақланган» accordingly (a measure
+with nothing entered shows no word) — and the pre-fill is only a **view** until it is
+written (see the hazards below).
 
 - **Nothing is written until «Сақлаш»** (or Ctrl+S — the physical key, so a Cyrillic
-  layout works). Typing turns the cell amber and the state chip «ўзгартирилган»; the
-  line %, the measure's badge and the filter counts react to every keystroke with the
-  same arithmetic the server uses, and the server's answer — the header ring included —
-  replaces them after the save.
+  layout works). Typing turns the cell amber and the state word «ўзгартирилган»; the
+  line % and the filter counts react to every keystroke with the same arithmetic the
+  server uses, and the server's answer replaces them after the save.
 - **Numbers:** decimal comma or point, spaces inside the number ignored. A negative
   («манфий бўлмасин»), anything above 1e12 («жуда катта») and anything that is not a
   number («рақам эмас») turn the cell red and block the save — it stops with the

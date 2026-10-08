@@ -95,7 +95,7 @@ document.addEventListener('alpine:init', () => {
         return el.dataset.loaded === '' ? null : parseFloat(el.dataset.loaded);
       },
 
-      /* The getters below (pct, mstateLabel, mstateChip, unfilled) read DOM values without
+      /* The getters below (pct, mstateLabel, unfilled) read DOM values without
          touching `this.tick` themselves, and are correct only because every template entry point into
          them goes through a getter that does read it (`void this.tick` in pctText/pctClass/mstate/
          show/count). A new getter that reads the DOM must read `this.tick` too — or be reached exclusively
@@ -129,11 +129,6 @@ document.addEventListener('alpine:init', () => {
         return measure ? measure.dataset.state : 'empty';
       },
       mstateLabel(mid) { return { saved: 'сақланган', carry: 'ўтган ойдан', empty: 'бўш', edited: 'ўзгартирилган' }[this.mstate(mid)]; },
-      /** chip colour for a measure's state: saved reads positive, carry and edited read as pending */
-      mstateChip(mid) {
-        const s = this.mstate(mid);
-        return s === 'saved' ? 'ok' : (s === 'empty' ? '' : 'edit');
-      },
       unfilled(mid) {
         for (const el of this.inputs(mid)) { if (this.actualOf(el) === null) return true; }
         return false;
