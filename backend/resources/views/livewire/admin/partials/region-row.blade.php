@@ -17,7 +17,6 @@
     <span class="n tnum">{{ $ct['saved'] }} / {{ $c['measures'] }} тўлдирилди</span>
     <b class="ad-num">{{ $pct }}%</b>
   </div>
-  <div class="c-carry ad-num {{ $ct['carry'] === 0 ? 'zero' : '' }}" role="cell">{{ $ct['carry'] === 0 ? '—' : $ct['carry'] }}</div>
   <div class="c-over ad-num {{ $c['overdue'] === 0 ? 'zero' : 'warn' }}" role="cell" title="Муддати ўтган, бажарилмаган чора-тадбирлар">{{ $c['overdue'] === 0 ? '—' : $c['overdue'] . ' кечиккан' }}</div>
   <div class="c-last" role="cell">
     @if($c['last'])

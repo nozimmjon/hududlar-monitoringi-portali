@@ -54,7 +54,6 @@ class RoadmapOverview extends Component
             ->whereIn('id', RoadmapChangeLog::selectRaw('max(id)')->whereIn('roadmap_id', $roadmaps->pluck('id'))->groupBy('roadmap_id'))
             ->get()->keyBy('roadmap_id');
         $cards    = [];
-        $totals   = ['saved' => 0, 'carry' => 0, 'measures' => 0, 'lines' => 0, 'overdue' => 0, 'untouched' => 0];
         // «Кечиккан» is always judged against today, never against the browsed month: a month in
         // the past would otherwise report nothing late and the ranking would go quiet.
         $today    = ProgressSheet::currentPeriod();
@@ -81,13 +80,6 @@ class RoadmapOverview extends Component
                 // a region with nothing saved this month needs attention as much as a late one
                 'attention' => $overdue > 0 || $sheet['counts']['saved'] === 0,
             ];
-            foreach (['saved', 'carry'] as $k) {
-                $totals[$k] += $sheet['counts'][$k];
-            }
-            $totals['measures']  += count($sheet['measures']);
-            $totals['lines']     += $lines;
-            $totals['overdue']   += $overdue;
-            $totals['untouched'] += $last ? 0 : 1;
         }
 
         // most overdue first, then the least filled; regions tie-break on the portal's own order
@@ -97,7 +89,6 @@ class RoadmapOverview extends Component
         return view('livewire.admin.roadmap-overview', [
             'attention'   => array_values(array_filter($cards, fn ($c) => $c['attention'])),
             'rest'        => array_values(array_filter($cards, fn ($c) => ! $c['attention'])),
-            'totals'      => $totals,
         ]);
     }
 }

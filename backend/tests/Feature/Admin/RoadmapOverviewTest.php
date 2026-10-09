@@ -40,12 +40,8 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->dispatch('progress-imported')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('x-on:click="$dispatch(\'open-upload\', { code: 1733 })"')   // browser-side: opening the panel must not re-render 13 sheets
-        ->assertSee('Тўлдирилди')                                      // the KPI tiles carry the totals the strip used to
-        ->assertSee('4 тадан · 25%')
-        ->assertSee('Ўтган ойдан')
-        ->assertSee('Тегилмаган вилоят')
-        // the four tile numbers, which the markup renders in identical <b> tags
-        ->assertViewHas('totals', fn ($t) => [$t['saved'], $t['carry'], $t['overdue'], $t['untouched']] === [1, 1, 1, 0]);
+        ->assertSee('Тўлдирилди')                                      // the table's column header
+        ->assertDontSee('Ўтган ойдан');                                // carried values show only as the bar's amber segment
 
     $this->get('/admin/roadmaps')->assertOk()->assertSee('Хоразм вилояти')->assertSee('Чиқиш');
     $this->get('/admin/roadmaps?davr=2026-07')->assertOk()->assertSee('davr=2026-07', false);   // the rows link into the browsed month
@@ -79,7 +75,7 @@ test('cards carry the overdue count, and the regions that need attention come fi
         ->assertSeeHtml('data-region="1703" data-saved="0" data-carry="0" data-empty="2" data-overdue="1"')
         ->assertSeeHtml('data-overdue="0"')
         ->assertSee('1 кечиккан')
-        ->assertSee('Кечиккан');                                // the KPI tile
+        ->assertSee('Кечиккан');                                // the column header
 });
 
 test('a guest gets 403 from the component', function () {
