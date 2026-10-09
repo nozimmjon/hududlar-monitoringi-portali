@@ -47,7 +47,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
     $this->get('/admin/roadmaps?davr=2026-07')->assertOk()->assertSee('davr=2026-07', false);   // the rows link into the browsed month
 });
 
-test('cards carry the overdue count, and the regions that need attention come first', function () {
+test('rows carry the overdue count, and the late regions come first', function () {
     // Pinned: «кечиккан» is judged against the real current month, and the Хоразм fixture's
     // own «2026 йил июнь» measure would be late from July on — the clock, not the fixture,
     // would then decide what the test asserts.
@@ -66,9 +66,7 @@ test('cards carry the overdue count, and the regions that need attention come fi
 
     $html = Livewire::test(RoadmapOverview::class)->assertOk()->html();
 
-    expect($html)->toContain('Диққат талаб қилади')
-        ->and($html)->toContain('Қолганлари')                                                      // Хоразм has something saved and nothing late
-        ->and(strpos($html, 'Андижон вилояти'))->toBeLessThan(strpos($html, 'Хоразм вилояти'))
+    expect(strpos($html, 'Андижон вилояти'))->toBeLessThan(strpos($html, 'Хоразм вилояти'))            // the late one leads
         ->and(strpos($html, 'Андижон вилояти'))->toBeLessThan(strpos($html, 'Қорақалпоғистон Республикаси'));
 
     Livewire::test(RoadmapOverview::class)

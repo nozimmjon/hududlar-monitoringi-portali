@@ -77,18 +77,14 @@ class RoadmapOverview extends Component
                 'last'      => $last,
                 'overdue'   => $overdue,
                 'idle_days' => $last ? (int) floor($last->created_at->diffInDays(now(ProgressSheet::TZ), absolute: true)) : null,
-                // a region with nothing saved this month needs attention as much as a late one
-                'attention' => $overdue > 0 || $sheet['counts']['saved'] === 0,
             ];
         }
 
-        // most overdue first, then the least filled; regions tie-break on the portal's own order
+        // a worklist, not the fixed region order: most overdue first, then the least filled, and
+        // the portal's own order breaks what is still tied
         usort($cards, fn ($a, $b) => [$b['overdue'], $a['counts']['saved'] / max(1, $a['measures'])]
                                  <=> [$a['overdue'], $b['counts']['saved'] / max(1, $b['measures'])]);
 
-        return view('livewire.admin.roadmap-overview', [
-            'attention'   => array_values(array_filter($cards, fn ($c) => $c['attention'])),
-            'rest'        => array_values(array_filter($cards, fn ($c) => ! $c['attention'])),
-        ]);
+        return view('livewire.admin.roadmap-overview', ['cards' => $cards]);
     }
 }

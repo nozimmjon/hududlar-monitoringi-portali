@@ -6312,9 +6312,6 @@ body.sectors-body{
 .ad-trow.head{position:sticky;top:var(--ad-bar);z-index:3;border-top:0;padding:0 16px;height:34px;background:#F7F9FC;border-bottom:1px solid #D5DEE9;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
 .ad-trow.head:hover{background:#F7F9FC}
 .ad-trow.head .c-over{text-align:right}
-.ad-tgroup{padding:8px 16px;background:#EEF2F7;border-top:1px solid #D5DEE9;border-bottom:1px solid #D5DEE9;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4B5B70}
-.ad-tgroup b{margin-left:6px;font-weight:600;color:var(--ad-muted)}
-.ad-tgroup + .ad-trow{border-top:0}
 .ad-trow .c-name{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ad-trow .c-name .nm{font-size:13.5px;font-weight:600;color:var(--ad-ink)}
 .ad-trow .c-name .nm:hover{color:var(--ad-accent)}

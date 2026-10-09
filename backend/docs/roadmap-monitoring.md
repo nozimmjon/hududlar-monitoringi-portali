@@ -269,8 +269,7 @@ until its session expired comes back to the login card with «Сессия му�
 One row per region **that has a road map loaded** — a region without one (Тошкент
 шаҳри) is not listed at all, the way the entry page's region select is built.
 
-Under the title a strip of four numbers counts across every loaded road map at once,
-**for the chosen month**:
+The table counts, **for the chosen month**:
 
 - **Тўлдирилди** — measures already saved for this month, against the total
   («N тадан · N%»);
@@ -292,15 +291,10 @@ a month in the past would otherwise report nothing late and the ranking would go
 No column, no migration, nothing to filter on in SQL: the count runs over the measures
 the page has already loaded.
 
-Under the strip is one table of regions, in two bands, each with its count:
-
-- **«Диққат талаб қилади»** — every region with at least one overdue measure *or* with
-  nothing at all saved for the chosen month;
-- **«Қолганлари»** — the rest. An empty group's heading is omitted.
-
-Inside a group the order is: most overdue first, then the smallest saved share, and the
-portal's own region order breaks what is still tied. So the list is a worklist, and it
-changes with the month and with the data — it is no longer the fixed region order.
+Under the title is one table of regions, sorted as a worklist: most overdue first, then
+the smallest saved share, and the portal's own region order breaks what is still tied.
+So the list changes with the month and with the data — it is no longer the fixed region
+order.
 
 Each row shows the region (its name links to the entry grid) with its measure and
 indicator counts, then **for the chosen month** a two-segment bar (saved in blue, carried

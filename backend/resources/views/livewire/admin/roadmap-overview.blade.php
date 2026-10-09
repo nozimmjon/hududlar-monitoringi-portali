@@ -9,7 +9,7 @@
     </div>
   </header>
 
-  {{-- one table; the two groups are bands inside it, so the columns line up across them --}}
+  {{-- one table, sorted as a worklist: most overdue first, then the least filled --}}
   <div class="ad-table" role="table" aria-label="Вилоятлар бўйича ҳолат">
     <div class="ad-trow head" role="row">
       <span class="c-name" role="columnheader">Вилоят</span>
@@ -18,15 +18,8 @@
       <span class="c-last" role="columnheader">Охирги ўзгариш</span>
       <span class="c-act" role="columnheader"></span>
     </div>
-    @foreach([['Диққат талаб қилади', $attention], ['Қолганлари', $rest]] as [$heading, $group])
-      @if($group !== [])
-        <div class="ad-tgroup" role="row" wire:key="grp-{{ $loop->index }}">
-          <span role="cell">{{ $heading }} <b class="tnum">{{ count($group) }}</b></span>
-        </div>
-        @foreach($group as $c)
-          @include('livewire.admin.partials.region-row', ['c' => $c])
-        @endforeach
-      @endif
+    @foreach($cards as $c)
+      @include('livewire.admin.partials.region-row', ['c' => $c])
     @endforeach
   </div>
 
