@@ -22,7 +22,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
 
     Livewire::test(RoadmapOverview::class)
         ->assertSet('period', '2026-09')
-        ->assertSee('Йўл хариталари · мониторинг')
+        ->assertSee('Йўл хариталари мониторинги')
         ->assertSee('Хоразм вилояти')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('/admin/roadmaps/1733?davr=2026-09"')         // the card carries the browsed month into the entry page

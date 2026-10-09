@@ -2,7 +2,7 @@
   <header class="ad-head">
     <div class="ad-head-row">
       <div class="ad-titles">
-        <h2 class="ad-title">Йўл хариталари · мониторинг</h2>
+        <h2 class="ad-title">Йўл хариталари мониторинги</h2>
       </div>
       {{-- no month control here for now: the list shows the current month, and ?davr= still opens another;
            the entry page and the upload drawer keep their own month selects --}}
