@@ -19,8 +19,6 @@
     <a class="adm-brand" href="{{ route('admin.roadmaps') }}" title="Йўл хариталари · админ панели">
       {{-- logo.svg is all white, so it sits on a navy tile like it does on the portal sidebar --}}
       <span class="mark"><img src="/logo.svg" alt="CERR"></span>
-      <span class="name">Йўл хариталари</span>
-      <span class="tag">Админ</span>
     </a>
     <nav class="adm-nav" aria-label="Админ бўлимлари">
       <a class="{{ Route::is('admin.roadmaps') ? 'on' : '' }}" href="{{ route('admin.roadmaps') }}" @if(Route::is('admin.roadmaps')) aria-current="page" @endif>Вилоятлар</a>
