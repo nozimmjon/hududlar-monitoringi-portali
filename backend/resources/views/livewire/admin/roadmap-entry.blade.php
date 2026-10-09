@@ -4,7 +4,6 @@
     use App\Support\Roadmaps\RoadmapPeriod;
     $stateLabels = ['saved' => 'сақланган', 'carry' => 'ўтган ойдан', 'empty' => 'бўш'];
     $measureCount = count($sheet['measures']);
-    $lineCount    = array_sum(array_map(fn ($m) => count($m['lines']), $sheet['measures']));
 @endphp
 <div class="ad-shell ad-entry" x-data="adEntry()" x-on:keydown.window="hotkey($event)"
      x-on:ad-refresh.window="tick++; $nextTick(() => reapply())"
@@ -14,7 +13,6 @@
     <div class="ad-head-row">
       <div class="ad-titles">
         <h2 class="ad-title">{{ $region->name_full }}</h2>
-        <p class="ad-sub">{{ RoadmapPeriod::label($period) }} · {{ $measureCount }} та чора-тадбир · {{ $lineCount }} та индикатор · <span class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</span> тўлдирилди@if($overdue > 0) · <span class="over">{{ $overdue }} та муддати ўтган</span>@endif</p>
       </div>
       <div class="ad-controls">
         <label class="ad-select">
@@ -26,19 +24,14 @@
           </select>
         </label>
         {{-- no month control for now: the grid shows the current month, and ?davr= still opens another --}}
-        {{-- an import overwrites the sheet, so it must not start on top of unsaved typing --}}
-        <button type="button" class="ad-btn ghost" :disabled="editedLines > 0"
-                :title="editedLines > 0 ? 'Аввал ўзгаришларни сақланг ёки бекор қилинг' : 'Тўлдирилган шаблонни юклаш'"
-                wire:click="$dispatch('open-upload', { code: {{ $region->code }} })">Excel’дан юклаш</button>
       </div>
     </div>
     <div class="ad-toolrow">
       <nav class="ad-pills" aria-label="Ҳолат бўйича фильтр">
         <button type="button" :class="filter === 'all' && 'on'" :aria-pressed="filter === 'all'" x-on:click="filter = 'all'">Барчаси <b class="tnum">{{ $measureCount }}</b></button>
         <button type="button" :class="filter === 'unfilled' && 'on'" :aria-pressed="filter === 'unfilled'" x-on:click="filter = 'unfilled'">Тўлдирилмаган <b class="tnum" x-text="count('unfilled')">—</b></button>
-        <button type="button" :class="filter === 'edited' && 'on'" :aria-pressed="filter === 'edited'" x-on:click="filter = 'edited'">Ўзгартирилган <b class="tnum" x-text="count('edited')">0</b></button>
-        <button type="button" :class="filter === 'carry' && 'on'" :aria-pressed="filter === 'carry'" x-on:click="filter = 'carry'">Ўтган ойдан <b class="tnum" x-text="count('carry')">{{ $sheet['counts']['carry'] }}</b></button>
-        <button type="button" :class="filter === 'saved' && 'on'" :aria-pressed="filter === 'saved'" x-on:click="filter = 'saved'">Сақланган <b class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</b></button>
+        <button type="button" :class="filter === 'filled' && 'on'" :aria-pressed="filter === 'filled'" x-on:click="filter = 'filled'">Тўлдирилган <b class="tnum" x-text="count('filled')">—</b></button>
+        <button type="button" :class="filter === 'overdue' && 'on'" :aria-pressed="filter === 'overdue'" x-on:click="filter = 'overdue'">Муддати ўтган <b class="tnum">{{ $overdue }}</b></button>
       </nav>
       <div class="ad-search"><input type="search" x-model.debounce.150ms="search" placeholder="Чора-тадбир ёки индикатор бўйича қидириш…" aria-label="Қидирув"></div>
     </div>
@@ -88,7 +81,7 @@
             $single    = count($m['lines']) === 1;
           @endphp
           <article class="ad-m" wire:key="m-{{ $m['id'] }}" data-measure="{{ $m['id'] }}" data-state="{{ $m['state'] }}" data-deadline="{{ $m['deadline_reached'] ? 1 : 0 }}"
-                   data-search="{{ $search }}" x-show="show($el)" x-data="{ det: false }">
+                   data-overdue="{{ $dueNote === 'over' ? 1 : 0 }}" data-search="{{ $search }}" x-show="show($el)" x-data="{ det: false }">
 
             @if($single)
               @php $l = $m['lines'][0]; @endphp
@@ -170,5 +163,4 @@
     @include('livewire.admin.partials.history-drawer')
   @endif
 
-  <livewire:admin.progress-upload :period="$period" />
 </div>

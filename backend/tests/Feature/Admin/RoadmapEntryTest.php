@@ -29,8 +29,8 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSee('Хоразм вилояти')
         // the header's sub-line: measures, their indicator lines, and the overdue count — judged
         // against today (2026-09), never against the browsed month
-        ->assertSee('2026 йил сентябрь · 4 та чора-тадбир · 5 та индикатор')
-        ->assertSee('1 та муддати ўтган')
+        ->assertSeeHtml('Барчаси <b class="tnum">4</b>')                 // the filters carry the counts
+        ->assertSeeHtml('Муддати ўтган <b class="tnum">1</b>')           // Куловот I/2: June deadline, nothing reported, clock at September
         ->assertSeeInOrder(['Вилоятда амалга ошириладиган йирик лойиҳалар', '«Куловот» каналини реконструкция қилиш.', 'Туманларда амалга ошириладиган лойиҳалар', 'Боғот тумани', 'Хўжаликлараро каналлар', 'Ички каналлар', 'Гурлан тумани', 'Насос агрегатлари'])
         ->assertSee('туман ҳокими Ж.Назаров')
         // one sheet per section, one article per measure, one row per indicator line — the shape the JS indexes

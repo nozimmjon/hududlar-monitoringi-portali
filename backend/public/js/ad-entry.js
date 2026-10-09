@@ -20,7 +20,7 @@ document.addEventListener('alpine:init', () => {
     return {
       edits: {},        // lineId -> { actual?: string, note?: string } — changed cells only
       invalid: {},      // lineId -> message for a cell that does not parse
-      filter: 'all',    // all | unfilled | edited | carry | saved
+      filter: 'all',    // all | unfilled | filled | overdue
       search: '',
       saving: false,
       jsToast: '',
@@ -142,9 +142,8 @@ document.addEventListener('alpine:init', () => {
         const mid = tbody.dataset.measure;
         switch (this.filter) {
           case 'unfilled': return this.unfilled(mid);
-          case 'edited': return this.mstate(mid) === 'edited';
-          case 'carry': return this.mstate(mid) === 'carry';
-          case 'saved': return this.mstate(mid) === 'saved';
+          case 'filled': return !this.unfilled(mid);
+          case 'overdue': return tbody.dataset.overdue === '1';
           default: return true;
         }
       },
@@ -160,8 +159,8 @@ document.addEventListener('alpine:init', () => {
         void this.tick;
         let n = 0;
         for (const tbody of this.measureEls()) {
-          const mid = tbody.dataset.measure;
-          if (kind === 'unfilled' ? this.unfilled(mid) : this.mstate(mid) === kind) n++;
+          const u = this.unfilled(tbody.dataset.measure);
+          if (kind === 'unfilled' ? u : !u) n++;
         }
         return n;
       },
