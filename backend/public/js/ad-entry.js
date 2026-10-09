@@ -211,14 +211,6 @@ document.addEventListener('alpine:init', () => {
         if (!(ev.ctrlKey || ev.metaKey) || ev.shiftKey || ev.altKey) return;
         if (ev.code === 'KeyS' || (ev.key || '').toLowerCase() === 's') { ev.preventDefault(); this.save(); }
       },
-      changePeriod(ev) {
-        if (this.editedLines > 0) {
-          ev.target.value = ev.target.dataset.current;
-          this.toast('Аввал сақланг ёки «Бекор қилиш»ни босинг');
-          return;
-        }
-        this.$wire.selectPeriod(ev.target.value);
-      },
       changeRegion(ev) {
         if (this.editedLines > 0) {
           ev.target.value = ev.target.dataset.current;

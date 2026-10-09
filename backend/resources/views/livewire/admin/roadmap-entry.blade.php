@@ -25,14 +25,7 @@
             @endforeach
           </select>
         </label>
-        <label class="ad-select">
-          <span>Ой</span>
-          <select data-current="{{ $period }}" x-on:change="changePeriod($event)" aria-label="Ҳисобот ойи">
-            @foreach($periods as $p)
-              <option value="{{ $p }}" @selected($p === $period)>{{ RoadmapPeriod::label($p) }}</option>
-            @endforeach
-          </select>
-        </label>
+        {{-- no month control for now: the grid shows the current month, and ?davr= still opens another --}}
         {{-- an import overwrites the sheet, so it must not start on top of unsaved typing --}}
         <button type="button" class="ad-btn ghost" :disabled="editedLines > 0"
                 :title="editedLines > 0 ? 'Аввал ўзгаришларни сақланг ёки бекор қилинг' : 'Тўлдирилган шаблонни юклаш'"

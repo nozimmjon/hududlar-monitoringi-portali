@@ -230,7 +230,6 @@ class RoadmapEntry extends Component
             'roadmap'      => $roadmap,
             'region'       => $roadmap->region,
             'regions'      => Region::whereIn('code', $loaded)->orderBy('sort_order')->get(),
-            'periods'      => ProgressSheet::periodOptions($roadmap->year),
             'sheet'        => $sheet,
             'groups'       => array_values($groups),
             'today'        => ProgressSheet::currentPeriod(),
