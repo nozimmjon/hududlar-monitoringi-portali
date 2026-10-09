@@ -16,24 +16,30 @@
 {{-- The panel has its own shell: no portal sidebar, no region switcher, no public nav. --}}
 <body class="adm-body">
   <header class="adm-top">
-    <a class="adm-brand" href="{{ route('admin.roadmaps') }}" title="Админ панели">
-      <img src="/logo.svg" alt="CERR">
-      <span>
-        <strong>Админ панели</strong>
-        <em>Сув хўжалиги йўл хариталари</em>
-      </span>
+    <a class="adm-brand" href="{{ route('admin.roadmaps') }}" title="Йўл хариталари · админ панели">
+      {{-- logo.svg is all white, so it sits on a navy tile like it does on the portal sidebar --}}
+      <span class="mark"><img src="/logo.svg" alt="CERR"></span>
+      <span class="name">Йўл хариталари</span>
+      <span class="tag">Админ</span>
     </a>
     <nav class="adm-nav" aria-label="Админ бўлимлари">
-      <a class="{{ Route::is('admin.roadmaps') ? 'on' : '' }}" href="{{ route('admin.roadmaps') }}">Вилоятлар</a>
+      <a class="{{ Route::is('admin.roadmaps') ? 'on' : '' }}" href="{{ route('admin.roadmaps') }}" @if(Route::is('admin.roadmaps')) aria-current="page" @endif>Вилоятлар</a>
       @if(Route::is('admin.roadmaps.entry'))
-        <span class="adm-crumb" aria-current="page">@yield('crumb', 'Амалда киритиш')</span>
+        <span class="sep" aria-hidden="true">/</span>
+        <span class="crumb" aria-current="page">@yield('crumb', 'Амалда киритиш')</span>
       @endif
     </nav>
     <div class="adm-side">
-      <a class="adm-ext" href="{{ route('home') }}" target="_blank" rel="noopener" title="Порталнинг оммавий қисми — янги ойнада">Портал</a>
+      <a class="adm-ext" href="{{ route('home') }}" target="_blank" rel="noopener" title="Порталнинг оммавий қисми — янги ойнада">
+        Портал
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M6 3h7v7M13 3 5.5 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
       {{-- an unmatched /admin/* URL 404s before the auth middleware, so the user can be absent here --}}
       @auth
-        <span class="adm-user" title="{{ auth()->user()->email }}">{{ auth()->user()->name }}</span>
+        <span class="adm-user" title="{{ auth()->user()->email }}">
+          <i class="av" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</i>
+          <span>{{ auth()->user()->name }}</span>
+        </span>
         <form method="post" action="{{ route('logout') }}">
           @csrf
           <button type="submit" class="adm-out">Чиқиш</button>

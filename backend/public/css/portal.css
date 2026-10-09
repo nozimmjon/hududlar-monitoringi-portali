@@ -6302,36 +6302,67 @@ body.sectors-body{
 .ad-chip.ok{background:linear-gradient(135deg,#E8F6EF,#D9F0E4);color:#0F7A4F}
 .ad-sheet{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);overflow:hidden}
 
-/* overview cards */
-.ad-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:12px}
-.ad-kpi{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:18px;box-shadow:var(--ad-card-shadow);padding:14px 16px 15px;display:flex;flex-direction:column;gap:3px}
-.ad-kpi .k{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ad-faint)}
-.ad-kpi .v{font-size:30px;line-height:1.05;color:var(--ad-ink)}
-.ad-kpi .d{font-size:11.5px;color:var(--ad-muted)}
-.ad-kpi.warn .v{color:var(--ad-warn-ink)}
-.ad-group-head{display:flex;align-items:center;gap:12px;margin:4px 0 -6px}
-.ad-group-head h3{margin:0;font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--ad-faint)}
-.ad-group-head .rule{flex:1;height:1px;background:linear-gradient(90deg,rgba(14,28,50,.12),transparent)}
-.ad-group-head .n{font-size:11px;font-weight:800;color:var(--ad-muted)}
-.ad-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:14px}
-.ad-card{position:relative;background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:18px;box-shadow:var(--ad-card-shadow);padding:16px 17px 14px;display:flex;flex-direction:column;gap:13px;transition:transform .18s ease,box-shadow .18s ease}
-.ad-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(12,26,48,.05), 0 22px 44px rgba(12,26,48,.14)}
-.ad-card .stretch{position:absolute;inset:0;border-radius:18px;z-index:0}
-.ad-card .stretch:focus-visible{outline:2px solid var(--ad-accent);outline-offset:2px}
-.ad-card > *:not(.stretch){position:relative;z-index:1;pointer-events:none}
-.ad-card .foot button{pointer-events:auto}
-.ad-card .top{display:flex;align-items:center;gap:14px}
-.ad-card .gauge{width:56px;height:56px;border-radius:50%;flex:none;display:grid;place-items:center}
-.ad-card .gauge i{width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-style:normal;font-size:12px;box-shadow:inset 0 1px 2px rgba(12,26,48,.05)}
-.ad-card .who{min-width:0}
-.ad-card h3{margin:0;font-size:14.5px;font-weight:800;letter-spacing:-.015em;color:var(--ad-ink)}
-.ad-card .who .n{display:block;margin-top:3px;font-size:11.5px;color:var(--ad-muted)}
-.ad-card .bar{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--ad-track)}
-.ad-card .bar i{display:block;height:100%}
-.ad-card .bar .saved{background:var(--ad-accent-grad)}
-.ad-card .bar .carry{background:var(--ad-carry)}
-.ad-card .foot{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ad-muted)}
-.ad-card .foot .last{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* overview: the month in four numbers, then one table of regions */
+.ad-overview .ad-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.ad-overview .ad-sub{font-size:12.5px;color:var(--ad-muted);margin-top:3px}
+.ad-overview .ad-select{border-radius:8px;box-shadow:none;background:#fff;border:1px solid #C9D3E0}
+.ad-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:hidden}
+.ad-stats .st{padding:12px 18px;border-left:1px solid #EDF1F6;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ad-stats .st:first-child{border-left:0}
+.ad-stats dt{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
+.ad-stats dd{margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ad-stats dd b{font-size:24px;font-weight:700;line-height:1.1;color:var(--ad-ink)}
+.ad-stats dd span{font-size:12px;color:var(--ad-muted)}
+.ad-stats .st.warn dd b{color:var(--task-red)}
+.ad-table{--ad-tcols:minmax(0,1fr) 250px 100px 120px 200px 170px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
+.ad-trow{display:grid;grid-template-columns:var(--ad-tcols);column-gap:14px;align-items:center;padding:10px 16px;border-top:1px solid #EDF1F6}
+.ad-trow:hover{background:#FBFCFE}
+.ad-trow.head{position:sticky;top:var(--ad-bar);z-index:3;border-top:0;padding:0 16px;height:34px;background:#F7F9FC;border-bottom:1px solid #D5DEE9;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
+.ad-trow.head:hover{background:#F7F9FC}
+.ad-trow.head .c-carry,.ad-trow.head .c-over{text-align:right}
+.ad-tgroup{padding:8px 16px;background:#EEF2F7;border-top:1px solid #D5DEE9;border-bottom:1px solid #D5DEE9;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4B5B70}
+.ad-tgroup b{margin-left:6px;font-weight:600;color:var(--ad-muted)}
+.ad-tgroup + .ad-trow{border-top:0}
+.ad-trow .c-name{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ad-trow .c-name .nm{font-size:13.5px;font-weight:600;color:var(--ad-ink)}
+.ad-trow .c-name .nm:hover{color:var(--ad-accent)}
+.ad-trow .c-name .sub{font-size:11.5px;color:var(--ad-muted)}
+.ad-trow .c-prog{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center;min-width:0}
+.ad-trow .c-prog .bar{grid-column:1 / -1;display:flex;height:6px;border-radius:99px;overflow:hidden;background:#E7EDF5}
+.ad-trow .c-prog .bar i{display:block;height:100%}
+.ad-trow .c-prog .bar .saved{background:var(--ad-accent)}
+.ad-trow .c-prog .bar .carry{background:#F0B860}
+.ad-trow .c-prog .n{font-size:11.5px;color:var(--ad-muted)}
+.ad-trow .c-prog b{font-size:12.5px;font-weight:700;color:var(--ad-ink)}
+.ad-trow .c-carry,.ad-trow .c-over{text-align:right;font-size:13.5px;font-weight:600;white-space:nowrap}
+.ad-trow .zero{color:#B4BFCC;font-weight:500}
+.ad-trow .c-over.warn{color:var(--task-red)}
+.ad-trow .c-last{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:12px}
+.ad-trow .c-last .who{font-weight:600;color:var(--ad-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-trow .c-last .when{color:var(--ad-muted);font-variant-numeric:tabular-nums}
+.ad-trow .c-last .none{color:#B4BFCC}
+.ad-trow .c-act{display:flex;justify-content:flex-end;gap:6px}
+.ad-overview .ad-btn{border-radius:7px;box-shadow:none}
+.ad-overview .ad-btn.small{padding:6px 12px;font-size:12px;font-weight:600}
+.ad-overview .ad-btn:not(.ghost){background:var(--ad-accent);color:#fff}
+.ad-overview .ad-btn.ghost{border:1px solid #C9D3E0;background:#fff;color:var(--ad-ink)}
+.ad-overview .ad-btn.ghost:hover:not(:disabled){background:#F4F7FB;box-shadow:none}
+@media (max-width:1100px){
+  .ad-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ad-stats .st:nth-child(3){border-left:0}
+  .ad-stats .st:nth-child(n+3){border-top:1px solid #EDF1F6}
+  .ad-table{--ad-tcols:minmax(0,1fr) 200px 90px 110px 150px}
+  .ad-trow .c-last{display:none}
+}
+@media (max-width:800px){
+  .ad-table{--ad-tcols:minmax(0,1fr) 110px}
+  .ad-trow{row-gap:8px}
+  .ad-trow .c-name{grid-column:1 / -1}
+  .ad-trow .c-prog{grid-column:1 / -1}
+  .ad-trow .c-carry{display:none}
+  .ad-trow .c-over{text-align:left}
+  .ad-trow.head{display:none}
+}
 
 /* ===================== admin panel: entry grid ===================== */
 /* A worksheet, not a dashboard: every row sits on the same tracks, state lives in the cell itself,
@@ -6547,40 +6578,44 @@ body.sectors-body{
     linear-gradient(180deg,#F8FBFF,#E4ECF7)}
 /* errors/404.blade.php extends layouts.admin on an /admin URL, so the portal empty state gets a glass sheet. */
 .adm-body .wr-empty{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);padding:34px 24px;text-align:center}
-/* Below the upload scrim (31) and drawers (30/32) on purpose, so a drawer covers the bar like it covers the portal topbar. */
-.adm-top{position:sticky;top:0;z-index:28;display:flex;align-items:center;gap:14px;min-height:var(--ad-bar);padding:8px clamp(14px,2.2vw,30px);background:#0a1128;box-shadow:0 10px 30px rgba(7,26,45,.22)}
-.adm-brand{display:flex;align-items:center;gap:11px;min-width:0;transition:opacity .15s ease-out}
-.adm-brand:hover{opacity:.8}
-.adm-brand img{height:26px;width:auto;display:block}
-.adm-brand span{display:flex;flex-direction:column;line-height:1.2;min-width:0}
-.adm-brand strong{color:#fff;font-size:13.5px;font-weight:800;letter-spacing:-.01em}
-.adm-brand em{font-style:normal;font-size:10.5px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.adm-nav{display:flex;align-items:center;gap:6px;min-width:0;flex:1}
-.adm-nav a{padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.72);white-space:nowrap;transition:background .15s,color .15s}
-.adm-nav a:hover{background:rgba(255,255,255,.1);color:#fff}
-.adm-nav a.on{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(23,105,224,.34)}
-.adm-crumb{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.adm-crumb::before{content:'·';margin-right:6px;color:rgba(255,255,255,.35)}
-.adm-side{display:flex;align-items:center;gap:10px;margin-left:auto}
-.adm-side form{margin:0}
-.adm-ext{padding:6px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;font-size:11.5px;font-weight:600;color:rgba(255,255,255,.62);white-space:nowrap;transition:color .15s,border-color .15s}
-.adm-ext:hover{color:#fff;border-color:rgba(255,255,255,.42)}
-.adm-ext::after{content:'↗';margin-left:5px;font-size:10.5px}
-.adm-user{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:rgba(255,255,255,.76)}
-.adm-out{border:0;border-radius:999px;padding:6px 13px;font:inherit;font-size:11.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.14);cursor:pointer;transition:background .15s}
-.adm-out:hover{background:rgba(255,255,255,.26)}
+/* Below the upload scrim (31) and drawers (30/32) on purpose, so a drawer covers the bar like it covers the portal topbar.
+   A white bar with a hairline, not a navy band: the content under it is a light worksheet and the bar should read as
+   part of the same page, with the active section marked by an underline rather than a pill. */
+.adm-top{position:sticky;top:0;z-index:28;display:flex;align-items:stretch;gap:22px;min-height:var(--ad-bar);padding:0 clamp(16px,2.4vw,30px);background:#fff;border-bottom:1px solid #E3E9F1}
+.adm-brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--ad-ink)}
+/* the wordmark is wide: the tile grows with it instead of clipping it */
+.adm-brand .mark{height:28px;padding:0 9px;border-radius:7px;background:#0A1128;display:grid;place-items:center;flex:none}
+.adm-brand .mark img{height:12px;width:auto;display:block}
+.adm-brand .name{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.adm-brand .tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ad-muted);background:#EEF2F7;border-radius:4px;padding:2px 6px;line-height:1.4}
+.adm-brand:hover .name{color:var(--ad-accent)}
+.adm-nav{display:flex;align-items:stretch;gap:14px;min-width:0;flex:1;margin-left:6px}
+.adm-nav a{position:relative;display:inline-flex;align-items:center;padding:0 2px;font-size:13.5px;font-weight:600;color:var(--ad-muted);white-space:nowrap;transition:color .12s}
+.adm-nav a:hover{color:var(--ad-ink)}
+.adm-nav a.on{color:var(--ad-ink)}
+.adm-nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--ad-accent)}
+.adm-nav .sep{display:inline-flex;align-items:center;color:#C3CCD8;font-size:13px}
+.adm-nav .crumb{display:inline-flex;align-items:center;font-size:13.5px;font-weight:600;color:var(--ad-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm-side{display:flex;align-items:center;gap:14px;margin-left:auto}
+.adm-side form{margin:0;display:flex}
+.adm-ext{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--ad-muted);white-space:nowrap;transition:color .12s}
+.adm-ext:hover{color:var(--ad-ink)}
+.adm-user{display:inline-flex;align-items:center;gap:8px;max-width:190px;font-size:12.5px;font-weight:600;color:var(--ad-ink)}
+.adm-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-user .av{width:26px;height:26px;border-radius:50%;flex:none;background:#0A1128;color:#fff;font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center}
+.adm-out{border:1px solid #C9D3E0;border-radius:7px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ad-ink);background:#fff;cursor:pointer;transition:background .12s,border-color .12s}
+.adm-out:hover{background:#F4F7FB;border-color:#9FB0C6}
 /* a reading width: on a 1700px screen an uncapped row puts the entry cell a long eye-travel from its label */
 .adm-main{min-width:0;max-width:1440px;margin:0 auto;padding:18px clamp(16px,2.4vw,30px) 34px}
 @media (max-width:840px){
-  /* The bar wraps to two rows here (.adm-nav takes the full width), so it is no longer 52px and the
-     strips have to follow: 8px padding + 29px brand/side row + 8px row-gap + 30px nav row + 8px
-     padding = 83, and min-height rounds it up to 88 so the two cannot disagree by a font metric.
-     Below ~350px .adm-side wraps as well and the bar outgrows this; the panel is a desktop tool. */
-  .adm-body{--ad-bar:88px}
-  .adm-top{flex-wrap:wrap;row-gap:8px}
-  .adm-nav{order:3;width:100%;flex:none;overflow-x:auto}
-  .adm-side{gap:8px}
-  .adm-user{max-width:110px}
+  /* The bar wraps to two rows here (.adm-nav takes the full width); the strips on the entry page stick to
+     --ad-bar, so the variable follows the wrapped height. Below ~350px .adm-side wraps as well and the bar
+     outgrows this; the panel is a desktop tool. */
+  .adm-body{--ad-bar:92px}
+  .adm-top{flex-wrap:wrap;align-items:center;row-gap:0;padding-top:8px;padding-bottom:0}
+  .adm-nav{order:3;width:100%;flex:none;overflow-x:auto;margin-left:0;min-height:40px}
+  .adm-side{gap:10px}
+  .adm-user{max-width:120px}
   .adm-main{padding:14px 14px 28px}
 }
 

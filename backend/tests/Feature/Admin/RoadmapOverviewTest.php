@@ -28,9 +28,9 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('/admin/roadmaps/1733?davr=2026-09"')         // the card carries the browsed month into the entry page
         ->assertSee('4 та чора-тадбир · 5 та индикатор')
-        ->assertSee('1 / 4 тўлдирилди · 5 та индикатор')              // the card's own numbers
-        ->assertSeeHtml('<i class="ad-num">25%</i>')                   // and its ring
-        ->assertSee('Админ · 15.09.2026 15:00')                       // Tashkent time
+        ->assertSee('1 / 4 тўлдирилди')                                // the row's own numbers
+        ->assertSeeHtml('<b class="ad-num">25%</b>')                   // and its share
+        ->assertSeeHtml('<span class="who">Админ</span>')->assertSee('15.09.2026 15:00')   // who and when, Tashkent time
         ->assertDontSee('йўл харитаси йўқ')                            // regions without one are not listed at all
         ->assertDontSee('Тошкент шаҳри')
         ->call('selectPeriod', '2026-08')

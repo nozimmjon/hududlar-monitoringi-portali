@@ -266,18 +266,18 @@ until its session expired comes back to the login card with «Сессия му�
 
 ### The overview (`/admin/roadmaps?davr=YYYY-MM`)
 
-One card per region **that has a road map loaded** — a region without one (Тошкент
+One row per region **that has a road map loaded** — a region without one (Тошкент
 шаҳри) is not listed at all, the way the entry page's region select is built.
 
-The header opens with four KPI tiles, each counting across every loaded road map at
-once, **for the chosen month**:
+Under the title a strip of four numbers counts across every loaded road map at once,
+**for the chosen month**:
 
 - **Тўлдирилди** — measures already saved for this month, against the total
   («N тадан · N%»);
 - **Ўтган ойдан** — measures standing on **carried** values (taken from an earlier
   month, nothing written for this one yet), «тасдиқлашни кутмоқда»;
 - **Кечиккан** — measures whose deadline month has passed while they are still not
-  done. The tile turns to the warning colours as soon as the number is above zero;
+  done. The number turns red as soon as it is above zero;
 - **Тегилмаган вилоят** — road maps with no change-log entry at all, «ҳали ўзгариш йўқ».
 
 **«Кечиккан» is computed, never stored.** The database holds only the deadline as the
@@ -286,13 +286,13 @@ parses that free text into a `YYYY-MM` at render time, and
 `App\Support\Roadmaps\RoadmapOverdue::count()` calls a measure late when **the deadline
 month the document names is earlier than the current month and the measure's status is
 not `done`**. It is the same rule as the measure's own «кечиккан» chip in the grid
-(`MeasureDisplay::deadlineChip()`), so a card's count and its measures' chips can never
+(`MeasureDisplay::deadlineChip()`), so a region's count and its measures' labels can never
 disagree. The comparison is always against **today**, never against the browsed month —
 a month in the past would otherwise report nothing late and the ranking would go quiet.
 No column, no migration, nothing to filter on in SQL: the count runs over the measures
 the page has already loaded.
 
-Under the tiles the cards come in two groups, each under a thin heading with its count:
+Under the strip is one table of regions, in two bands, each with its count:
 
 - **«Диққат талаб қилади»** — every region with at least one overdue measure *or* with
   nothing at all saved for the chosen month;
@@ -302,17 +302,17 @@ Inside a group the order is: most overdue first, then the smallest saved share, 
 portal's own region order breaks what is still tied. So the list is a worklist, and it
 changes with the month and with the data — it is no longer the fixed region order.
 
-Each card shows, **for the chosen month**, a ring with its saved share, «N / M
-тўлдирилди · K та индикатор» and a two-segment bar (saved in the accent gradient,
-carried in amber). Its footer is not month-scoped: either the «N кечиккан» tag in the
-warning colours, or — when nothing is late — «N кун ўзгариш йўқ» since the last change
-of any kind («ҳали ўзгариш йўқ» when the road map has never been touched); then that
-last change, who and when (`d.m.Y H:i`, Asia/Tashkent; «терминал» when it came from a
-command), and its own «Excel’дан юклаш» button.
+Each row shows the region (its name links to the entry grid) with its measure and
+indicator counts, then **for the chosen month** a two-segment bar (saved in blue, carried
+in amber) with «N / M тўлдирилди» and the saved share, the carried count, and «N
+кечиккан» in red (a dash when nothing is late). The last two columns are not month-scoped:
+the last change of any kind — who and when (`d.m.Y H:i`, Asia/Tashkent; «терминал» when
+it came from a command; «ҳали ўзгариш йўқ» when the road map has never been touched) —
+and the two actions, «Киритиш» and «Excel» (the upload drawer for that region).
 
 The month select offers January of the road-map year up to the current month, never past
-December; a `?davr=` outside that range is clamped to the newest offered month. Clicking
-a card opens its entry grid for the same month.
+December; a `?davr=` outside that range is clamped to the newest offered month.
+«Киритиш» opens the entry grid for the same month.
 
 ### The entry grid (`/admin/roadmaps/{code}`)
 
