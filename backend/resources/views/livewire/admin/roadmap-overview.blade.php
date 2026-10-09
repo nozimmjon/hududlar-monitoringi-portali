@@ -1,5 +1,4 @@
 @php
-    use App\Support\Roadmaps\RoadmapPeriod;
     $pctAll = $totals['measures'] > 0 ? round($totals['saved'] / $totals['measures'] * 100, 1) : 0;
 @endphp
 <div class="ad-shell ad-overview">
@@ -9,14 +8,8 @@
         <h2 class="ad-title">Йўл хариталари · мониторинг</h2>
         <p class="ad-sub">{{ $periodLabel }} · {{ count($attention) + count($rest) }} вилоят · {{ $totals['measures'] }} та чора-тадбир · {{ $totals['lines'] }} та индикатор</p>
       </div>
-      <label class="ad-select">
-        <span>Ой</span>
-        <select wire:change="selectPeriod($event.target.value)" aria-label="Ҳисобот ойи">
-          @foreach($periods as $p)
-            <option value="{{ $p }}" @selected($p === $period)>{{ RoadmapPeriod::label($p) }}</option>
-          @endforeach
-        </select>
-      </label>
+      {{-- no month control here for now: the list shows the current month, and ?davr= still opens another;
+           the entry page and the upload drawer keep their own month selects --}}
     </div>
   </header>
 
