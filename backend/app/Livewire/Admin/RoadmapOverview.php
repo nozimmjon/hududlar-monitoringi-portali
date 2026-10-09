@@ -63,8 +63,10 @@ class RoadmapOverview extends Component
             $roadmap = $roadmaps->get($region->code);
             $sheet   = ProgressSheet::build($roadmap, $this->period);
             $lines   = 0;
+            $done    = 0;
             foreach ($sheet['measures'] as $m) {
                 $lines += count($m['lines']);
+                $done  += $m['status'] === 'done' ? 1 : 0;   // the stored status: every planned line at or over its plan
             }
             $last    = $lastChanges->get($roadmap->id);
             $overdue = RoadmapOverdue::count($sheet['measures'], $roadmap->year, $today);
@@ -74,16 +76,17 @@ class RoadmapOverview extends Component
                 'measures'  => count($sheet['measures']),
                 'lines'     => $lines,
                 'counts'    => $sheet['counts'],
+                'done'      => $done,
                 'last'      => $last,
                 'overdue'   => $overdue,
                 'idle_days' => $last ? (int) floor($last->created_at->diffInDays(now(ProgressSheet::TZ), absolute: true)) : null,
             ];
         }
 
-        // a worklist, not the fixed region order: most overdue first, then the least filled, and
+        // a worklist, not the fixed region order: most overdue first, then the least done, and
         // the portal's own order breaks what is still tied
-        usort($cards, fn ($a, $b) => [$b['overdue'], $a['counts']['saved'] / max(1, $a['measures'])]
-                                 <=> [$a['overdue'], $b['counts']['saved'] / max(1, $b['measures'])]);
+        usort($cards, fn ($a, $b) => [$b['overdue'], $a['done'] / max(1, $a['measures'])]
+                                 <=> [$a['overdue'], $b['done'] / max(1, $b['measures'])]);
 
         return view('livewire.admin.roadmap-overview', ['cards' => $cards]);
     }

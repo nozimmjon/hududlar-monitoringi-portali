@@ -13,7 +13,7 @@
   <div class="ad-table" role="table" aria-label="Вилоятлар бўйича ҳолат">
     <div class="ad-trow head" role="row">
       <span class="c-name" role="columnheader">Вилоят</span>
-      <span class="c-prog" role="columnheader">Тўлдирилди</span>
+      <span class="c-prog" role="columnheader">Бажарилди</span>
       <span class="c-over" role="columnheader">Кечиккан</span>
       <span class="c-last" role="columnheader">Охирги ўзгариш</span>
       <span class="c-act" role="columnheader"></span>

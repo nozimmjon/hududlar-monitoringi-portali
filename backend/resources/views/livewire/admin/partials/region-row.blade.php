@@ -3,18 +3,18 @@
     use App\Services\Roadmaps\ProgressSheet;
     $ct    = $c['counts'];
     $n     = max(1, $c['measures']);
-    $pct   = (int) round($ct['saved'] / $n * 100);
+    $pct   = (int) round($c['done'] / $n * 100);
     $entry = route('admin.roadmaps.entry', ['code' => $c['region']->code, 'davr' => $period]);
 @endphp
 <div class="ad-trow" role="row" wire:key="ad-card-{{ $c['region']->code }}"
-     data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}" data-overdue="{{ $c['overdue'] }}">
+     data-region="{{ $c['region']->code }}" data-saved="{{ $ct['saved'] }}" data-carry="{{ $ct['carry'] }}" data-empty="{{ $ct['empty'] }}" data-overdue="{{ $c['overdue'] }}" data-done="{{ $c['done'] }}">
   <div class="c-name" role="cell">
     <a class="nm" href="{{ $entry }}">{{ $c['region']->name_full }}</a>
     <span class="sub">{{ $c['measures'] }} та чора-тадбир · {{ $c['lines'] }} та индикатор</span>
   </div>
-  <div class="c-prog" role="cell">
-    <span class="bar" aria-hidden="true"><i class="saved" style="width:{{ round($ct['saved'] / $n * 100, 1) }}%"></i><i class="carry" style="width:{{ round($ct['carry'] / $n * 100, 1) }}%"></i></span>
-    <span class="n tnum">{{ $ct['saved'] }} / {{ $c['measures'] }} тўлдирилди</span>
+  <div class="c-prog" role="cell" title="Барча режалаштирилган индикаторлари режага етган чора-тадбирлар">
+    <span class="bar" aria-hidden="true"><i class="saved" style="width:{{ round($c['done'] / $n * 100, 1) }}%"></i></span>
+    <span class="n tnum">{{ $c['done'] }} / {{ $c['measures'] }} бажарилди</span>
     <b class="ad-num">{{ $pct }}%</b>
   </div>
   <div class="c-over ad-num {{ $c['overdue'] === 0 ? 'zero' : 'warn' }}" role="cell" title="Муддати ўтган, бажарилмаган чора-тадбирлар">{{ $c['overdue'] === 0 ? '—' : $c['overdue'] . ' кечиккан' }}</div>

@@ -27,7 +27,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('/admin/roadmaps/1733?davr=2026-09"')         // the card carries the browsed month into the entry page
         ->assertSee('4 та чора-тадбир · 5 та индикатор')
-        ->assertSee('1 / 4 тўлдирилди')                                // the row's own numbers
+        ->assertSee('1 / 4 бажарилди')                                 // Гурлан: 24 of 24, the one done measure
         ->assertSeeHtml('<b class="ad-num">25%</b>')                   // and its share
         ->assertSeeHtml('<span class="who">Админ</span>')->assertSee('15.09.2026 15:00')   // who and when, Tashkent time
         ->assertDontSee('йўл харитаси йўқ')                            // regions without one are not listed at all
@@ -40,7 +40,8 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->dispatch('progress-imported')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('x-on:click="$dispatch(\'open-upload\', { code: 1733 })"')   // browser-side: opening the panel must not re-render 13 sheets
-        ->assertSee('Тўлдирилди')                                      // the table's column header
+        ->assertSee('Бажарилди')                                       // the table's column header
+        ->assertSeeHtml('data-done="1"')                               // Хоразм is the only road map here
         ->assertDontSee('Ўтган ойдан');                                // carried values show only as the bar's amber segment
 
     $this->get('/admin/roadmaps')->assertOk()->assertSee('Хоразм вилояти')->assertSee('Чиқиш');

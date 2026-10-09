@@ -269,15 +269,15 @@ until its session expired comes back to the login card with «Сессия му�
 One row per region **that has a road map loaded** — a region without one (Тошкент
 шаҳри) is not listed at all, the way the entry page's region select is built.
 
-The table counts, **for the chosen month**:
+The table shows per region:
 
-- **Тўлдирилди** — measures already saved for this month, against the total
-  («N тадан · N%»);
-- **Ўтган ойдан** — measures standing on **carried** values (taken from an earlier
-  month, nothing written for this one yet), «тасдиқлашни кутмоқда»;
+- **Бажарилди** — measures whose stored status is done (every planned line at or over
+  its plan, by the rule `roadmaps:recompute` uses), against the total. This is
+  completion, not entry: a measure with this month's values saved below plan does not
+  count here;
 - **Кечиккан** — measures whose deadline month has passed while they are still not
   done. The number turns red as soon as it is above zero;
-- **Тегилмаган вилоят** — road maps with no change-log entry at all, «ҳали ўзгариш йўқ».
+- the last change of any kind, who and when.
 
 **«Кечиккан» is computed, never stored.** The database holds only the deadline as the
 document writes it («2026 йил декабрь»); `App\Support\Roadmaps\RoadmapDeadline::month()`
@@ -292,14 +292,14 @@ No column, no migration, nothing to filter on in SQL: the count runs over the me
 the page has already loaded.
 
 Under the title is one table of regions, sorted as a worklist: most overdue first, then
-the smallest saved share, and the portal's own region order breaks what is still tied.
+the smallest done share, and the portal's own region order breaks what is still tied.
 So the list changes with the month and with the data — it is no longer the fixed region
 order.
 
 Each row shows the region (its name links to the entry grid) with its measure and
-indicator counts, then **for the chosen month** a two-segment bar (saved in blue, carried
-in amber) with «N / M тўлдирилди» and the saved share, the carried count, and «N
-кечиккан» in red (a dash when nothing is late). The last two columns are not month-scoped:
+indicator counts, then a bar with «N / M бажарилди» and the done share, and «N
+кечиккан» in red (a dash when nothing is late). None of these columns is month-scoped —
+the browsed month only decides which month the «Киритиш» link opens:
 the last change of any kind — who and when (`d.m.Y H:i`, Asia/Tashkent; «терминал» when
 it came from a command; «ҳали ўзгариш йўқ» when the road map has never been touched) —
 and the two actions, «Киритиш» and «Excel» (the upload drawer for that region).
