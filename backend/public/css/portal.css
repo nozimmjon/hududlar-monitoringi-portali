@@ -6306,12 +6306,11 @@ body.sectors-body{
 .ad-overview .ad-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
 .ad-overview .ad-sub{font-size:12.5px;color:var(--ad-muted);margin-top:3px}
 .ad-overview .ad-select{border-radius:8px;box-shadow:none;background:#fff;border:1px solid #C9D3E0}
-.ad-table{--ad-tcols:minmax(0,1fr) 250px 120px 200px 170px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
+.ad-table{--ad-tcols:minmax(0,1fr) 250px 176px 200px 170px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
 .ad-trow{display:grid;grid-template-columns:var(--ad-tcols);column-gap:14px;align-items:center;padding:10px 16px;border-top:1px solid #EDF1F6}
 .ad-trow:hover{background:#FBFCFE}
 .ad-trow.head{position:sticky;top:var(--ad-bar);z-index:3;border-top:0;padding:0 16px;height:34px;background:#F7F9FC;border-bottom:1px solid #D5DEE9;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
 .ad-trow.head:hover{background:#F7F9FC}
-.ad-trow.head .c-over{text-align:right}
 .ad-trow .c-name{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ad-trow .c-name .nm{font-size:13.5px;font-weight:600;color:var(--ad-ink)}
 .ad-trow .c-name .nm:hover{color:var(--ad-accent)}
@@ -6323,7 +6322,8 @@ body.sectors-body{
 .ad-trow .c-prog .bar .carry{background:#F0B860}
 .ad-trow .c-prog .n{font-size:11.5px;color:var(--ad-muted)}
 .ad-trow .c-prog b{font-size:12.5px;font-weight:700;color:var(--ad-ink)}
-.ad-trow .c-over{text-align:right;font-size:13.5px;font-weight:600;white-space:nowrap}
+/* left-aligned and inset: a right-aligned number here met the next column's text across one 14px gap */
+.ad-trow .c-over{padding-left:16px;font-size:13.5px;font-weight:600;white-space:nowrap}
 .ad-trow .zero{color:#B4BFCC;font-weight:500}
 .ad-trow .c-over.warn{color:var(--task-red)}
 .ad-trow .c-last{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:12px}
@@ -6337,7 +6337,7 @@ body.sectors-body{
 .ad-overview .ad-btn.ghost{border:1px solid #C9D3E0;background:#fff;color:var(--ad-ink)}
 .ad-overview .ad-btn.ghost:hover:not(:disabled){background:#F4F7FB;box-shadow:none}
 @media (max-width:1100px){
-  .ad-table{--ad-tcols:minmax(0,1fr) 200px 110px 150px}
+  .ad-table{--ad-tcols:minmax(0,1fr) 200px 140px 150px}
   .ad-trow .c-last{display:none}
 }
 @media (max-width:800px){
@@ -6345,7 +6345,6 @@ body.sectors-body{
   .ad-trow{row-gap:8px}
   .ad-trow .c-name{grid-column:1 / -1}
   .ad-trow .c-prog{grid-column:1 / -1}
-  .ad-trow .c-over{text-align:left}
   .ad-trow.head{display:none}
 }
 
