@@ -6303,14 +6303,16 @@ body.sectors-body{
 .ad-sheet{background:var(--ad-sheet);border:1px solid var(--ad-sheet-line);border-radius:20px;box-shadow:var(--ad-sheet-shadow);overflow:hidden}
 
 /* overview: the month in four numbers, then one table of regions */
+.ad-overview{max-width:1200px}
 .ad-overview .ad-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
 .ad-overview .ad-sub{font-size:12.5px;color:var(--ad-muted);margin-top:3px}
 .ad-overview .ad-select{border-radius:8px;box-shadow:none;background:#fff;border:1px solid #C9D3E0}
-.ad-table{--ad-tcols:minmax(0,1fr) 250px 176px 200px 170px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
+.ad-table{--ad-tcols:minmax(0,1fr) 230px 128px 180px 150px;background:#fff;border:1px solid #D5DEE9;border-radius:10px;overflow:clip;font-size:13px;color:var(--ad-ink)}
 .ad-trow{display:grid;grid-template-columns:var(--ad-tcols);column-gap:14px;align-items:center;padding:10px 16px;border-top:1px solid #EDF1F6}
 .ad-trow:hover{background:#FBFCFE}
 .ad-trow.head{position:sticky;top:var(--ad-bar);z-index:3;border-top:0;padding:0 16px;height:34px;background:#F7F9FC;border-bottom:1px solid #D5DEE9;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted)}
 .ad-trow.head:hover{background:#F7F9FC}
+.ad-trow.head .c-over,.ad-trow.head .c-last{font-size:10.5px;font-weight:700;color:var(--ad-muted)}
 .ad-trow .c-name{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ad-trow .c-name .nm{font-size:13.5px;font-weight:600;color:var(--ad-ink)}
 .ad-trow .c-name .nm:hover{color:var(--ad-accent)}
