@@ -5,7 +5,7 @@
   <div class="t">{{ $m['title'] }}</div>
   <div class="meta">
     @if($dueNote === 'over')
-      <span class="over">кечиккан · {{ $deadline['label'] }}</span>
+      <span class="over">муддати ўтган · {{ $deadline['label'] }}</span>
     @elseif($dueNote === 'due')
       <span class="due">муддат: {{ $deadline['label'] }}</span>
     @endif

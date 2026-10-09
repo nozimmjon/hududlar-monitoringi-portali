@@ -30,7 +30,7 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         // the header's sub-line: measures, their indicator lines, and the overdue count — judged
         // against today (2026-09), never against the browsed month
         ->assertSee('2026 йил сентябрь · 4 та чора-тадбир · 5 та индикатор')
-        ->assertSee('1 кечиккан')
+        ->assertSee('1 та муддати ўтган')
         ->assertSeeInOrder(['Вилоятда амалга ошириладиган йирик лойиҳалар', '«Куловот» каналини реконструкция қилиш.', 'Туманларда амалга ошириладиган лойиҳалар', 'Боғот тумани', 'Хўжаликлараро каналлар', 'Ички каналлар', 'Гурлан тумани', 'Насос агрегатлари'])
         ->assertSee('туман ҳокими Ж.Назаров')
         // one sheet per section, one article per measure, one row per indicator line — the shape the JS indexes
@@ -49,7 +49,7 @@ test('the grid renders groups, measure rows with their state, and cells carrying
         ->assertSee('Батафсил (2 банд)')
         ->assertDontSee('муддат: 2026 йил декабрь')                         // the year-end default is noise and stays off the row
         // the clock is pinned to September, so the June measure nobody reported wears the overdue chip
-        ->assertSeeHtml('<span class="over">кечиккан · 2026 йил июнь</span>')
+        ->assertSeeHtml('<span class="over">муддати ўтган · 2026 йил июнь</span>')
         ->assertSee('Қолганини ўзгаришсиз тасдиқлаш')
         // the arm text names what the confirm actually does: only 1 of the 4 carries anything over
         ->assertSee('4 та чора-тадбир 2026 йил сентябрь учун ҳозирги кўринишда сақланади — 1 таси ўтган ой қийматлари билан, 3 таси бўш.')

@@ -49,7 +49,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
 });
 
 test('rows carry the overdue count, and the late regions come first', function () {
-    // Pinned: «кечиккан» is judged against the real current month, and the Хоразм fixture's
+    // Pinned: «муддати ўтган» is judged against the real current month, and the Хоразм fixture's
     // own «2026 йил июнь» measure would be late from July on — the clock, not the fixture,
     // would then decide what the test asserts.
     Carbon::setTestNow('2026-05-15 10:00:00');
@@ -73,8 +73,8 @@ test('rows carry the overdue count, and the late regions come first', function (
     Livewire::test(RoadmapOverview::class)
         ->assertSeeHtml('data-region="1703" data-saved="0" data-carry="0" data-empty="2" data-overdue="1"')
         ->assertSeeHtml('data-overdue="0"')
-        ->assertSee('1 кечиккан')
-        ->assertSee('Кечиккан');                                // the column header
+        ->assertSeeHtml('1 та</div>')                           // the overdue cell
+        ->assertSee('Муддати ўтган');                           // the column header
 });
 
 test('a guest gets 403 from the component', function () {

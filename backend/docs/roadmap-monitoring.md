@@ -275,16 +275,16 @@ The table shows per region:
   its plan, by the rule `roadmaps:recompute` uses), against the total. This is
   completion, not entry: a measure with this month's values saved below plan does not
   count here;
-- **Кечиккан** — measures whose deadline month has passed while they are still not
+- **Муддати ўтган** — measures whose deadline month has passed while they are still not
   done. The number turns red as soon as it is above zero;
 - the last change of any kind, who and when.
 
-**«Кечиккан» is computed, never stored.** The database holds only the deadline as the
+**«Муддати ўтган» is computed, never stored.** The database holds only the deadline as the
 document writes it («2026 йил декабрь»); `App\Support\Roadmaps\RoadmapDeadline::month()`
 parses that free text into a `YYYY-MM` at render time, and
 `App\Support\Roadmaps\RoadmapOverdue::count()` calls a measure late when **the deadline
 month the document names is earlier than the current month and the measure's status is
-not `done`**. It is the same rule as the measure's own «кечиккан» chip in the grid
+not `done`**. It is the same rule as the measure's own «муддати ўтган» label in the grid
 (`MeasureDisplay::deadlineChip()`), so a region's count and its measures' labels can never
 disagree. The comparison is always against **today**, never against the browsed month —
 a month in the past would otherwise report nothing late and the ranking would go quiet.
@@ -298,7 +298,7 @@ order.
 
 Each row shows the region (its name links to the entry grid) with its measure and
 indicator counts, then a bar with «N / M бажарилди» and the done share, and «N
-кечиккан» in red (a dash when nothing is late). None of these columns is month-scoped —
+та» under «Муддати ўтган» in red (a dash when nothing is late). None of these columns is month-scoped —
 the browsed month only decides which month the «Киритиш» link opens:
 the last change of any kind — who and when (`d.m.Y H:i`, Asia/Tashkent; «терминал» when
 it came from a command; «ҳали ўзгариш йўқ» when the road map has never been touched) —
@@ -317,7 +317,7 @@ live counts; with everything filtered out the grid says «Фильтрга мо�
 and offers the way back.
 
 The page header is the region name over one line of numbers — «2026 йил октябрь · 95 та
-чора-тадбир · 200 та индикатор · 0 тўлдирилди · N кечиккан» (the last clause only when
+чора-тадбир · 200 та индикатор · 0 тўлдирилди · N та муддати ўтган» (the last clause only when
 something is late) — with the region and month selects beside it, and under that the
 filters and the search box. A measure's stored status (Бажарилди · Бажарилмоқда ·
 Бажарилмаган) is not shown in the panel at all — that is the public page's job — because
@@ -335,7 +335,7 @@ straight down the «Амалда» column.
   there as the row's tooltip and in the cell's accessible name.
 - A measure with **several lines** takes a title row and then one row per line, the
   line's label indented under the title with a thin left rule.
-- The deadline is shown only when it says something: «кечиккан · 2026 йил июнь» in red
+- The deadline is shown only when it says something: «муддати ўтган · 2026 йил июнь» in red
   when it has passed and the measure is not done (the rule above), «муддат: …» when it
   is anything other than the year-end default. Nine measures in ten carry «… декабрь»
   and show nothing.

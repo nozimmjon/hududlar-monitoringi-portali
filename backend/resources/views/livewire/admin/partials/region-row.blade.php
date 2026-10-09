@@ -17,7 +17,7 @@
     <span class="n tnum">{{ $c['done'] }} / {{ $c['measures'] }} бажарилди</span>
     <b class="ad-num">{{ $pct }}%</b>
   </div>
-  <div class="c-over ad-num {{ $c['overdue'] === 0 ? 'zero' : 'warn' }}" role="cell" title="Муддати ўтган, бажарилмаган чора-тадбирлар">{{ $c['overdue'] === 0 ? '—' : $c['overdue'] . ' кечиккан' }}</div>
+  <div class="c-over ad-num {{ $c['overdue'] === 0 ? 'zero' : 'warn' }}" role="cell" title="Муддати ўтган, бажарилмаган чора-тадбирлар">{{ $c['overdue'] === 0 ? '—' : $c['overdue'] . ' та' }}</div>
   <div class="c-last" role="cell">
     @if($c['last'])
       <span class="who">{{ $c['last']->user?->name ?? 'терминал' }}</span>

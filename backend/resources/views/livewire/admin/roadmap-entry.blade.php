@@ -14,7 +14,7 @@
     <div class="ad-head-row">
       <div class="ad-titles">
         <h2 class="ad-title">{{ $region->name_full }}</h2>
-        <p class="ad-sub">{{ RoadmapPeriod::label($period) }} · {{ $measureCount }} та чора-тадбир · {{ $lineCount }} та индикатор · <span class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</span> тўлдирилди@if($overdue > 0) · <span class="over">{{ $overdue }} кечиккан</span>@endif</p>
+        <p class="ad-sub">{{ RoadmapPeriod::label($period) }} · {{ $measureCount }} та чора-тадбир · {{ $lineCount }} та индикатор · <span class="tnum" x-text="count('saved')">{{ $sheet['counts']['saved'] }}</span> тўлдирилди@if($overdue > 0) · <span class="over">{{ $overdue }} та муддати ўтган</span>@endif</p>
       </div>
       <div class="ad-controls">
         <label class="ad-select">
