@@ -8,7 +8,6 @@ use App\Models\Roadmap;
 use App\Models\RoadmapChangeLog;
 use App\Services\Roadmaps\ProgressSheet;
 use App\Support\Roadmaps\RoadmapOverdue;
-use App\Support\Roadmaps\RoadmapPeriod;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -99,8 +98,6 @@ class RoadmapOverview extends Component
             'attention'   => array_values(array_filter($cards, fn ($c) => $c['attention'])),
             'rest'        => array_values(array_filter($cards, fn ($c) => ! $c['attention'])),
             'totals'      => $totals,
-            'periods'     => ProgressSheet::periodOptions(RoadmapsPage::YEAR),
-            'periodLabel' => RoadmapPeriod::label($this->period),
         ]);
     }
 }

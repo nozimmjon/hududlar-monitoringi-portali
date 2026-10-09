@@ -6,7 +6,6 @@
     <div class="ad-head-row">
       <div class="ad-titles">
         <h2 class="ad-title">Йўл хариталари · мониторинг</h2>
-        <p class="ad-sub">{{ $periodLabel }} · {{ count($attention) + count($rest) }} вилоят · {{ $totals['measures'] }} та чора-тадбир · {{ $totals['lines'] }} та индикатор</p>
       </div>
       {{-- no month control here for now: the list shows the current month, and ?davr= still opens another;
            the entry page and the upload drawer keep their own month selects --}}

@@ -23,7 +23,6 @@ test('the overview shows one card per region with the month\'s saved / carried /
     Livewire::test(RoadmapOverview::class)
         ->assertSet('period', '2026-09')
         ->assertSee('Йўл хариталари · мониторинг')
-        ->assertSee('2026 йил сентябрь')
         ->assertSee('Хоразм вилояти')
         ->assertSeeHtml('data-region="1733" data-saved="1" data-carry="1" data-empty="2"')
         ->assertSeeHtml('/admin/roadmaps/1733?davr=2026-09"')         // the card carries the browsed month into the entry page
@@ -49,7 +48,7 @@ test('the overview shows one card per region with the month\'s saved / carried /
         ->assertViewHas('totals', fn ($t) => [$t['saved'], $t['carry'], $t['overdue'], $t['untouched']] === [1, 1, 1, 0]);
 
     $this->get('/admin/roadmaps')->assertOk()->assertSee('Хоразм вилояти')->assertSee('Чиқиш');
-    $this->get('/admin/roadmaps?davr=2026-07')->assertOk()->assertSee('2026 йил июль');
+    $this->get('/admin/roadmaps?davr=2026-07')->assertOk()->assertSee('davr=2026-07', false);   // the rows link into the browsed month
 });
 
 test('cards carry the overdue count, and the regions that need attention come first', function () {
