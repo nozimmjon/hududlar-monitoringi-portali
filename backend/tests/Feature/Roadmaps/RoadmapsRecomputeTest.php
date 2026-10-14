@@ -15,7 +15,7 @@ test('roadmaps:recompute rebuilds status/pct from progress rows and reports coun
     $l->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 10, 'pct_of_plan' => 100]);
 
     expect(Artisan::call('roadmaps:recompute', ['--dry-run' => true]))->toBe(0);
-    expect($m->fresh()->status)->toBe('in_progress');
+    expect($m->fresh()->status)->toBe('no_report');                      // dry-run wrote nothing; column default
     expect(Artisan::output())->toContain('Dry run');
 
     expect(Artisan::call('roadmaps:recompute'))->toBe(0);
@@ -25,7 +25,7 @@ test('roadmaps:recompute rebuilds status/pct from progress rows and reports coun
     // Artisan::output() drains its buffer on read (Symfony BufferedOutput::fetch()), so capture once and reuse.
     $output = Artisan::output();
     expect($output)->toContain('done: 1');
-    expect($output)->toContain('in_progress→done');
+    expect($output)->toContain('no_report→done');                        // created with the column default, never recomputed before this run
     expect($output)->toContain('1 updated');
     expect($output)->toContain('[1733]');
 
@@ -101,5 +101,27 @@ test('a malformed stored period aborts with an operator message and writes nothi
     $output = Artisan::output();
     expect($output)->toContain("Measure #{$bad->id}");
     expect($output)->toContain('nothing written');
-    expect($good->fresh()->status)->toBe('in_progress');                      // the good measure's write was rolled back too
+    expect($good->fresh()->status)->toBe('no_report');                       // the good measure's write was rolled back too (column default)
+});
+
+test('recompute marks measures without lines or without any progress rows as no_report', function () {
+    $this->seed();
+    $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
+
+    // (a) lines defined, zero progress rows ever
+    $noRows = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 'no rows', 'body_raw' => 't', 'source_row' => 1]);
+    $noRows->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10]);
+
+    // (b) no lines at all
+    $noLines = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 2, 'title' => 'no lines', 'body_raw' => 't', 'source_row' => 2]);
+
+    // (c) a row exists with zero actual → data WAS entered, not no_report
+    $zero = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 3, 'title' => 'zero', 'body_raw' => 't', 'source_row' => 3, 'deadline_text' => '2026 йил декабрь']);
+    $zero->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10])
+        ->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => 0, 'pct_of_plan' => 0]);
+
+    expect(Artisan::call('roadmaps:recompute'))->toBe(0);
+    expect($noRows->fresh()->status)->toBe('no_report');
+    expect($noLines->fresh()->status)->toBe('no_report');
+    expect($zero->fresh()->status)->toBe('in_progress');   // deadline not reached, reported zero
 });

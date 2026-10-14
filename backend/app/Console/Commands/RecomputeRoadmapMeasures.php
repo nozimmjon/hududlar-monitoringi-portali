@@ -40,7 +40,7 @@ class RecomputeRoadmapMeasures extends Command
 
         $recomputer  = new MeasureRecomputer();
         $flips       = [];
-        $counts      = ['done' => 0, 'in_progress' => 0, 'open' => 0];
+        $counts      = ['done' => 0, 'in_progress' => 0, 'open' => 0, 'no_report' => 0];
         $regionCodes = [];
         $measures    = 0;
         $updated     = 0;
@@ -78,8 +78,8 @@ class RecomputeRoadmapMeasures extends Command
         }
 
         $flipText = $flips === [] ? 'no status flips' : implode(', ', array_map(fn ($k, $v) => "{$v} {$k}", array_keys($flips), $flips));
-        $this->info(sprintf('%d road map(s) [%s], %d measure(s) — %d updated; done: %d, in_progress: %d, open: %d — %s.',
-            count($ids), implode(', ', $regionCodes), $measures, $updated, $counts['done'], $counts['in_progress'], $counts['open'], $flipText));
+        $this->info(sprintf('%d road map(s) [%s], %d measure(s) — %d updated; done: %d, in_progress: %d, open: %d, no_report: %d — %s.',
+            count($ids), implode(', ', $regionCodes), $measures, $updated, $counts['done'], $counts['in_progress'], $counts['open'], $counts['no_report'], $flipText));
         if ($repct > 0) {
             $this->warn("{$repct} reported percentage(s) recomputed from the stored plan and «Амалда».");
         }

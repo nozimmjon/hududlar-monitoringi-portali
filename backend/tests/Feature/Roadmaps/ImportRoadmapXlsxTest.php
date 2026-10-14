@@ -126,13 +126,13 @@ test('an xlsx road map imports measures and their indicator lines', function () 
     expect($bogot->lines->pluck('label')->all())->toBe(['Хўжаликлараро каналлар', 'Ички каналлар']);
     expect((float) $bogot->lines->first()->plan_value)->toBe(7.8);
     expect($bogot->lines_total)->toBe(2);
-    expect($bogot->status)->toBe('in_progress');
+    expect($bogot->status)->toBe('no_report');                         // structural import only, no progress rows written
 
     $first = roadmapXlsxMeasure(1, 1);
     expect($first->deadline_text)->toBe('2026 йил декабрь');
     expect($first->responsible_text)->toBe('Сув хўжалиги вазирлиги (Ў.Шералиев), Вилоят ҳокимлиги (Ў.Машарипов)');
     expect(roadmapXlsxMeasure(1, 2)->lines->first()->unit)->toBe('млн м³');
-    expect(RoadmapMeasure::where('status', 'in_progress')->count())->toBe(4);
+    expect(RoadmapMeasure::where('status', 'no_report')->count())->toBe(4);   // none of the 4 has a progress row yet
 
     expect($out)->toContain('Indicator lines: 5 written');
     expect($out)->toContain('Total: 4 measures, 2 districts');
@@ -167,7 +167,7 @@ test('--period writes the «Амалда» and «Изоҳ» values; without it t
     expect($ignored)->toContain('3 «Амалда»/«Изоҳ» value(s) ignored');
     expect($ignored)->toContain('--period=YYYY-MM');
     expect(RoadmapLineProgress::count())->toBe(0);
-    expect(roadmapXlsxMeasure(2, 1, 1733208)->status)->toBe('in_progress');
+    expect(roadmapXlsxMeasure(2, 1, 1733208)->status)->toBe('no_report');   // ignored without --period, so still no progress row
 
     expect(Artisan::call('import:roadmap', ['--region' => 1733, '--file' => roadmapXlsx($filled), '--period' => '2026-09']))->toBe(0);
     $out = Artisan::output();
