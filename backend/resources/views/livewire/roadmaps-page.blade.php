@@ -30,13 +30,12 @@
           <div class="hs">
             <div><b class="tnum">{{ $counts['done'] }}<small>/{{ $counts['all'] }}</small></b><span>тадбир бажарилди</span></div>
             <div><b class="tnum">{{ $hero['lines_done'] }}<small>/{{ $hero['lines_total'] }}</small></b><span>индикатор</span></div>
-            @if($hero['no_lines'] > 0)<div class="nl">{{ $hero['no_lines'] }} тадбирда индикатор йўқ</div>@endif
           </div>
         </div>
       </div>
 
       <nav class="wr-kcard wr-fbtns" aria-label="Ҳолат бўйича фильтр">
-        @foreach(['all' => 'Барчаси', 'done' => 'Бажарилди', 'in_progress' => 'Бажарилмоқда', 'open' => 'Бажарилмаган'] as $key => $label)
+        @foreach(['all' => 'Барчаси', 'done' => 'Бажарилди', 'in_progress' => 'Бажарилмоқда', 'open' => 'Бажарилмаган', 'no_report' => 'Маълумот киритилмаган'] as $key => $label)
           <button type="button" class="f-{{ $key }} {{ $status === $key ? 'on' : '' }}"
                   aria-pressed="{{ $status === $key ? 'true' : 'false' }}"
                   wire:click="selectStatus(@js($key))"><i></i>{{ $label }}<span class="n tnum">{{ $counts[$key] }}</span></button>
@@ -82,6 +81,7 @@
         <div class="wr-kpi ok"><b class="tnum">{{ $counts['done'] }}</b><span>бажарилди</span></div>
         <div class="wr-kpi wait"><b class="tnum">{{ $counts['in_progress'] }}</b><span>бажарилмоқда</span></div>
         <div class="wr-kpi bad"><b class="tnum">{{ $counts['open'] }}</b><span>бажарилмаган</span></div>
+        <div class="wr-kpi none"><b class="tnum">{{ $counts['no_report'] }}</b><span>маълумот киритилмаган</span></div>
       </div>
 
       @if($filtered)

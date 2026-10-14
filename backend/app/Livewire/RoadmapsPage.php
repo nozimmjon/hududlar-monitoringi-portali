@@ -27,7 +27,7 @@ class RoadmapsPage extends Component
     public const DOMAIN = 'water';
     public const YEAR   = 2026;
 
-    public const STATUSES = ['all', 'done', 'in_progress', 'open'];
+    public const STATUSES = ['all', 'done', 'in_progress', 'open', 'no_report'];
 
     #[Url(except: 'all')]
     public string $section = 'all';
@@ -150,7 +150,7 @@ class RoadmapsPage extends Component
         }
 
         $counts = ['all' => $all->count()];
-        foreach (['done', 'in_progress', 'open'] as $s) {
+        foreach (['done', 'in_progress', 'open', 'no_report'] as $s) {
             $counts[$s] = $all->where('status', $s)->count();
         }
 
@@ -169,7 +169,6 @@ class RoadmapsPage extends Component
                 'pct'         => MeasureDisplay::meanPct($all),
                 'lines_total' => (int) $all->sum('lines_total'),
                 'lines_done'  => (int) $all->sum('lines_done'),
-                'no_lines'    => $all->where('lines_total', 0)->count(),
                 'latest'      => $latest,
                 'period'      => RoadmapPeriod::label($latest),
             ],

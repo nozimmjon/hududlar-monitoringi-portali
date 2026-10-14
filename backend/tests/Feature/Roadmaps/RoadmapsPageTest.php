@@ -220,7 +220,7 @@ test('cards carry ring, status chip, indicator rows, deadline chips, notes and t
     $response->assertSee('wr-spark', false);                                   // Боғот has two periods
     $response->assertSee('wr-notes', false);
     $response->assertSee('Ёмғир сабабли кечикди');                            // the reporter's note under «Батафсил»
-    $response->assertSee('1 тадбирда индикатор йўқ');
+    $response->assertSee('Маълумот киритилмаган');
     $response->assertSee('бажарилмаган');                                     // KPI tile label
 
     $bogot = RoadmapMeasure::where('title', 'like', '%бетонлаштириш%')->firstOrFail()->load('lines.progress');
@@ -268,6 +268,28 @@ test('a road map without any indicator lines renders the registry face everywher
 
     $response->assertOk();
     $response->assertSee('ҳисобот йўқ');
+    $response->assertSee('Маълумот киритилмаган');
     $response->assertSee('Индикаторлар ҳали белгиланмаган');
     $response->assertDontSee('wr-spark', false);
+});
+
+test('measures without any entered data show the grey chip, the 5th rail filter and KPI tile; holat=no_report filters', function () {
+    Session::put('region_code', 1733);
+    roadmapPageMonitoring();
+
+    $response = $this->get('/roadmaps');
+    $response->assertOk();
+    $response->assertSee('Маълумот киритилмаган');
+    $response->assertSeeHtml('class="wr-status none"');
+    $response->assertSee('маълумот киритилмаган');                       // KPI tile label
+    $response->assertDontSee('тадбирда индикатор йўқ');                  // hero note folded into the grey count
+
+    Livewire::test(RoadmapsPage::class)
+        ->call('selectStatus', 'no_report')
+        ->assertSet('status', 'no_report')
+        ->assertSee('52 млн м3')                                          // Гурлан measure title
+        ->assertDontSee('«Куловот»');
+
+    Livewire::withQueryParams(['holat' => 'no_report'])->test(RoadmapsPage::class)
+        ->assertSet('status', 'no_report');
 });
