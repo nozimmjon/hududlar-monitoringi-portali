@@ -77,10 +77,6 @@
     </aside>
 
     <main class="wr-main">
-      <header class="wr-head">
-        <h2>Сув хўжалиги йўл харитаси <span class="rg">· {{ $region->name_full }}</span></h2>
-      </header>
-
       <div class="wr-kpis">
         <div class="wr-kpi"><b class="tnum">{{ $counts['all'] }}</b><span>жами чора-тадбир</span></div>
         <div class="wr-kpi ok"><b class="tnum">{{ $counts['done'] }}</b><span>бажарилди</span></div>

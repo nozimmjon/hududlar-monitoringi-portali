@@ -91,6 +91,39 @@
       transition: outline-color var(--motion), outline-offset var(--motion);
     }
 
+    /* ── Scrollbars ──────────────────────────────────────────────
+       Slim rounded thumb, no track. The transparent border +
+       background-clip inset the thumb so it floats off the edge.
+       NOTE (Chrome 121+): any `scrollbar-width`/`scrollbar-color`
+       on an element disables these ::-webkit-scrollbar styles for
+       it — don't add those outside the @supports fallback below. */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-corner { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background-color: var(--line-strong);
+      border-radius: 8px;
+      border: 4px solid transparent;
+      background-clip: padding-box;
+      min-height: 40px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background-color: #9fb1c7; }
+    ::-webkit-scrollbar-thumb:active { background-color: #8094ad; }
+
+    /* dark surfaces: navy sidebar */
+    .sidebar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, .22); }
+    .sidebar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, .34); }
+    .sidebar::-webkit-scrollbar-thumb:active { background-color: rgba(255, 255, 255, .45); }
+
+    /* Firefox (no ::-webkit-scrollbar): thin native bar, matching colors */
+    @supports not selector(::-webkit-scrollbar) {
+      * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+      .sidebar { scrollbar-color: rgba(255, 255, 255, .28) transparent; }
+    }
+
     .topbar {
       position: sticky;
       top: 0;
@@ -5630,14 +5663,18 @@
       .module-seg-btn { padding: 6px 10px; white-space: normal; text-align: center; }
     }
 
-/* ── Region Switcher ─────────────────────────────────────────── */
+/* ── Region Switcher ─────────────────────────────────────────────
+   Custom dropdown (rs-), not a native <select> — the OS option list
+   can't be styled. Base skin below is the dark sidebar; the light
+   .wr-topbar skin lives with the /roadmaps standalone-shell block. */
 .region-switcher {
+    position: relative;
     margin-top: auto;
     padding: 14px 10px 4px;
     border-top: 1px solid rgba(255, 255, 255, .12);
 }
 
-.region-switcher label {
+.rs-label {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -5650,61 +5687,119 @@
     text-transform: uppercase;
 }
 
-.region-switcher label svg {
-    stroke: #84b8ff;
-}
-
-.region-select-wrap {
-    position: relative;
-}
-
-.region-switcher select {
+.rs-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     width: 100%;
-    appearance: none;
-    -webkit-appearance: none;
-    padding: 10px 32px 10px 12px;
+    padding: 10px 12px;
     border: 1px solid rgba(255, 255, 255, .14);
     border-radius: 10px;
     background: rgba(255, 255, 255, .06);
     color: #fff;
-    font-family: inherit;
     font-size: 13px;
     font-weight: 600;
     line-height: 1.3;
-    cursor: pointer;
+    text-align: left;
     transition: border-color var(--motion), background var(--motion), box-shadow var(--motion);
 }
 
-.region-switcher select option {
-    background: var(--nav-2);
-    color: #fff;
+.rs-btn .rs-cur {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.region-switcher select:hover {
+.rs-btn:hover {
     border-color: rgba(132, 184, 255, .55);
     background: rgba(255, 255, 255, .10);
 }
 
-.region-switcher select:focus {
+.rs-btn:focus-visible,
+.rs-btn[aria-expanded="true"] {
     outline: none;
     border-color: #84b8ff;
     background: rgba(255, 255, 255, .10);
     box-shadow: 0 0 0 3px rgba(132, 184, 255, .22);
 }
 
-.region-chevron {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
+.rs-chev {
+    flex: 0 0 auto;
     stroke: #84b8ff;
-    pointer-events: none;
     transition: transform var(--motion);
 }
 
-.region-switcher select:focus ~ .region-chevron {
-    transform: translateY(-50%) rotate(180deg);
+.rs-chev.flip { transform: rotate(180deg); }
+
+/* The popup card is light in both skins. Sidebar: the switcher sits at the
+   sidebar's bottom, so it opens upward (the topbar skin flips it downward). */
+.rs-pop {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: calc(100% + 4px);
+    z-index: 60;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    max-height: min(58vh, 440px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: rs-pop-in .16s cubic-bezier(.2, .8, .2, 1);
 }
+
+@keyframes rs-pop-in {
+    from { opacity: 0; transform: translateY(4px) scale(.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+.rs-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    border: 0;
+    background: none;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    line-height: 1.3;
+    transition: background .14s, color .14s;
+}
+
+.rs-opt .t {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rs-opt .ck {
+    flex: 0 0 auto;
+    stroke: var(--blue);
+    opacity: 0;
+}
+
+.rs-opt:hover,
+.rs-opt:focus-visible {
+    background: var(--bg);
+    outline: none;
+}
+
+.rs-opt.on {
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.rs-opt.on .ck { opacity: 1; }
 
 /* ─── District profile (redesigned) ─────────────────────────────────────── */
 .dp-hero{position:relative;overflow:hidden;border-radius:14px;box-shadow:var(--shadow);
@@ -6058,7 +6153,7 @@ body.sectors-body{
 .wr-rail{
   display:flex;flex-direction:column;gap:14px;position:sticky;top:78px;
   max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;
-  scrollbar-width:thin;padding:3px 6px 3px 3px;margin:-3px -6px -3px -3px;
+  padding:3px 6px 3px 3px;margin:-3px -6px -3px -3px;
 }
 .wr-search input{
   width:100%;border:1px solid var(--line);border-radius:10px;background:var(--paper);
@@ -6081,8 +6176,6 @@ body.sectors-body{
 .wr-kcard button.on .n{background:#fff;color:var(--blue)}
 
 .wr-main{min-width:0;display:flex;flex-direction:column;gap:16px}
-.wr-head h2{font-size:20px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
-.wr-head h2 .rg{font-weight:600;color:var(--muted)}
 
 .wr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .wr-kpi{background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);padding:14px 16px}
@@ -6237,6 +6330,38 @@ body.sectors-body{
   .wr-line{grid-template-columns:minmax(0,1fr) 44px}
   .wr-line .bar{display:none}
   .wr-line .pv{grid-column:1;text-align:left}
+}
+
+/* ---------- /roadmaps standalone shell (2026-10-14): the page is handed out separately
+   from the portal, so it renders without the sidebar (body is the portal's 2-col grid
+   otherwise). Own slim top bar carries the title and the region switcher; the switcher's
+   base styles are sidebar-dark, recolored here for the light bar. ---------- */
+body.wr-body{display:block}
+.wr-topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:13px;min-height:62px;
+  padding:10px clamp(16px,2.4vw,34px);background:#fff;border-bottom:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(15,42,71,.04),0 6px 16px rgba(15,42,71,.05);
+}
+/* logo.svg is all-white — needs the navy chip to be visible on the light bar */
+.wr-topbar .mark{flex:0 0 auto;height:38px;padding:0 11px;display:grid;place-items:center;border-radius:8px;background:var(--nav)}
+.wr-topbar .mark img{height:22px;display:block}
+.wr-topbar h1{margin:0;font-size:clamp(15px,1.6vw,19px);font-weight:800;line-height:1.15;letter-spacing:-.01em;color:var(--ink);min-width:0}
+.wr-page{padding:20px clamp(16px,2.4vw,34px) 34px}
+.wr-topbar .region-switcher{margin:0 0 0 auto;padding:0;border:0;display:flex;align-items:center;gap:10px}
+.wr-topbar .rs-label{margin:0;color:var(--muted)}
+.wr-topbar .rs-btn{
+  width:auto;min-width:230px;padding:8px 12px;
+  border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);
+}
+.wr-topbar .rs-btn:hover{border-color:var(--blue);background:#fff}
+.wr-topbar .rs-btn:focus-visible,
+.wr-topbar .rs-btn[aria-expanded="true"]{border-color:var(--blue);background:#fff;box-shadow:var(--ring-blue)}
+.wr-topbar .rs-chev{stroke:var(--blue)}
+.wr-topbar .rs-pop{top:calc(100% + 8px);bottom:auto;left:auto;right:0;width:min(300px,86vw)}
+@media (max-width:640px){
+  .wr-topbar{flex-wrap:wrap}
+  .wr-topbar .region-switcher{margin-left:0;width:100%}
+  .wr-topbar .rs-btn{flex:1;min-width:0}
 }
 
 /* ===================== admin panel (2026-09-30): login page + sidebar auth ===================== */

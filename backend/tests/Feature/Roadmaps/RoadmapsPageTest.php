@@ -52,9 +52,8 @@ test('direct entry with no region chosen makes the first loaded region the activ
     $response = $this->get('/roadmaps');
 
     $response->assertOk();
-    $response->assertSee('· Хоразм вилояти');
     $response->assertSee('«Куловот»');
-    $response->assertSee('Хоразм вилояти мониторинг платформаси');   // topbar follows the switched session
+    $response->assertSeeHtml('<span class="rs-cur">Хоразм вилояти</span>');   // the top-bar region switcher follows the switched session
     expect(Session::get('region_code'))->toBe(1733);
 });
 
