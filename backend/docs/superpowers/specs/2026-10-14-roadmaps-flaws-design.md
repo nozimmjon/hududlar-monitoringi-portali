@@ -24,6 +24,7 @@ Today a measure with zero reports shows purple «Бажарилмоқда» (104
 - Top KPI strip: 5th grey tile «маълумот киритилмаган».
 - Hero: drop the «N тадбирда индикатор йўқ» note — that population is now inside the grey count. Ring math unchanged (mean over reported measures only).
 - Admin panel: `Admin\RoadmapOverview` per-region status split gains the grey segment; `Admin\RoadmapEntry` status chip mapping gains the label (recomputer already feeds both).
+  *(Implementation note 2026-10-14: assessed as not applicable — `RoadmapOverview` renders only a done/total ratio and `RoadmapEntry` shows the saved/carry/empty entry state plus a deadline chip; neither surfaces the done/in_progress/open label anywhere a grey segment could join. The admin upload drawer's report did gain the «Киритилмаган» column per §"import report".)*
 
 ## 2. Region switcher: roadmaps-only list + empty-state leak
 
