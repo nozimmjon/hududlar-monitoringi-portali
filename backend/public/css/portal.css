@@ -6280,7 +6280,7 @@ body.sectors-body{
 .wr-status.bad{background:#fdecea;color:var(--task-red)}
 .wr-status.none{background:var(--grey-soft);color:var(--grey)}
 
-.wr-line{display:grid;grid-template-columns:minmax(0,1fr) 90px 128px 44px;gap:10px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--muted)}
+.wr-line{display:grid;grid-template-columns:minmax(0,1fr) 90px 136px;gap:10px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--muted)}
 .wr-mcard .head+.wr-line{margin-top:10px}
 .wr-line .lb{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wr-line .bar{position:relative;height:4px;background:var(--grey-soft);border-radius:3px}
@@ -6290,11 +6290,6 @@ body.sectors-body{
 .wr-line.t-red .bar i{background:var(--task-red)}
 .wr-line .pv{text-align:right;white-space:nowrap}
 .wr-line .pv b{color:var(--ink);font-weight:700}
-.wr-line .pp{text-align:right;font-weight:800}
-.wr-line.t-green .pp{color:var(--task-green)}
-.wr-line.t-amber .pp{color:var(--task-amber)}
-.wr-line.t-red .pp{color:var(--task-red)}
-.wr-line.t-none .pp{color:var(--muted);font-weight:600}
 .wr-line.none{grid-template-columns:1fr;font-style:italic}
 .wr-line.none .lb{color:var(--muted)}
 
@@ -6330,9 +6325,9 @@ body.sectors-body{
 }
 @media (max-width:600px){
   .wr-mcard .head{flex-wrap:wrap}
-  .wr-line{grid-template-columns:minmax(0,1fr) 44px}
+  .wr-line{grid-template-columns:minmax(0,1fr)}
   .wr-line .bar{display:none}
-  .wr-line .pv{grid-column:1;text-align:left}
+  .wr-line .pv{text-align:left}
 }
 
 /* ---------- /roadmaps standalone shell (2026-10-14): the page is handed out separately
