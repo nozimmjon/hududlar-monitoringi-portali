@@ -5,9 +5,10 @@ road map gets **indicator lines** that *we* define — label, unit (Ўлчов) 
 (Режа), one row each; the region fills only «Амалда» (and an optional «Изоҳ») in an
 xlsx we generate for a report period, month by month. Status is never chosen by anyone:
 it is derived from the lines of the **latest reported period** — a measure with no
-indicator lines at all, or that has never had a progress row for *any* period (an
-entered zero still counts as reported; only a missing row doesn't), reads
-`Маълумот киритилмаган`; otherwise every planned line at ≥ 100 % → `Бажарилди`, anything
+indicator lines at all, or with no entered «Амалда» **value** in any period's rows,
+reads `Маълумот киритилмаган` (an entered zero still counts as a value; a blank
+placeholder row — the importers write one per line even for an empty period, with or
+without an «Изоҳ» — does not); otherwise every planned line at ≥ 100 % → `Бажарилди`, anything
 below plan → `Бажарилмоқда` until the measure's deadline month (read from «Муддати») and
 `Бажарилмаган` from that month on. The measure percent is the mean over its planned
 lines of each line's `max(0, min(100, actual/plan × 100))`, and **a line with no row in
@@ -41,12 +42,10 @@ php artisan import:roadmap-progress --file="../data/Сув хўжалиги бў
 php artisan roadmap:template --region=1733 --period=2026-10
 ```
 
-Step 3 is what makes the definitions real: after it every measure has its lines and is
-`Бажарилмоқда` — the import registers the period (that's what step 3 is *for*), so even
-though every «Амалда» in it is blank, the measure now has a progress row for that period
-and reads as below-plan-before-deadline, not `Маълумот киритилмаган` (that status is
-reserved for a measure that has never had a progress row for any period at all — see the
-status rule above). Step 6 emits exactly those lines — with the stored «Амалда»/«Изоҳ»
+Step 3 is what makes the definitions real: after it every measure has its lines and
+reads `Маълумот киритилмаган` — the import registers the period with blank placeholder
+rows, and a row without an «Амалда» value is not a report (see the status rule above);
+the honest verdicts arrive with the filled file in step 5. Step 6 emits exactly those lines — with the stored «Амалда»/«Изоҳ»
 pre-filled when that period already has values, so a correction round is just "edit and
 re-import". Steps 1–2 are needed once per region; from then on the loop is 1 → 4 → 5.
 
@@ -56,10 +55,10 @@ writes the lines, and this loop starts at step 1 with real stored lines from mon
 
 **Never import an unfilled template for a *new* period** (step 1's own output, before
 step 4). It registers that period with no «Амалда» anywhere, and because status and
-percent are read from the latest reported period only, every card of the region falls
-back to «Бажарилмоқда» with no ring until the filled file arrives — a «Бажарилди»
-measure looks reopened (not `Маълумот киритилмаган`: the period still got registered,
-just with every «Амалда» blank). Step 3 is the one exception, and only because the first
+percent are read from the latest reported period only, every previously-reported card
+of the region falls back to «Бажарилмоқда» with no ring until the filled file arrives —
+a «Бажарилди» measure looks reopened (never-reported measures just stay
+`Маълумот киритилмаган`). Step 3 is the one exception, and only because the first
 month has nothing to lose. The import says so when it happens:
 `{region}: N та чора-тадбир 2026-10 даврига «Амалда» қийматисиз ўтди — янги давр учун
 тўлдирилмаган шаблон юкланганми? …`. The cure is to import the filled file for that
@@ -70,8 +69,8 @@ same period; the empty rows are overwritten and the numbers come back.
 new rows — existing measures keep whatever status they were last computed with, so
 `php artisan roadmaps:recompute` must run once across every road map after deploying this
 change; only then do measures that were never actually reported (no lines, or no
-progress row for any period) show «Маълумот киритилмаган» instead of the old
-«Бажарилмоқда» fallback. Already run on dev.
+entered «Амалда» value in any period — blank placeholder rows don't count) show
+«Маълумот киритилмаган» instead of the old «Бажарилмоқда» fallback. Already run on dev.
 
 Rebuild the derived columns without touching any file (after a deadline-rule change, a
 hand-edited progress row, or just to check):
@@ -175,11 +174,10 @@ All of these are warnings, not aborts — the import already happened (unless
   Cells that had a value for this period arrived empty. Almost always an **older copy
   of the file** was imported over a newer one — re-import the newer file; it restores
   the values. If the region really did retract numbers, nothing to do.
-- **`{region}: N та чора-тадбир {period} даврига «Амалда» қийматисиз ўтди — янги давр учун тўлдирилмаган шаблон юкланганми? Тўлдирилган файл юкланмагунча уларнинг ҳолати Бажарилмоқда бўлиб қолади.`**
-  (that status word is still accurate: the measure already has a progress row for the
-  period, just an empty one, so it reads «Бажарилмоқда», not «Маълумот киритилмаган» —
-  that status is reserved for a measure that has never had a progress row for any
-  period at all.)
+- **`{region}: N та чора-тадбир {period} даврига «Амалда» қийматисиз ўтди — янги давр учун тўлдирилмаган шаблон юкланганми? Тўлдирилган файл юкланмагунча уларда бу давр учун маълумот бўлмайди.`**
+  (A measure that never carried a value in any period reads «Маълумот киритилмаган»;
+  one with values in an older period falls back to «Бажарилмоқда»/«Бажарилмаган» with
+  an all-blank latest period.)
   A period newer than the one those measures last reported arrived with every «Амалда»
   cell empty — normally step 1's own template imported by mistake before step 4. See the
   monthly loop above; import the filled file for that period and the numbers return.
@@ -460,12 +458,12 @@ any unsaved typing — what stands on screen afterwards is what was imported.
 
 - **Statuses** are four, one more than the tasks-board's three: «Бажарилди» (green) —
   every planned line at ≥ 100 % in the latest period; «Бажарилмоқда» (violet) — behind
-  plan but still before the deadline month (this includes a period that was registered
-  with every «Амалда» left blank — see the warnings above); «Бажарилмаган» (red) —
-  behind plan in or after the deadline month; «Маълумот киритилмаган» (grey) — the
-  measure has no indicator lines at all, or has never had a progress row for *any*
-  period — a row carrying an entered zero still counts as reported, only a missing row
-  doesn't. The rail's five buttons filter by them
+  plan but still before the deadline month (this includes a previously-reported measure
+  whose newest period was registered with every «Амалда» left blank — see the warnings
+  above); «Бажарилмаган» (red) — behind plan in or after the deadline month;
+  «Маълумот киритилмаган» (grey) — the measure has no indicator lines at all, or no
+  entered «Амалда» value in *any* period's rows — an entered zero still counts as a
+  value, a blank placeholder row (even one carrying an «Изоҳ») doesn't. The rail's five buttons filter by them
   (`?holat=done|in_progress|open|no_report`).
 - **The ring percent** is the mean over planned lines of the capped line share, so
   14/24 + 1/1 + 3/3 shows 86 %, not the two-of-three 67 %. A measure that is not

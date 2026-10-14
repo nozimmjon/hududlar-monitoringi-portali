@@ -125,3 +125,20 @@ test('recompute marks measures without lines or without any progress rows as no_
     expect($noLines->fresh()->status)->toBe('no_report');
     expect($zero->fresh()->status)->toBe('in_progress');   // deadline not reached, reported zero
 });
+
+test('placeholder rows with blank actuals do not count as entered data', function () {
+    $this->seed();
+    $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
+
+    // The xlsx importers write a period row for every line even when «Амалда» is blank
+    // (Andijan 2026-09: 143 rows, 140 of them NULL). A NULL actual — note or no note —
+    // is a placeholder, not a report.
+    $blank = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 'blank', 'body_raw' => 't', 'source_row' => 1]);
+    $blank->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10])
+        ->progress()->create(['report_period' => '2026-09', 'period_type' => 'month', 'actual_value' => null, 'note' => 'изоҳ бор, қиймат йўқ']);
+
+    expect(Artisan::call('roadmaps:recompute'))->toBe(0);
+    $blank->refresh();
+    expect($blank->status)->toBe('no_report');
+    expect($blank->latest_period)->toBe('2026-09');   // the registered period stays; only the verdict is honest
+});

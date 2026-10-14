@@ -89,10 +89,14 @@ final class MeasureRecomputer
     {
         $measure->loadMissing('lines.progress');
 
-        $periods = [];
+        $periods   = [];
+        $hasActual = false;
         foreach ($measure->lines as $line) {
             foreach ($line->progress as $p) {
                 $periods[] = $p->report_period;
+                if ($p->actual_value !== null) {
+                    $hasActual = true;      // an explicit 0 is still an entered value
+                }
             }
         }
 
@@ -110,8 +114,10 @@ final class MeasureRecomputer
 
         $agg = self::aggregate($rows, $latest !== null && RoadmapDeadline::reached($latest, $measure->deadline_text, $roadmapYear));
 
-        // No progress row for ANY period: whatever the per-period rules say, nothing was entered.
-        $status = $latest === null ? 'no_report' : $agg['status'];
+        // No «Амалда» value in ANY period's rows: whatever the per-period rules say, nothing was
+        // entered. Blank placeholder rows (the importers write one per line even for an empty
+        // period, sometimes carrying only a note) do not count as a report; an explicit 0 does.
+        $status = $hasActual ? $agg['status'] : 'no_report';
 
         $values = [
             'latest_period' => $latest,

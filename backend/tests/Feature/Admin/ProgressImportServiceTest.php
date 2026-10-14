@@ -24,8 +24,9 @@ test('run() with write=false reports and rolls back; with write=true it writes a
         expect($dry->period)->toBe('2026-09');
         expect($dry->file)->toBe('Хоразм.xlsx');
         expect($dry->blocks)->toBe(4);
-        expect($dry->regions[0])->toMatchArray(['region' => 'Хоразм вилояти', 'in_file' => 4, 'total' => 4, 'lines' => 5, 'reported' => 1, 'missing' => 0, 'done' => 0, 'in_progress' => 4, 'open' => 0]);
-        expect($dry->rows()[0])->toBe(['Хоразм вилояти', '4/4', 5, 0, 1, 0, 4, 0, 0]);
+        // Only the measure with the filled G8 counts as reported; the other 3 got blank placeholder rows → no_report.
+        expect($dry->regions[0])->toMatchArray(['region' => 'Хоразм вилояти', 'in_file' => 4, 'total' => 4, 'lines' => 5, 'reported' => 1, 'missing' => 0, 'done' => 0, 'in_progress' => 1, 'open' => 0, 'no_report' => 3]);
+        expect($dry->rows()[0])->toBe(['Хоразм вилояти', '4/4', 5, 0, 1, 0, 1, 0, 3]);
         expect($dry->warnings)->toBe([]);
         expect(RoadmapLineProgress::count())->toBe(0);
         expect(RoadmapChangeLog::count())->toBe(0);

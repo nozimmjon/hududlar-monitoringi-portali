@@ -92,7 +92,7 @@ test('round trip: an empty reviewed file defines the lines, the filled file adds
     expect(RoadmapMeasureLine::count())->toBe(5);
     expect(RoadmapLineProgress::count())->toBe(5);
     expect(RoadmapLineProgress::whereNotNull('actual_value')->count())->toBe(0);
-    expect(RoadmapMeasure::where('status', 'in_progress')->count())->toBe(4);
+    expect(RoadmapMeasure::where('status', 'no_report')->count())->toBe(4);   // all rows blank → placeholders, not reports
     expect(progressMeasure(2, 1, 1733204)->lines_total)->toBe(2);
 
     progressFill($file, ['G4' => '300,5', 'H5' => 'ҳали бошланмаган', 'G8' => 7.8, 'G9' => '20', 'G11' => 24]);
@@ -118,7 +118,7 @@ test('round trip: an empty reviewed file defines the lines, the filled file adds
     expect($m1->status)->toBe('in_progress');
 
     $m2 = progressMeasure(1, 2);
-    expect($m2->status)->toBe('in_progress');
+    expect($m2->status)->toBe('no_report');   // note without an «Амалда» value is not a report
     expect($m2->pct)->toBeNull();
     expect($m2->lines->first()->progress->first()->note)->toBe('ҳали бошланмаган');
 
@@ -212,7 +212,7 @@ test('structural problems abort before anything is written', function () {
     expect(Artisan::call('import:roadmap-progress', ['--file' => $dry, '--dry-run' => true]))->toBe(0);
     expect(Artisan::output())->toContain('Синов ишга тушириш — ҳеч нарса ёзилмади.');
     expect(RoadmapLineProgress::whereNotNull('actual_value')->count())->toBe(0);
-    expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
+    expect(progressMeasure(2, 1, 1733208)->status)->toBe('no_report');   // dry run wrote nothing; blank rows from the earlier empty import stay placeholders
 });
 
 test('operator warnings: relabelled history, cleared actuals, measures missing from the file, stray rows', function () {

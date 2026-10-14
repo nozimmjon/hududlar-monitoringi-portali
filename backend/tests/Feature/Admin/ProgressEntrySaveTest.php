@@ -105,7 +105,7 @@ test('confirmRest writes carried values for every unsaved measure with lines and
     expect($bogot->fresh()->latest_period)->toBe('2026-09');
     expect($m2->fresh()->status)->toBe('open');                                       // June deadline passed, 100 of 484,5
     expect(AdminFixture::measure(1, 1)->latest_period)->toBe('2026-09');              // the empty line was written as null
-    expect(AdminFixture::measure(1, 1)->status)->toBe('in_progress');
+    expect(AdminFixture::measure(1, 1)->status)->toBe('no_report');   // its only row is the null carried value — a placeholder, not a report
     $confirms = RoadmapChangeLog::where('action', 'confirm')->get();
     expect($confirms)->toHaveCount(3);
     expect($confirms->firstWhere('roadmap_measure_id', $bogot->id)->new_value)->toBe('2 та қатор');
