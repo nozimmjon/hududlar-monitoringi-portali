@@ -6185,8 +6185,10 @@ body.sectors-body{
 .wr-sections button .n{margin-top:1px}
 
 /* ---- mobile accordion rail (2026-10-14): headers only exist <1100px; the `closed`
-   class is inert on desktop so the cards render exactly as before ---- */
-.wr-acc-h{display:none;width:100%;border:0;background:none;align-items:center;gap:8px;
+   class is inert on desktop so the cards render exactly as before.
+   `.wr-kcard .wr-acc-h` (0,2,0), not bare `.wr-acc-h` (0,1,0): it must outweigh
+   `.wr-kcard button` (0,1,1) on display/font/color or the header shows on desktop. ---- */
+.wr-kcard .wr-acc-h{display:none;width:100%;border:0;background:none;align-items:center;gap:8px;
   padding:8px 10px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--ink);text-align:left}
 .wr-acc-h .cur{margin-left:auto;flex:0 0 auto;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-size:11px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:2px 9px}
@@ -6341,7 +6343,7 @@ body.sectors-body{
   .wr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wr-kpis > :last-child{grid-column:1/-1}
   .wr-mcard{grid-template-columns:44px minmax(0,1fr)}
-  .wr-acc-h{display:flex}
+  .wr-kcard .wr-acc-h{display:flex}
   .wr-acc .wr-acc-b.closed{display:none}
   .wr-acc .wr-acc-b .kt{display:none}   /* the header already names the group */
 }
