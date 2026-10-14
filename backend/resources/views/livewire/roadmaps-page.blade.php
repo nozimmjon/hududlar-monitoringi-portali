@@ -41,7 +41,7 @@
         @endforeach
       </nav>
 
-      <nav class="wr-kcard" aria-label="Бўлимлар">
+      <nav class="wr-kcard wr-sections" aria-label="Бўлимлар">
         <div class="kt">Бўлимлар</div>
         @php $allOn = $section === 'all' && $district === 'all'; @endphp
         <button type="button" class="{{ $allOn ? 'on' : '' }}" aria-pressed="{{ $allOn ? 'true' : 'false' }}"

@@ -6175,6 +6175,15 @@ body.sectors-body{
 .wr-kcard button .n{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:700;color:var(--muted);background:var(--grey-soft);border-radius:999px;padding:1px 8px}
 .wr-kcard button.on .n{background:#fff;color:var(--blue)}
 
+/* Section titles wrap to two lines — one-line ellipsis made IV and V read identical
+   («Вилоятнинг хусусиятид…»). Roman + count stay on the first line's baseline. */
+.wr-sections button{align-items:flex-start}
+.wr-sections button .t{
+  white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
+}
+.wr-sections button .n{margin-top:1px}
+
 .wr-main{min-width:0;display:flex;flex-direction:column;gap:16px}
 
 .wr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
