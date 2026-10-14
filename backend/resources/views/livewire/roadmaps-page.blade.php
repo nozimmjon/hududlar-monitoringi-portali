@@ -7,7 +7,6 @@
   @if(! $roadmap)
     <div class="wr-empty">
       <h2>{{ $region->name_full }} учун сув хўжалиги йўл харитаси ҳали юкланмаган</h2>
-      <p>Импорт: <code>php artisan import:roadmap --region={{ $region->code }}</code></p>
     </div>
   @else
     <aside class="wr-rail">

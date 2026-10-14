@@ -17,7 +17,7 @@
   <header class="wr-topbar">
     <span class="mark"><img src="/logo.svg" alt="CERR"></span>
     <h1>Сув хўжалиги йўл харитаси</h1>
-    <livewire:region-switcher />
+    <livewire:region-switcher :roadmaps-only="true" />
   </header>
   <main class="wr-page">
     <livewire:roadmaps-page />

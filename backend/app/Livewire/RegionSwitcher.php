@@ -2,12 +2,16 @@
 
 namespace App\Livewire;
 
+use App\Models\Roadmap;
 use App\Support\CurrentRegion;
 use Livewire\Component;
 
 class RegionSwitcher extends Component
 {
     public int $regionCode;
+
+    /** true on /roadmaps: list only regions that have a road map (Тошкент шаҳри never will). */
+    public bool $roadmapsOnly = false;
 
     public function mount(): void
     {
@@ -22,8 +26,15 @@ class RegionSwitcher extends Component
 
     public function render()
     {
+        $regions = CurrentRegion::regions();
+        if ($this->roadmapsOnly) {
+            $withMaps = Roadmap::query()->distinct()->pluck('region_code');
+            $regions  = $regions->whereIn('code', $withMaps)->values();
+        }
+
         return view('livewire.region-switcher', [
-            'regions' => CurrentRegion::regions(),
+            'regions' => $regions,
+            'current' => CurrentRegion::current(),
         ]);
     }
 }

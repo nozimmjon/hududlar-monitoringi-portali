@@ -42,7 +42,7 @@ test('GET /roadmaps shows the empty state when no road map is loaded at all', fu
 
     $response->assertOk();
     $response->assertSee('Андижон вилояти учун сув хўжалиги йўл харитаси ҳали юкланмаган');
-    $response->assertSee('import:roadmap --region=1703');
+    $response->assertDontSee('php artisan');
 });
 
 test('direct entry with no region chosen makes the first loaded region the active one', function () {
