@@ -4,9 +4,11 @@ Phase 2 on top of the registry (`roadmap-import.md`). Each measure (чора-т�
 road map gets **indicator lines** that *we* define — label, unit (Ўлчов) and plan
 (Режа), one row each; the region fills only «Амалда» (and an optional «Изоҳ») in an
 xlsx we generate for a report period, month by month. Status is never chosen by anyone:
-it is derived from the lines of the **latest reported period** — nothing reported →
-`Бажарилмоқда`, every planned line at ≥ 100 % → `Бажарилди`, anything below plan →
-`Бажарилмоқда` until the measure's deadline month (read from «Муддати») and
+it is derived from the lines of the **latest reported period** — a measure with no
+indicator lines at all, or that has never had a progress row for *any* period (an
+entered zero still counts as reported; only a missing row doesn't), reads
+`Маълумот киритилмаган`; otherwise every planned line at ≥ 100 % → `Бажарилди`, anything
+below plan → `Бажарилмоқда` until the measure's deadline month (read from «Муддати») and
 `Бажарилмаган` from that month on. The measure percent is the mean over its planned
 lines of each line's `max(0, min(100, actual/plan × 100))`, and **a line with no row in
 that period counts as 0** — so every report must carry every indicator again, always
@@ -40,10 +42,13 @@ php artisan roadmap:template --region=1733 --period=2026-10
 ```
 
 Step 3 is what makes the definitions real: after it every measure has its lines and is
-`Бажарилмоқда` (nothing reported yet), and step 6 emits exactly those lines — with the
-stored «Амалда»/«Изоҳ» pre-filled when that period already has values, so a correction
-round is just "edit and re-import". Steps 1–2 are needed once per region; from then on
-the loop is 1 → 4 → 5.
+`Бажарилмоқда` — the import registers the period (that's what step 3 is *for*), so even
+though every «Амалда» in it is blank, the measure now has a progress row for that period
+and reads as below-plan-before-deadline, not `Маълумот киритилмаган` (that status is
+reserved for a measure that has never had a progress row for any period at all — see the
+status rule above). Step 6 emits exactly those lines — with the stored «Амалда»/«Изоҳ»
+pre-filled when that period already has values, so a correction round is just "edit and
+re-import". Steps 1–2 are needed once per region; from then on the loop is 1 → 4 → 5.
 
 **Steps 1–3 are already done for a region imported from its returned xlsx road map**
 (`roadmap-import.md`): that file *is* the reviewed definition list — `import:roadmap`
@@ -53,11 +58,20 @@ writes the lines, and this loop starts at step 1 with real stored lines from mon
 step 4). It registers that period with no «Амалда» anywhere, and because status and
 percent are read from the latest reported period only, every card of the region falls
 back to «Бажарилмоқда» with no ring until the filled file arrives — a «Бажарилди»
-measure looks reopened. Step 3 is the one exception, and only because the first month
-has nothing to lose. The import says so when it happens:
+measure looks reopened (not `Маълумот киритилмаган`: the period still got registered,
+just with every «Амалда» blank). Step 3 is the one exception, and only because the first
+month has nothing to lose. The import says so when it happens:
 `{region}: N та чора-тадбир 2026-10 даврига «Амалда» қийматисиз ўтди — янги давр учун
 тўлдирилмаган шаблон юкланганми? …`. The cure is to import the filled file for that
 same period; the empty rows are overwritten and the numbers come back.
+
+**Deploy note:** the status model has four states as of this release (`no_report` /
+«Маълумот киритилмаган» added). The column default changed too, but that only governs
+new rows — existing measures keep whatever status they were last computed with, so
+`php artisan roadmaps:recompute` must run once across every road map after deploying this
+change; only then do measures that were never actually reported (no lines, or no
+progress row for any period) show «Маълумот киритилмаган» instead of the old
+«Бажарилмоқда» fallback. Already run on dev.
 
 Rebuild the derived columns without touching any file (after a deadline-rule change, a
 hand-edited progress row, or just to check):
@@ -115,11 +129,11 @@ month. After step 3 it must read 0: the lines now come from the DB.)
 `import:roadmap-progress` on a filled file:
 
 ```
-+----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
-| Вилоят         | Файлда/жами | Қаторлар | Ўчирилди | Амалда | Бажарилди | Бажарилмоқда | Бажарилмаган |
-+----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
-| Хоразм вилояти | 89/89       | 178      | 0        | 129    | 12        | 77           | 0            |
-+----------------+-------------+----------+----------+--------+-----------+--------------+--------------+
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+--------------+
+| Вилоят         | Файлда/жами | Қаторлар | Ўчирилди | Амалда | Бажарилди | Бажарилмоқда | Бажарилмаган | Киритилмаган |
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+--------------+
+| Хоразм вилояти | 89/89       | 178      | 0        | 129    | 12        | 77           | 0            | 0            |
++----------------+-------------+----------+----------+--------+-----------+--------------+--------------+--------------+
 2026-09 даври: Хоразм вилояти.xlsx файлидан 89 та чора-тадбир ўқилди.
 ```
 
@@ -133,7 +147,7 @@ healthy case. With `--dry-run` the same block ends with
 `roadmaps:recompute`:
 
 ```
-1 road map(s) [1733], 89 measure(s) — 89 updated; done: 12, in_progress: 77, open: 0 — 12 in_progress→done.
+1 road map(s) [1733], 89 measure(s) — 89 updated; done: 12, in_progress: 77, open: 0, no_report: 0 — 12 in_progress→done.
 ```
 
 The tail lists every status that moved (here 12 measures closed). Run right after an
@@ -162,6 +176,10 @@ All of these are warnings, not aborts — the import already happened (unless
   of the file** was imported over a newer one — re-import the newer file; it restores
   the values. If the region really did retract numbers, nothing to do.
 - **`{region}: N та чора-тадбир {period} даврига «Амалда» қийматисиз ўтди — янги давр учун тўлдирилмаган шаблон юкланганми? Тўлдирилган файл юкланмагунча уларнинг ҳолати Бажарилмоқда бўлиб қолади.`**
+  (that status word is still accurate: the measure already has a progress row for the
+  period, just an empty one, so it reads «Бажарилмоқда», not «Маълумот киритилмаган» —
+  that status is reserved for a measure that has never had a progress row for any
+  period at all.)
   A period newer than the one those measures last reported arrived with every «Амалда»
   cell empty — normally step 1's own template imported by mistake before step 4. See the
   monthly loop above; import the filled file for that period and the numbers return.
@@ -320,8 +338,9 @@ The page header is the region name over one line of numbers — «2026 йил о
 чора-тадбир · 200 та индикатор · 0 тўлдирилди · N та муддати ўтган» (the last clause only when
 something is late) — with the region and month selects beside it, and under that the
 filters and the search box. A measure's stored status (Бажарилди · Бажарилмоқда ·
-Бажарилмаган) is not shown in the panel at all — that is the public page's job — because
-what the panel asks is *what has been entered for this month*.
+Бажарилмаган · Маълумот киритилмаган) is not shown in the panel at all — that is the
+public page's job — because what the panel asks is *what has been entered for this
+month*.
 
 The grid is one worksheet. A column header row («№ · Чора-тадбир · индикатор · Ўлчов ·
 Режа · Амалда · % · Изоҳ») sticks under the admin bar, each section's band («I ·
@@ -405,8 +424,8 @@ month, and then works in two steps:
 
 1. **«Текшириш»** runs the import as a dry run — inside a transaction that is rolled
    back — and shows the report the command prints: the table «Вилоят · Файлда/жами ·
-   Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган», the warnings
-   below it, an abort as one red line. Nothing is written.
+   Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган ·
+   Киритилмаган», the warnings below it, an abort as one red line. Nothing is written.
 2. **«Қўллаш»** appears only after a clean dry run and applies exactly that file, logging
    one «Excel’дан юкланди» entry per region touched. The drawer stays open afterwards so
    the report stays readable; ✕, Escape or the scrim closes it.
@@ -439,15 +458,19 @@ any unsaved typing — what stands on screen afterwards is what was imported.
 
 ## Reading the page (`/roadmaps`)
 
-- **Statuses** are the tasks-board three: «Бажарилди» (green) — every planned line at
-  ≥ 100 % in the latest period; «Бажарилмоқда» (violet) — nothing reported yet, no
-  indicator lines at all, or behind plan but still before the deadline month;
-  «Бажарилмаган» (red) — behind plan in or after the deadline month. The rail's four
-  buttons filter by them (`?holat=done|in_progress|open`).
+- **Statuses** are four, one more than the tasks-board's three: «Бажарилди» (green) —
+  every planned line at ≥ 100 % in the latest period; «Бажарилмоқда» (violet) — behind
+  plan but still before the deadline month (this includes a period that was registered
+  with every «Амалда» left blank — see the warnings above); «Бажарилмаган» (red) —
+  behind plan in or after the deadline month; «Маълумот киритилмаган» (grey) — the
+  measure has no indicator lines at all, or has never had a progress row for *any*
+  period — a row carrying an entered zero still counts as reported, only a missing row
+  doesn't. The rail's five buttons filter by them
+  (`?holat=done|in_progress|open|no_report`).
 - **The ring percent** is the mean over planned lines of the capped line share, so
   14/24 + 1/1 + 3/3 shows 86 %, not the two-of-three 67 %. A measure that is not
-  `Бажарилди` never displays 100 % (capped at 99), and a measure with no lines shows
-  «—».
+  `Бажарилди` never displays 100 % (capped at 99), and a measure with no lines, or that
+  has never been reported (`Маълумот киритилмаган`), shows «—».
 - **The deadline chip** counts months from *today* (Asia/Tashkent), not from the report
   the deadline exactly as the document writes it («2026 йил декабрь»): with a calendar icon: amber while open, red once the deadline month has passed, green once done. No countdown.
 - **A 📅 period chip on a card** means this measure's last report is **older than the
@@ -488,4 +511,6 @@ as-built deviations at the top), implementation plan:
 - All 13 regions have road maps loaded (from the xlsx files the regions returned,
   2026-09-29; Тошкент шаҳри has no file). Reported actuals so far: Андижон's September
   values from its xlsx — every other region still has to send a filled template or
-  enter values through the panel.
+  enter values through the panel. Until a region does, its measures were imported with
+  no period at all (registry only), so they carry no progress row for any period and
+  show «Маълумот киритилмаган», not «Бажарилмоқда».
