@@ -6246,6 +6246,7 @@ body.sectors-body{
 .wr-fbtns .f-done i{background:var(--task-green)}
 .wr-fbtns .f-in_progress i{background:#7c3aed}
 .wr-fbtns .f-open i{background:var(--task-red)}
+.wr-fbtns .f-no_report i{background:var(--grey)}
 
 .wr-kcard button.wr-drow .mb{width:36px;height:3px;border-radius:2px;background:var(--grey-soft);position:relative;flex:0 0 auto;overflow:hidden}
 .wr-kcard button.wr-drow .mb i{position:absolute;inset:0 auto 0 0;background:var(--task-green);border-radius:2px}
@@ -6255,6 +6256,7 @@ body.sectors-body{
 .wr-kpi.ok b{color:var(--task-green)}
 .wr-kpi.wait b{color:#7c3aed}
 .wr-kpi.bad b{color:var(--task-red)}
+.wr-kpi.none b{color:var(--grey)}
 
 .wr-mcard{
   display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:start;
@@ -6277,6 +6279,7 @@ body.sectors-body{
 .wr-status.ok{background:var(--green-soft);color:var(--task-green)}
 .wr-status.wait{background:#efe9fb;color:#7c3aed}
 .wr-status.bad{background:#fdecea;color:var(--task-red)}
+.wr-status.none{background:var(--grey-soft);color:var(--grey)}
 
 .wr-line{display:grid;grid-template-columns:minmax(0,1fr) 90px 128px 44px;gap:10px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--muted)}
 .wr-mcard .head+.wr-line{margin-top:10px}
