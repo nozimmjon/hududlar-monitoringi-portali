@@ -191,7 +191,7 @@
                       <span class="wr-chip period" title="Охирги ҳисобот даври">📅 {{ RoadmapPeriod::label($m->latest_period) }}</span>
                     @endif
                     @if($m->responsible_text)
-                      <span class="wr-chip" title="{{ $m->responsible_text }}">{{ mb_strimwidth($m->responsible_text, 0, 60, '…') }}</span>
+                      <span class="wr-chip" title="{{ $m->responsible_text }}">{{ mb_strimwidth($m->responsible_text, 0, 90, '…') }}</span>
                     @endif
                   </div>
 
