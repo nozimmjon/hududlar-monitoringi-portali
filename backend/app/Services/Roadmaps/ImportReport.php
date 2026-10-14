@@ -7,7 +7,7 @@ final class ImportReport
 {
     /**
      * @param list<array{region: string, in_file: int, total: int, lines: int, removed: int, reported: int, relabeled: int,
-     *                   cleared: int, repct: int, blank_advance: int, done: int, in_progress: int, open: int, missing: int}> $regions
+     *                   cleared: int, repct: int, blank_advance: int, done: int, in_progress: int, open: int, no_report: int, missing: int}> $regions
      * @param list<string> $warnings
      */
     public function __construct(
@@ -31,11 +31,11 @@ final class ImportReport
         return $this->error === null;
     }
 
-    /** The command's table rows: Вилоят · Файлда/жами · Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган. @return list<array> */
+    /** The command's table rows: Вилоят · Файлда/жами · Қаторлар · Ўчирилди · Амалда · Бажарилди · Бажарилмоқда · Бажарилмаган · Киритилмаган. @return list<array> */
     public function rows(): array
     {
         return array_map(fn (array $s) => [
-            $s['region'], "{$s['in_file']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open'],
+            $s['region'], "{$s['in_file']}/{$s['total']}", $s['lines'], $s['removed'], $s['reported'], $s['done'], $s['in_progress'], $s['open'], $s['no_report'],
         ], $this->regions);
     }
 
