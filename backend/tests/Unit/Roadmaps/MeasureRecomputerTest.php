@@ -50,9 +50,9 @@ test('lines without a plan are informational: never counted; a missing progress 
     expect($agg['status'])->toBe('open');
 });
 
-test('no planned lines at all → in_progress and null percent even when something is reported', function () {
+test('no planned lines at all → no_report and null percent even when something is reported', function () {
     $agg = MeasureRecomputer::aggregate([rmLine(null, 5)], true);
-    expect($agg['status'])->toBe('in_progress');
+    expect($agg['status'])->toBe('no_report');   // total === 0 (nothing with a plan) now labels the period itself unreported
     expect($agg['pct'])->toBeNull();
 });
 
@@ -60,4 +60,9 @@ test('a negative line percent contributes 0 to the mean, never a negative ring',
     $agg = MeasureRecomputer::aggregate([rmLine(10, -5), rmLine(10, 10)], true);
     expect($agg['pct'])->toBe(50.0);
     expect($agg['status'])->toBe('open');
+});
+
+test('no planned lines at all → no_report (was in_progress)', function () {
+    expect(MeasureRecomputer::aggregate([], true)['status'])->toBe('no_report');
+    expect(MeasureRecomputer::aggregate([], false)['status'])->toBe('no_report');
 });

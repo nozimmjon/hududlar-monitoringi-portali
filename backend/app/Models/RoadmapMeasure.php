@@ -27,7 +27,7 @@ class RoadmapMeasure extends Model
     ];
 
     protected $attributes = [
-        'status' => 'in_progress',
+        'status' => 'no_report',
         'lines_total' => 0,
         'lines_done' => 0,
     ];

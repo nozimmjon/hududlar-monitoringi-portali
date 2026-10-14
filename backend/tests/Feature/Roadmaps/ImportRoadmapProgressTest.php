@@ -3,9 +3,12 @@
 use App\Models\RoadmapLineProgress;
 use App\Models\RoadmapMeasure;
 use App\Models\RoadmapMeasureLine;
+use App\Services\Roadmaps\ProgressImport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Tests\Helpers\AdminFixture;
 use Tests\Helpers\RoadmapDocxBuilder;
 
 uses(RefreshDatabase::class);
@@ -300,4 +303,55 @@ test('importing an unfilled template for a newer period warns that the region fe
     expect($out)->toContain('2026-10 даврига «Амалда» қийматисиз ўтди');
     expect($out)->toContain('Хоразм вилояти: 4 та чора-тадбир');
     expect(progressMeasure(2, 1, 1733208)->status)->toBe('in_progress');
+});
+
+/**
+ * A hand-built progress file (bypassing roadmap:template, which always suggests at least
+ * one indicator line per measure — see RoadmapTemplateWriter::linesFor()) whose first key
+ * row carries no D/E/F/G/H data at all: RoadmapProgressReader closes that block with
+ * lines === [] because the very next row opens a different key. Paired with a measure that
+ * has never had any RoadmapMeasureLine row either (seq 1), this reproduces the one way a
+ * registry measure reaches MeasureLineSync::sync() with a genuinely empty line list on both
+ * sides — the path that used to crash ProgressImport's per-region tally.
+ */
+function zeroLineProgressFile(int $regionCode, string $zeroKey, string $normalKey, string $period = '2026-09'): string
+{
+    $out = tempnam(sys_get_temp_dir(), 'rmzero_') . '.xlsx';
+    progressTempFiles($out);
+
+    $book  = new Spreadsheet();
+    $sheet = $book->getActiveSheet();
+    $sheet->setTitle('Тест');
+    $sheet->setCellValue('A1', "Сув хўжалиги йўл харитаси — X — {$regionCode} · Ҳисобот даври: {$period}");
+    $sheet->setCellValue('A2', $zeroKey);                   // key row, nothing else → block closes with zero lines
+    $sheet->setCellValue('A3', $normalKey);
+    $sheet->setCellValue('D3', 'Индикатор');
+    $sheet->setCellValue('E3', '%');
+    $sheet->setCellValue('F3', 100);
+    $sheet->setCellValue('G3', 50);
+    IOFactory::createWriter($book, 'Xlsx')->save($out);
+
+    return $out;
+}
+
+test('a measure with zero indicator lines survives import:roadmap-progress and lands on no_report', function () {
+    $this->seed();
+    $roadmap = AdminFixture::bareRoadmap(1733, [
+        [1, 'Ҳисоботи ҳеч қачон киритилмаган чора-тадбир.', '2026 йил декабрь', 'in_progress'],
+        [2, 'Оддий чора-тадбир.', '2026 йил декабрь', 'in_progress'],
+    ]);
+    $zero   = \App\Support\Roadmaps\RoadmapKey::make(1733, 1, null, 1);
+    $normal = \App\Support\Roadmaps\RoadmapKey::make(1733, 1, null, 2);
+    expect(RoadmapMeasure::where('roadmap_id', $roadmap->id)->where('seq_no', 1)->firstOrFail()->lines)->toHaveCount(0);
+
+    $file = zeroLineProgressFile(1733, $zero, $normal);
+
+    $report = (new ProgressImport())->run($file, null, 2026, 'water', true);
+
+    expect($report->ok())->toBeTrue();
+    expect($report->regions[0]['no_report'])->toBe(1);
+
+    $measure = RoadmapMeasure::where('roadmap_id', $roadmap->id)->where('seq_no', 1)->firstOrFail();
+    expect($measure->lines)->toHaveCount(0);
+    expect($measure->status)->toBe('no_report');
 });

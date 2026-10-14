@@ -6175,9 +6175,29 @@ body.sectors-body{
 .wr-kcard button .n{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:700;color:var(--muted);background:var(--grey-soft);border-radius:999px;padding:1px 8px}
 .wr-kcard button.on .n{background:#fff;color:var(--blue)}
 
+/* Section titles wrap to two lines — one-line ellipsis made IV and V read identical
+   («Вилоятнинг хусусиятид…»). Roman + count stay on the first line's baseline. */
+.wr-sections button{align-items:flex-start}
+.wr-sections button .t{
+  white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
+}
+.wr-sections button .n{margin-top:1px}
+
+/* ---- mobile accordion rail (2026-10-14): headers only exist <1100px; the `closed`
+   class is inert on desktop so the cards render exactly as before.
+   `.wr-kcard .wr-acc-h` (0,2,0), not bare `.wr-acc-h` (0,1,0): it must outweigh
+   `.wr-kcard button` (0,1,1) on display/font/color or the header shows on desktop. ---- */
+.wr-kcard .wr-acc-h{display:none;width:100%;border:0;background:none;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--ink);text-align:left}
+.wr-acc-h .cur{margin-left:auto;flex:0 0 auto;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:11px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:2px 9px}
+.wr-acc-h .ar{flex:0 0 auto;color:var(--muted);transition:transform .2s}
+.wr-acc-h .ar.o{transform:rotate(180deg)}
+
 .wr-main{min-width:0;display:flex;flex-direction:column;gap:16px}
 
-.wr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.wr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .wr-kpi{background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);padding:14px 16px}
 .wr-kpi b{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.1}
 .wr-kpi span{font-size:11.5px;color:var(--muted);font-weight:600}
@@ -6228,7 +6248,6 @@ body.sectors-body{
 .wr-hero .hs b small{font-size:13px;font-weight:650;color:rgba(255,255,255,.6)}
 .wr-hero .hs span{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.7)}
 .wr-hero .hs > div+div{margin-top:8px}
-.wr-hero .hs .nl{font-size:11px;color:rgba(255,255,255,.7);text-transform:none;letter-spacing:0}
 
 .wr-ring{position:relative;flex:0 0 auto}
 .wr-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
@@ -6246,6 +6265,7 @@ body.sectors-body{
 .wr-fbtns .f-done i{background:var(--task-green)}
 .wr-fbtns .f-in_progress i{background:#7c3aed}
 .wr-fbtns .f-open i{background:var(--task-red)}
+.wr-fbtns .f-no_report i{background:var(--grey)}
 
 .wr-kcard button.wr-drow .mb{width:36px;height:3px;border-radius:2px;background:var(--grey-soft);position:relative;flex:0 0 auto;overflow:hidden}
 .wr-kcard button.wr-drow .mb i{position:absolute;inset:0 auto 0 0;background:var(--task-green);border-radius:2px}
@@ -6255,6 +6275,7 @@ body.sectors-body{
 .wr-kpi.ok b{color:var(--task-green)}
 .wr-kpi.wait b{color:#7c3aed}
 .wr-kpi.bad b{color:var(--task-red)}
+.wr-kpi.none b{color:var(--grey)}
 
 .wr-mcard{
   display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:start;
@@ -6277,8 +6298,10 @@ body.sectors-body{
 .wr-status.ok{background:var(--green-soft);color:var(--task-green)}
 .wr-status.wait{background:#efe9fb;color:#7c3aed}
 .wr-status.bad{background:#fdecea;color:var(--task-red)}
+.wr-status.none{background:var(--grey-soft);color:var(--grey)}
 
-.wr-line{display:grid;grid-template-columns:minmax(0,1fr) 90px 128px 44px;gap:10px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--muted)}
+/* value column grows for long units («484,5 / 500 млн м³») instead of overlapping the bar */
+.wr-line{display:grid;grid-template-columns:minmax(0,1fr) 90px minmax(136px,max-content);gap:10px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--muted)}
 .wr-mcard .head+.wr-line{margin-top:10px}
 .wr-line .lb{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wr-line .bar{position:relative;height:4px;background:var(--grey-soft);border-radius:3px}
@@ -6288,11 +6311,6 @@ body.sectors-body{
 .wr-line.t-red .bar i{background:var(--task-red)}
 .wr-line .pv{text-align:right;white-space:nowrap}
 .wr-line .pv b{color:var(--ink);font-weight:700}
-.wr-line .pp{text-align:right;font-weight:800}
-.wr-line.t-green .pp{color:var(--task-green)}
-.wr-line.t-amber .pp{color:var(--task-amber)}
-.wr-line.t-red .pp{color:var(--task-red)}
-.wr-line.t-none .pp{color:var(--muted);font-weight:600}
 .wr-line.none{grid-template-columns:1fr;font-style:italic}
 .wr-line.none .lb{color:var(--muted)}
 
@@ -6323,13 +6341,17 @@ body.sectors-body{
   .wr-shell{grid-template-columns:1fr}
   .wr-rail{position:static;max-height:none;overflow:visible;padding:0;margin:0}
   .wr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wr-kpis > :last-child{grid-column:1/-1}
   .wr-mcard{grid-template-columns:44px minmax(0,1fr)}
+  .wr-kcard .wr-acc-h{display:flex}
+  .wr-acc .wr-acc-b.closed{display:none}
+  .wr-acc .wr-acc-b .kt{display:none}   /* the header already names the group */
 }
 @media (max-width:600px){
   .wr-mcard .head{flex-wrap:wrap}
-  .wr-line{grid-template-columns:minmax(0,1fr) 44px}
+  .wr-line{grid-template-columns:minmax(0,1fr)}
   .wr-line .bar{display:none}
-  .wr-line .pv{grid-column:1;text-align:left}
+  .wr-line .pv{text-align:left}
 }
 
 /* ---------- /roadmaps standalone shell (2026-10-14): the page is handed out separately
@@ -6643,15 +6665,15 @@ body.wr-body{display:block}
 .ad-upload .rep .ok{color:var(--ad-ink);font-weight:600;margin:0 0 8px}
 .ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#FDECEA;border-radius:12px;padding:10px 12px;margin:0}
 .ad-upload .rep .warn{color:var(--ad-warn-ink);background:var(--ad-warn-bg);border-radius:12px;padding:8px 12px;margin:6px 0 0}
-/* Eight columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
+/* Nine columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
    of running into each other. The scroll wrapper stays only as a safety net for narrow phones. */
 .ad-upload .tbl{overflow-x:auto}
 .ad-upload table{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:14px;font-size:12px}
 .ad-upload th{font-size:10px;font-weight:800;line-height:1.15;text-transform:uppercase;letter-spacing:.04em;color:var(--ad-faint);text-align:left;vertical-align:bottom;white-space:normal;hyphens:auto;overflow-wrap:anywhere;padding:6px 7px;border-bottom:1px solid var(--ad-hair-strong)}
 .ad-upload td{padding:8px 7px;border-bottom:1px solid var(--ad-hair);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-upload th:first-child,.ad-upload td:first-child{width:30%}
+.ad-upload th:first-child,.ad-upload td:first-child{width:22%}
 .ad-upload td:first-child{white-space:normal;overflow-wrap:anywhere}
-.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:10%;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num)}
+.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:9.75%;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num)}
 
 /* ===================== admin panel: its own shell (layouts/admin.blade.php) ===================== */
 /* No portal sidebar here, so body drops the two-column grid the portal layout needs. */

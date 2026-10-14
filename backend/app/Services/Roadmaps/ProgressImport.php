@@ -103,7 +103,7 @@ final class ProgressImport
             foreach ($work as $entry) {
                 $s = ['region' => $entry['roadmap']->region->name_full, 'in_file' => 0, 'total' => $entry['roadmap']->measures->count(),
                     'lines' => 0, 'removed' => 0, 'reported' => 0, 'relabeled' => 0, 'cleared' => 0, 'repct' => 0, 'blank_advance' => 0,
-                    'done' => 0, 'in_progress' => 0, 'open' => 0, 'missing' => 0];
+                    'done' => 0, 'in_progress' => 0, 'open' => 0, 'no_report' => 0, 'missing' => 0];
                 foreach ($entry['items'] as [$measure, $block]) {
                     $s['in_file']++;
                     $r = MeasureLineSync::sync($measure, $block['lines'], $period, $entry['roadmap']->year);

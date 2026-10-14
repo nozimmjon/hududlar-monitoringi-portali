@@ -36,7 +36,7 @@ final class MeasureRecomputer
      */
     public static function aggregate(array $lines, bool $deadlineReached): array
     {
-        $agg      = TaskStatus::aggregate($lines);          // weakest link: in_progress / done / open
+        $agg      = TaskStatus::aggregate($lines);          // weakest link: in_progress / done / open — no_report is layered on below, and again in recompute() when latest_period is null
         $reported = false;
         $planned  = [];
         foreach ($lines as $l) {
@@ -59,7 +59,7 @@ final class MeasureRecomputer
 
         $status = $agg['status'];
         if ($agg['total'] === 0) {
-            $status = 'in_progress';                          // nothing planned yet → nothing can be behind or done
+            $status = 'no_report';                            // no line carries a plan this period → nothing plan-bearing was entered
         } elseif ($status === 'open' && ! $deadlineReached) {
             $status = 'in_progress';                          // running behind before the deadline = still in progress
         }
@@ -108,10 +108,14 @@ final class MeasureRecomputer
             $rows[] = ['plan' => $line->plan_value, 'actual' => $p?->actual_value, 'pct' => $p?->pct_of_plan];
         }
 
-        $agg    = self::aggregate($rows, $latest !== null && RoadmapDeadline::reached($latest, $measure->deadline_text, $roadmapYear));
+        $agg = self::aggregate($rows, $latest !== null && RoadmapDeadline::reached($latest, $measure->deadline_text, $roadmapYear));
+
+        // No progress row for ANY period: whatever the per-period rules say, nothing was entered.
+        $status = $latest === null ? 'no_report' : $agg['status'];
+
         $values = [
             'latest_period' => $latest,
-            'status'        => $agg['status'],
+            'status'        => $status,
             'pct'           => $agg['pct'],
             'lines_total'   => $agg['lines_total'],
             'lines_done'    => $agg['lines_done'],

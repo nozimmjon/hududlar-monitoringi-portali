@@ -26,6 +26,8 @@ test('status and deadline chips', function () {
     expect(MeasureDisplay::statusChip('done'))->toBe(['cls' => 'ok', 'label' => 'Бажарилди']);
     expect(MeasureDisplay::statusChip('in_progress'))->toBe(['cls' => 'wait', 'label' => 'Бажарилмоқда']);
     expect(MeasureDisplay::statusChip('open'))->toBe(['cls' => 'bad', 'label' => 'Бажарилмаган']);
+    expect(MeasureDisplay::statusChip('no_report'))->toBe(['cls' => 'none', 'label' => 'Маълумот киритилмаган']);
+    expect(MeasureDisplay::statusChip('bogus'))->toBe(['cls' => 'none', 'label' => 'Маълумот киритилмаган']);
 
     expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'done', '2026-09'))->toBe(['cls' => 'done', 'label' => '2026 йил декабрь']);
     expect(MeasureDisplay::deadlineChip('2026 йил декабрь', 2026, 'in_progress', '2026-09'))->toBe(['cls' => 'due', 'label' => '2026 йил декабрь']);

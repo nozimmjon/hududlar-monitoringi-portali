@@ -54,7 +54,7 @@
             <p class="ok">{{ $report['file'] }} · {{ RoadmapPeriod::label($report['period']) }} · {{ $report['blocks'] }} та чора-тадбир{{ $report['written'] ? ' · ёзилди' : ' · текширув, ҳали ёзилмади' }}</p>
             <div class="tbl">
               <table>
-                <thead><tr><th>Вилоят</th><th>Файлда/жами</th><th>Қаторлар</th><th>Ўчирилди</th><th>Амалда</th><th>Бажарилди</th><th>Бажарилмоқда</th><th>Бажарилмаган</th></tr></thead>
+                <thead><tr><th>Вилоят</th><th>Файлда/жами</th><th>Қаторлар</th><th>Ўчирилди</th><th>Амалда</th><th>Бажарилди</th><th>Бажарилмоқда</th><th>Бажарилмаган</th><th>Киритилмаган</th></tr></thead>
                 <tbody>
                   @foreach($report['rows'] as $row)
                     <tr>@foreach($row as $cell)<td>{{ $cell }}</td>@endforeach</tr>

@@ -42,7 +42,7 @@ test('GET /roadmaps shows the empty state when no road map is loaded at all', fu
 
     $response->assertOk();
     $response->assertSee('Андижон вилояти учун сув хўжалиги йўл харитаси ҳали юкланмаган');
-    $response->assertSee('import:roadmap --region=1703');
+    $response->assertDontSee('php artisan');
 });
 
 test('direct entry with no region chosen makes the first loaded region the active one', function () {
@@ -220,7 +220,7 @@ test('cards carry ring, status chip, indicator rows, deadline chips, notes and t
     $response->assertSee('wr-spark', false);                                   // Боғот has two periods
     $response->assertSee('wr-notes', false);
     $response->assertSee('Ёмғир сабабли кечикди');                            // the reporter's note under «Батафсил»
-    $response->assertSee('1 тадбирда индикатор йўқ');
+    $response->assertSee('Маълумот киритилмаган');
     $response->assertSee('бажарилмаган');                                     // KPI tile label
 
     $bogot = RoadmapMeasure::where('title', 'like', '%бетонлаштириш%')->firstOrFail()->load('lines.progress');
@@ -268,6 +268,38 @@ test('a road map without any indicator lines renders the registry face everywher
 
     $response->assertOk();
     $response->assertSee('ҳисобот йўқ');
+    $response->assertSee('Маълумот киритилмаган');
     $response->assertSee('Индикаторлар ҳали белгиланмаган');
     $response->assertDontSee('wr-spark', false);
+});
+
+test('measures without any entered data show the grey chip, the 5th rail filter and KPI tile; holat=no_report filters', function () {
+    Session::put('region_code', 1733);
+    roadmapPageMonitoring();
+
+    $response = $this->get('/roadmaps');
+    $response->assertOk();
+    $response->assertSee('Маълумот киритилмаган');
+    $response->assertSeeHtml('class="wr-status none"');
+    $response->assertSee('маълумот киритилмаган');                       // KPI tile label
+    $response->assertSeeHtml('<div class="wr-kpi none"><b class="tnum">1</b>');  // Гурлан is the only no_report measure
+    $response->assertDontSee('тадбирда индикатор йўқ');                  // hero note folded into the grey count
+
+    Livewire::test(RoadmapsPage::class)
+        ->call('selectStatus', 'no_report')
+        ->assertSet('status', 'no_report')
+        ->assertSee('52 млн м3')                                          // Гурлан measure title
+        ->assertDontSee('«Куловот»');
+
+    Livewire::withQueryParams(['holat' => 'no_report'])->test(RoadmapsPage::class)
+        ->assertSet('status', 'no_report');
+});
+
+test('rail filter groups render the mobile accordion scaffolding', function () {
+    Session::put('region_code', 1733);
+    roadmapImportKhorezmPage();
+
+    $response = $this->get('/roadmaps');
+    $response->assertSeeHtml('wr-acc-h');
+    $response->assertSeeHtml('wr-acc-b');
 });

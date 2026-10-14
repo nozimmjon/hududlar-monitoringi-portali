@@ -51,7 +51,7 @@ class ImportRoadmapProgress extends Command
             return self::FAILURE;
         }
 
-        $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'Бажарилди', 'Бажарилмоқда', 'Бажарилмаган'], $report->rows());
+        $this->table(['Вилоят', 'Файлда/жами', 'Қаторлар', 'Ўчирилди', 'Амалда', 'Бажарилди', 'Бажарилмоқда', 'Бажарилмаган', 'Киритилмаган'], $report->rows());
         foreach ($report->warnings as $warning) {
             $this->warn($warning);
         }

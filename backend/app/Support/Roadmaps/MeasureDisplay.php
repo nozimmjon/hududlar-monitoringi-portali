@@ -13,6 +13,7 @@ final class MeasureDisplay
         'done'        => ['cls' => 'ok',   'label' => 'Бажарилди'],
         'in_progress' => ['cls' => 'wait', 'label' => 'Бажарилмоқда'],
         'open'        => ['cls' => 'bad',  'label' => 'Бажарилмаган'],
+        'no_report'   => ['cls' => 'none', 'label' => 'Маълумот киритилмаган'],
     ];
 
     /** 2π × r18 — the card ring; the hero ring (r45) passes its own 282.7. */
@@ -65,7 +66,7 @@ final class MeasureDisplay
     /** @return array{cls: string, label: string} */
     public static function statusChip(string $status): array
     {
-        return self::STATUS[$status] ?? self::STATUS['in_progress'];
+        return self::STATUS[$status] ?? self::STATUS['no_report'];
     }
 
     /**

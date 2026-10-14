@@ -105,7 +105,7 @@ test('a measure owns ordered lines, a line owns progress, and deletes cascade do
     $roadmap = Roadmap::create(['region_code' => 1733, 'year' => 2026, 'title_text' => 't', 'source_file' => 'f']);
     $m = $roadmap->measures()->create(['section_no' => 1, 'section_title' => 's', 'seq_no' => 1, 'title' => 't', 'body_raw' => 't', 'source_row' => 1]);
     $m->refresh();
-    expect($m->status)->toBe('in_progress');
+    expect($m->status)->toBe('no_report');                     // never recomputed; column default
     expect((int) $m->lines_total)->toBe(0);
 
     $m->lines()->create(['line_no' => 2, 'label' => 'Ички канал', 'unit' => 'км', 'plan_value' => 33]);

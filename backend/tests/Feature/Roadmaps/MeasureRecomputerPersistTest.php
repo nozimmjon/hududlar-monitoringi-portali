@@ -37,7 +37,7 @@ test('recompute writes latest period, counts, pct and status from the progress r
     expect($m->status)->toBe('in_progress');            // December deadline not reached in September
 });
 
-test('recompute after the deadline flips a below-plan measure to open; no progress at all stays in_progress', function () {
+test('recompute after the deadline flips a below-plan measure to open; no progress at all is no_report', function () {
     $this->seed();
     $m = recomputeFixtureMeasure('2026 йил апрель-октябрь');
     $l = $m->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10]);
@@ -49,7 +49,7 @@ test('recompute after the deadline flips a below-plan measure to open; no progre
     $empty->lines()->create(['line_no' => 1, 'label' => 'a', 'plan_value' => 10]);
     (new MeasureRecomputer())->recompute($empty->fresh(), 2026);
     $empty->refresh();
-    expect($empty->status)->toBe('in_progress');
+    expect($empty->status)->toBe('no_report');          // latest_period null → nothing was ever entered
     expect($empty->latest_period)->toBeNull();
     expect($empty->lines_total)->toBe(1);
     expect($empty->pct)->toBeNull();

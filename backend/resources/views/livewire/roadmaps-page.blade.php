@@ -7,7 +7,6 @@
   @if(! $roadmap)
     <div class="wr-empty">
       <h2>{{ $region->name_full }} учун сув хўжалиги йўл харитаси ҳали юкланмаган</h2>
-      <p>Импорт: <code>php artisan import:roadmap --region={{ $region->code }}</code></p>
     </div>
   @else
     <aside class="wr-rail">
@@ -15,6 +14,14 @@
         <input type="search" placeholder="Чора-тадбир, масъул, манба…"
                wire:model.live.debounce.500ms="q" aria-label="Чора-тадбирлар бўйича қидирув">
       </div>
+
+      @php
+        $statusLabels = ['all' => 'Барчаси', 'done' => 'Бажарилди', 'in_progress' => 'Бажарилмоқда', 'open' => 'Бажарилмаган', 'no_report' => 'Маълумот киритилмаган'];
+        $sectionCur   = $district !== 'all'
+            ? ($districts->first(fn ($d) => (string) $d['code'] === $district)['name'] ?? 'Барчаси')
+            : ($section !== 'all' ? \App\Livewire\RoadmapsPage::roman((int) $section) . ' бўлим' : 'Барчаси');
+        $districtCur  = $districts->first(fn ($d) => (string) $d['code'] === $district)['name'] ?? 'Барчаси';
+      @endphp
 
       <div class="wr-hero">
         <div class="ht"><span class="kt">Умумий ижро</span><span class="per">{{ $hero['period'] }}</span></div>
@@ -30,48 +37,62 @@
           <div class="hs">
             <div><b class="tnum">{{ $counts['done'] }}<small>/{{ $counts['all'] }}</small></b><span>тадбир бажарилди</span></div>
             <div><b class="tnum">{{ $hero['lines_done'] }}<small>/{{ $hero['lines_total'] }}</small></b><span>индикатор</span></div>
-            @if($hero['no_lines'] > 0)<div class="nl">{{ $hero['no_lines'] }} тадбирда индикатор йўқ</div>@endif
           </div>
         </div>
       </div>
 
-      <nav class="wr-kcard wr-fbtns" aria-label="Ҳолат бўйича фильтр">
-        @foreach(['all' => 'Барчаси', 'done' => 'Бажарилди', 'in_progress' => 'Бажарилмоқда', 'open' => 'Бажарилмаган'] as $key => $label)
-          <button type="button" class="f-{{ $key }} {{ $status === $key ? 'on' : '' }}"
-                  aria-pressed="{{ $status === $key ? 'true' : 'false' }}"
-                  wire:click="selectStatus(@js($key))"><i></i>{{ $label }}<span class="n tnum">{{ $counts[$key] }}</span></button>
-        @endforeach
+      <nav class="wr-kcard wr-acc" aria-label="Ҳолат бўйича фильтр" x-data="{ open: false }">
+        <button type="button" class="wr-acc-h" x-on:click="open = ! open" :aria-expanded="open">
+          Ҳолат<span class="cur">{{ $statusLabels[$status] }}</span><span class="ar" :class="open && 'o'" aria-hidden="true">▾</span>
+        </button>
+        <div class="wr-acc-b wr-fbtns" :class="! open && 'closed'" x-on:click="open = false">
+          @foreach($statusLabels as $key => $label)
+            <button type="button" class="f-{{ $key }} {{ $status === $key ? 'on' : '' }}"
+                    aria-pressed="{{ $status === $key ? 'true' : 'false' }}"
+                    wire:click="selectStatus(@js($key))"><i></i>{{ $label }}<span class="n tnum">{{ $counts[$key] }}</span></button>
+          @endforeach
+        </div>
       </nav>
 
-      <nav class="wr-kcard" aria-label="Бўлимлар">
-        <div class="kt">Бўлимлар</div>
-        @php $allOn = $section === 'all' && $district === 'all'; @endphp
-        <button type="button" class="{{ $allOn ? 'on' : '' }}" aria-pressed="{{ $allOn ? 'true' : 'false' }}"
-                wire:click="selectSection(@js('all'))">Барчаси<span class="n tnum">{{ $counts['all'] }}</span></button>
-        @foreach($sections as $s)
-          @php $on = $district === 'all' ? $section === (string) $s['no'] : $districtSectionNo === $s['no']; @endphp
-          <button type="button" class="{{ $on ? 'on' : '' }}" title="{{ $s['title'] }}"
-                  aria-pressed="{{ $on ? 'true' : 'false' }}"
-                  wire:click="selectSection(@js((string) $s['no']))">
-            <b>{{ $s['roman'] }}.</b> <span class="t">{{ $s['title'] }}</span><span class="n tnum">{{ $s['count'] }}</span>
-          </button>
-        @endforeach
+      <nav class="wr-kcard wr-sections wr-acc" aria-label="Бўлимлар" x-data="{ open: false }">
+        <button type="button" class="wr-acc-h" x-on:click="open = ! open" :aria-expanded="open">
+          Бўлимлар<span class="cur">{{ $sectionCur }}</span><span class="ar" :class="open && 'o'" aria-hidden="true">▾</span>
+        </button>
+        <div class="wr-acc-b" :class="! open && 'closed'" x-on:click="open = false">
+          <div class="kt">Бўлимлар</div>
+          @php $allOn = $section === 'all' && $district === 'all'; @endphp
+          <button type="button" class="{{ $allOn ? 'on' : '' }}" aria-pressed="{{ $allOn ? 'true' : 'false' }}"
+                  wire:click="selectSection(@js('all'))">Барчаси<span class="n tnum">{{ $counts['all'] }}</span></button>
+          @foreach($sections as $s)
+            @php $on = $district === 'all' ? $section === (string) $s['no'] : $districtSectionNo === $s['no']; @endphp
+            <button type="button" class="{{ $on ? 'on' : '' }}" title="{{ $s['title'] }}"
+                    aria-pressed="{{ $on ? 'true' : 'false' }}"
+                    wire:click="selectSection(@js((string) $s['no']))">
+              <b>{{ $s['roman'] }}.</b> <span class="t">{{ $s['title'] }}</span><span class="n tnum">{{ $s['count'] }}</span>
+            </button>
+          @endforeach
+        </div>
       </nav>
 
       @if($districts->isNotEmpty())
-        <nav class="wr-kcard" aria-label="Туманлар">
-          <div class="kt">Туманлар</div>
-          @foreach($districts as $d)
-            @php $dOn = $district === (string) $d['code']; @endphp
-            <button type="button" class="wr-drow {{ $dOn ? 'on' : '' }}"
-                    title="{{ $d['count'] }} та чора-тадбир{{ $d['head'] ? ' · ' . $d['head'] : '' }}"
-                    aria-pressed="{{ $dOn ? 'true' : 'false' }}"
-                    wire:click="selectDistrict(@js((string) $d['code']))">
-              <span class="t">{{ $d['name'] }}</span>
-              <span class="mb" aria-hidden="true"><i style="width:{{ $d['pct'] ?? 0 }}%"></i></span>
-              <span class="p tnum">{{ $d['pct'] === null ? '—' : $d['pct'] . '%' }}</span>
-            </button>
-          @endforeach
+        <nav class="wr-kcard wr-acc" aria-label="Туманлар" x-data="{ open: false }">
+          <button type="button" class="wr-acc-h" x-on:click="open = ! open" :aria-expanded="open">
+            Туманлар<span class="cur">{{ $districtCur }}</span><span class="ar" :class="open && 'o'" aria-hidden="true">▾</span>
+          </button>
+          <div class="wr-acc-b" :class="! open && 'closed'" x-on:click="open = false">
+            <div class="kt">Туманлар</div>
+            @foreach($districts as $d)
+              @php $dOn = $district === (string) $d['code']; @endphp
+              <button type="button" class="wr-drow {{ $dOn ? 'on' : '' }}"
+                      title="{{ $d['count'] }} та чора-тадбир{{ $d['head'] ? ' · ' . $d['head'] : '' }}"
+                      aria-pressed="{{ $dOn ? 'true' : 'false' }}"
+                      wire:click="selectDistrict(@js((string) $d['code']))">
+                <span class="t">{{ $d['name'] }}</span>
+                <span class="mb" aria-hidden="true"><i style="width:{{ $d['pct'] ?? 0 }}%"></i></span>
+                <span class="p tnum">{{ $d['pct'] === null ? '—' : $d['pct'] . '%' }}</span>
+              </button>
+            @endforeach
+          </div>
         </nav>
       @endif
     </aside>
@@ -82,6 +103,7 @@
         <div class="wr-kpi ok"><b class="tnum">{{ $counts['done'] }}</b><span>бажарилди</span></div>
         <div class="wr-kpi wait"><b class="tnum">{{ $counts['in_progress'] }}</b><span>бажарилмоқда</span></div>
         <div class="wr-kpi bad"><b class="tnum">{{ $counts['open'] }}</b><span>бажарилмаган</span></div>
+        <div class="wr-kpi none"><b class="tnum">{{ $counts['no_report'] }}</b><span>маълумот киритилмаган</span></div>
       </div>
 
       @if($filtered)

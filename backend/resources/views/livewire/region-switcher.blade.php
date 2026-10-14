@@ -30,7 +30,7 @@
     </span>
     <button type="button" class="rs-btn" x-ref="btn" x-on:click="toggle()"
             aria-haspopup="listbox" :aria-expanded="open" aria-labelledby="region-switcher-label">
-        <span class="rs-cur">{{ $regions->firstWhere('code', $regionCode)?->name_full }}</span>
+        <span class="rs-cur">{{ $current->name_full }}</span>
         <svg class="rs-chev" :class="open && 'flip'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
         </svg>
