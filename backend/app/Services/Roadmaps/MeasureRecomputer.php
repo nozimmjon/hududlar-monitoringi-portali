@@ -36,7 +36,7 @@ final class MeasureRecomputer
      */
     public static function aggregate(array $lines, bool $deadlineReached): array
     {
-        $agg      = TaskStatus::aggregate($lines);          // weakest link: in_progress / done / open (no_report decided here + by recompute())
+        $agg      = TaskStatus::aggregate($lines);          // weakest link: in_progress / done / open — no_report is layered on below, and again in recompute() when latest_period is null
         $reported = false;
         $planned  = [];
         foreach ($lines as $l) {
@@ -59,7 +59,7 @@ final class MeasureRecomputer
 
         $status = $agg['status'];
         if ($agg['total'] === 0) {
-            $status = 'no_report';                            // nothing planned yet → nothing was ever entered
+            $status = 'no_report';                            // no line carries a plan this period → nothing plan-bearing was entered
         } elseif ($status === 'open' && ! $deadlineReached) {
             $status = 'in_progress';                          // running behind before the deadline = still in progress
         }
