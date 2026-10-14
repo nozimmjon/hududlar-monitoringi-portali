@@ -6646,15 +6646,15 @@ body.wr-body{display:block}
 .ad-upload .rep .ok{color:var(--ad-ink);font-weight:600;margin:0 0 8px}
 .ad-upload .rep .err{color:var(--task-red);font-weight:700;background:#FDECEA;border-radius:12px;padding:10px 12px;margin:0}
 .ad-upload .rep .warn{color:var(--ad-warn-ink);background:var(--ad-warn-bg);border-radius:12px;padding:8px 12px;margin:6px 0 0}
-/* Eight columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
+/* Nine columns in a 560px drawer: fixed layout with wrapping headers, so the labels stack instead
    of running into each other. The scroll wrapper stays only as a safety net for narrow phones. */
 .ad-upload .tbl{overflow-x:auto}
 .ad-upload table{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:14px;font-size:12px}
 .ad-upload th{font-size:10px;font-weight:800;line-height:1.15;text-transform:uppercase;letter-spacing:.04em;color:var(--ad-faint);text-align:left;vertical-align:bottom;white-space:normal;hyphens:auto;overflow-wrap:anywhere;padding:6px 7px;border-bottom:1px solid var(--ad-hair-strong)}
 .ad-upload td{padding:8px 7px;border-bottom:1px solid var(--ad-hair);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-upload th:first-child,.ad-upload td:first-child{width:30%}
+.ad-upload th:first-child,.ad-upload td:first-child{width:22%}
 .ad-upload td:first-child{white-space:normal;overflow-wrap:anywhere}
-.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:10%;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num)}
+.ad-upload th:not(:first-child),.ad-upload td:not(:first-child){width:9.75%;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num)}
 
 /* ===================== admin panel: its own shell (layouts/admin.blade.php) ===================== */
 /* No portal sidebar here, so body drops the two-column grid the portal layout needs. */

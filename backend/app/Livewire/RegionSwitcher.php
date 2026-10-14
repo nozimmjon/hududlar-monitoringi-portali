@@ -26,15 +26,21 @@ class RegionSwitcher extends Component
 
     public function render()
     {
-        $regions = CurrentRegion::regions();
+        $all     = CurrentRegion::regions();
+        $regions = $all;
         if ($this->roadmapsOnly) {
-            $withMaps = Roadmap::query()->distinct()->pluck('region_code');
-            $regions  = $regions->whereIn('code', $withMaps)->values();
+            $withMaps = Roadmap::query()
+                ->where('domain', RoadmapsPage::DOMAIN)
+                ->where('year', RoadmapsPage::YEAR)
+                ->distinct()
+                ->pluck('region_code');
+            $regions  = $all->whereIn('code', $withMaps)->values();
         }
 
         return view('livewire.region-switcher', [
             'regions' => $regions,
-            'current' => CurrentRegion::current(),
+            // from the already-fetched list: the session region may be filtered out of $regions
+            'current' => $all->firstWhere('code', CurrentRegion::code()) ?? CurrentRegion::current(),
         ]);
     }
 }
