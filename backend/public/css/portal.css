@@ -6325,6 +6325,7 @@ body.sectors-body{
   .wr-shell{grid-template-columns:1fr}
   .wr-rail{position:static;max-height:none;overflow:visible;padding:0;margin:0}
   .wr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wr-kpis > :last-child{grid-column:1/-1}
   .wr-mcard{grid-template-columns:44px minmax(0,1fr)}
 }
 @media (max-width:600px){

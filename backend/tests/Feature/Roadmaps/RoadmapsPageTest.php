@@ -282,6 +282,7 @@ test('measures without any entered data show the grey chip, the 5th rail filter 
     $response->assertSee('Маълумот киритилмаган');
     $response->assertSeeHtml('class="wr-status none"');
     $response->assertSee('маълумот киритилмаган');                       // KPI tile label
+    $response->assertSeeHtml('<div class="wr-kpi none"><b class="tnum">1</b>');  // Гурлан is the only no_report measure
     $response->assertDontSee('тадбирда индикатор йўқ');                  // hero note folded into the grey count
 
     Livewire::test(RoadmapsPage::class)
