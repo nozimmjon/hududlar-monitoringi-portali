@@ -294,3 +294,12 @@ test('measures without any entered data show the grey chip, the 5th rail filter 
     Livewire::withQueryParams(['holat' => 'no_report'])->test(RoadmapsPage::class)
         ->assertSet('status', 'no_report');
 });
+
+test('rail filter groups render the mobile accordion scaffolding', function () {
+    Session::put('region_code', 1733);
+    roadmapImportKhorezmPage();
+
+    $response = $this->get('/roadmaps');
+    $response->assertSeeHtml('wr-acc-h');
+    $response->assertSeeHtml('wr-acc-b');
+});
