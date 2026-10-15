@@ -6152,7 +6152,7 @@ body.sectors-body{
    on a ~720px viewport. The negative margin keeps the card shadows unclipped. */
 .wr-rail{
   display:flex;flex-direction:column;gap:14px;position:sticky;top:78px;
-  max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;
   padding:3px 6px 3px 3px;margin:-3px -6px -3px -3px;
 }
 .wr-search input{
